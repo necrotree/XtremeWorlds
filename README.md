@@ -4,6 +4,9 @@
 
 This repository contains both the **game client** and **game server**, allowing you to run your own local PlayerWorld and begin building your own MMORPG.
 
+We recommend TwinBasic for your IDE in Visual Basic 6.
+https://twinbasic.com/
+
 ## Getting Started
 
 ### 1. Clone the repository
