@@ -1,0 +1,92 @@
+[FormDesignerId("34DC6234-FCE3-43BD-9F1B-56FBD8CE59FB")]
+[ClassId("29BB872A-017D-49F8-881B-38C6CB959C31")]
+[InterfaceId("FE28C0FA-826E-4438-90A4-B554A6618F6A")]
+[EventInterfaceId("20E31626-DD08-41D1-BA7A-3AE6C8D9C709")]
+Class frmBugReport
+    Attribute VB_Name = "frmBugReport"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Public WithEvents txtBugReport As clsNativeRichText
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdSend_Click()
+        Dim BugType As Byte
+        Dim BugOccur As Byte
+        Dim BugRepeat As Byte
+    
+        If optMapping.Value = True Then
+            BugType = 1
+        ElseIf optProgramming.Value = True Then
+            BugType = 2
+        ElseIf optOther.Value = True Then
+            BugType = 3
+        End If
+    
+        If optOften.Value = True Then
+            BugOccur = 1
+        ElseIf optSometimes.Value = True Then
+            BugOccur = 2
+        ElseIf optOnce.Value = True Then
+            BugOccur = 3
+        End If
+    
+        BugRepeat = 1
+    
+        If LenB(Trim$(txtBugReport.Text)) > 0 Then
+            Call SendBugReport(Trim$(txtBugReport.Text), BugType, BugOccur, BugRepeat)
+            txtBugReport.Text = vbNullString
+            frmBugReport.Visible = False
+        End If
+    End Sub
+    
+    Private Sub Form_Load()
+        Set txtBugReport = New clsNativeRichText
+        txtBugReport.Attach hosttxtBugReport, False, 16777215, 6.75, "Tahoma"
+        Me.Caption = GAME_NAME & " : Bug Report"
+    End Sub
+    
+    Private Sub optMapping_Click()
+        optProgramming.Value = False
+        optOther.Value = False
+    End Sub
+    
+    Private Sub optNo_Click()
+        optYes.Value = False
+    End Sub
+    
+    Private Sub optOften_Click()
+        optSometimes.Value = False
+        optOnce.Value = False
+    End Sub
+    
+    Private Sub optOnce_Click()
+        optSometimes.Value = False
+        optOften.Value = False
+    End Sub
+    
+    Private Sub optOther_Click()
+        optMapping.Value = False
+        optProgramming.Value = False
+    End Sub
+    
+    Private Sub optProgramming_Click()
+        optMapping.Value = False
+        optOther.Value = False
+    End Sub
+    
+    Private Sub optSometimes_Click()
+        optOften.Value = False
+        optOnce.Value = False
+    End Sub
+    
+    Private Sub optYes_Click()
+        optNo.Value = False
+    End Sub
+    
+    
+
+End Class

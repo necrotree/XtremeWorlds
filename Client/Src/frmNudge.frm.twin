@@ -1,0 +1,29 @@
+[FormDesignerId("66A5EECF-AD50-4E36-B95D-156A72FF4A7D")]
+[ClassId("EEB91B51-3CC0-4E30-A2A0-D1542DBAA151")]
+[InterfaceId("2F115790-CDF6-4D48-ACF6-2F5EC12FB200")]
+[EventInterfaceId("65EDD250-8D4D-42C1-999C-D531DB26C900")]
+Class frmMapNudge
+    Attribute VB_Name = "frmMapNudge"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private Sub Command1_Click()
+        EditorNudge = scrlDir.Value
+    End Sub
+    
+    Private Sub scrlDir_Change()
+        Select Case scrlDir.Value
+            Case 0
+                lblDir.Caption = "Up"
+            Case 1
+                lblDir.Caption = "Down"
+            Case 2
+                lblDir.Caption = "Left"
+            Case 3
+                lblDir.Caption = "Right"
+        End Select
+    End Sub
+    
+
+End Class

@@ -1,0 +1,66 @@
+Module modServerTCP
+    Option Explicit
+    Public GAME_PORT As Long
+    Public Const SocketShutdownBoth As Long = 2
+    Public GameServer As clsServer
+    Private accepted As Long
+    Private disconnected As Long
+    Private totalBytes As Long
+    Private failure As String
+    Public Sub AcceptConnection(ByVal socket As clsNativeConnection)
+        Dim index As Long
+        For index = 1 To 3
+            If GameServer.Sockets(index).Socket Is Nothing Then
+                socket.UserData = index
+                Set GameServer.Sockets(index).Socket = socket
+                socket.RequestRead
+                accepted += 1
+                Exit Sub
+            End If
+        Next
+        socket.Close
+    End Sub
+    Public Sub IncomingData(ByVal socket As clsNativeConnection, ByVal packet As clsNativePacket)
+        Dim bytes() As Byte = packet.Read
+        totalBytes += UBound(bytes) + 1
+        socket.Write bytes
+    End Sub
+    Public Sub CloseSocket(ByVal index As Long)
+        GameServer.Sockets(index).CloseSocket
+        disconnected += 1
+    End Sub
+    Public Sub Main()
+        Dim index As Long
+        Dim deadline As LongLong
+        Dim report As String
+        Dim fileNumber As Integer
+        On Error GoTo Failed
+        GAME_PORT = 19386
+        Set GameServer = New clsServer
+        For index = 1 To 3
+            GameServer.Sockets.Add CStr(index)
+        Next
+        GameServer.StartListening
+        deadline = WinDevLib.GetTickCount64() + 25000
+        Do While disconnected < 3 And WinDevLib.GetTickCount64() < deadline
+            GameServer.Poll
+            DoEvents
+            WinDevLib.Sleep 1
+        Loop
+        If accepted <> 3 Or disconnected <> 3 Then Err.Raise 5, "Socket test", "Accept/disconnect counts: " & accepted & "/" & disconnected
+        If totalBytes <> 3 * 524288 Then Err.Raise 5, "Socket test", "Wrong byte count: " & totalBytes
+        GameServer.StopListening
+        GameServer.StartListening
+        GameServer.StopListening
+        report = "PASS: three concurrent clients; 1.5 MiB binary echo; disconnect callbacks; listener stop/restart."
+        GoTo Finished
+Failed:
+        report = "FAIL: " & Err.Number & " " & Err.Description & " (accepted=" & accepted & ", disconnected=" & disconnected & ", bytes=" & totalBytes & ")"
+Finished:
+        fileNumber = FreeFile
+        Open App.Path & "\ServerSocket-smoke-result.txt" For Output As #fileNumber
+        Print #fileNumber, report
+        Close #fileNumber
+        Set GameServer = Nothing
+    End Sub
+End Module

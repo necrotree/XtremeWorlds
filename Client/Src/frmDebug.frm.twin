@@ -1,0 +1,15 @@
+[FormDesignerId("3220529F-1F12-418A-8BEA-58C08549F752")]
+[ClassId("AFCC64E8-8D28-45FD-A819-EA41BB6F31F9")]
+[InterfaceId("109019D2-F677-4314-BAE1-349D72A51596")]
+[EventInterfaceId("AE692268-65FA-4FFB-AACA-FDAA5B225BA6")]
+Class frmDebug
+    Attribute VB_Name = "frmDebug"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    
+
+End Class

@@ -1,0 +1,74 @@
+[FormDesignerId("56E4B957-CE62-481A-8919-25ACBC2140D4")]
+[ClassId("2988962A-A450-4352-8F24-9849494BBAA1")]
+[InterfaceId("52998239-3754-4D3B-A1AF-53579D19A7B1")]
+[EventInterfaceId("F6B5196F-C7CF-4835-BA47-9B8C9C9C5B85")]
+Class frmOptions
+    Attribute VB_Name = "frmOptions"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private NpcName As Byte, PlayerName As Byte, Music As Byte, Sound As Byte
+    ' 0 = Off, 1 = On, 2 = Mouse
+    
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub optMusicOff_Click()
+        GameData.Music = 0
+    End Sub
+    
+    Private Sub optMusicOn_Click()
+        GameData.Music = 1
+    End Sub
+    
+    Private Sub optNPCMouse_Click()
+        GameData.NpcNames = 2
+    End Sub
+    
+    Private Sub optNPCOff_Click()
+        GameData.NpcNames = 0
+    End Sub
+    
+    Private Sub optNPCOn_Click()
+        GameData.NpcNames = 1
+    End Sub
+    
+    Private Sub optPlayerMouse_Click()
+        GameData.PlayerNames = 2
+    End Sub
+    
+    Private Sub optPlayerOff_Click()
+        GameData.PlayerNames = 0
+    End Sub
+    
+    Private Sub optPlayerOn_Click()
+        GameData.PlayerNames = 1
+    End Sub
+    
+    Private Sub optSoundOff_Click()
+        GameData.Sound = 0
+    End Sub
+    
+    Private Sub optSoundOn_Click()
+        GameData.Sound = 1
+    End Sub
+    
+    Private Sub cmdSave_Click()
+        Dim FileName As String
+        FileName = App.Path & DATA_PATH & "Data.dat"
+        Dim F  As Long
+        F = FreeFile
+        Open FileName For Binary As #F
+        Put #F, , GameData
+        Close #F
+        Unload Me
+    End Sub
+    
+    Private Sub Form_Load()
+        frmMainGame.txtMyTextBox.Text = vbNullString
+    End Sub
+    
+
+End Class

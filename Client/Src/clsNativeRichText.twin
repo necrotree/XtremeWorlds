@@ -1,0 +1,109 @@
+Class clsNativeRichText
+    Option Explicit
+    Private mWindow As LongPtr
+    Private mHost As LongPtr
+    Private mBackColor As Long
+
+    Public Event GotFocus()
+
+    Public Sub Attach(ByVal host As Object, ByVal readOnly As Boolean, ByVal background As Long, ByVal pointSize As Single, Optional ByVal fontName As String = "MS Sans Serif")
+        Dim bounds As WinDevLib.RECT
+        Dim style As Long
+        Dim format As WinDevLib.CHARFORMAT2W
+        If NativeRichEditLibrary = 0 Then NativeRichEditLibrary = WinDevLib.LoadLibrary("msftedit.dll")
+        If NativeRichEditLibrary = 0 Then Err.Raise 53, , "Cannot load Windows Rich Edit."
+        mHost = host.hWnd
+        WinDevLib.GetClientRect mHost, bounds
+        style = WinDevLib.WS_CHILD Or WinDevLib.WS_VISIBLE Or WinDevLib.WS_TABSTOP Or WinDevLib.WS_VSCROLL Or WinDevLib.ES_MULTILINE Or WinDevLib.ES_AUTOVSCROLL
+        If readOnly Then style = style Or WinDevLib.ES_READONLY
+        mWindow = WinDevLib.CreateWindowEx(0, "RICHEDIT50W", "", style, 0, 0, bounds.Right, bounds.Bottom, mHost, 0, 0, ByVal vbNullPtr)
+        If mWindow = 0 Then Err.Raise 5, , "Cannot create Windows Rich Edit."
+        RegisterNativeWindow mWindow, Me
+        RegisterNativeWindow mHost, Me
+        BackColor = background
+        format.cbSize = LenB(format)
+        format.dwMask = WinDevLib.CFM_SIZE Or WinDevLib.CFM_FACE
+        format.yHeight = CLng(pointSize * 20)
+        fontName = Left$(fontName, 31)
+        WinDevLib.CopyMemory format.szFaceName(0), ByVal StrPtr(fontName), LenB(fontName)
+        WinDevLib.SendMessage mWindow, WinDevLib.EM_SETCHARFORMAT, 0, format
+        WinDevLib.SendMessageLong mWindow, WinDevLib.EM_EXLIMITTEXT, 0, &H7FFFFFFF
+    End Sub
+
+    Public Sub WindowMessage(ByVal window As LongPtr, ByVal message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr)
+        Dim bounds As WinDevLib.RECT
+        If window = mHost And message = WinDevLib.WM_SIZE Then
+            WinDevLib.GetClientRect mHost, bounds
+            WinDevLib.MoveWindow mWindow, 0, 0, bounds.Right, bounds.Bottom, True
+        ElseIf window = mWindow And message = WinDevLib.WM_SETFOCUS Then
+            RaiseEvent GotFocus
+        ElseIf message = WinDevLib.WM_NCDESTROY Then
+            If window = mWindow Then mWindow = 0
+            If window = mHost Then mHost = 0
+        End If
+    End Sub
+
+    Public Property Get hWnd() As LongPtr
+        Return mWindow
+    End Property
+    Public Property Get Text() As String
+        Dim length As Long = WinDevLib.SendMessageLong(mWindow, WinDevLib.WM_GETTEXTLENGTH, 0, 0)
+        Dim buffer As String = String$(length + 1, vbNullChar)
+        length = WinDevLib.SendMessageLong(mWindow, WinDevLib.WM_GETTEXT, length + 1, StrPtr(buffer))
+        Return Left$(buffer, length)
+    End Property
+    Public Property Let Text(ByVal value As String)
+        WinDevLib.SendMessageLong mWindow, WinDevLib.WM_SETTEXT, 0, StrPtr(value)
+    End Property
+    Public Property Let BackColor(ByVal value As Long)
+        mBackColor = value
+        WinDevLib.SendMessageLong mWindow, WinDevLib.EM_SETBKGNDCOLOR, 0, value
+    End Property
+    Public Property Get BackColor() As Long
+        Return mBackColor
+    End Property
+    Public Property Let SelStart(ByVal value As Long)
+        Dim selection As WinDevLib.CHARRANGE
+        selection.cpMin = value
+        selection.cpMax = value
+        WinDevLib.SendMessage mWindow, WinDevLib.EM_EXSETSEL, 0, selection
+        WinDevLib.SendMessageLong mWindow, WinDevLib.EM_SCROLLCARET, 0, 0
+    End Property
+    Public Property Let SelColor(ByVal value As Long)
+        Dim format As WinDevLib.CHARFORMAT2W
+        format.cbSize = LenB(format)
+        format.dwMask = WinDevLib.CFM_COLOR
+        format.crTextColor = value
+        WinDevLib.SendMessage mWindow, WinDevLib.EM_SETCHARFORMAT, WinDevLib.SCF_SELECTION, format
+    End Property
+    Public Property Let SelText(ByVal value As String)
+        WinDevLib.SendMessageLong mWindow, WinDevLib.EM_REPLACESEL, 0, StrPtr(value)
+    End Property
+    Public Property Let SelAlignment(ByVal value As Long)
+        Dim format As WinDevLib.PARAFORMAT
+        format.cbSize = LenB(format)
+        format.dwMask = WinDevLib.PFM_ALIGNMENT
+        Select Case value
+            Case 1: format.wAlignment = 2
+            Case 2: format.wAlignment = 3
+            Case Else: format.wAlignment = 1
+        End Select
+        WinDevLib.SendMessage mWindow, WinDevLib.EM_SETPARAFORMAT, 0, format
+    End Property
+    Public Property Let SelHangingIndent(ByVal value As Long)
+        Dim format As WinDevLib.PARAFORMAT
+        format.cbSize = LenB(format)
+        format.dwMask = WinDevLib.PFM_OFFSET
+        format.dxOffset = value
+        WinDevLib.SendMessage mWindow, WinDevLib.EM_SETPARAFORMAT, 0, format
+    End Property
+    Public Sub LoadFile(ByVal path As String)
+        Dim fileNumber As Integer = FreeFile
+        Dim contents As String
+        Open path For Binary Access Read As #fileNumber
+        contents = Space$(LOF(fileNumber))
+        Get #fileNumber, , contents
+        Close #fileNumber
+        Text = contents
+    End Sub
+End Class

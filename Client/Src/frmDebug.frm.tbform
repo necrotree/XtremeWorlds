@@ -1,0 +1,92 @@
+[
+    {
+        "Visible":  0,
+        "StartUpPosition":  2,
+        "ShowInTaskbar":  0,
+        "ScaleWidth":  473,
+        "ScaleMode":  3,
+        "ScaleHeight":  481,
+        "MinButton":  0,
+        "MaxButton":  0,
+        "LinkTopic":  "Form1",
+        "Icon":  "AAABAAEAICAQAAAAAADoAgAAFgAAACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAwMDAAICAgAAAAP8AAP8AAAD//wD/AAAA/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMzMzMzAAAAAAAAAAAAMzMzMzMzMzMAAAAAAAAAAzMzM7u7u7MzMAAAAAAAAzMzO7v////7uzMAAAAAADMzO7////////+zAAAAADMzM7v/////////swAAAAMzM7u//////////7MAAAADMzu//////////7uzAAAAAzO7//////////u7MwAAAAMzv////7u7u7u7MzAAAAADM7///7uzMzMzMzMAAAAAAzO///szMzMzMzMAAAAAAAMzv//7MAAAAAAAAAAAAAADM7v/+wAAAAAAAAAAAAAAADM7v/uwAAAAAAAAAAAAAAADM7u/uzAAAAAAAAAAAAAAADMzu/+7AAAAAAAAAAAAAAAAMzu7/7MAAAAAAAAAAAAAAAAzM7u7MAAAAAAAAAAAAAAAADMzO7MwAAAAAAAAAAAAAAAAAzMzMzAAAAAAAAAAAAAAAAAAAzMzMwAAAAAAAAAAAAAAAAAAAAMzMwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//////////////////////////////////wA///AAD//gAAf/gAAD/wAAA/wAAAP4AAAD+AAAA/gAAAP4AAAH+AAAD/gAAD/4Af//+AP///wB///+AH///wA////AD///8Af///wB////gH////gP////4P///////////////w0K",
+        "FontStrikethru":  0,
+        "FontItalic":  0,
+        "FontUnderline":  0,
+        "FontBold":  false,
+        "FontCharset":  0,
+        "FontSize":  6.75,
+        "FontName":  "Tahoma",
+        "ControlBox":  0,
+        "ClientWidth":  7095,
+        "ClientTop":  210,
+        "ClientLeft":  105,
+        "ClientHeight":  7215,
+        "Caption":  "Debug",
+        "BorderStyle":  4,
+        "_clsid":  "{33AD4F38-6699-11CF-B70C-00AA0060D393}",
+        "FormDesignerId":  "{3220529F-1F12-418A-8BEA-58C08549F752}",
+        "Width":  473,
+        "Height":  481,
+        "Name":  "frmDebug",
+        "_children":  [
+                          {
+                              "Width":  457,
+                              "Top":  8,
+                              "TabIndex":  0,
+                              "Left":  8,
+                              "Height":  465,
+                              "FontName":  "Tahoma",
+                              "FontSize":  6.75,
+                              "FontBold":  false,
+                              "FontUnderline":  0,
+                              "FontItalic":  0,
+                              "FontStrikethru":  0,
+                              "_className":  "Frame",
+                              "Name":  "SSTab1",
+                              "_children":  [
+                                                {
+                                                    "Width":  441,
+                                                    "Top":  16,
+                                                    "TabIndex":  1,
+                                                    "Left":  8,
+                                                    "Height":  441,
+                                                    "Caption":  "Debug",
+                                                    "FontName":  "Tahoma",
+                                                    "FontSize":  6.75,
+                                                    "FontBold":  false,
+                                                    "FontUnderline":  0,
+                                                    "FontItalic":  0,
+                                                    "FontStrikethru":  0,
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "Frame1",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  425,
+                                                                          "Top":  16,
+                                                                          "TabIndex":  2,
+                                                                          "ScrollBars":  2,
+                                                                          "MultiLine":  -1,
+                                                                          "Left":  8,
+                                                                          "Height":  417,
+                                                                          "FontStrikethru":  0,
+                                                                          "FontItalic":  0,
+                                                                          "FontUnderline":  0,
+                                                                          "FontBold":  false,
+                                                                          "FontCharset":  0,
+                                                                          "FontSize":  8.25,
+                                                                          "FontName":  "MS Sans Serif",
+                                                                          "_clsid":  "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "TextBox",
+                                                                          "Name":  "txtDebug"
+                                                                      }
+                                                                  ]
+                                                }
+                                            ],
+                              "Caption":  "Debug",
+                              "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}"
+                          }
+                      ]
+    }
+]

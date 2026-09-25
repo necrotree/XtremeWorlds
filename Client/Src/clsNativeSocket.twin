@@ -1,0 +1,213 @@
+Class clsNativeSocket
+    Option Explicit
+    Public RemoteHost As String
+    Public RemotePort As Long
+    Public Event DataArrival(ByVal bytesTotal As Long)
+    Private mState As Long
+    Private mSocket As LongPtr = -1
+    Private mWindow As LongPtr
+    Private mOwner As LongPtr
+    Private mStarted As Boolean
+    Private mResolve As LongPtr
+    Private mHostBuffer(0 To 4095) As Byte
+    Private mReceived As String
+    Private mSend() As Byte
+    Private mSendLength As Long
+    Private mSendOffset As Long
+    Public LastError As Long
+
+    Public Sub Attach(ByVal owner As LongPtr)
+        mOwner = owner
+    End Sub
+    Public Property Get State() As Long
+        Return mState
+    End Property
+    Public Sub Connect()
+        Dim data As WinDevLib.WSADATA
+        Dim address As Long
+        Me.Close
+        LastError = 0
+        If RemotePort < 1 Or RemotePort > 65535 Then
+            LastError = 10022
+            mState = 9
+            Exit Sub
+        End If
+        LastError = WinDevLib.WSAStartup(&H202, data)
+        If LastError <> 0 Then
+            mState = 9
+            Exit Sub
+        End If
+        mStarted = True
+        mWindow = WinDevLib.CreateWindowEx(0, "STATIC", "", WinDevLib.WS_CHILD, 0, 0, 0, 0, mOwner, 0, 0, ByVal vbNullPtr)
+        If mWindow = 0 Then
+            Fail 10022
+            Exit Sub
+        End If
+        RegisterNativeWindow mWindow, Me
+
+        address = WinDevLib.ws_inet_addr(RemoteHost)
+        If address <> -1 Then
+            ConnectAddress address
+        Else
+            mState = 4
+            mResolve = WinDevLib.WSAAsyncGetHostByName(mWindow, NativeResolveMessage, RemoteHost, mHostBuffer(0), 4096)
+            If mResolve = 0 Then Fail WinDevLib.WSAGetLastError()
+        End If
+    End Sub
+    Private Sub ConnectAddress(ByVal address As Long)
+        Dim endpoint As WinDevLib.SOCKADDR_IN
+        Dim result As Long
+        mSocket = WinDevLib.ws_socket(WinDevLib.AF_INET, WinDevLib.SOCK_STREAM, WinDevLib.IPPROTO_TCP)
+        If mSocket = -1 Then
+            Fail WinDevLib.WSAGetLastError()
+            Exit Sub
+        End If
+        result = WinDevLib.WSAAsyncSelect(mSocket, mWindow, NativeSocketMessage, WinDevLib.FD_CONNECT Or WinDevLib.FD_READ Or WinDevLib.FD_WRITE Or WinDevLib.FD_CLOSE)
+        If result <> 0 Then
+            Fail WinDevLib.WSAGetLastError()
+            Exit Sub
+        End If
+        endpoint.sin_family = WinDevLib.AF_INET
+        endpoint.sin_port = WinDevLib.ws_htons(RemotePort)
+        WinDevLib.CopyMemory endpoint.sin_addr, address, 4
+        mState = 6
+        result = WinDevLib.ws_connect(mSocket, endpoint, LenB(endpoint))
+        If result = 0 Then
+            mState = sckConnected
+        Else
+            result = WinDevLib.WSAGetLastError()
+            If result <> WinDevLib.WSAEWOULDBLOCK Then Fail result
+        End If
+    End Sub
+    Public Sub Close()
+        If mWindow <> 0 Then
+            WinDevLib.DestroyWindow mWindow
+            mWindow = 0
+        End If
+        ReleaseSocket
+        mState = 0
+        mReceived = ""
+        mSendLength = 0
+        mSendOffset = 0
+        Erase mSend
+    End Sub
+    Private Sub ReleaseSocket()
+        If mResolve <> 0 Then
+            WinDevLib.WSACancelAsyncRequest mResolve
+            mResolve = 0
+        End If
+        If mSocket <> -1 Then
+            WinDevLib.ws_closesocket mSocket
+            mSocket = -1
+        End If
+        If mStarted Then
+            WinDevLib.WSACleanup
+            mStarted = False
+        End If
+    End Sub
+    Private Sub Fail(ByVal errorCode As Long)
+        Me.Close
+        LastError = errorCode
+        mState = 9
+    End Sub
+    Public Sub WindowMessage(ByVal window As LongPtr, ByVal message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr)
+        Dim errorCode As Long = (lParam \ &H10000) And &HFFFF&
+        Dim host As WinDevLib.hostent
+        Dim pointer As LongPtr
+        Dim address As Long
+        If message = WinDevLib.WM_NCDESTROY Then
+            ReleaseSocket
+            mWindow = 0
+            mState = 0
+        ElseIf message = NativeResolveMessage And wParam = mResolve Then
+            mResolve = 0
+            If errorCode <> 0 Then
+                Fail errorCode
+                Exit Sub
+            End If
+            WinDevLib.CopyMemory host, mHostBuffer(0), LenB(host)
+            If host.h_addr_list = 0 Or host.h_length <> 4 Then
+                Fail 11001
+                Exit Sub
+            End If
+            WinDevLib.CopyMemory pointer, ByVal host.h_addr_list, LenB(pointer)
+            If pointer = 0 Then
+                Fail 11001
+                Exit Sub
+            End If
+            WinDevLib.CopyMemory address, ByVal pointer, 4
+            ConnectAddress address
+        ElseIf message = NativeSocketMessage And wParam = mSocket Then
+            If errorCode <> 0 Then
+                Fail errorCode
+                Exit Sub
+            End If
+            Select Case lParam And &HFFFF&
+                Case WinDevLib.FD_CONNECT
+                    mState = sckConnected
+                    FlushSend
+                Case WinDevLib.FD_READ
+                    ReceiveAvailable
+                Case WinDevLib.FD_WRITE
+                    FlushSend
+                Case WinDevLib.FD_CLOSE
+                    ReceiveAvailable
+                    Me.Close
+            End Select
+        End If
+    End Sub
+    Private Sub ReceiveAvailable()
+        Dim buffer(0 To 8191) As Byte
+        Dim count As Long
+        Dim bytes() As Byte
+        Do While mSocket <> -1
+            count = WinDevLib.ws_recv(mSocket, buffer(0), 8192, 0)
+            If count <= 0 Then
+                If count < 0 Then
+                    count = WinDevLib.WSAGetLastError()
+                    If count <> WinDevLib.WSAEWOULDBLOCK Then Fail count
+                Else
+                    Me.Close
+                End If
+                Exit Sub
+            End If
+            ReDim bytes(0 To count - 1)
+            WinDevLib.CopyMemory bytes(0), buffer(0), count
+            mReceived = mReceived & StrConv(bytes, vbUnicode)
+            RaiseEvent DataArrival(Len(mReceived))
+        Loop
+    End Sub
+    Public Sub GetData(ByRef buffer As String, ByVal dataType As Long, ByVal maxLength As Long)
+        buffer = Left$(mReceived, maxLength)
+        mReceived = Mid$(mReceived, Len(buffer) + 1)
+    End Sub
+    Public Sub SendData(ByVal data As String)
+        Dim bytes() As Byte
+        Dim count As Long
+        If mState <> sckConnected Or Len(data) = 0 Then Exit Sub
+        bytes = StrConv(data, vbFromUnicode)
+        count = UBound(bytes) + 1
+        ReDim Preserve mSend(0 To mSendLength + count - 1)
+        WinDevLib.CopyMemory mSend(mSendLength), bytes(0), count
+        mSendLength += count
+        FlushSend
+    End Sub
+    Private Sub FlushSend()
+        Dim count As Long
+        Do While mState = sckConnected And mSendOffset < mSendLength
+            count = WinDevLib.ws_send(mSocket, mSend(mSendOffset), mSendLength - mSendOffset, 0)
+            If count < 0 Then
+                count = WinDevLib.WSAGetLastError()
+                If count <> WinDevLib.WSAEWOULDBLOCK Then Fail count
+                Exit Sub
+            End If
+            If count = 0 Then Exit Sub
+            mSendOffset += count
+        Loop
+        If mSendOffset = mSendLength Then
+            mSendLength = 0
+            mSendOffset = 0
+            Erase mSend
+        End If
+    End Sub
+End Class

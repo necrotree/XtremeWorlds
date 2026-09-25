@@ -1,0 +1,101 @@
+Here is a list of items that must be changed in order to merge the Auto Patcher into 
+your game.  Any problems, email x-net@swbell.net
+
+
+1. Cancel Button:  Unload the starting form since this form was called from it.
+
+2. Done Button: Make your starting form visible after patching is done
+
+3. General > VerifyDirectorys Function:  Place any directorys you wish to have created if a (new game install) in this function to avoid errors
+
+4. General > Declaractions:  Change the Web server to the web address you will be using that holds your update files
+
+5. General > StartUpdate:  Add your games main form to the error handler unload statement
+
+
+After changing these 5 areas,  You SHOULD put the autopatcher in your main forms
+Form_Load as it looks below.  Run it first before you do anything else.  
+
+
+Private Sub Form_Load()
+  frmMain.Visible = False 'First Line
+  frmAutoPatcher.Show 'Second Line
+  ..Rest of your load Code..
+End Sub
+
+
+
+======================================================================================
+
+OK NOW TO EXPLAIN THE UPDATE.TXT FILE!
+
+
+Welcome to YOUR online game.  Checking for updates, please stand by.
+\maps\map_0.dat, map_0.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_0.dat
+\maps\map_1.dat, map_1.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_1.dat
+\maps\map_2.dat, map_2.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_2.dat
+\maps\map_3.dat, map_3.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_3.dat
+
+
+
+Ok first some basic rules in creating this update.txt file..  I suggest using windows
+notepad and turning OFF wordwrap (Edit>Word Wrap).  It's very important that you follow
+the exact structure or you will error out..
+
+
+The first line is the NEWS or Message of the day, Use it to display any changes to your
+game or just to say hi.  This has to be on the first line.
+1: "Welcome to YOUR Online game.  Checking for updates, please stand by."
+
+
+Ok now lets break down the actual Meat of the file update lines. The rest of the lines
+are the actual update information.  Each line represents one file to update/patch.
+\maps\map_0.dat, map_0.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_0.dat
+
+This update.txt downloads 4 new or modified map files.  There is 4 sections per line
+split with a comma and space ", ".  The first part "\maps\map_0.dat" is the actual
+location this file will be downloaded to using the App.Path as the root.  So if your game is in
+C:\MYGAME,  It will download to C:\MYGAME\MAPS\MAP_0.DAT.  
+
+
+The second part  map_0.xvx   is the name of the file that gets stored in the App.Path\update
+directory.  These files are timestamped.  the filename must be named the same as the actual
+file you are updating but with the .xvx extension.  These files are used to keep track of 
+what updates the player has already downloaded.  
+
+
+The Third Part   1/20/01 1:47:21 AM  is the timestamp (time) you posted the file.  If at anytime you
+make a new update available, just change this to the current time and when people log into
+your game, it will compare the new time to the old updated time and download all files that
+have different times.  MAKE sure you use this time Format
+
+
+The Forth and Final Part     http://www.yoursite.com/files/map_0.dat
+This is the actual location the updater can find the file.  
+
+Keep it in this format and you won't have any problems..  
+
+
+
+=============================================================================
+
+NOW THE LAST BUT MOST IMPORTANT THING!!!
+
+Ok when you are done modifying/creating a update.txt file in NOTEPAD.  BEFORE you save it,
+You MUST place your cursor right below the last line of text.  Make Sense?  If you don't it 
+will error out because all the information is parsed with vbCrLf and counted.  So before you,
+Make it look like this
+
+
+
+Welcome to YOUR online game.  Checking for updates, please stand by.
+\maps\map_0.dat, map_0.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_0.dat
+\maps\map_1.dat, map_1.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_1.dat
+\maps\map_2.dat, map_2.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_2.dat
+\maps\map_3.dat, map_3.xvx, 1/20/01 1:47:21 AM, http://www.yoursite.com/files/map_3.dat
+|<--------YOUR CURSOR MUST BE THERE!!!
+
+
+
+
+

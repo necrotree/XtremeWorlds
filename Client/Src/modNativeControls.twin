@@ -1,0 +1,40 @@
+Module modNativeControls
+    Option Explicit
+    Public NativeRichEditLibrary As LongPtr
+    Public NativeCallbackError As String
+    Private Windows As New Collection
+    Public Const NativeSocketMessage As Long = &H8001&
+    Public Const NativeResolveMessage As Long = &H8002&
+    Public Const sckConnected As Long = 7
+
+    Public Sub RegisterNativeWindow(ByVal hwnd As LongPtr, ByVal owner As Object)
+        Windows.Add owner, CStr(hwnd)
+        If WinDevLib.SetWindowSubclass(hwnd, AddressOf NativeWindowProc, 1, 0) = 0 Then
+            Windows.Remove CStr(hwnd)
+            Err.Raise 5, , "Cannot subclass native control."
+        End If
+    End Sub
+
+    Public Function NativeWindowProc(ByVal hwnd As LongPtr, ByVal message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr, ByVal subclassId As LongPtr, ByVal reference As LongPtr) As LongPtr
+        Dim owner As Object
+        On Error GoTo DefaultProcessing
+        Set owner = Windows(CStr(hwnd))
+        If TypeOf owner Is clsNativeSocket Then
+            Dim socket As clsNativeSocket
+            Set socket = owner
+            socket.WindowMessage hwnd, message, wParam, lParam
+        ElseIf TypeOf owner Is clsNativeRichText Then
+            Dim editor As clsNativeRichText
+            Set editor = owner
+            editor.WindowMessage hwnd, message, wParam, lParam
+        End If
+DefaultProcessing:
+        If Err.Number <> 0 Then NativeCallbackError = CStr(message) & ": " & Err.Number & " " & Err.Description
+        If message = WinDevLib.WM_NCDESTROY Then
+            WinDevLib.RemoveWindowSubclass hwnd, AddressOf NativeWindowProc, 1
+            On Error Resume Next
+            Windows.Remove CStr(hwnd)
+        End If
+        NativeWindowProc = WinDevLib.DefSubclassProc(hwnd, message, wParam, lParam)
+    End Function
+End Module

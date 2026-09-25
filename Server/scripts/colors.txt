@@ -1,0 +1,16 @@
+Public Const BLACK = 0
+Public Const BLUE = 1
+Public Const GREEN = 2
+Public Const CYAN = 3
+Public Const RED = 4
+Public Const MAGENTA = 5
+Public Const BROWN = 6
+Public Const GREY = 7
+Public Const DARKGREY = 8
+Public Const BRIGHTBLUE = 9
+Public Const BRIGHTGREEN = 10
+Public Const BRIGHTCYAN = 11
+Public Const BRIGHTRED = 12
+Public Const PINK = 13
+Public Const YELLOW = 14
+Public Const white = 15

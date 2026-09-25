@@ -1,0 +1,464 @@
+[
+    {
+        "ShowInTaskbar":  0,
+        "ScaleWidth":  7695,
+        "ScaleHeight":  3375,
+        "MaxButton":  0,
+        "LinkTopic":  "Form1",
+        "Icon":  "AAABAAEAICAQAAAAAADoAgAAFgAAACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAwMDAAICAgAAAAP8AAP8AAAD//wD/AAAA/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMzMzMzAAAAAAAAAAAAMzMzMzMzMzMAAAAAAAAAAzMzM7u7u7MzMAAAAAAAAzMzO7v////7uzMAAAAAADMzO7////////+zAAAAADMzM7v/////////swAAAAMzM7u//////////7MAAAADMzu//////////7uzAAAAAzO7//////////u7MwAAAAMzv////7u7u7u7MzAAAAADM7///7uzMzMzMzMAAAAAAzO///szMzMzMzMAAAAAAAMzv//7MAAAAAAAAAAAAAADM7v/+wAAAAAAAAAAAAAAADM7v/uwAAAAAAAAAAAAAAADM7u/uzAAAAAAAAAAAAAAADMzu/+7AAAAAAAAAAAAAAAAMzu7/7MAAAAAAAAAAAAAAAAzM7u7MAAAAAAAAAAAAAAAADMzO7MwAAAAAAAAAAAAAAAAAzMzMzAAAAAAAAAAAAAAAAAAAzMzMwAAAAAAAAAAAAAAAAAAAAMzMwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//////////////////////////////////wA///AAD//gAAf/gAAD/wAAA/wAAAP4AAAD+AAAA/gAAAP4AAAH+AAAD/gAAD/4Af//+AP///wB///+AH///wA////AD///8Af///wB////gH////gP////4P///////////////w0K",
+        "ClientWidth":  7695,
+        "ClientTop":  4335,
+        "ClientLeft":  4965,
+        "ClientHeight":  3375,
+        "Caption":  "Playerworlds Server",
+        "FontName":  "MS Sans Serif",
+        "_clsid":  "{33AD4F38-6699-11CF-B70C-00AA0060D393}",
+        "FormDesignerId":  "{C1E8B8C8-8882-4B88-AD3B-82B138B0E420}",
+        "Width":  513,
+        "Height":  225,
+        "Name":  "frmServer",
+        "_children":  [
+                          {
+                              "Visible":  0,
+                              "Caption":  "\u0026Players",
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Menu",
+                              "Name":  "mnuPlayers",
+                              "_children":  [
+                                                {
+                                                    "Caption":  "\u0026Ban",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuBan"
+                                                },
+                                                {
+                                                    "Caption":  "\u0026Kick",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuKick"
+                                                },
+                                                {
+                                                    "Caption":  "\u0026Mute",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuMute"
+                                                },
+                                                {
+                                                    "Caption":  "\u0026Warn",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuWarn"
+                                                }
+                                            ]
+                          },
+                          {
+                              "Caption":  "\u0026Log",
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Menu",
+                              "Name":  "mnuLog",
+                              "_children":  [
+                                                {
+                                                    "Checked":  -1,
+                                                    "Caption":  "Server L\u0026og",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuServerLog"
+                                                }
+                                            ]
+                          },
+                          {
+                              "Caption":  "\u0026Database",
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Menu",
+                              "Name":  "mnuDatabase",
+                              "_children":  [
+                                                {
+                                                    "Caption":  "Reload \u0026Scripts",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuReloadScripts"
+                                                },
+                                                {
+                                                    "Caption":  "Reload \u0026Classes",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuReloadClasses"
+                                                },
+                                                {
+                                                    "Caption":  "Set \u0026Access",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuSetAccess"
+                                                }
+                                            ]
+                          },
+                          {
+                              "Caption":  "\u0026File",
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Menu",
+                              "Name":  "mnuFile",
+                              "_children":  [
+                                                {
+                                                    "Caption":  "\u0026Exit",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuExit"
+                                                },
+                                                {
+                                                    "Caption":  "\u0026Reboot",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuServerReboot"
+                                                },
+                                                {
+                                                    "Caption":  "\u0026Shutdown",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Menu",
+                                                    "Name":  "mnuShutdown"
+                                                }
+                                            ]
+                          },
+                          {
+                              "Width":  121,
+                              "Top":  200,
+                              "TabIndex":  0,
+                              "Left":  8,
+                              "Height":  17,
+                              "Caption":  "Bug Reports",
+                              "BackStyle":  0,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4ED8-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Label",
+                              "Name":  "Label1"
+                          },
+                          {
+                              "Top":  0,
+                              "Left":  240,
+                              "Interval":  25,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrWarpPlayer"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  208,
+                              "Interval":  1000,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrtTime"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  176,
+                              "Interval":  10000,
+                              "Enabled":  0,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "PlayerTimer"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  144,
+                              "Interval":  1000,
+                              "Enabled":  0,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrReboot"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  16,
+                              "Interval":  10000,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrPlayerSave"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  48,
+                              "Interval":  1000,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrSpawnMapItems"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  80,
+                              "Interval":  500,
+                              "Enabled":  0,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrGameAI"
+                          },
+                          {
+                              "Top":  16,
+                              "Left":  112,
+                              "Interval":  1000,
+                              "Enabled":  0,
+                              "FontName":  "MS Sans Serif",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrShutdown"
+                          },
+                          {
+                              "Width":  513,
+                              "Top":  0,
+                              "TabIndex":  1,
+                              "Left":  0,
+                              "Height":  225,
+                              "FontName":  "MS Sans Serif",
+                              "Name":  "SSTab1",
+                              "_children":  [
+                                                {
+                                                    "Name":  "cmdChat",
+                                                    "_className":  "CommandButton",
+                                                    "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
+                                                    "Caption":  "Chat",
+                                                    "Left":  8,
+                                                    "Top":  4,
+                                                    "Width":  61,
+                                                    "Height":  25,
+                                                    "TabIndex":  15,
+                                                    "FontName":  "MS Sans Serif",
+                                                    "FontSize":  8.25
+                                                },
+                                                {
+                                                    "Name":  "cmdBugReport",
+                                                    "_className":  "CommandButton",
+                                                    "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
+                                                    "Caption":  "Bug Reports",
+                                                    "Left":  73,
+                                                    "Top":  4,
+                                                    "Width":  80,
+                                                    "Height":  25,
+                                                    "TabIndex":  16,
+                                                    "FontName":  "MS Sans Serif",
+                                                    "FontSize":  8.25
+                                                },
+                                                {
+                                                    "Name":  "cmdGameInfo",
+                                                    "_className":  "CommandButton",
+                                                    "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
+                                                    "Caption":  "Game Information",
+                                                    "Left":  157,
+                                                    "Top":  4,
+                                                    "Width":  100,
+                                                    "Height":  25,
+                                                    "TabIndex":  17,
+                                                    "FontName":  "MS Sans Serif",
+                                                    "FontSize":  8.25
+                                                },
+                                                {
+                                                    "Width":  497,
+                                                    "Top":  192,
+                                                    "TabIndex":  2,
+                                                    "Left":  8,
+                                                    "Height":  25,
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "TextBox",
+                                                    "Name":  "txtChat"
+                                                },
+                                                {
+                                                    "Width":  497,
+                                                    "Top":  24,
+                                                    "TabIndex":  3,
+                                                    "ScrollBars":  2,
+                                                    "MultiLine":  -1,
+                                                    "Left":  8,
+                                                    "Height":  161,
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "TextBox",
+                                                    "Name":  "txtText"
+                                                },
+                                                {
+                                                    "Width":  497,
+                                                    "TabIndex":  4,
+                                                    "Height":  186,
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4F10-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "ListBox",
+                                                    "Name":  "lstBugReport",
+                                                    "Left":  8,
+                                                    "Top":  40,
+                                                    "Visible":  false
+                                                },
+                                                {
+                                                    "Width":  153,
+                                                    "TabIndex":  5,
+                                                    "Height":  185,
+                                                    "Caption":  "Players Online",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "Frame2",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  137,
+                                                                          "Top":  16,
+                                                                          "TabIndex":  6,
+                                                                          "List":  [
+
+                                                                                   ],
+                                                                          "Left":  8,
+                                                                          "ItemData":  [
+
+                                                                                       ],
+                                                                          "Height":  160,
+                                                                          "FontName":  "MS Sans Serif",
+                                                                          "_clsid":  "{33AD4F10-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "ListBox",
+                                                                          "Name":  "lstPlayers"
+                                                                      }
+                                                                  ],
+                                                    "Left":  8,
+                                                    "Top":  40,
+                                                    "Visible":  false
+                                                },
+                                                {
+                                                    "Width":  153,
+                                                    "TabIndex":  7,
+                                                    "Height":  185,
+                                                    "Caption":  "Accounts Online",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "Frame3",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  137,
+                                                                          "Top":  16,
+                                                                          "TabIndex":  8,
+                                                                          "Left":  8,
+                                                                          "Height":  160,
+                                                                          "FontName":  "MS Sans Serif",
+                                                                          "_clsid":  "{33AD4F10-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "ListBox",
+                                                                          "Name":  "lstAccounts"
+                                                                      }
+                                                                  ],
+                                                    "Left":  168,
+                                                    "Top":  40,
+                                                    "Visible":  false
+                                                },
+                                                {
+                                                    "Width":  81,
+                                                    "TabIndex":  9,
+                                                    "Height":  41,
+                                                    "Caption":  "Total Online",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "Frame5",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  65,
+                                                                          "Top":  16,
+                                                                          "TabIndex":  10,
+                                                                          "Left":  8,
+                                                                          "Height":  19,
+                                                                          "Enabled":  0,
+                                                                          "FontName":  "MS Sans Serif",
+                                                                          "_clsid":  "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "TextBox",
+                                                                          "Name":  "txtOnline"
+                                                                      }
+                                                                  ],
+                                                    "Left":  328,
+                                                    "Top":  88,
+                                                    "Visible":  false
+                                                },
+                                                {
+                                                    "Width":  81,
+                                                    "TabIndex":  11,
+                                                    "Height":  41,
+                                                    "Caption":  "Game Port",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "Frame4",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  65,
+                                                                          "Top":  16,
+                                                                          "TabIndex":  12,
+                                                                          "Left":  8,
+                                                                          "Height":  19,
+                                                                          "Enabled":  0,
+                                                                          "FontName":  "MS Sans Serif",
+                                                                          "_clsid":  "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "TextBox",
+                                                                          "Name":  "txtPort"
+                                                                      }
+                                                                  ],
+                                                    "Left":  240,
+                                                    "Top":  88,
+                                                    "Visible":  false
+                                                },
+                                                {
+                                                    "Width":  137,
+                                                    "TabIndex":  13,
+                                                    "Height":  41,
+                                                    "Caption":  "Game IP",
+                                                    "FontName":  "MS Sans Serif",
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "Frame1",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  121,
+                                                                          "Top":  16,
+                                                                          "TabIndex":  14,
+                                                                          "Left":  8,
+                                                                          "Height":  19,
+                                                                          "Enabled":  0,
+                                                                          "FontName":  "MS Sans Serif",
+                                                                          "_clsid":  "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "TextBox",
+                                                                          "Name":  "txtIP"
+                                                                      }
+                                                                  ],
+                                                    "Left":  328,
+                                                    "Top":  24,
+                                                    "Visible":  false
+                                                }
+                                            ],
+                              "_className":  "Frame",
+                              "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                              "Caption":  "Chat"
+                          },
+                          {
+                              "Name":  "tmrNativeSockets",
+                              "_className":  "Timer",
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "Left":  272,
+                              "Top":  0,
+                              "Interval":  10,
+                              "Enabled":  -1
+                          }
+                      ]
+    }
+]

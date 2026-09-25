@@ -1,0 +1,89 @@
+Module NativeControlsSmoke
+    Public Sub Main()
+        Dim test As New NativeControlsTest
+        test.Run
+    End Sub
+End Module
+Class NativeControlsTest
+    Option Explicit
+    Private WithEvents testSocket As clsNativeSocket
+    Private received As String
+    Private Sub testSocket_DataArrival(ByVal bytesTotal As Long)
+        Dim data As String
+        testSocket.GetData data, vbString, bytesTotal
+        received &= data
+    End Sub
+    Private Sub Require(ByVal condition As Boolean, ByVal description As String)
+        If Not condition Then Err.Raise 5, "Native controls test", description
+    End Sub
+    Public Sub Run()
+        Dim report As String
+        Dim stage As String
+        Dim fileNumber As Integer
+        Dim deadline As LongLong
+        Dim expected As String
+        On Error GoTo Failed
+        EditorscrlPicture = -1
+        stage = "Load frmMainMenu"
+        Load frmMainMenu
+        stage = "Load frmMainGame"
+        Load frmMainGame
+        stage = "Load frmBugReport"
+        Load frmBugReport
+        stage = "Load frmOptions"
+        Load frmOptions
+        stage = "Load frmDebug"
+        Load frmDebug
+        stage = "Load frmMapNudge"
+        Load frmMapNudge
+        stage = "Rich text tests"
+        Require frmMainGame.txtChat.hWnd <> 0, "Chat native window"
+        Require frmMainGame.Notetext.hWnd <> 0, "Notes native window"
+        Require frmMainMenu.txtSpecial.hWnd <> 0, "Credits native window"
+        Require InStr(frmMainMenu.txtSpecial.Text, "John Rognile") > 0, "Credits text"
+        frmMainGame.txtChat.Text = ""
+        frmMainGame.txtChat.SelColor = RGB(255, 0, 0)
+        frmMainGame.txtChat.SelText = "Chat test"
+        Require frmMainGame.txtChat.Text = "Chat test", "Read-only chat accepts programmatic append"
+        frmMainGame.Notetext.Text = "Notes " & ChrW$(&H3A9)
+        Require frmMainGame.Notetext.Text = "Notes " & ChrW$(&H3A9), "Unicode notes"
+        frmBugReport.txtBugReport.Text = "Bug report"
+        Require frmBugReport.txtBugReport.Text = "Bug report", "Bug report native editor"
+        stage = "Socket tests"
+        Set testSocket = New clsNativeSocket
+        stage = "testSocket.Attach frmMainMenu.hWnd"
+        testSocket.Attach frmMainMenu.hWnd
+        testSocket.RemoteHost = "localhost"
+        testSocket.RemotePort = 19385
+        stage = "testSocket.Connect"
+        testSocket.Connect
+        stage = "Wait for connection"
+        deadline = WinDevLib.GetTickCount64() + 5000
+        Do While testSocket.State <> sckConnected And WinDevLib.GetTickCount64() < deadline
+            DoEvents
+        Loop
+        stage = "Connection state " & CStr(testSocket.State) & ", WSA error " & CStr(testSocket.LastError) & ", error=" & NativeCallbackError
+        Require testSocket.State = sckConnected, "Async DNS/connect: " & CStr(testSocket.LastError) & ", error=" & NativeCallbackError
+        expected = "packet" & Chr$(0) & Chr$(237) & String$(24000, "x")
+        stage = "testSocket.SendData expected"
+        testSocket.SendData expected
+        deadline = WinDevLib.GetTickCount64() + 5000
+        Do While Len(received) < Len(expected) And WinDevLib.GetTickCount64() < deadline
+            DoEvents
+        Loop
+        Require received = expected, "TCP byte preservation / fragmented receive"
+        stage = "testSocket.Close"
+        testSocket.Close
+        Require testSocket.State = 0, "Socket close"
+        report = "PASS: six forms load without OCXs; chat, Unicode notes, credits, bug report; async DNS/connect, TCP round-trip including NUL and packet terminator, close."
+        GoTo Finished
+Failed:
+        report = "FAIL at " & stage & ": " & Err.Number & " " & Err.Description
+Finished:
+        fileNumber = FreeFile
+        Open App.Path & "\NativeControls-smoke-result.txt" For Output As #fileNumber
+        Print #fileNumber, report
+        Close #fileNumber
+        End
+    End Sub
+End Class

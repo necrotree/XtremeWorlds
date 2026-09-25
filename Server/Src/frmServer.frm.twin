@@ -1,0 +1,314 @@
+[FormDesignerId("C1E8B8C8-8882-4B88-AD3B-82B138B0E420")]
+[ClassId("29272294-F3F7-4136-9840-2616AFD47EFD")]
+[InterfaceId("EA54C711-016E-4C18-ABF0-66C44E8A5799")]
+[EventInterfaceId("B62C1428-F417-452E-95AB-4F0F640C6F74")]
+Class frmServer
+    Attribute VB_Name = "frmServer"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, y As Single)
+        Dim lmsg As Long
+    
+        lmsg = X / Screen.TwipsPerPixelX
+        Select Case lmsg
+            Case WM_LBUTTONDBLCLK
+                frmServer.WindowState = vbNormal
+                frmServer.Show
+        End Select
+    End Sub
+    
+    Private Sub Form_Resize()
+        If frmServer.WindowState = vbMinimized Then
+            frmServer.Hide
+        End If
+    End Sub
+    
+    Private Sub Form_Terminate()
+        Call DestroyServer
+    End Sub
+    
+    Private Sub Form_Unload(Cancel As Integer)
+        Call DestroyServer
+    End Sub
+    
+    Private Sub lstPlayers_MouseDown(Button As Integer, Shift As Integer, X As Single, y As Single)
+        If Button = vbKeyRButton Then
+            Me.PopupMenu mnuPlayers
+        End If
+    End Sub
+    
+    Private Sub mnuBan_Click()
+        Dim N As Long
+        N = FindPlayer(lstPlayers.List(lstPlayers.ListIndex))
+    
+        If N > 0 Then
+            Call BanIndex(N, "Server")
+            Call GlobalMsg(GetPlayerName(N) & " has been banned from " & GAME_NAME & " by the Server!", White)
+            Call AddLog(GetPlayerName(N) & " has banned by the Server.", ADMIN_LOG)
+            Call AlertMsg(N, "You have been banned by the Server!")
+        End If
+    
+    End Sub
+    
+    Private Sub mnuKick_Click()
+        Dim N As Long
+        N = FindPlayer(lstPlayers.List(lstPlayers.ListIndex))
+    
+        If N > 0 Then
+            Call GlobalMsg(GetPlayerName(N) & " has been kicked from " & GAME_NAME & " by the Server!", White)
+            Call AddLog("The Server has kicked " & GetPlayerName(N) & ".", ADMIN_LOG)
+            Call AlertMsg(N, "You have been kicked by the server!")
+        End If
+    End Sub
+    
+    Private Sub mnuReloadScripts_Click()
+        Call ReloadScripts
+    End Sub
+    
+    Private Sub mnuServerLog_Click()
+        If mnuServerLog.Checked = True Then
+            mnuServerLog.Checked = False
+            ServerLog = False
+        Else
+            mnuServerLog.Checked = True
+            ServerLog = True
+        End If
+    End Sub
+    
+    Private Sub mnuServerReboot_Click()
+        Me.tmrReboot.Enabled = True
+    End Sub
+    
+    Private Sub mnuSetAccess_Click()
+        Dim name As String
+        Dim I As Integer, PlayerAccess As Byte
+    
+        name = InputBox("What is the ONLINE player's name?", "Give Access to whom?", "")
+    
+        If name <> vbNullString Then
+            I = FindPlayer(name)
+        Else
+            MsgBox ("Player Not Online!")
+            Exit Sub
+        End If
+    
+        PlayerAccess = InputBox("What access level?", "Access (1-6):", "1")
+    
+        If IsConnected(I) Then
+            If PlayerAccess <> 0 Then
+                ' sloppy... but whatever
+                Call SetPlayerAccess(I, PlayerAccess)
+    
+                Call PlayerMsg(I, "Your access has been changed.", BrightRed)
+                Call SendPlayerData(I)
+            Else
+                MsgBox ("Invalid Access!")
+            End If
+        Else
+            MsgBox ("Player Not Online!")
+        End If
+    End Sub
+    
+    Private Sub mnuWarn_Click()
+        Dim N As Long
+        Dim Msg As String
+        N = FindPlayer(lstPlayers.List(lstPlayers.ListIndex))
+    
+        If N > 0 Then
+            Msg = InputBox("What is the warning?", GAME_NAME, "")
+            Call PlayerMsg(N, "Server Warning: " & Msg, BrightRed)
+            Call AddLog("The Server has warned " & GetPlayerName(N) & ".", ADMIN_LOG)
+        End If
+    End Sub
+    
+    Private Sub PlayerTimer_Timer()
+        Dim I As Long
+    
+    
+        If PlayerI <= HighIndex Then
+            If IsPlaying(PlayerI) Then
+                Call SavePlayer(PlayerI)
+                Call PlayerMsg(PlayerI, GetPlayerName(PlayerI) & ", you have been saved.", BrightGreen)
+            End If
+            PlayerI = PlayerI + 1
+    
+        ElseIf PlayerI > HighIndex Then
+            PlayerI = 1
+            PlayerTimer.Enabled = False
+            tmrPlayerSave.Enabled = True
+        End If
+    End Sub
+    
+    Private Sub tmrGameAI_Timer()
+        Call ServerLogic
+    End Sub
+    
+    Private Sub tmrPlayerSave_Timer()
+        Call PlayerSaveTimer
+    End Sub
+    
+    Private Sub tmrSpawnMapItems_Timer()
+        Call CheckSpawnMapItems
+    End Sub
+    
+    Private Sub tmrtTime_Timer()
+        Static I As Long
+    
+        I = I + 1
+        If I Mod 31536000 = 0 Then
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 6 & "," & I
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 4 & "," & I
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            Exit Sub
+        ElseIf I Mod 604800 = 0 Then
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 4 & "," & I
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            Exit Sub
+        ElseIf I Mod 86400 = 0 Then
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            Exit Sub
+        ElseIf I Mod 3600 = 0 Then
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            Exit Sub
+        ElseIf I Mod 60 = 0 Then
+            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 1 & "," & I
+            Exit Sub
+        End If
+    
+    End Sub
+    
+    Private Sub tmrWarpPlayer_Timer()
+        Call CheckWarp
+    End Sub
+    
+    Private Sub txtText_GotFocus()
+        txtChat.SetFocus
+    End Sub
+    
+    Private Sub txtChat_KeyPress(KeyAscii As Integer)
+        If KeyAscii = vbKeyReturn And Trim$(txtChat.Text) <> vbNullString Then
+            Call GlobalMsg(txtChat.Text, White)
+            Call TextAdd(frmServer.txtText, "Server: " & txtChat.Text, True)
+            txtChat.Text = vbNullString
+        End If
+    End Sub
+    
+    Private Sub tmrShutdown_Timer()
+        Static Secs As Long
+    
+        If ShutOn = False Then
+            Secs = 30
+            Call TextAdd(frmServer.txtText, "Automated Server Shutdown Canceled!", True)
+            Call GlobalMsg("Server Shutdown Canceled!", BrightBlue)
+            tmrShutdown.Enabled = False
+            Exit Sub
+        End If
+        If Secs <= 0 Then Secs = 30
+        Secs = Secs - 1
+        Call GlobalMsg("Server Shutdown in " & Secs & " seconds.", Yellow)
+        Call TextAdd(frmServer.txtText, "Automated Server Shutdown in " & Secs & " seconds.", True)
+        If Secs <= 0 Then
+            tmrShutdown.Enabled = False
+            Call DestroyServer
+        End If
+    End Sub
+    
+    Private Sub tmrReboot_Timer()
+        Static Secs As Long
+    
+        If Secs <= 0 Then Secs = 30
+        Secs = Secs - 2
+        Call GlobalMsg("Server Reboot in " & Secs & " seconds.", Yellow)
+        Call TextAdd(frmServer.txtText, "Automated Server Reboot in " & Secs & " seconds.", True)
+        If Secs <= 0 Then
+            tmrReboot.Enabled = False
+            Shell (App.Path & "/Bootstrap.exe"), vbNormalFocus
+            Call DestroyServer
+        End If
+    End Sub
+    
+    Private Sub mnuShutdown_Click()
+        If ShutOn = False Then
+            tmrShutdown.Enabled = True
+            mnuShutdown.Caption = "Cancel Shutdown"
+            ShutOn = True
+        ElseIf ShutOn = True Then
+            mnuShutdown.Caption = "Shutdown"
+            ShutOn = False
+        End If
+    End Sub
+    
+    Private Sub Form_Load()
+        ShutOn = False
+        ServerLog = True
+        Me.Caption = GAME_NAME & " :: Server"
+        Me.txtIP.Text = GameServer.LocalAddress
+        ShowServerPage 0
+    End Sub
+
+    Private Sub ShowServerPage(ByVal Page As Integer)
+        txtChat.Visible = (Page = 0)
+        txtText.Visible = (Page = 0)
+        lstBugReport.Visible = (Page = 1)
+        Frame1.Visible = (Page = 2)
+        Frame2.Visible = (Page = 2)
+        Frame3.Visible = (Page = 2)
+        Frame4.Visible = (Page = 2)
+        Frame5.Visible = (Page = 2)
+        If Page = 0 Then SSTab1.Caption = "Chat"
+        If Page = 1 Then SSTab1.Caption = "Bug Reports"
+        If Page = 2 Then SSTab1.Caption = "Game Information"
+    End Sub
+
+    Private Sub cmdChat_Click()
+        ShowServerPage 0
+    End Sub
+
+    Private Sub cmdBugReport_Click()
+        ShowServerPage 1
+    End Sub
+
+    Private Sub cmdGameInfo_Click()
+        ShowServerPage 2
+    End Sub
+    
+    Private Sub mnuExit_Click()
+        Call DestroyServer
+    End Sub
+    
+    Private Sub mnuReloadClasses_Click()
+        Call LoadClasses
+        Call TextAdd(frmServer.txtText, "All classes reloaded.", True)
+    End Sub
+    
+    ' Private Sub Socket_ConnectionRequest(index As Integer, ByVal requestID As Long)
+    ' Call AcceptConnection(index, requestID)
+    ' End Sub
+    
+    ' Private Sub Socket_Accept(index As Integer, SocketId As Integer)
+    ' Call AcceptConnection(index, SocketId)
+    ' End Sub
+    
+    ' Private Sub Socket_DataArrival(index As Integer, ByVal bytesTotal As Long)
+    ' If IsConnected(index) Then
+    ' Call IncomingData(index, bytesTotal)
+    ' End If
+    ' End Sub
+    
+    ' Private Sub Socket_Close(index As Integer)
+    ' Call CloseSocket(index)
+    ' End Sub
+    
+    
+
+    Private Sub tmrNativeSockets_Timer()
+        If Not GameServer Is Nothing Then GameServer.Poll
+    End Sub
+End Class

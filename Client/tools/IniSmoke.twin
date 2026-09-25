@@ -1,0 +1,47 @@
+Module IniSmoke
+    Option Explicit
+    Private Declare Function LegacyWrite Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal section As String, ByVal key As Any, ByVal value As String, ByVal path As String) As Long
+    Private Sub Require(ByVal condition As Boolean, ByVal description As String)
+        If Not condition Then Err.Raise 5, "INI test", description
+    End Sub
+    Public Sub Main()
+        Dim path As String = App.Path & "\IniSmoke-test.ini"
+        Dim result As String
+        Dim fileNumber As Integer
+        Dim buffer As String = Space$(256)
+        Dim count As Long
+        On Error GoTo Failed
+        Require Not FileExist("data\classes.ini"), "Test requires its isolated classes.ini to be absent"
+        LoadClasses
+        Require UBound(Class) = 0, "First-run class allocation"
+        Require GetVar(App.Path & "\data\classes.ini", "INIT", "MaxClasses") = "0", "Initial class count"
+        Max_Classes = 1
+        ReDim Preserve Class(0 To 1) As ClassRec
+        Class(0).Name = "Warrior"
+        Class(0).Sprite = 12
+        Class(0).STR = 7
+        Class(1).Name = "Healer"
+        Class(1).FSprite = 23
+        Class(1).MAGI = 9
+        SaveClasses
+        Erase Class
+        LoadClasses
+        Require Max_Classes = 1 And UBound(Class) = 1, "Saved class count reload"
+        Require Trim$(Class(0).Name) = "Warrior" And Class(0).Sprite = 12 And Class(0).STR = 7, "First class round-trip"
+        Require Trim$(Class(1).Name) = "Healer" And Class(1).FSprite = 23 And Class(1).MAGI = 9, "Second class round-trip"
+        LegacyWrite "Section", "LongKey", "value", path
+        count = WinDevLib.GetPrivateProfileString("Section", "LongKey", "MISSING", buffer, Len(buffer), path)
+        Require Left$(buffer, count) = "value", "INI write/read"
+        result = "PASS: missing classes.ini initializes safely; two class records and MaxClasses survive save/reload; existing INI write/read succeeds."
+        Kill App.Path & "\data\classes.ini"
+        Kill path
+        GoTo Finished
+Failed:
+        result = "FAIL: " & Err.Number & " " & Err.Description
+Finished:
+        fileNumber = FreeFile
+        Open App.Path & "\IniSmoke-result.txt" For Output As #fileNumber
+        Print #fileNumber, result
+        Close #fileNumber
+    End Sub
+End Module

@@ -1,0 +1,7 @@
+Update Log
+
+This file will be downloaded every time you run the auto updater when there are new updates. All of the updates will be listed, as well as any special instructions to follow after you download the update!
+
+Current Updates:
+
+None

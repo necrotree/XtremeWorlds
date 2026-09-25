@@ -1,0 +1,135 @@
+Class clsDataFile
+    Option Explicit
+    Private bytes() As Byte
+    Private used As Long
+    Private cursor As Long
+    Private capacity As Long
+    Private origin As String
+    Public Sub Load(ByVal path As String)
+        Dim handle As LongPtr = -1
+        Dim size As LongLong
+        Dim count As Long, offset As Long, number As Long, detail As String
+        On Error GoTo Failed
+        origin = path
+        handle = WinDevLib.CreateFile(path, WinDevLib.GENERIC_READ, WinDevLib.FILE_SHARE_READ, ByVal vbNullPtr, WinDevLib.OPEN_EXISTING, WinDevLib.FILE_ATTRIBUTE_NORMAL, 0)
+        If handle = -1 Then RaiseIO "Open"
+        If WinDevLib.GetFileSizeEx(handle, size) = 0 Then RaiseIO "Size"
+        If size < 0 Or size > 67108864 Then Err.Raise 5, "clsDataFile", "Invalid record size: " & path
+        used = CLng(size)
+        capacity = used
+        cursor = 0
+        Erase bytes
+        If used > 0 Then
+            ReDim bytes(0 To used - 1)
+            Do While offset < used
+                If WinDevLib.ReadFile(handle, bytes(offset), used - offset, count, ByVal vbNullPtr) = 0 Then RaiseIO "Read"
+                If count = 0 Then Err.Raise 62, "clsDataFile", "Unexpected end of " & path
+                offset += count
+            Loop
+        End If
+        WinDevLib.CloseHandle handle
+        Exit Sub
+Failed:
+        number = Err.Number: detail = Err.Description
+        If handle <> -1 Then WinDevLib.CloseHandle handle
+        Err.Raise number, "clsDataFile.Load", detail
+    End Sub
+    Public Sub Save(ByVal path As String)
+        Dim handle As LongPtr = -1
+        Dim temporary As String = String$(32768, vbNullChar)
+        Dim folder As String, count As Long, offset As Long, number As Long, detail As String
+        On Error GoTo Failed
+        origin = path
+        folder = Left$(path, InStrRev(path, "\"))
+        If WinDevLib.GetTempFileName(folder, "pws", 0, temporary) = 0 Then RaiseIO "Create temporary file"
+        temporary = Left$(temporary, InStr(temporary, vbNullChar) - 1)
+        handle = WinDevLib.CreateFile(temporary, WinDevLib.GENERIC_WRITE, 0, ByVal vbNullPtr, WinDevLib.CREATE_ALWAYS, WinDevLib.FILE_ATTRIBUTE_NORMAL, 0)
+        If handle = -1 Then RaiseIO "Open temporary file"
+        Do While offset < used
+            If WinDevLib.WriteFile(handle, bytes(offset), used - offset, count, ByVal vbNullPtr) = 0 Then RaiseIO "Write"
+            If count = 0 Then Err.Raise 57, "clsDataFile", "Incomplete write: " & path
+            offset += count
+        Loop
+        If WinDevLib.FlushFileBuffers(handle) = 0 Then RaiseIO "Flush"
+        WinDevLib.CloseHandle handle
+        handle = -1
+        If WinDevLib.MoveFileEx(temporary, path, WinDevLib.MOVEFILE_REPLACE_EXISTING Or WinDevLib.MOVEFILE_WRITE_THROUGH) = 0 Then RaiseIO "Replace"
+        Exit Sub
+Failed:
+        number = Err.Number: detail = Err.Description
+        If handle <> -1 Then WinDevLib.CloseHandle handle
+        If Len(temporary) > 0 And InStr(temporary, vbNullChar) = 0 Then WinDevLib.DeleteFile temporary
+        Err.Raise number, "clsDataFile.Save", detail
+    End Sub
+    Private Sub RaiseIO(ByVal operation As String)
+        Dim code As Long = Err.LastDllError
+        Err.Raise 57, "clsDataFile", operation & " failed (Win32 " & code & "): " & origin
+    End Sub
+    Private Sub Take(ByVal pointer As LongPtr, ByVal count As Long)
+        If count < 0 Or count > used - cursor Then Err.Raise 62, "clsDataFile", "Truncated record at byte " & cursor & ": " & origin
+        If count > 0 Then WinDevLib.CopyMemory ByVal pointer, bytes(cursor), count
+        cursor += count
+    End Sub
+    Private Sub Append(ByVal pointer As LongPtr, ByVal count As Long)
+        If count <= 0 Then Exit Sub
+        If used + count > 67108864 Then Err.Raise 5, "clsDataFile", "Record exceeds size limit"
+        If used + count > capacity Then
+            capacity = (used + count) * 2 + 4096
+            ReDim Preserve bytes(0 To capacity - 1)
+        End If
+        WinDevLib.CopyMemory bytes(used), ByVal pointer, count
+        used += count
+    End Sub
+    Public Function ReadByte() As Byte
+        Take VarPtr(ReadByte), 1
+    End Function
+    Public Function ReadInteger() As Integer
+        Take VarPtr(ReadInteger), 2
+    End Function
+    Public Function ReadLong() As Long
+        Take VarPtr(ReadLong), 4
+    End Function
+    Public Function ReadText(ByVal width As Long) As String
+        Dim raw() As Byte
+        If width = 0 Then Return ""
+        ReDim raw(0 To width - 1)
+        Take VarPtr(raw(0)), width
+        Return StrConv(raw, vbUnicode)
+    End Function
+    Public Sub WriteByte(ByVal value As Byte)
+        Append VarPtr(value), 1
+    End Sub
+    Public Sub WriteInteger(ByVal value As Integer)
+        Append VarPtr(value), 2
+    End Sub
+    Public Sub WriteLong(ByVal value As Long)
+        Append VarPtr(value), 4
+    End Sub
+    Public Sub WriteText(ByVal value As String, ByVal width As Long)
+        Dim raw() As Byte
+        value = Left$(value & Space$(width), width)
+        raw = StrConv(value, vbFromUnicode)
+        Append VarPtr(raw(0)), width
+    End Sub
+    Public Function ReadArrayCount(ByVal width As Long) As Long
+        Dim dimensions As Integer = ReadInteger()
+        Dim count As Long = ReadLong()
+        Dim lower As Long = ReadLong()
+        If dimensions <> 1 Or lower <> 1 Or count < 1 Or count > 32767 Then Err.Raise 5, "clsDataFile", "Invalid array descriptor: " & origin
+        If count > (used - cursor) \ width Then Err.Raise 62, "clsDataFile", "Incomplete array: " & origin
+        Return count
+    End Function
+    Public Sub WriteArrayCount(ByVal count As Long)
+        If count < 1 Or count > 32767 Then Err.Raise 5, "clsDataFile", "Invalid array size"
+        WriteInteger 1
+        WriteLong count
+        WriteLong 1
+    End Sub
+    Public Sub RequireEnd()
+        If cursor <> used Then Err.Raise 5, "clsDataFile", "Unexpected record size at byte " & cursor & ": " & origin
+    End Sub
+    Public Property Let Position(ByVal value As Long)
+        If value < 0 Or value > used Then Err.Raise 5
+        cursor = value
+    End Property
+End Class
