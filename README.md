@@ -331,10 +331,6 @@ You can use the project as a foundation for creating a world with your own:
 
 Start with a small playable area, get the client/server loop working, and expand your PlayerWorld from there.
 
-## Repository
-
-[XtremeWorlds on GitHub](https://github.com/necrotree/XtremeWorlds?utm_source=chatgpt.com)
-
 ## License
 
 XtremeWorlds is released under the **BSD 2-Clause License**. See [`LICENSE`](LICENSE) for the full license text.
