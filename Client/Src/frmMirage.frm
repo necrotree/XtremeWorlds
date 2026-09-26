@@ -3011,6 +3011,9 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Dim KeyShift As Boolean
+Private ChatInputHasFocus As Boolean
+Public ChatUnlocked As Boolean
+Private ChatEnterDown As Boolean
 Private Ammount As Long
 Dim SpellMemorized As Long
 Public clsFormSkin As New clsFormSkin
@@ -3103,6 +3106,8 @@ Private Sub Equip_Click(index As Integer)
 End Sub
 
 Private Sub Form_Load()
+    txtMyTextBox.Locked = True
+    txtMyTextBox.ToolTipText = "Enter: chat | WASD/arrows: move | E: pick up"
 
     ' Dim result As Long
     ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
@@ -3222,14 +3227,39 @@ Private Sub Socket_DataArrival(ByVal bytesTotal As Long)
 End Sub
 
 Private Sub Form_KeyPress(KeyAscii As Integer)
-    Call HandleKeypresses(KeyAscii)
+    ' Enter is handled on key-down so changing focus cannot submit it twice.
+    If KeyAscii = vbKeyReturn Then
+        KeyAscii = 0
+    ElseIf Not ChatUnlocked And TxtHasFocus Then
+        KeyAscii = 0
+    End If
 End Sub
 
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+    If KeyCode = vbKeyReturn And (ChatUnlocked Or TxtHasFocus) Then
+        If Not ChatEnterDown Then
+            ChatEnterDown = True
+            If ChatUnlocked Then
+                MyText = txtMyTextBox.Text
+                ChatUnlocked = False
+                txtMyTextBox.Locked = True
+                Call HandleKeypresses(vbKeyReturn)
+                txtMyTextBox.Text = MyText
+                Call SetFocusOnGame
+            Else
+                Call UnlockChat
+            End If
+        End If
+        KeyCode = 0
+        Exit Sub
+    End If
+    If ChatUnlocked Or Not TxtHasFocus Then Exit Sub
     Call CheckInput(1, KeyCode, Shift)
 End Sub
 
 Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
+    If KeyCode = vbKeyReturn Then ChatEnterDown = False
+    If ChatUnlocked Then Exit Sub
     Call CheckInput(0, KeyCode, Shift)
     If KeyCode = vbKeyF1 Then
         If frmMainGame.Width = 13545 Then
@@ -3349,13 +3379,50 @@ On Error Resume Next
     txtMapNum.SetFocus
 End Sub
 
+Public Sub UnlockChat()
+    ChatUnlocked = True
+    DirUp = False
+    DirDown = False
+    DirLeft = False
+    DirRight = False
+    ControlDown = False
+    ShiftDown = False
+    txtMyTextBox.Locked = False
+    txtMyTextBox.Text = MyText
+    txtMyTextBox.SetFocus
+    txtMyTextBox.SelStart = Len(MyText)
+End Sub
+
 Private Sub txtMyTextBox_GotFocus()
-    ' TxtHasFocus = True
-    Call SetFocusOnGame
+    If Not ChatUnlocked Then
+        Call SetFocusOnGame
+        Exit Sub
+    End If
+    ChatInputHasFocus = True
+    TxtHasFocus = True
 End Sub
 
 Private Sub txtMyTextBox_LostFocus()
+    ChatInputHasFocus = False
     TxtHasFocus = False
+End Sub
+
+Private Sub txtMyTextBox_Change()
+    Dim CleanText As String, I As Long, Code As Long
+    ' Match the server's printable-ASCII chat protocol, including pasted text.
+    For I = 1 To Len(txtMyTextBox.Text)
+        Code = AscW(Mid$(txtMyTextBox.Text, I, 1))
+        If Code >= 32 And Code <= 126 Then CleanText = CleanText & Chr$(Code)
+    Next I
+    MyText = CleanText
+    If txtMyTextBox.Text <> CleanText Then
+        txtMyTextBox.Text = CleanText
+        txtMyTextBox.SelStart = Len(CleanText)
+    End If
+End Sub
+
+Private Sub txtMyTextBox_KeyPress(KeyAscii As Integer)
+    If KeyAscii = vbKeyReturn Or Not ChatUnlocked Then KeyAscii = 0
 End Sub
 
 Private Sub txtPlayerName_Change()
@@ -3451,7 +3518,7 @@ End Sub
 Private Sub picPM_Click()
     MyText = "!" & lstPlayers.List(lstPlayers.ListIndex) & " "
 On Error Resume Next
-    txtMyTextBox.SetFocus
+    Call UnlockChat
 End Sub
 
 Private Sub Label8_Click()

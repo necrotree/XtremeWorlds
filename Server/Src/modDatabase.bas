@@ -1,6 +1,9 @@
 Attribute VB_Name = "modDatabase"
 Option Explicit
 
+' Retain logging failures for diagnostics without aborting gameplay packets.
+Public LastLogError As String
+
 Public Function GetVar(File As String, Header As String, Var As String) As String
     Dim sSpaces As String          ' Max string length
     Dim szReturn As String         ' Return default value if not found
@@ -819,23 +822,32 @@ Sub CheckMaps()
 End Sub
 
 Sub AddLog(ByVal Text As String, ByVal FN As String)
+    Dim LogFolder As String
     Dim FileName As String
     Dim f As Long
+    Dim FileOpen As Boolean
 
-    If ServerLog = True Then
-        FileName = App.Path & "\logs\" & FN
+    If Not ServerLog Then Exit Sub
+    On Error GoTo LogFailed
+    LogFolder = App.Path & "\logs"
+    If Len(Dir$(LogFolder, vbDirectory)) = 0 Then MkDir LogFolder
+    FileName = LogFolder & "\" & FN
 
-        If Not FileExist("logs\" & FN) Then
-            f = FreeFile
-            Open FileName For Output As #f
-            Close #f
-        End If
+    ' Append creates a missing file; never truncate an existing log.
+    f = FreeFile
+    Open FileName For Append As #f
+    FileOpen = True
+    Print #f, Time & ": " & Text
+    Close #f
+    LastLogError = vbNullString
+    Exit Sub
 
-        f = FreeFile
-        Open FileName For Append As #f
-        Print #f, Time & ": " & Text
-        Close #f
-    End If
+LogFailed:
+    LastLogError = "Cannot write log " & FN & ": " & Err.Number & " " & Err.Description
+    On Error Resume Next
+    If FileOpen Then Close #f
+    Debug.Print LastLogError
+    ' Chat and other gameplay must continue even if logging is unavailable.
 End Sub
 
 Sub BanIndex(ByVal BanPlayerIndex As Long, Optional BannedByIndex As String)

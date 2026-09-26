@@ -680,7 +680,7 @@ End Sub
 
 Public Sub EnsureDataFolders(ByVal root As String)
     Dim folder As Variant, path As String, attributes As Long
-    For Each folder In Array("data", "maps", "data\accounts", "data\guilds", "data\quests", "data\Shops", "data\Npcs", "data\Spells", "data\items", "data\Signs")
+    For Each folder In Array("data", "maps", "logs", "data\accounts", "data\guilds", "data\quests", "data\Shops", "data\Npcs", "data\Spells", "data\items", "data\Signs")
         path = root & "\" & CStr(folder)
         attributes = WinDevLib.GetFileAttributes(path)
         If attributes = -1 Then

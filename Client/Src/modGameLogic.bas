@@ -144,10 +144,10 @@ Public Sub GameLoop()
         Tick = GetTickCount
 
         ' Check to make sure they aren't trying to auto do anything
-        If GetAsyncKeyState(VK_UP) >= 0 And DirUp = True Then DirUp = False
-        If GetAsyncKeyState(VK_DOWN) >= 0 And DirDown = True Then DirDown = False
-        If GetAsyncKeyState(VK_LEFT) >= 0 And DirLeft = True Then DirLeft = False
-        If GetAsyncKeyState(VK_RIGHT) >= 0 And DirRight = True Then DirRight = False
+        If GetAsyncKeyState(VK_UP) >= 0 And GetAsyncKeyState(vbKeyW) >= 0 And DirUp = True Then DirUp = False
+        If GetAsyncKeyState(VK_DOWN) >= 0 And GetAsyncKeyState(vbKeyS) >= 0 And DirDown = True Then DirDown = False
+        If GetAsyncKeyState(VK_LEFT) >= 0 And GetAsyncKeyState(vbKeyA) >= 0 And DirLeft = True Then DirLeft = False
+        If GetAsyncKeyState(VK_RIGHT) >= 0 And GetAsyncKeyState(vbKeyD) >= 0 And DirRight = True Then DirRight = False
         If GetAsyncKeyState(VK_CONTROL) >= 0 And ControlDown = True Then ControlDown = False
         If GetAsyncKeyState(VK_SHIFT) >= 0 And ShiftDown = True Then ShiftDown = False
 
@@ -289,9 +289,9 @@ Public Sub GameLoop()
                 End If
 
                 ' Blit the text they are putting in
-                frmMainGame.txtMyTextBox.Text = MyText
-                If Len(MyText) > 4 Then
-                    frmMainGame.txtMyTextBox.SelStart = Len(MyText) + 1
+                If frmMainGame.txtMyTextBox.Text <> MyText Then
+                    frmMainGame.txtMyTextBox.Text = MyText
+                    frmMainGame.txtMyTextBox.SelStart = Len(MyText)
                 End If
                 
                 ' draw FPS
@@ -969,8 +969,9 @@ Public Sub CheckAttack()
 End Sub
 
 Sub CheckInput2()
+    If frmMainGame.ChatUnlocked Then Exit Sub
     If GettingMap = False Then
-        If GetKeyState(VK_RETURN) < 0 Then
+        If GetKeyState(vbKeyE) < 0 Then
             Call CheckMapGetItem
         End If
         If GetKeyState(VK_CONTROL) < 0 Then
@@ -978,7 +979,7 @@ Sub CheckInput2()
         Else
             ControlDown = False
         End If
-        If GetKeyState(VK_UP) < 0 Then
+        If GetKeyState(VK_UP) < 0 Or GetKeyState(vbKeyW) < 0 Then
             DirUp = True
             DirDown = False
             DirLeft = False
@@ -986,7 +987,7 @@ Sub CheckInput2()
         Else
             DirUp = False
         End If
-        If GetKeyState(VK_DOWN) < 0 Then
+        If GetKeyState(VK_DOWN) < 0 Or GetKeyState(vbKeyS) < 0 Then
             DirUp = False
             DirDown = True
             DirLeft = False
@@ -994,7 +995,7 @@ Sub CheckInput2()
         Else
             DirDown = False
         End If
-        If GetKeyState(VK_LEFT) < 0 Then
+        If GetKeyState(VK_LEFT) < 0 Or GetKeyState(vbKeyA) < 0 Then
             DirUp = False
             DirDown = False
             DirLeft = True
@@ -1002,7 +1003,7 @@ Sub CheckInput2()
         Else
             DirLeft = False
         End If
-        If GetKeyState(VK_RIGHT) < 0 Then
+        If GetKeyState(VK_RIGHT) < 0 Or GetKeyState(vbKeyD) < 0 Then
             DirUp = False
             DirDown = False
             DirLeft = False
@@ -1019,33 +1020,34 @@ Sub CheckInput2()
 End Sub
 
 Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As Integer)
+    If frmMainGame.ChatUnlocked Then Exit Sub
     If GettingMap = False Then
         If KeyState = 1 Then
-            If KeyCode = vbKeyReturn Then
+            If KeyCode = vbKeyE Then
                 Call CheckMapGetItem
             End If
             If KeyCode = vbKeyControl Then
                 ControlDown = True
             End If
-            If KeyCode = vbKeyUp Then
+            If KeyCode = vbKeyUp Or KeyCode = vbKeyW Then
                 DirUp = True
                 DirDown = False
                 DirLeft = False
                 DirRight = False
             End If
-            If KeyCode = vbKeyDown Then
+            If KeyCode = vbKeyDown Or KeyCode = vbKeyS Then
                 DirUp = False
                 DirDown = True
                 DirLeft = False
                 DirRight = False
             End If
-            If KeyCode = vbKeyLeft Then
+            If KeyCode = vbKeyLeft Or KeyCode = vbKeyA Then
                 DirUp = False
                 DirDown = False
                 DirLeft = True
                 DirRight = False
             End If
-            If KeyCode = vbKeyRight Then
+            If KeyCode = vbKeyRight Or KeyCode = vbKeyD Then
                 DirUp = False
                 DirDown = False
                 DirLeft = False
@@ -1058,10 +1060,10 @@ Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As 
                 Call GameDestroy
             End If
         Else
-            If KeyCode = vbKeyUp Then DirUp = False
-            If KeyCode = vbKeyDown Then DirDown = False
-            If KeyCode = vbKeyLeft Then DirLeft = False
-            If KeyCode = vbKeyRight Then DirRight = False
+            If KeyCode = vbKeyUp Or KeyCode = vbKeyW Then DirUp = False
+            If KeyCode = vbKeyDown Or KeyCode = vbKeyS Then DirDown = False
+            If KeyCode = vbKeyLeft Or KeyCode = vbKeyA Then DirLeft = False
+            If KeyCode = vbKeyRight Or KeyCode = vbKeyD Then DirRight = False
             If KeyCode = vbKeyShift Then ShiftDown = False
             If KeyCode = vbKeyControl Then ControlDown = False
         End If
