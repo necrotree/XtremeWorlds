@@ -3106,8 +3106,7 @@ Private Sub Equip_Click(index As Integer)
 End Sub
 
 Private Sub Form_Load()
-    txtMyTextBox.Locked = True
-    txtMyTextBox.ToolTipText = "Enter: chat | WASD/arrows: move | E: pick up"
+    Call ApplyMovementControls
 
     ' Dim result As Long
     ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
@@ -3230,7 +3229,10 @@ Private Sub Form_KeyPress(KeyAscii As Integer)
     ' Enter is handled on key-down so changing focus cannot submit it twice.
     If KeyAscii = vbKeyReturn Then
         KeyAscii = 0
-    ElseIf Not ChatUnlocked And TxtHasFocus Then
+    ElseIf Not WASDEnabled And TxtHasFocus And Not ChatInputHasFocus Then
+        Call HandleKeypresses(KeyAscii)
+        KeyAscii = 0
+    ElseIf WASDEnabled And Not ChatUnlocked And TxtHasFocus Then
         KeyAscii = 0
     End If
 End Sub
@@ -3239,7 +3241,13 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
     If KeyCode = vbKeyReturn And (ChatUnlocked Or TxtHasFocus) Then
         If Not ChatEnterDown Then
             ChatEnterDown = True
-            If ChatUnlocked Then
+            If Not WASDEnabled Then
+                ' Classic chat is always available; Enter sends without locking it.
+                MyText = txtMyTextBox.Text
+                If Len(Trim$(MyText)) = 0 Then Call CheckMapGetItem
+                Call HandleKeypresses(vbKeyReturn)
+                txtMyTextBox.Text = MyText
+            ElseIf ChatUnlocked Then
                 MyText = txtMyTextBox.Text
                 ChatUnlocked = False
                 txtMyTextBox.Locked = True
@@ -3253,13 +3261,13 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
         KeyCode = 0
         Exit Sub
     End If
-    If ChatUnlocked Or Not TxtHasFocus Then Exit Sub
+    If ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
     Call CheckInput(1, KeyCode, Shift)
 End Sub
 
 Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
     If KeyCode = vbKeyReturn Then ChatEnterDown = False
-    If ChatUnlocked Then Exit Sub
+    If ChatUnlocked Or ChatInputHasFocus Then Exit Sub
     Call CheckInput(0, KeyCode, Shift)
     If KeyCode = vbKeyF1 Then
         If frmMainGame.Width = 13545 Then
@@ -3379,8 +3387,25 @@ On Error Resume Next
     txtMapNum.SetFocus
 End Sub
 
+Public Sub ApplyMovementControls()
+    ChatUnlocked = False
+    ChatEnterDown = False
+    DirUp = False
+    DirDown = False
+    DirLeft = False
+    DirRight = False
+    ControlDown = False
+    ShiftDown = False
+    txtMyTextBox.Locked = WASDEnabled
+    If WASDEnabled Then
+        txtMyTextBox.ToolTipText = "Enter: unlock/send and lock chat | WASD/arrows: move | E: pick up"
+    Else
+        txtMyTextBox.ToolTipText = "Type to chat | Enter: send | Arrow keys: move"
+    End If
+End Sub
+
 Public Sub UnlockChat()
-    ChatUnlocked = True
+    ChatUnlocked = WASDEnabled
     DirUp = False
     DirDown = False
     DirLeft = False
@@ -3394,7 +3419,7 @@ Public Sub UnlockChat()
 End Sub
 
 Private Sub txtMyTextBox_GotFocus()
-    If Not ChatUnlocked Then
+    If WASDEnabled And Not ChatUnlocked Then
         Call SetFocusOnGame
         Exit Sub
     End If
@@ -3422,7 +3447,7 @@ Private Sub txtMyTextBox_Change()
 End Sub
 
 Private Sub txtMyTextBox_KeyPress(KeyAscii As Integer)
-    If KeyAscii = vbKeyReturn Or Not ChatUnlocked Then KeyAscii = 0
+    If KeyAscii = vbKeyReturn Or (WASDEnabled And Not ChatUnlocked) Then KeyAscii = 0
 End Sub
 
 Private Sub txtPlayerName_Change()

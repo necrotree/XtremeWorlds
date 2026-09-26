@@ -59,12 +59,12 @@ Public Sub Main()
         Dim F  As Long
         F = FreeFile
         Open FileName For Binary As #F
-        Put #F, , GameData
+        Put #F,, GameData
         Close #F
     Else
         F = FreeFile
         Open FileName For Binary As #F
-        Get #F, , GameData
+        Get #F,, GameData
         Close #F
     End If
 
@@ -144,10 +144,10 @@ Public Sub GameLoop()
         Tick = GetTickCount
 
         ' Check to make sure they aren't trying to auto do anything
-        If GetAsyncKeyState(VK_UP) >= 0 And GetAsyncKeyState(vbKeyW) >= 0 And DirUp = True Then DirUp = False
-        If GetAsyncKeyState(VK_DOWN) >= 0 And GetAsyncKeyState(vbKeyS) >= 0 And DirDown = True Then DirDown = False
-        If GetAsyncKeyState(VK_LEFT) >= 0 And GetAsyncKeyState(vbKeyA) >= 0 And DirLeft = True Then DirLeft = False
-        If GetAsyncKeyState(VK_RIGHT) >= 0 And GetAsyncKeyState(vbKeyD) >= 0 And DirRight = True Then DirRight = False
+        If GetAsyncKeyState(VK_UP) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyW) >= 0) And DirUp = True Then DirUp = False
+        If GetAsyncKeyState(VK_DOWN) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyS) >= 0) And DirDown = True Then DirDown = False
+        If GetAsyncKeyState(VK_LEFT) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyA) >= 0) And DirLeft = True Then DirLeft = False
+        If GetAsyncKeyState(VK_RIGHT) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyD) >= 0) And DirRight = True Then DirRight = False
         If GetAsyncKeyState(VK_CONTROL) >= 0 And ControlDown = True Then ControlDown = False
         If GetAsyncKeyState(VK_SHIFT) >= 0 And ShiftDown = True Then ShiftDown = False
 
@@ -161,7 +161,7 @@ Public Sub GameLoop()
             If Not GettingMap Then
             
 
-                rec.top = 0
+                rec.Top = 0
                 rec.Bottom = (MAX_MAPY + 1) * 32
                 rec.Left = 0
                 rec.Right = (MAX_MAPX + 1) * 32
@@ -202,7 +202,7 @@ Public Sub GameLoop()
                     Call BltSpell(VicX, VicY, SpellAnim)
                 End If
 
-                rec.top = 0
+                rec.Top = 0
                 rec.Bottom = (MAX_MAPY + 1) * 32
                 rec.Left = 0
                 rec.Right = (MAX_MAPX + 1) * 32
@@ -329,7 +329,7 @@ Public Sub GameLoop()
 
             ' Get the rect for the back buffer to blit from
             With rec
-                .top = 0
+                .Top = 0
                 .Bottom = (MAX_MAPY + 1) * PIC_Y
                 .Left = 0
                 .Right = (MAX_MAPX + 1) * PIC_X
@@ -971,7 +971,7 @@ End Sub
 Sub CheckInput2()
     If frmMainGame.ChatUnlocked Then Exit Sub
     If GettingMap = False Then
-        If GetKeyState(vbKeyE) < 0 Then
+        If GameData.WASD And GetKeyState(vbKeyE) < 0 Then
             Call CheckMapGetItem
         End If
         If GetKeyState(VK_CONTROL) < 0 Then
@@ -979,7 +979,7 @@ Sub CheckInput2()
         Else
             ControlDown = False
         End If
-        If GetKeyState(VK_UP) < 0 Or GetKeyState(vbKeyW) < 0 Then
+        If GetKeyState(VK_UP) < 0 Or (GameData.WASD And GetKeyState(vbKeyW) < 0) Then
             DirUp = True
             DirDown = False
             DirLeft = False
@@ -987,7 +987,7 @@ Sub CheckInput2()
         Else
             DirUp = False
         End If
-        If GetKeyState(VK_DOWN) < 0 Or GetKeyState(vbKeyS) < 0 Then
+        If GetKeyState(VK_DOWN) < 0 Or (GameData.WASD And GetKeyState(vbKeyS) < 0) Then
             DirUp = False
             DirDown = True
             DirLeft = False
@@ -995,7 +995,7 @@ Sub CheckInput2()
         Else
             DirDown = False
         End If
-        If GetKeyState(VK_LEFT) < 0 Or GetKeyState(vbKeyA) < 0 Then
+        If GetKeyState(VK_LEFT) < 0 Or (GameData.WASD And GetKeyState(vbKeyA) < 0) Then
             DirUp = False
             DirDown = False
             DirLeft = True
@@ -1003,7 +1003,7 @@ Sub CheckInput2()
         Else
             DirLeft = False
         End If
-        If GetKeyState(VK_RIGHT) < 0 Or GetKeyState(vbKeyD) < 0 Then
+        If GetKeyState(VK_RIGHT) < 0 Or (GameData.WASD And GetKeyState(vbKeyD) < 0) Then
             DirUp = False
             DirDown = False
             DirLeft = False
@@ -1023,31 +1023,31 @@ Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As 
     If frmMainGame.ChatUnlocked Then Exit Sub
     If GettingMap = False Then
         If KeyState = 1 Then
-            If KeyCode = vbKeyE Then
+            If GameData.WASD And KeyCode = vbKeyE Then
                 Call CheckMapGetItem
             End If
             If KeyCode = vbKeyControl Then
                 ControlDown = True
             End If
-            If KeyCode = vbKeyUp Or KeyCode = vbKeyW Then
+            If KeyCode = vbKeyUp Or (GameData.WASD And KeyCode = vbKeyW) Then
                 DirUp = True
                 DirDown = False
                 DirLeft = False
                 DirRight = False
             End If
-            If KeyCode = vbKeyDown Or KeyCode = vbKeyS Then
+            If KeyCode = vbKeyDown Or (GameData.WASD And KeyCode = vbKeyS) Then
                 DirUp = False
                 DirDown = True
                 DirLeft = False
                 DirRight = False
             End If
-            If KeyCode = vbKeyLeft Or KeyCode = vbKeyA Then
+            If KeyCode = vbKeyLeft Or (GameData.WASD And KeyCode = vbKeyA) Then
                 DirUp = False
                 DirDown = False
                 DirLeft = True
                 DirRight = False
             End If
-            If KeyCode = vbKeyRight Or KeyCode = vbKeyD Then
+            If KeyCode = vbKeyRight Or (GameData.WASD And KeyCode = vbKeyD) Then
                 DirUp = False
                 DirDown = False
                 DirLeft = False
@@ -1060,10 +1060,10 @@ Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As 
                 Call GameDestroy
             End If
         Else
-            If KeyCode = vbKeyUp Or KeyCode = vbKeyW Then DirUp = False
-            If KeyCode = vbKeyDown Or KeyCode = vbKeyS Then DirDown = False
-            If KeyCode = vbKeyLeft Or KeyCode = vbKeyA Then DirLeft = False
-            If KeyCode = vbKeyRight Or KeyCode = vbKeyD Then DirRight = False
+            If KeyCode = vbKeyUp Or (GameData.WASD And KeyCode = vbKeyW) Then DirUp = False
+            If KeyCode = vbKeyDown Or (GameData.WASD And KeyCode = vbKeyS) Then DirDown = False
+            If KeyCode = vbKeyLeft Or (GameData.WASD And KeyCode = vbKeyA) Then DirLeft = False
+            If KeyCode = vbKeyRight Or (GameData.WASD And KeyCode = vbKeyD) Then DirRight = False
             If KeyCode = vbKeyShift Then ShiftDown = False
             If KeyCode = vbKeyControl Then ControlDown = False
         End If
@@ -1198,17 +1198,17 @@ End Function
 Public Sub NewCharBltSprite(ByVal ListIndexSprite As Integer)
     With rec
         If frmMainMenu.optMale.Value = True Then
-            .top = Int(Class(ListIndexSprite).Sprite) * PIC_Y
+            .Top = Int(Class(ListIndexSprite).Sprite) * PIC_Y
         Else
-            .top = Int(Class(ListIndexSprite).FSprite) * PIC_Y
+            .Top = Int(Class(ListIndexSprite).FSprite) * PIC_Y
         End If
-        .Bottom = .top + PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = 3 * PIC_X
         .Right = .Left + PIC_X
     End With
 
     With rec_pos
-        .top = 0
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
@@ -1223,14 +1223,14 @@ End Sub
 
 Public Sub BltPlayerCharSprite()
     With rec
-        .top = Int(TempCharSprite) * PIC_Y
-        .Bottom = .top + PIC_Y
+        .Top = Int(TempCharSprite) * PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = 3 * PIC_X
         .Right = .Left + PIC_X
     End With
 
     With rec_pos
-        .top = 0
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
@@ -1251,14 +1251,14 @@ Public Sub NpcEditorBltSprite()
 ' ****************************************************************
 
     With rec
-        .top = frmNpcEditor.scrlSprite.Value * PIC_Y
-        .Bottom = .top + PIC_Y
+        .Top = frmNpcEditor.scrlSprite.Value * PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = 3 * PIC_X
         .Right = .Left + PIC_X
     End With
 
     With rec_pos
-        .top = 0
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
@@ -1279,14 +1279,14 @@ Public Sub SpriteChangeBltSprite()
 ' ****************************************************************
 
     With rec
-        .top = frmSetSprite.scrlSprite.Value * PIC_Y
-        .Bottom = .top + PIC_Y
+        .Top = frmSetSprite.scrlSprite.Value * PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = 3 * PIC_X
         .Right = .Left + PIC_X
     End With
 
     With rec_pos
-        .top = 0
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X

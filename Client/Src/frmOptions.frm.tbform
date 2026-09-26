@@ -2,7 +2,7 @@
     {
         "ShowInTaskbar":  0,
         "ScaleWidth":  4320,
-        "ScaleHeight":  5355,
+        "ScaleHeight":  6315,
         "MinButton":  0,
         "MaxButton":  0,
         "LinkTopic":  "Form1",
@@ -11,14 +11,14 @@
         "ClientWidth":  4320,
         "ClientTop":  3765,
         "ClientLeft":  8055,
-        "ClientHeight":  5355,
+        "ClientHeight":  6315,
         "Caption":  "Options",
         "BorderStyle":  4,
         "FontName":  "MS Sans Serif",
         "_clsid":  "{33AD4F38-6699-11CF-B70C-00AA0060D393}",
         "FormDesignerId":  "{56E4B957-CE62-481A-8919-25ACBC2140D4}",
         "Width":  288,
-        "Height":  357,
+        "Height":  421,
         "Name":  "frmOptions",
         "_children":  [
                           {
@@ -300,14 +300,14 @@
                               "Top":  8,
                               "TabIndex":  0,
                               "Left":  8,
-                              "Height":  345,
+                              "Height":  409,
                               "FontName":  "MS Sans Serif",
                               "_className":  "Frame",
                               "Name":  "SSTab1",
                               "_children":  [
                                                 {
                                                     "Width":  97,
-                                                    "Top":  304,
+                                                    "Top":  368,
                                                     "TabIndex":  1,
                                                     "Left":  160,
                                                     "Height":  25,
@@ -326,7 +326,7 @@
                                                 },
                                                 {
                                                     "Width":  97,
-                                                    "Top":  304,
+                                                    "Top":  368,
                                                     "TabIndex":  2,
                                                     "Left":  8,
                                                     "Height":  25,
@@ -613,6 +613,66 @@
                                                                           "_className":  "OptionButton",
                                                                           "Name":  "optSoundOff",
                                                                           "_isExclusiveWithinContainer":  true
+                                                                      }
+                                                                  ]
+                                                },
+                                                {
+                                                    "Width":  241,
+                                                    "Top":  296,
+                                                    "TabIndex":  17,
+                                                    "Left":  16,
+                                                    "Height":  57,
+                                                    "FontStrikethru":  0,
+                                                    "FontItalic":  0,
+                                                    "FontUnderline":  0,
+                                                    "FontBold":  false,
+                                                    "FontCharset":  0,
+                                                    "FontSize":  6.75,
+                                                    "FontName":  "Tahoma",
+                                                    "Caption":  "WASD",
+                                                    "_clsid":  "{33AD4EE8-6699-11CF-B70C-00AA0060D393}",
+                                                    "_className":  "Frame",
+                                                    "Name":  "fraWASD",
+                                                    "_children":  [
+                                                                      {
+                                                                          "Width":  57,
+                                                                          "Value":  0,
+                                                                          "Top":  24,
+                                                                          "TabIndex":  18,
+                                                                          "Left":  16,
+                                                                          "Height":  17,
+                                                                          "FontStrikethru":  0,
+                                                                          "FontItalic":  0,
+                                                                          "FontUnderline":  0,
+                                                                          "FontBold":  false,
+                                                                          "FontCharset":  0,
+                                                                          "FontSize":  6.75,
+                                                                          "FontName":  "Tahoma",
+                                                                          "Caption":  "On",
+                                                                          "_clsid":  "{33AD4F00-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "OptionButton",
+                                                                          "Name":  "optWASDOn",
+                                                                          "_isExclusiveWithinContainer":  true
+                                                                      },
+                                                                      {
+                                                                          "Width":  57,
+                                                                          "Top":  24,
+                                                                          "TabIndex":  19,
+                                                                          "Left":  104,
+                                                                          "Height":  17,
+                                                                          "FontStrikethru":  0,
+                                                                          "FontItalic":  0,
+                                                                          "FontUnderline":  0,
+                                                                          "FontBold":  false,
+                                                                          "FontCharset":  0,
+                                                                          "FontSize":  6.75,
+                                                                          "FontName":  "Tahoma",
+                                                                          "Caption":  "Off",
+                                                                          "_clsid":  "{33AD4F00-6699-11CF-B70C-00AA0060D393}",
+                                                                          "_className":  "OptionButton",
+                                                                          "Name":  "optWASDOff",
+                                                                          "_isExclusiveWithinContainer":  true,
+                                                                          "Value":  "-1"
                                                                       }
                                                                   ]
                                                 }

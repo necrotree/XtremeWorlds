@@ -63,6 +63,7 @@ Class frmOptions
         Open FileName For Binary As #F
         Put #F, , GameData
         Close #F
+        Call frmMainGame.ApplyMovementControls
         Unload Me
     End Sub
     

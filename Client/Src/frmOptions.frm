@@ -3,7 +3,7 @@ Object = "{BDC217C8-ED16-11CD-956C-0000C04E4C0A}#1.1#0"; "tabctl32.ocx"
 Begin VB.Form frmOptions 
    BorderStyle     =   4  'Fixed ToolWindow
    Caption         =   "Options"
-   ClientHeight    =   5355
+   ClientHeight    =   6315
    ClientLeft      =   8055
    ClientTop       =   3765
    ClientWidth     =   4320
@@ -12,11 +12,11 @@ Begin VB.Form frmOptions
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   5355
+   ScaleHeight     =   6315
    ScaleWidth      =   4320
    ShowInTaskbar   =   0   'False
    Begin TabDlg.SSTab SSTab1 
-      Height          =   5175
+      Height          =   6135
       Left            =   120
       TabIndex        =   0
       Top             =   120
@@ -50,7 +50,61 @@ Begin VB.Form frmOptions
       Tab(0).Control(4).Enabled=   0   'False
       Tab(0).Control(5)=   "Frame4"
       Tab(0).Control(5).Enabled=   0   'False
-      Tab(0).ControlCount=   6
+      Tab(0).Control(6)=   "fraWASD"
+      Tab(0).Control(6).Enabled=   0   'False
+      Tab(0).ControlCount=   7
+      Begin VB.Frame fraWASD 
+         Caption         =   "WASD"
+         BeginProperty Font 
+            Name            =   "Tahoma"
+            Size            =   6.75
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         Height          =   855
+         Left            =   240
+         TabIndex        =   17
+         Top             =   4440
+         Width           =   3615
+         Begin VB.OptionButton optWASDOff 
+            Caption         =   "Off"
+            BeginProperty Font 
+               Name            =   "Tahoma"
+               Size            =   6.75
+               Charset         =   0
+               Weight          =   400
+               Underline       =   0   'False
+               Italic          =   0   'False
+               Strikethrough   =   0   'False
+            EndProperty
+            Height          =   255
+            Left            =   1860
+            TabIndex        =   19
+            Top             =   360
+            Width           =   855
+         End
+         Begin VB.OptionButton optWASDOn 
+            Caption         =   "On"
+            BeginProperty Font 
+               Name            =   "Tahoma"
+               Size            =   6.75
+               Charset         =   0
+               Weight          =   400
+               Underline       =   0   'False
+               Italic          =   0   'False
+               Strikethrough   =   0   'False
+            EndProperty
+            Height          =   255
+            Left            =   240
+            TabIndex        =   18
+            Top             =   360
+            Value           =   0   'False
+            Width           =   855
+         End
+      End
       Begin VB.Frame Frame4 
          Caption         =   "Sound"
          BeginProperty Font 
@@ -307,7 +361,7 @@ Begin VB.Form frmOptions
          Height          =   375
          Left            =   120
          TabIndex        =   2
-         Top             =   4560
+         Top             =   5520
          Width           =   1455
       End
       Begin VB.CommandButton cmdCancel 
@@ -325,7 +379,7 @@ Begin VB.Form frmOptions
          Height          =   375
          Left            =   2400
          TabIndex        =   1
-         Top             =   4560
+         Top             =   5520
          Width           =   1455
       End
    End
@@ -390,9 +444,13 @@ Private Sub cmdSave_Click()
     Open FileName For Binary As #F
     Put #F, , GameData
     Close #F
+    WASDEnabled = optWASDOn.Value
+    Call PutVar(App.Path & DATA_PATH & "Options.ini", "Controls", "WASD", CStr(Abs(CInt(WASDEnabled))))
+    Call frmMainGame.ApplyMovementControls
     Unload Me
 End Sub
 
 Private Sub Form_Load()
+    If WASDEnabled Then optWASDOn.Value = True Else optWASDOff.Value = True
     frmMainGame.txtMyTextBox.Text = vbNullString
 End Sub
