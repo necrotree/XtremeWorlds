@@ -52,7 +52,9 @@ Public Function ConnectToServer() As Boolean
 ' * 07/12/2005  Shannara   Optimized function.
 ' ****************************************************************
 
+    Static Connecting As Boolean
     Dim Wait As Long
+    Dim LastAttempt As Long
 
     ' Check to see if we are already connected, if so just exit
     If IsConnected Then
@@ -60,22 +62,41 @@ Public Function ConnectToServer() As Boolean
         Exit Function
     End If
 
+    ' DoEvents can dispatch another login request while this one is waiting.
+    If Connecting Then Exit Function
+    Connecting = True
+    On Error GoTo ConnectionFailed
+
     Wait = GetTickCount
+    LastAttempt = Wait
     With frmMainGame.Socket
         .Close
         .Connect
     End With
 
-    ' Wait until connected or 4 seconds have passed and report the server being down
+    ' Pump socket events and retry failed attempts during the connection window.
     Do While (Not IsConnected) And (GetTickCount <= Wait + 4000)
         DoEvents
+        If IsConnected Then Exit Do
+        With frmMainGame.Socket
+            ' Leave pending DNS/connect operations alone; retry closed/error sockets.
+            If (.State = 0 Or .State = 9) And GetTickCount >= LastAttempt + 500 Then
+                LastAttempt = GetTickCount
+                .Close
+                .Connect
+            End If
+        End With
+        Sleep 1
     Loop
 
-    If IsConnected Then
-        ConnectToServer = True
-    Else
-        ConnectToServer = False
-    End If
+    ConnectToServer = IsConnected
+    If Not ConnectToServer Then frmMainGame.Socket.Close
+    Connecting = False
+    Exit Function
+
+ConnectionFailed:
+    Connecting = False
+    frmMainGame.Socket.Close
 End Function
 
 Function IsConnected() As Boolean

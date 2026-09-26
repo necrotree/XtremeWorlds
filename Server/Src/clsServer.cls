@@ -104,6 +104,8 @@ Public Sub Poll()
         connection.Poll
         If Not connection.IsOpen Then mConnections.Remove index
     Next
+    ' Keep connection and UI events moving while preventing nested socket polls.
+    DoEvents
     mPolling = False
     Exit Sub
 Failed:
