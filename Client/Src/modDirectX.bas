@@ -253,34 +253,8 @@ Public Sub BltPlayer(ByVal index As Long)
 
     ' Check for player(index).animation
     If Player(index).Attacking = 0 Then
-        Select Case GetPlayerDir(index)
-            Case DIR_UP
-                Player(index).Anim = 0
-                If (Player(index).YOffset < PIC_Y / 3) Then
-                    Player(index).Anim = 1
-                ElseIf (Player(index).YOffset > PIC_Y / 3) And ((Player(index).YOffset > PIC_Y / 3 * 2)) Then
-                    Player(index).Anim = 2
-                End If
-            Case DIR_DOWN
-                Player(index).Anim = 1
-                If (Player(index).YOffset < PIC_X / 4 * -1) Then Player(index).Anim = 0
-                If (Player(index).YOffset < PIC_X / 2 * -1) Then Player(index).Anim = 2
-            Case DIR_LEFT
-                Player(index).Anim = 0
-                If (Player(index).XOffset < PIC_Y / 3) Then
-                    Player(index).Anim = 1
-                ElseIf (Player(index).XOffset > PIC_Y / 3) And ((Player(index).XOffset > PIC_Y / 3 * 2)) Then
-                    Player(index).Anim = 2
-                End If
-            Case DIR_RIGHT
-                Player(index).Anim = 0
-                If (Player(index).XOffset < PIC_Y / 4 * -1) Then Player(index).Anim = 1
-                If (Player(index).XOffset < PIC_Y / 2 * -1) Then Player(index).Anim = 2
-        End Select
-    ' Dim obj As pwMovement.clsWalk
-    ' Set obj = CreateObject("pwMovement.clsWalk")
-    ' Player(index).Anim = obj.GetPlayerAnim(GetPlayerDir(index), Player(index).YOffset, Player(index).XOffset)
-    ' Set obj = Nothing
+        ' Use positive pixel remainders for walking frames in every direction.
+        Player(index).Anim = ((Player(index).XOffset + Player(index).YOffset) \ 8) Mod 3
     Else
         If Player(index).AttackTimer + 500 > GetTickCount Then
             Player(index).Anim = 2

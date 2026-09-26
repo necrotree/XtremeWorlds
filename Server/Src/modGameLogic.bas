@@ -1484,179 +1484,46 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
 
     Call SetPlayerDir(Index, Dir)
 
-    Moved = NO
-
+    X = GetPlayerPixelX(Index)
+    y = GetPlayerPixelY(Index)
     Select Case Dir
-        Case DIR_UP
-            ' Check to make sure not outside of boundries
-            If GetPlayerY(Index) > 0 Then
-                ' Check to make sure that the tile is walkable
-                If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type <> TILE_TYPE_BLOCKED Then
-                    ' Check to see if the tile is a key and if it is check if its opened
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) - 1) = YES) Then
-                        ' Check to see if the tile is a door and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) - 1) = YES) Then
-                            Call SetPlayerY(Index, GetPlayerY(Index) - 1)
-
-                            Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                            Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                            Moved = YES
-                        End If
-                    End If
-                ' Check to make sure that the tile is walkable
-                ElseIf Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type = TILE_TYPE_BLOCKED Then
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Data1 = 0 Then
-                        ' Check to see if the tile is a key and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) - 1) = YES) Then
-                            ' Check to see if the tile is a door and if it is check if its opened
-                            If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) - 1).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) - 1) = YES) Then
-                                Call SetPlayerY(Index, GetPlayerY(Index) - 1)
-
-                                Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                                Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                                Moved = YES
-                            End If
-                        End If
-                    End If
-                End If
-            Else
-                ' Check to see if we can move them to the another map
-                If Map(GetPlayerMap(Index)).Up > 0 Then
-                    NewMap = Map(GetPlayerMap(Index)).Up
-                    If Not Map(NewMap).Tile(GetPlayerX(Index), MAX_MAPY).Type = TILE_TYPE_BLOCKED And Not Map(NewMap).Tile(GetPlayerX(Index), MAX_MAPY).Data1 = 1 Then
-                        Call PlayerWarp(Index, Map(GetPlayerMap(Index)).Up, GetPlayerX(Index), MAX_MAPY)
-                        Moved = YES
-                    End If
-                End If
-            End If
-
-        Case DIR_DOWN
-            ' Check to make sure not outside of boundries
-            If GetPlayerY(Index) < MAX_MAPY Then
-                ' Check to make sure that the tile is walkable
-                If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type <> TILE_TYPE_BLOCKED Then
-                    ' Check to see if the tile is a key and if it is check if its opened
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) + 1) = YES) Then
-                        ' Check to see if the tile is a door and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) + 1) = YES) Then
-                            Call SetPlayerY(Index, GetPlayerY(Index) + 1)
-
-                            Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                            Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                            Moved = YES
-                        End If
-                    End If
-                ElseIf Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type = TILE_TYPE_BLOCKED Then
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Data1 = 0 Then
-                        ' Check to see if the tile is a key and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) + 1) = YES) Then
-                            ' Check to see if the tile is a door and if it is check if its opened
-                            If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index) + 1).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index), GetPlayerY(Index) + 1) = YES) Then
-                                Call SetPlayerY(Index, GetPlayerY(Index) + 1)
-
-                                Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                                Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                                Moved = YES
-                            End If
-                        End If
-                    End If
-                End If
-            Else
-                ' Check to see if we can move them to the another map
-                If Map(GetPlayerMap(Index)).Down > 0 Then
-                    NewMap = Map(GetPlayerMap(Index)).Down
-                    If Not Map(NewMap).Tile(GetPlayerX(Index), 0).Type = TILE_TYPE_BLOCKED And Not Map(NewMap).Tile(GetPlayerX(Index), 0).Data1 = 1 Then
-                        Call PlayerWarp(Index, Map(GetPlayerMap(Index)).Down, GetPlayerX(Index), 0)
-                        Moved = YES
-                    End If
-                End If
-            End If
-
-        Case DIR_LEFT
-            ' Check to make sure not outside of boundries
-            If GetPlayerX(Index) > 0 Then
-                ' Check to make sure that the tile is walkable
-                If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type <> TILE_TYPE_BLOCKED Then
-                    ' Check to see if the tile is a key and if it is check if its opened
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) - 1, GetPlayerY(Index)) = YES) Then
-                        ' Check to see if the tile is a door and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) - 1, GetPlayerY(Index)) = YES) Then
-                            Call SetPlayerX(Index, GetPlayerX(Index) - 1)
-
-                            Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                            Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                            Moved = YES
-                        End If
-                    End If
-                ElseIf Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type = TILE_TYPE_BLOCKED Then
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Data1 = 0 Then
-                        ' Check to see if the tile is a key and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) - 1, GetPlayerY(Index)) = YES) Then
-                            ' Check to see if the tile is a door and if it is check if its opened
-                            If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) - 1, GetPlayerY(Index)).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) - 1, GetPlayerY(Index)) = YES) Then
-                                Call SetPlayerX(Index, GetPlayerX(Index) - 1)
-
-                                Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                                Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                                Moved = YES
-                            End If
-                        End If
-                    End If
-                End If             ' For Blocks
-            Else
-                ' Check to see if we can move them to the another map
-                If Map(GetPlayerMap(Index)).Left > 0 Then
-                    NewMap = Map(GetPlayerMap(Index)).Left
-                    If Not Map(NewMap).Tile(MAX_MAPX, GetPlayerY(Index)).Type = TILE_TYPE_BLOCKED And Not Map(NewMap).Tile(MAX_MAPX, GetPlayerY(Index)).Data1 = 1 Then
-                        Call PlayerWarp(Index, Map(GetPlayerMap(Index)).Left, MAX_MAPX, GetPlayerY(Index))
-                        Moved = YES
-                    End If
-                End If
-            End If
-
-        Case DIR_RIGHT
-            ' Check to make sure not outside of boundries
-            If GetPlayerX(Index) < MAX_MAPX Then
-                ' Check to make sure that the tile is walkable
-                If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type <> TILE_TYPE_BLOCKED Then
-                    ' Check to see if the tile is a key and if it is check if its opened
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) + 1, GetPlayerY(Index)) = YES) Then
-                        ' Check to see if the tile is a door and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) + 1, GetPlayerY(Index)) = YES) Then
-                            Call SetPlayerX(Index, GetPlayerX(Index) + 1)
-
-                            Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                            Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                            Moved = YES
-                        End If
-                    End If
-                ElseIf Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type = TILE_TYPE_BLOCKED Then
-                    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Data1 = 0 Then
-                        ' Check to see if the tile is a key and if it is check if its opened
-                        If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type <> TILE_TYPE_KEY Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) + 1, GetPlayerY(Index)) = YES) Then
-                            ' Check to see if the tile is a door and if it is check if its opened
-                            If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type <> TILE_TYPE_DOOR Or (Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index) + 1, GetPlayerY(Index)).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(GetPlayerX(Index) + 1, GetPlayerY(Index)) = YES) Then
-                                Call SetPlayerX(Index, GetPlayerX(Index) + 1)
-
-                                Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & Movement & END_CHAR
-                                Call SendDataToMapBut(Index, GetPlayerMap(Index), Packet)
-                                Moved = YES
-                            End If
-                        End If
-                    End If
-                End If             ' For Blocks
-            Else
-                ' Check to see if we can move them to the another map
-                If Map(GetPlayerMap(Index)).Right > 0 Then
-                    NewMap = Map(GetPlayerMap(Index)).Right
-                    If Not Map(NewMap).Tile(0, GetPlayerY(Index)).Type = TILE_TYPE_BLOCKED And Not Map(NewMap).Tile(0, GetPlayerY(Index)).Data1 = 1 Then
-                        Call PlayerWarp(Index, Map(GetPlayerMap(Index)).Right, 0, GetPlayerY(Index))
-                        Moved = YES
-                    End If
-                End If
-            End If
+        Case DIR_UP: y = y - 1
+        Case DIR_DOWN: y = y + 1
+        Case DIR_LEFT: X = X - 1
+        Case DIR_RIGHT: X = X + 1
     End Select
-
+    MapNum = GetPlayerMap(Index)
+    If X < 0 Or y < 0 Or X > MAX_MAPX * PIC_X Or y > MAX_MAPY * PIC_Y Then
+        X = GetPlayerX(Index)
+        y = GetPlayerY(Index)
+        Select Case Dir
+            Case DIR_UP: NewMap = Map(MapNum).Up: y = MAX_MAPY
+            Case DIR_DOWN: NewMap = Map(MapNum).Down: y = 0
+            Case DIR_LEFT: NewMap = Map(MapNum).Left: X = MAX_MAPX
+            Case DIR_RIGHT: NewMap = Map(MapNum).Right: X = 0
+        End Select
+        If NewMap > 0 And NewMap <= MAX_MAPS_SET Then
+            If CanEnterPlayerTile(Index, NewMap, X, y) Then
+                Call PlayerWarp(Index, NewMap, X, y)
+                Exit Sub
+            End If
+        End If
+        Call SendPlayerXY(Index)
+        Exit Sub
+    End If
+    Moved = NO
+    If Int(X / PIC_X) <> GetPlayerX(Index) Or Int(y / PIC_Y) <> GetPlayerY(Index) Then
+        If Not CanEnterPlayerTile(Index, MapNum, Int(X / PIC_X), Int(y / PIC_Y)) Then
+            Call SendPlayerXY(Index)
+            Exit Sub
+        End If
+        Moved = YES
+    End If
+    Call SetPlayerPixels(Index, X, y)
+    Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & Dir & SEP_CHAR & Movement & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
+    Call SendDataToMapBut(Index, MapNum, Packet)
+    ' Tile effects fire once on entry, not on every pixel within the same tile.
+    If Moved = NO Then Exit Sub
 
     ' Check to see if the tile is a warp tile, and if so warp them
     If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_WARP Then
@@ -2028,6 +1895,8 @@ Sub NpcDir(ByVal MapNum As Long, ByVal MapNpcNum As Long, ByVal Dir As Long)
 End Sub
 
 Sub JoinGame(ByVal Index As Long)
+    Player(Index).XOffset = 0
+    Player(Index).YOffset = 0
     ' Set the flag so we know the person is in the game
     Player(Index).InGame = True
 
@@ -2743,6 +2612,8 @@ Sub ClearPlayer(ByVal Index As Long)
     Player(Index).Buffer = vbNullString
     Player(Index).IncBuffer = vbNullString
     Player(Index).CharNum = 0
+    Player(Index).XOffset = 0
+    Player(Index).YOffset = 0
     Player(Index).InGame = False
     Player(Index).AttackTimer = 0
     Player(Index).DataTimer = 0
@@ -3155,6 +3026,7 @@ End Function
 
 Sub SetPlayerX(ByVal Index As Long, ByVal X As Long)
     Player(Index).Char(Player(Index).CharNum).X = X
+    Player(Index).XOffset = 0
 End Sub
 
 Function GetPlayerY(ByVal Index As Long) As Long
@@ -3163,6 +3035,7 @@ End Function
 
 Sub SetPlayerY(ByVal Index As Long, ByVal y As Long)
     Player(Index).Char(Player(Index).CharNum).y = y
+    Player(Index).YOffset = 0
 End Sub
 
 Function GetPlayerDir(ByVal Index As Long) As Long
@@ -3296,3 +3169,36 @@ Public Sub CheckWarp()
         End If
     Next I
 End Sub
+
+' Tile coordinates remain available to maps, scripts, combat and saved characters.
+Function GetPlayerPixelX(ByVal Index As Long) As Long
+    GetPlayerPixelX = GetPlayerX(Index) * PIC_X + Player(Index).XOffset
+End Function
+
+Function GetPlayerPixelY(ByVal Index As Long) As Long
+    GetPlayerPixelY = GetPlayerY(Index) * PIC_Y + Player(Index).YOffset
+End Function
+
+Sub SetPlayerPixels(ByVal Index As Long, ByVal PixelX As Long, ByVal PixelY As Long)
+    Call SetPlayerX(Index, Int(PixelX / PIC_X))
+    Call SetPlayerY(Index, Int(PixelY / PIC_Y))
+    Player(Index).XOffset = PixelX - GetPlayerX(Index) * PIC_X
+    Player(Index).YOffset = PixelY - GetPlayerY(Index) * PIC_Y
+End Sub
+Function CanEnterPlayerTile(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal Y As Long) As Boolean
+    Dim I As Long
+    If X < 0 Or Y < 0 Or X > MAX_MAPX Or Y > MAX_MAPY Then Exit Function
+    If Map(MapNum).Tile(X, Y).Type = TILE_TYPE_BLOCKED And Map(MapNum).Tile(X, Y).Data1 = 1 Then Exit Function
+    If Map(MapNum).Tile(X, Y).Type = TILE_TYPE_KEY Or Map(MapNum).Tile(X, Y).Type = TILE_TYPE_DOOR Then
+        If TempTile(MapNum).DoorOpen(X, Y) = NO Then Exit Function
+    End If
+    For I = 1 To HighIndex
+        If I <> Index And IsPlaying(I) Then
+            If GetPlayerMap(I) = MapNum And GetPlayerX(I) = X And GetPlayerY(I) = Y Then Exit Function
+        End If
+    Next I
+    For I = 1 To MAX_MAP_NPCS
+        If MapNpc(MapNum, I).Num > 0 And MapNpc(MapNum, I).X = X And MapNpc(MapNum, I).y = Y Then Exit Function
+    Next I
+    CanEnterPlayerTile = True
+End Function

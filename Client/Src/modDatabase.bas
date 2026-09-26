@@ -506,6 +506,7 @@ End Function
 
 Sub SetPlayerX(ByVal index As Long, ByVal X As Long)
     Player(index).X = X
+    Player(index).XOffset = 0
 End Sub
 
 Function GetPlayerY(ByVal index As Long) As Long
@@ -514,6 +515,7 @@ End Function
 
 Sub SetPlayerY(ByVal index As Long, ByVal Y As Long)
     Player(index).Y = Y
+    Player(index).YOffset = 0
 End Sub
 
 Function GetPlayerDir(ByVal index As Long) As Long
@@ -580,3 +582,19 @@ Sub SetPlayerShieldSlot(ByVal index As Long, InvNum As Long)
     Player(index).ShieldSlot = InvNum
 End Sub
 
+
+' Tile coordinates remain available to maps, scripts, combat and saved characters.
+Function GetPlayerPixelX(ByVal Index As Long) As Long
+    GetPlayerPixelX = GetPlayerX(Index) * PIC_X + Player(Index).XOffset
+End Function
+
+Function GetPlayerPixelY(ByVal Index As Long) As Long
+    GetPlayerPixelY = GetPlayerY(Index) * PIC_Y + Player(Index).YOffset
+End Function
+
+Sub SetPlayerPixels(ByVal Index As Long, ByVal PixelX As Long, ByVal PixelY As Long)
+    Call SetPlayerX(Index, Int(PixelX / PIC_X))
+    Call SetPlayerY(Index, Int(PixelY / PIC_Y))
+    Player(Index).XOffset = PixelX - GetPlayerX(Index) * PIC_X
+    Player(Index).YOffset = PixelY - GetPlayerY(Index) * PIC_Y
+End Sub

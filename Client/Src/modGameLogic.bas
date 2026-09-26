@@ -416,58 +416,21 @@ Public Sub GameLoop()
 End Sub
 
 Sub ProcessMovement(ByVal index As Long)
-    ' Check to see if player is out of SP if so then make them walk
-    If Player(MyIndex).Moving = MOVING_RUNNING Then
-
-        If GetPlayerSP(MyIndex) <= 0 Then
-            Call SetPlayerSP(MyIndex, 0)
-            Player(MyIndex).Moving = MOVING_WALKING
-        Else
-            If GetTickCount - SPDrain >= SPTick Then
-                Call SetPlayerSP(MyIndex, GetPlayerSP(MyIndex) - 1)
-                SPDrain = GetTickCount
-            End If
+    ' Pixel positions are applied by input/network packets, never interpolated to a tile.
+    If index = MyIndex And Player(index).Moving = MOVING_RUNNING Then
+        If GetPlayerSP(index) <= 0 Then
+            Call SetPlayerSP(index, 0)
+            Player(index).Moving = MOVING_WALKING
+        ElseIf GetTickCount - SPDrain >= SPTick Then
+            Call SetPlayerSP(index, GetPlayerSP(index) - 1)
+            SPDrain = GetTickCount
+        End If
+        frmMainGame.lblSP(0) = "SP: " & Val(GetPlayerSP(MyIndex)) & "/" & Val(GetPlayerMaxSP(MyIndex))
+        frmMainGame.lblSP(1) = frmMainGame.lblSP(0)
+        If GetPlayerMaxSP(MyIndex) > 0 Then
+            frmMainGame.shpSP.Width = (GetPlayerSP(MyIndex) / GetPlayerMaxSP(MyIndex)) * 153
         End If
     End If
-
-    ' Check if player is walking, and if so process moving them over
-    If Player(index).Moving = MOVING_WALKING Then
-        Select Case GetPlayerDir(index)
-            Case DIR_UP
-                Player(index).YOffset = Player(index).YOffset - WALK_SPEED
-            Case DIR_DOWN
-                Player(index).YOffset = Player(index).YOffset + WALK_SPEED
-            Case DIR_LEFT
-                Player(index).XOffset = Player(index).XOffset - WALK_SPEED
-            Case DIR_RIGHT
-                Player(index).XOffset = Player(index).XOffset + WALK_SPEED
-        End Select
-
-    ' Check if player is running, and if so process moving them over
-    ElseIf Player(index).Moving = MOVING_RUNNING Then
-        Select Case GetPlayerDir(index)
-            Case DIR_UP
-                Player(index).YOffset = Player(index).YOffset - RUN_SPEED
-            Case DIR_DOWN
-                Player(index).YOffset = Player(index).YOffset + RUN_SPEED
-            Case DIR_LEFT
-                Player(index).XOffset = Player(index).XOffset - RUN_SPEED
-            Case DIR_RIGHT
-                Player(index).XOffset = Player(index).XOffset + RUN_SPEED
-        End Select
-
-        ' Update SP
-        frmMainGame.lblSP(0) = "SP: " & Val(GetPlayerSP(MyIndex)) & "/" & Val(GetPlayerMaxSP(MyIndex))
-        frmMainGame.lblSP(1) = "SP: " & Val(GetPlayerSP(MyIndex)) & "/" & Val(GetPlayerMaxSP(MyIndex))
-        frmMainGame.shpSP.Width = (((GetPlayerSP(MyIndex) / 100) / (GetPlayerMaxSP(MyIndex) / 100)) * 153)
-
-    End If
-
-    ' Check if completed walking over to the next tile
-    If (Player(index).XOffset = 0) And (Player(index).YOffset = 0) Then
-        Player(index).Moving = 0
-    End If
-
 End Sub
 
 Sub ProcessNpcMovement(ByVal MapNpcNum As Long)
@@ -1114,365 +1077,90 @@ Function IsTryingToMove() As Boolean
 End Function
 
 Function CanMove() As Boolean
-    Dim i As Long, D As Long
-
-    CanMove = True
-
-    ' Make sure they aren't trying to move when they are already moving
-    If Player(MyIndex).Moving <> 0 Then
-        CanMove = False
-        Exit Function
-    End If
-
-    ' Make sure they haven't just casted a spell
+    Dim X As Long, Y As Long, TX As Long, TY As Long, D As Long, i As Long
     If Player(MyIndex).CastedSpell = YES Then
         If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
             Player(MyIndex).CastedSpell = NO
         Else
-            CanMove = False
             Exit Function
         End If
     End If
-
     D = GetPlayerDir(MyIndex)
     If DirUp Then
         Call SetPlayerDir(MyIndex, DIR_UP)
-
-        ' Check to see if they are trying to go out of bounds
-        If GetPlayerY(MyIndex) > 0 Then
-            ' Check to see if the map tile is blocked or not
-            If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) - 1).Type = TILE_TYPE_BLOCKED Then
-                If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) - 1).Data1 = 1 Then
-                    CanMove = False
-                Else
-                    CanMove = True
-                End If
-
-                ' Set the new direction if they weren't facing that direction
-                If D <> DIR_UP Then
-                    Call SendPlayerDir
-                End If
-                Exit Function
-            End If
-
-            ' Check to see if the key door is open or not
-            If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) - 1).Type = TILE_TYPE_KEY Or Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) - 1).Type = TILE_TYPE_DOOR Then
-                ' This actually checks if its open or not
-                If TempTile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) - 1).DoorOpen = NO Then
-                    CanMove = False
-
-                    ' Set the new direction if they weren't facing that direction
-                    If D <> DIR_UP Then
-                        Call SendPlayerDir
-                    End If
-                    Exit Function
-                End If
-            End If
-
-            ' Check to see if a player is already on that tile
-            For i = 1 To HighIndex
-                If IsPlaying(i) Then
-                    If GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                        If (GetPlayerX(i) = GetPlayerX(MyIndex)) And (GetPlayerY(i) = GetPlayerY(MyIndex) - 1) Then
-                            CanMove = False
-
-                            ' Set the new direction if they weren't facing that direction
-                            If D <> DIR_UP Then
-                                Call SendPlayerDir
-                            End If
-                            Exit Function
-                        End If
-                    End If
-                End If
-            Next i
-
-            ' Check to see if a npc is already on that tile
-            For i = 1 To MAX_MAP_NPCS
-                If MapNpc(i).Num > 0 Then
-                    If (MapNpc(i).X = GetPlayerX(MyIndex)) And (MapNpc(i).Y = GetPlayerY(MyIndex) - 1) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_UP Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-        Else
-            ' Check if they can warp to a new map
-            If Map.Up > 0 Then
-                Call SendPlayerRequestNewMap
-                GettingMap = True
-            End If
-            CanMove = False
-            Exit Function
-        End If
-    End If
-
-    If DirDown Then
+    ElseIf DirDown Then
         Call SetPlayerDir(MyIndex, DIR_DOWN)
-
-        ' Check to see if they are trying to go out of bounds
-        If GetPlayerY(MyIndex) < MAX_MAPY Then
-            ' Check to see if the map tile is blocked or not
-            If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) + 1).Type = TILE_TYPE_BLOCKED Then
-                If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) + 1).Data1 = 1 Then
-                    CanMove = False
-                Else
-                    CanMove = True
-                End If
-
-                ' Set the new direction if they weren't facing that direction
-                If D <> DIR_DOWN Then
-                    Call SendPlayerDir
-                End If
-                Exit Function
-            End If
-
-            ' Check to see if the key door is open or not
-            If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) + 1).Type = TILE_TYPE_KEY Or Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) + 1).Type = TILE_TYPE_DOOR Then
-                ' This actually checks if its open or not
-                If TempTile(GetPlayerX(MyIndex), GetPlayerY(MyIndex) + 1).DoorOpen = NO Then
-                    CanMove = False
-
-                    ' Set the new direction if they weren't facing that direction
-                    If D <> DIR_DOWN Then
-                        Call SendPlayerDir
-                    End If
-                    Exit Function
-                End If
-            End If
-
-            ' Check to see if a player is already on that tile
-            For i = 1 To HighIndex
-                If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                    If (GetPlayerX(i) = GetPlayerX(MyIndex)) And (GetPlayerY(i) = GetPlayerY(MyIndex) + 1) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_DOWN Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-
-            ' Check to see if a npc is already on that tile
-            For i = 1 To MAX_MAP_NPCS
-                If MapNpc(i).Num > 0 Then
-                    If (MapNpc(i).X = GetPlayerX(MyIndex)) And (MapNpc(i).Y = GetPlayerY(MyIndex) + 1) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_DOWN Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-        Else
-            ' Check if they can warp to a new map
-            If Map.Down > 0 Then
-                Call SendPlayerRequestNewMap
-                GettingMap = True
-            End If
-            CanMove = False
-            Exit Function
-        End If
-    End If
-
-    If DirLeft Then
+    ElseIf DirLeft Then
         Call SetPlayerDir(MyIndex, DIR_LEFT)
-
-        ' Check to see if they are trying to go out of bounds
-        If GetPlayerX(MyIndex) > 0 Then
-            ' Check to see if the map tile is blocked or not
-            If Map.Tile(GetPlayerX(MyIndex) - 1, GetPlayerY(MyIndex)).Type = TILE_TYPE_BLOCKED Then
-                If Map.Tile(GetPlayerX(MyIndex) - 1, GetPlayerY(MyIndex)).Data1 = 1 Then
-                    CanMove = False
-                Else
-                    CanMove = True
-                End If
-
-                ' Set the new direction if they weren't facing that direction
-                If D <> DIR_LEFT Then
-                    Call SendPlayerDir
-                End If
-                Exit Function
-            End If
-
-            ' Check to see if the key door is open or not
-            If Map.Tile(GetPlayerX(MyIndex) - 1, GetPlayerY(MyIndex)).Type = TILE_TYPE_KEY Or Map.Tile(GetPlayerX(MyIndex) - 1, GetPlayerY(MyIndex)).Type = TILE_TYPE_DOOR Then
-                ' This actually checks if its open or not
-                If TempTile(GetPlayerX(MyIndex) - 1, GetPlayerY(MyIndex)).DoorOpen = NO Then
-                    CanMove = False
-
-                    ' Set the new direction if they weren't facing that direction
-                    If D <> DIR_LEFT Then
-                        Call SendPlayerDir
-                    End If
-                    Exit Function
-                End If
-            End If
-
-            ' Check to see if a player is already on that tile
-            For i = 1 To HighIndex
-                If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                    If (GetPlayerX(i) = GetPlayerX(MyIndex) - 1) And (GetPlayerY(i) = GetPlayerY(MyIndex)) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_LEFT Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-
-            ' Check to see if a npc is already on that tile
-            For i = 1 To MAX_MAP_NPCS
-                If MapNpc(i).Num > 0 Then
-                    If (MapNpc(i).X = GetPlayerX(MyIndex) - 1) And (MapNpc(i).Y = GetPlayerY(MyIndex)) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_LEFT Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-        Else
-            ' Check if they can warp to a new map
-            If Map.Left > 0 Then
-                Call SendPlayerRequestNewMap
-                GettingMap = True
-            End If
-            CanMove = False
-            Exit Function
-        End If
-    End If
-
-    If DirRight Then
+    ElseIf DirRight Then
         Call SetPlayerDir(MyIndex, DIR_RIGHT)
-
-        ' Check to see if they are trying to go out of bounds
-        If GetPlayerX(MyIndex) < MAX_MAPX Then
-            ' Check to see if the map tile is blocked or not
-            If Map.Tile(GetPlayerX(MyIndex) + 1, GetPlayerY(MyIndex)).Type = TILE_TYPE_BLOCKED Then
-                If Map.Tile(GetPlayerX(MyIndex) + 1, GetPlayerY(MyIndex)).Data1 = 1 Then
-                    CanMove = False
-                Else
-                    CanMove = True
-                End If
-
-                ' Set the new direction if they weren't facing that direction
-                If D <> DIR_RIGHT Then
-                    Call SendPlayerDir
-                End If
-                Exit Function
-            End If
-
-            ' Check to see if the key door is open or not
-            If Map.Tile(GetPlayerX(MyIndex) + 1, GetPlayerY(MyIndex)).Type = TILE_TYPE_KEY Or Map.Tile(GetPlayerX(MyIndex) + 1, GetPlayerY(MyIndex)).Type = TILE_TYPE_DOOR Then
-                ' This actually checks if its open or not
-                If TempTile(GetPlayerX(MyIndex) + 1, GetPlayerY(MyIndex)).DoorOpen = NO Then
-                    CanMove = False
-
-                    ' Set the new direction if they weren't facing that direction
-                    If D <> DIR_RIGHT Then
-                        Call SendPlayerDir
-                    End If
-                    Exit Function
-                End If
-            End If
-
-            ' Check to see if a player is already on that tile
-            For i = 1 To HighIndex
-                If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                    If (GetPlayerX(i) = GetPlayerX(MyIndex) + 1) And (GetPlayerY(i) = GetPlayerY(MyIndex)) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_RIGHT Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-
-            ' Check to see if a npc is already on that tile
-            For i = 1 To MAX_MAP_NPCS
-                If MapNpc(i).Num > 0 Then
-                    If (MapNpc(i).X = GetPlayerX(MyIndex) + 1) And (MapNpc(i).Y = GetPlayerY(MyIndex)) Then
-                        CanMove = False
-
-                        ' Set the new direction if they weren't facing that direction
-                        If D <> DIR_RIGHT Then
-                            Call SendPlayerDir
-                        End If
-                        Exit Function
-                    End If
-                End If
-            Next i
-        Else
-            ' Check if they can warp to a new map
-            If Map.Right > 0 Then
-                Call SendPlayerRequestNewMap
-                GettingMap = True
-            End If
-            CanMove = False
-            Exit Function
-        End If
+    Else
+        Exit Function
     End If
+    If D <> GetPlayerDir(MyIndex) Then Call SendPlayerDir
+    X = GetPlayerPixelX(MyIndex)
+    Y = GetPlayerPixelY(MyIndex)
+    Select Case GetPlayerDir(MyIndex)
+        Case DIR_UP: Y = Y - 1
+        Case DIR_DOWN: Y = Y + 1
+        Case DIR_LEFT: X = X - 1
+        Case DIR_RIGHT: X = X + 1
+    End Select
+    ' Keep the sprite origin inside the map, matching the existing edge warps.
+    If X < 0 Or Y < 0 Or X > MAX_MAPX * PIC_X Or Y > MAX_MAPY * PIC_Y Then
+        Select Case GetPlayerDir(MyIndex)
+            Case DIR_UP: D = Map.Up
+            Case DIR_DOWN: D = Map.Down
+            Case DIR_LEFT: D = Map.Left
+            Case DIR_RIGHT: D = Map.Right
+        End Select
+        If D > 0 Then
+            GettingMap = True
+            Call SendPlayerRequestNewMap
+        End If
+        Exit Function
+    End If
+    TX = Int(X / PIC_X)
+    TY = Int(Y / PIC_Y)
+    ' Test blocking when the pixel origin crosses into another tile.
+    If TX <> GetPlayerX(MyIndex) Or TY <> GetPlayerY(MyIndex) Then
+        If Map.Tile(TX, TY).Type = TILE_TYPE_BLOCKED And Map.Tile(TX, TY).Data1 = 1 Then Exit Function
+        If Map.Tile(TX, TY).Type = TILE_TYPE_KEY Or Map.Tile(TX, TY).Type = TILE_TYPE_DOOR Then
+            If TempTile(TX, TY).DoorOpen = NO Then Exit Function
+        End If
+        For i = 1 To HighIndex
+            If i <> MyIndex And IsPlaying(i) Then
+                If GetPlayerMap(i) = GetPlayerMap(MyIndex) And GetPlayerX(i) = TX And GetPlayerY(i) = TY Then Exit Function
+            End If
+        Next i
+        For i = 1 To MAX_MAP_NPCS
+            If MapNpc(i).Num > 0 And MapNpc(i).X = TX And MapNpc(i).Y = TY Then Exit Function
+        Next i
+    End If
+    CanMove = True
 End Function
 
 Sub CheckMovement()
-    If GettingMap = False Then
-        If IsTryingToMove Then
-            If CanMove Then
-                ' Check if player has the shift key down for running
-                If ShiftDown Then
-                    Player(MyIndex).Moving = MOVING_RUNNING
-                Else
-                    Player(MyIndex).Moving = MOVING_WALKING
-                End If
-
-                Select Case GetPlayerDir(MyIndex)
-                    Case DIR_UP
-                        Call SendPlayerMove
-                        Player(MyIndex).YOffset = PIC_Y
-                        Call SetPlayerY(MyIndex, GetPlayerY(MyIndex) - 1)
-
-                    Case DIR_DOWN
-                        Call SendPlayerMove
-                        Player(MyIndex).YOffset = PIC_Y * -1
-                        Call SetPlayerY(MyIndex, GetPlayerY(MyIndex) + 1)
-
-                    Case DIR_LEFT
-                        Call SendPlayerMove
-                        Player(MyIndex).XOffset = PIC_X
-                        Call SetPlayerX(MyIndex, GetPlayerX(MyIndex) - 1)
-
-                    Case DIR_RIGHT
-                        Call SendPlayerMove
-                        Player(MyIndex).XOffset = PIC_X * -1
-                        Call SetPlayerX(MyIndex, GetPlayerX(MyIndex) + 1)
-                End Select
-
-                ' Gotta check :)
-                If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)).Type = TILE_TYPE_WARP Then
-                    GettingMap = True
-                End If
-            End If
-        End If
+    Dim X As Long, Y As Long, OldX As Long, OldY As Long
+    Player(MyIndex).Moving = 0
+    If GettingMap Or Not IsTryingToMove Then Exit Sub
+    If Not CanMove Then Exit Sub
+    Player(MyIndex).Moving = MOVING_WALKING
+    If ShiftDown And GetPlayerSP(MyIndex) > 0 Then Player(MyIndex).Moving = MOVING_RUNNING
+    OldX = GetPlayerX(MyIndex)
+    OldY = GetPlayerY(MyIndex)
+    X = GetPlayerPixelX(MyIndex)
+    Y = GetPlayerPixelY(MyIndex)
+    Select Case GetPlayerDir(MyIndex)
+        Case DIR_UP: Y = Y - 1
+        Case DIR_DOWN: Y = Y + 1
+        Case DIR_LEFT: X = X - 1
+        Case DIR_RIGHT: X = X + 1
+    End Select
+    Call SetPlayerPixels(MyIndex, X, Y)
+    Call SendPlayerMove
+    If OldX <> GetPlayerX(MyIndex) Or OldY <> GetPlayerY(MyIndex) Then
+        If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)).Type = TILE_TYPE_WARP Then GettingMap = True
     End If
 End Sub
 

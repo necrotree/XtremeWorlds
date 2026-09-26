@@ -350,12 +350,15 @@ Public Sub HandleData(ByVal Data As String)
             Call SetPlayerDir(i, Val(Parse(7)))
             Call SetPlayerAccess(i, Val(Parse(8)))
             Call SetPlayerPK(i, Val(Parse(9)))
-            Call SetPlayerGuild(i, Val(Parse(10)))
+            If UBound(Parse) >= 10 Then Call SetPlayerGuild(i, Val(Parse(10)))
 
             ' Make sure they aren't walking
             Player(i).Moving = 0
             Player(i).XOffset = 0
             Player(i).YOffset = 0
+            If UBound(Parse) >= 12 Then
+                Call SetPlayerPixels(i, GetPlayerX(i) * PIC_X + Val(Parse(11)), GetPlayerY(i) * PIC_Y + Val(Parse(12)))
+            End If
 
             ' Check if the player is the client player, and if so reset directions
             If i = MyIndex Then
@@ -372,29 +375,9 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::::::::::::::::::::
         Case "playermove"
             i = Val(Parse(1))
-            X = Val(Parse(2))
-            Y = Val(Parse(3))
-            Dir = Val(Parse(4))
-            n = Val(Parse(5))
-
-            Call SetPlayerX(i, X)
-            Call SetPlayerY(i, Y)
-            Call SetPlayerDir(i, Dir)
-
-            Player(i).XOffset = 0
-            Player(i).YOffset = 0
-            Player(i).Moving = n
-
-            Select Case GetPlayerDir(i)
-                Case DIR_UP
-                    Player(i).YOffset = PIC_Y
-                Case DIR_DOWN
-                    Player(i).YOffset = PIC_Y * -1
-                Case DIR_LEFT
-                    Player(i).XOffset = PIC_X
-                Case DIR_RIGHT
-                    Player(i).XOffset = PIC_X * -1
-            End Select
+            Call SetPlayerPixels(i, Val(Parse(2)) * PIC_X + Val(Parse(6)), Val(Parse(3)) * PIC_Y + Val(Parse(7)))
+            Call SetPlayerDir(i, Val(Parse(4)))
+            Player(i).Moving = Val(Parse(5))
             Exit Sub
 
         ' :::::::::::::::::::::::::
@@ -434,8 +417,6 @@ Public Sub HandleData(ByVal Data As String)
             Dir = Val(Parse(2))
             Call SetPlayerDir(i, Dir)
 
-            Player(i).XOffset = 0
-            Player(i).YOffset = 0
             Player(i).Moving = 0
             Exit Sub
 
@@ -464,8 +445,9 @@ Public Sub HandleData(ByVal Data As String)
 
             ' Make sure they aren't walking
             Player(MyIndex).Moving = 0
-            Player(MyIndex).XOffset = 0
-            Player(MyIndex).YOffset = 0
+            Player(MyIndex).XOffset = Val(Parse(3))
+            Player(MyIndex).YOffset = Val(Parse(4))
+            GettingMap = False
 
             Exit Sub
 

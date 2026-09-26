@@ -74,6 +74,10 @@ Type AccountRec
   ' Characters (we use 0 to prevent a crash that still needs to be figured out)
   Char(0 To MAX_CHARS) As PlayerRec
   
+  ' Runtime pixel remainders; saved character coordinates remain tiles.
+  XOffset As Long
+  YOffset As Long
+
   ' None saved local vars
   Buffer As String
   IncBuffer As String

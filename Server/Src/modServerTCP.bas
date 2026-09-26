@@ -331,13 +331,14 @@ Sub IncomingData(ByVal Socket As clsNativeConnection, ByVal Data As clsNativePac
     End If
 
     ' Check for data flooding
-    If Player(Index).DataBytes > 1000 And GetPlayerAccess(Index) <= 0 Then
+    If Player(Index).DataBytes > 4096 And GetPlayerAccess(Index) <= 0 Then
         Call HackingAttempt(Index, "Data Flooding")
         Exit Sub
     End If
 
+    ' Allow one-pixel movement at the client movement tick plus normal game packets.
     ' Check for packet flooding
-    If Player(Index).DataPackets > 25 And GetPlayerAccess(Index) <= 0 Then
+    If Player(Index).DataPackets > 100 And GetPlayerAccess(Index) <= 0 Then
         Call HackingAttempt(Index, "Packet Flooding")
         Exit Sub
     End If
@@ -405,13 +406,13 @@ Sub SendJoinMap(ByVal Index As Long)
     ' Send all players on current map to index
     For I = 1 To HighIndex
         If IsPlaying(I) And I <> Index And GetPlayerMap(I) = GetPlayerMap(Index) Then
-            Packet = Packet & "PLAYERDATA" & SEP_CHAR & I & SEP_CHAR & GetPlayerName(I) & SEP_CHAR & GetPlayerSprite(I) & SEP_CHAR & GetPlayerMap(I) & SEP_CHAR & GetPlayerX(I) & SEP_CHAR & GetPlayerY(I) & SEP_CHAR & GetPlayerDir(I) & SEP_CHAR & GetPlayerAccess(I) & SEP_CHAR & GetPlayerPK(I) & SEP_CHAR & GetPlayerGuild(I) & END_CHAR
+            Packet = Packet & "PLAYERDATA" & SEP_CHAR & I & SEP_CHAR & GetPlayerName(I) & SEP_CHAR & GetPlayerSprite(I) & SEP_CHAR & GetPlayerMap(I) & SEP_CHAR & GetPlayerX(I) & SEP_CHAR & GetPlayerY(I) & SEP_CHAR & GetPlayerDir(I) & SEP_CHAR & GetPlayerAccess(I) & SEP_CHAR & GetPlayerPK(I) & SEP_CHAR & GetPlayerGuild(I) & SEP_CHAR & Player(I).XOffset & SEP_CHAR & Player(I).YOffset & END_CHAR
             Call SendDataTo(Index, Packet)
         End If
     Next I
 
     ' Send index's player data to everyone on the map including himself
-    Packet = "PLAYERDATA" & SEP_CHAR & Index & SEP_CHAR & GetPlayerName(Index) & SEP_CHAR & GetPlayerSprite(Index) & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & GetPlayerAccess(Index) & SEP_CHAR & GetPlayerPK(Index) & SEP_CHAR & GetPlayerGuild(Index) & END_CHAR
+    Packet = "PLAYERDATA" & SEP_CHAR & Index & SEP_CHAR & GetPlayerName(Index) & SEP_CHAR & GetPlayerSprite(Index) & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & GetPlayerAccess(Index) & SEP_CHAR & GetPlayerPK(Index) & SEP_CHAR & GetPlayerGuild(Index) & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
     Call SendDataToMap(GetPlayerMap(Index), Packet)
 
 End Sub
@@ -428,7 +429,7 @@ Sub SendPlayerData(ByVal Index As Long)
     Dim Packet As String
 
     ' Send index's player data to everyone including himself on the map
-    Packet = "PLAYERDATA" & SEP_CHAR & Index & SEP_CHAR & GetPlayerName(Index) & SEP_CHAR & GetPlayerSprite(Index) & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & GetPlayerAccess(Index) & SEP_CHAR & GetPlayerPK(Index) & SEP_CHAR & GetPlayerGuild(Index) & END_CHAR
+    Packet = "PLAYERDATA" & SEP_CHAR & Index & SEP_CHAR & GetPlayerName(Index) & SEP_CHAR & GetPlayerSprite(Index) & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & GetPlayerAccess(Index) & SEP_CHAR & GetPlayerPK(Index) & SEP_CHAR & GetPlayerGuild(Index) & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
     Call SendDataToMap(GetPlayerMap(Index), Packet)
 End Sub
 
@@ -639,7 +640,7 @@ End Sub
 Sub SendPlayerXY(ByVal Index As Long)
     Dim Packet As String
 
-    Packet = "PLAYERXY" & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & END_CHAR
+    Packet = "PLAYERXY" & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
