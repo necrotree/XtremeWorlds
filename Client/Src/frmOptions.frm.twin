@@ -61,7 +61,7 @@ Class frmOptions
         Dim F  As Long
         F = FreeFile
         Open FileName For Binary As #F
-        Put #F, , GameData
+        Put #F,, GameData
         Close #F
         Call frmMainGame.ApplyMovementControls
         Unload Me
@@ -71,5 +71,15 @@ Class frmOptions
         frmMainGame.txtMyTextBox.Text = vbNullString
     End Sub
     
-
+    Private Sub optWASDOn_Click()
+        GameData.WASD = 1
+    End Sub
+    
+    Private Sub optWASDOff_Click()
+        GameData.WASD = 0
+    End Sub
+    
+    Private Sub cmdHotkeys_Click()
+        frmHotkeys.Show vbModal, Me
+    End Sub
 End Class

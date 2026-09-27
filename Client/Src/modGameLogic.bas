@@ -68,6 +68,7 @@ Public Sub Main()
         Close #F
     End If
 
+    LoadHotkeys
     GameData.PlayerX = 32
     GameData.PlayerY = 32
 
@@ -144,12 +145,12 @@ Public Sub GameLoop()
         Tick = GetTickCount
 
         ' Check to make sure they aren't trying to auto do anything
-        If GetAsyncKeyState(VK_UP) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyW) >= 0) And DirUp = True Then DirUp = False
-        If GetAsyncKeyState(VK_DOWN) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyS) >= 0) And DirDown = True Then DirDown = False
-        If GetAsyncKeyState(VK_LEFT) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyA) >= 0) And DirLeft = True Then DirLeft = False
-        If GetAsyncKeyState(VK_RIGHT) >= 0 And (GameData.WASD = 0 Or GetAsyncKeyState(vbKeyD) >= 0) And DirRight = True Then DirRight = False
-        If GetAsyncKeyState(VK_CONTROL) >= 0 And ControlDown = True Then ControlDown = False
-        If GetAsyncKeyState(VK_SHIFT) >= 0 And ShiftDown = True Then ShiftDown = False
+        If Not GameKeyDown(HK_UP) Then DirUp = False
+        If Not GameKeyDown(HK_DOWN) Then DirDown = False
+        If Not GameKeyDown(HK_LEFT) Then DirLeft = False
+        If Not GameKeyDown(HK_RIGHT) Then DirRight = False
+        If Not GameKeyDown(HK_ATTACK) Then ControlDown = False
+        If Not GameKeyDown(HK_RUN) Then ShiftDown = False
 
         ' Check to make sure we are still connected
         If Not IsConnected Then InGame = False
@@ -969,105 +970,51 @@ Public Sub CheckAttack()
 End Sub
 
 Sub CheckInput2()
-    If frmMainGame.ChatUnlocked Then Exit Sub
-    If GettingMap = False Then
-        If GameData.WASD And GetKeyState(vbKeyE) < 0 Then
-            Call CheckMapGetItem
-        End If
-        If GetKeyState(VK_CONTROL) < 0 Then
-            ControlDown = True
-        Else
-            ControlDown = False
-        End If
-        If GetKeyState(VK_UP) < 0 Or (GameData.WASD And GetKeyState(vbKeyW) < 0) Then
-            DirUp = True
-            DirDown = False
-            DirLeft = False
-            DirRight = False
-        Else
-            DirUp = False
-        End If
-        If GetKeyState(VK_DOWN) < 0 Or (GameData.WASD And GetKeyState(vbKeyS) < 0) Then
-            DirUp = False
-            DirDown = True
-            DirLeft = False
-            DirRight = False
-        Else
-            DirDown = False
-        End If
-        If GetKeyState(VK_LEFT) < 0 Or (GameData.WASD And GetKeyState(vbKeyA) < 0) Then
-            DirUp = False
-            DirDown = False
-            DirLeft = True
-            DirRight = False
-        Else
-            DirLeft = False
-        End If
-        If GetKeyState(VK_RIGHT) < 0 Or (GameData.WASD And GetKeyState(vbKeyD) < 0) Then
-            DirUp = False
-            DirDown = False
-            DirLeft = False
-            DirRight = True
-        Else
-            DirRight = False
-        End If
-        If GetKeyState(VK_SHIFT) < 0 Then
-            ShiftDown = True
-        Else
-            ShiftDown = False
-        End If
+    If EditingHotkeys Or frmMainGame.ChatUnlocked Or Not TxtHasFocus Then
+        ReleaseGameKeys
+        Exit Sub
+    End If
+    If GettingMap Then Exit Sub
+    If GameKeyDown(HK_PICKUP) Then CheckMapGetItem
+    ControlDown = GameKeyDown(HK_ATTACK)
+    ShiftDown = GameKeyDown(HK_RUN)
+    DirUp = False
+    DirDown = False
+    DirLeft = False
+    DirRight = False
+    If GameKeyDown(HK_UP) Then
+        DirUp = True
+    ElseIf GameKeyDown(HK_DOWN) Then
+        DirDown = True
+    ElseIf GameKeyDown(HK_LEFT) Then
+        DirLeft = True
+    ElseIf GameKeyDown(HK_RIGHT) Then
+        DirRight = True
     End If
 End Sub
 
 Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As Integer)
-    If frmMainGame.ChatUnlocked Then Exit Sub
-    If GettingMap = False Then
-        If KeyState = 1 Then
-            If GameData.WASD And KeyCode = vbKeyE Then
-                Call CheckMapGetItem
-            End If
-            If KeyCode = vbKeyControl Then
-                ControlDown = True
-            End If
-            If KeyCode = vbKeyUp Or (GameData.WASD And KeyCode = vbKeyW) Then
-                DirUp = True
-                DirDown = False
-                DirLeft = False
-                DirRight = False
-            End If
-            If KeyCode = vbKeyDown Or (GameData.WASD And KeyCode = vbKeyS) Then
-                DirUp = False
-                DirDown = True
-                DirLeft = False
-                DirRight = False
-            End If
-            If KeyCode = vbKeyLeft Or (GameData.WASD And KeyCode = vbKeyA) Then
-                DirUp = False
-                DirDown = False
-                DirLeft = True
-                DirRight = False
-            End If
-            If KeyCode = vbKeyRight Or (GameData.WASD And KeyCode = vbKeyD) Then
-                DirUp = False
-                DirDown = False
-                DirLeft = False
-                DirRight = True
-            End If
-            If KeyCode = vbKeyShift Then
-                ShiftDown = True
-            End If
-            If KeyCode = vbKeyEscape Then
-                Call GameDestroy
-            End If
-        Else
-            If KeyCode = vbKeyUp Or (GameData.WASD And KeyCode = vbKeyW) Then DirUp = False
-            If KeyCode = vbKeyDown Or (GameData.WASD And KeyCode = vbKeyS) Then DirDown = False
-            If KeyCode = vbKeyLeft Or (GameData.WASD And KeyCode = vbKeyA) Then DirLeft = False
-            If KeyCode = vbKeyRight Or (GameData.WASD And KeyCode = vbKeyD) Then DirRight = False
-            If KeyCode = vbKeyShift Then ShiftDown = False
-            If KeyCode = vbKeyControl Then ControlDown = False
-        End If
+    If EditingHotkeys Or frmMainGame.ChatUnlocked Then Exit Sub
+    If KeyState = 0 Then
+        If GameKeyMatches(HK_UP, KeyCode) Then DirUp = GameKeyDown(HK_UP)
+        If GameKeyMatches(HK_DOWN, KeyCode) Then DirDown = GameKeyDown(HK_DOWN)
+        If GameKeyMatches(HK_LEFT, KeyCode) Then DirLeft = GameKeyDown(HK_LEFT)
+        If GameKeyMatches(HK_RIGHT, KeyCode) Then DirRight = GameKeyDown(HK_RIGHT)
+        If GameKeyMatches(HK_ATTACK, KeyCode) Then ControlDown = GameKeyDown(HK_ATTACK)
+        If GameKeyMatches(HK_RUN, KeyCode) Then ShiftDown = GameKeyDown(HK_RUN)
+        Exit Sub
     End If
+    If GettingMap Then Exit Sub
+    If GameKeyMatches(HK_PICKUP, KeyCode) Then CheckMapGetItem
+    If GameKeyMatches(HK_ATTACK, KeyCode) Then ControlDown = True
+    If GameKeyMatches(HK_RUN, KeyCode) Then ShiftDown = True
+    If GameKeyMatches(HK_UP, KeyCode) Or GameKeyMatches(HK_DOWN, KeyCode) Or GameKeyMatches(HK_LEFT, KeyCode) Or GameKeyMatches(HK_RIGHT, KeyCode) Then
+        DirUp = GameKeyMatches(HK_UP, KeyCode)
+        DirDown = GameKeyMatches(HK_DOWN, KeyCode)
+        DirLeft = GameKeyMatches(HK_LEFT, KeyCode)
+        DirRight = GameKeyMatches(HK_RIGHT, KeyCode)
+    End If
+    If GameKeyMatches(HK_QUIT, KeyCode) Then GameDestroy
 End Sub
 
 Function IsTryingToMove() As Boolean

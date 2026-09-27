@@ -3229,10 +3229,10 @@ Private Sub Form_KeyPress(KeyAscii As Integer)
     ' Enter is handled on key-down so changing focus cannot submit it twice.
     If KeyAscii = vbKeyReturn Then
         KeyAscii = 0
-    ElseIf Not WASDEnabled And TxtHasFocus And Not ChatInputHasFocus Then
+    ElseIf Not KeyChatEnabled And TxtHasFocus And Not ChatInputHasFocus Then
         Call HandleKeypresses(KeyAscii)
         KeyAscii = 0
-    ElseIf WASDEnabled And Not ChatUnlocked And TxtHasFocus Then
+    ElseIf KeyChatEnabled And Not ChatUnlocked And TxtHasFocus Then
         KeyAscii = 0
     End If
 End Sub
@@ -3241,10 +3241,10 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
     If KeyCode = vbKeyReturn And (ChatUnlocked Or TxtHasFocus) Then
         If Not ChatEnterDown Then
             ChatEnterDown = True
-            If Not WASDEnabled Then
+            If Not KeyChatEnabled Then
                 ' Classic chat is always available; Enter sends without locking it.
                 MyText = txtMyTextBox.Text
-                If Len(Trim$(MyText)) = 0 Then Call CheckMapGetItem
+                If Len(Trim$(MyText)) = 0 And GameKeyMatches(HK_PICKUP, vbKeyReturn) Then Call CheckMapGetItem
                 Call HandleKeypresses(vbKeyReturn)
                 txtMyTextBox.Text = MyText
             ElseIf ChatUnlocked Then
@@ -3255,21 +3255,22 @@ Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
                 txtMyTextBox.Text = MyText
                 Call SetFocusOnGame
             Else
+                If GameKeyMatches(HK_PICKUP, vbKeyReturn) Then Call CheckMapGetItem
                 Call UnlockChat
             End If
         End If
         KeyCode = 0
         Exit Sub
     End If
-    If ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
+    If EditingHotkeys Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
     Call CheckInput(1, KeyCode, Shift)
 End Sub
 
 Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
     If KeyCode = vbKeyReturn Then ChatEnterDown = False
-    If ChatUnlocked Or ChatInputHasFocus Then Exit Sub
+    If EditingHotkeys Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
     Call CheckInput(0, KeyCode, Shift)
-    If KeyCode = vbKeyF1 Then
+    If GameKeyMatches(HK_ADMIN, KeyCode) Then
         If frmMainGame.Width = 13545 Then
             frmMainGame.fraPlayer.Visible = False
             frmMainGame.fraMapNum.Visible = False
@@ -3283,7 +3284,7 @@ Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
         Else
             Call AdminPanel
         End If
-    ElseIf KeyCode = vbKeyInsert Then
+    ElseIf GameKeyMatches(HK_CAST, KeyCode) Then
         If SpellMemorized > 0 Then
             If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
                 If Player(MyIndex).Moving = 0 Then
@@ -3396,16 +3397,16 @@ Public Sub ApplyMovementControls()
     DirRight = False
     ControlDown = False
     ShiftDown = False
-    txtMyTextBox.Locked = WASDEnabled
-    If WASDEnabled Then
-        txtMyTextBox.ToolTipText = "Enter: unlock/send and lock chat | WASD/arrows: move | E: pick up"
+    txtMyTextBox.Locked = KeyChatEnabled
+    If KeyChatEnabled Then
+        txtMyTextBox.ToolTipText = "Enter: open/send chat | Options > Keyboard Shortcuts: change game keys"
     Else
         txtMyTextBox.ToolTipText = "Type to chat | Enter: send | Arrow keys: move"
     End If
 End Sub
 
 Public Sub UnlockChat()
-    ChatUnlocked = WASDEnabled
+    ChatUnlocked = KeyChatEnabled
     DirUp = False
     DirDown = False
     DirLeft = False
@@ -3419,7 +3420,7 @@ Public Sub UnlockChat()
 End Sub
 
 Private Sub txtMyTextBox_GotFocus()
-    If WASDEnabled And Not ChatUnlocked Then
+    If KeyChatEnabled And Not ChatUnlocked Then
         Call SetFocusOnGame
         Exit Sub
     End If
@@ -3447,7 +3448,7 @@ Private Sub txtMyTextBox_Change()
 End Sub
 
 Private Sub txtMyTextBox_KeyPress(KeyAscii As Integer)
-    If KeyAscii = vbKeyReturn Or (WASDEnabled And Not ChatUnlocked) Then KeyAscii = 0
+    If KeyAscii = vbKeyReturn Or (KeyChatEnabled And Not ChatUnlocked) Then KeyAscii = 0
 End Sub
 
 Private Sub txtPlayerName_Change()

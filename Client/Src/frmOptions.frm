@@ -3,7 +3,7 @@ Object = "{BDC217C8-ED16-11CD-956C-0000C04E4C0A}#1.1#0"; "tabctl32.ocx"
 Begin VB.Form frmOptions 
    BorderStyle     =   4  'Fixed ToolWindow
    Caption         =   "Options"
-   ClientHeight    =   6315
+   ClientHeight    =   6915
    ClientLeft      =   8055
    ClientTop       =   3765
    ClientWidth     =   4320
@@ -12,9 +12,16 @@ Begin VB.Form frmOptions
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   6315
+   ScaleHeight     =   6915
    ScaleWidth      =   4320
    ShowInTaskbar   =   0   'False
+   Begin VB.CommandButton cmdHotkeys
+      Caption = "Keyboard Shortcuts..."
+      Left = 240
+      Top = 6405
+      Width = 3840
+      Height = 375
+   End
    Begin TabDlg.SSTab SSTab1 
       Height          =   6135
       Left            =   120
@@ -438,19 +445,22 @@ End Sub
 
 Private Sub cmdSave_Click()
     Dim FileName As String
+    GameData.WASD = Abs(CInt(optWASDOn.Value))
     FileName = App.Path & DATA_PATH & "Data.dat"
     Dim F  As Long
     F = FreeFile
     Open FileName For Binary As #F
     Put #F, , GameData
     Close #F
-    WASDEnabled = optWASDOn.Value
-    Call PutVar(App.Path & DATA_PATH & "Options.ini", "Controls", "WASD", CStr(Abs(CInt(WASDEnabled))))
     Call frmMainGame.ApplyMovementControls
     Unload Me
 End Sub
 
 Private Sub Form_Load()
-    If WASDEnabled Then optWASDOn.Value = True Else optWASDOff.Value = True
+    If GameData.WASD <> 0 Then optWASDOn.Value = True Else optWASDOff.Value = True
     frmMainGame.txtMyTextBox.Text = vbNullString
 End Sub
+
+    Private Sub cmdHotkeys_Click()
+        frmHotkeys.Show vbModal, Me
+    End Sub
