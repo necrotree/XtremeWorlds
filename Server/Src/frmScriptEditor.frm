@@ -53,10 +53,10 @@ Begin VB.Form frmScriptEditor
       TabIndex = 4
    End
    Begin RichTextLib.RichTextBox txtCode
-      Left = 2460
+      Left = 2760
       Top = 480
-      Width = 9420
-      Height = 6600
+      Width = 9120
+      Height = 6960
       ScrollBars = 3
       RightMargin = 100000
       HideSelection = 0
@@ -71,27 +71,39 @@ Begin VB.Form frmScriptEditor
          Strikethrough = 0
       EndProperty
    End
-   Begin VB.ComboBox cboEvents
-      Left = 2460
-      Top = 7200
-      Width = 7380
-      Height = 315
-      Style = 2
-      TabIndex = 6
-   End
-   Begin VB.CommandButton cmdInsert
-      Caption = "Insert event"
-      Left = 9960
-      Top = 7200
-      Width = 1920
-      Height = 315
-      TabIndex = 7
-   End
-   Begin VB.Label lblStatus
+   Begin VB.CommandButton cmdDelete
+      Caption = "Delete"
       Left = 120
-      Top = 7560
-      Width = 11760
-      Height = 240
+      Top = 7200
+      Width = 2220
+      Height = 315
+      TabIndex = 8
+      Enabled = 0
+   End
+   Begin VB.PictureBox picLineNumbers
+      Left = 2400
+      Top = 480
+      Width = 360
+      Height = 6960
+      BorderStyle = 0
+      AutoRedraw = -1
+      ScaleMode = 3
+      BackColor = &H00F0F0F0&
+      ForeColor = &H00808080&
+      TabStop = 0
+      BeginProperty Font
+         Name = "Courier New"
+         Size = 10
+         Charset = 0
+         Weight = 400
+         Underline = 0
+         Italic = 0
+         Strikethrough = 0
+      EndProperty
+   End
+   Begin VB.Timer tmrLineNumbers
+      Interval = 75
+      Enabled = -1
    End
    Begin VB.Timer tmrHighlight
       Enabled = 0
@@ -146,22 +158,29 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal msg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Private Type EditorScrollPoint
+    X As Long
+    Y As Long
+End Type
+Private Declare Function SendScrollMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal msg As Long, ByVal wParam As Long, ByRef point As EditorScrollPoint) As Long
+Private Declare Function GetCharPosition Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal msg As Long, ByRef point As EditorScrollPoint, ByVal charIndex As Long) As Long
+Private Declare Function MapEditorPoint Lib "user32" Alias "MapWindowPoints" (ByVal fromWindow As Long, ByVal toWindow As Long, ByRef point As EditorScrollPoint, ByVal count As Long) As Long
+Private mGutterState As String
 Private mBusy As Boolean
 Private mPath As String
 Private mSaved As String
 Private mHistory As Collection
 Private mHistoryIndex As Long
 Private mStarts As Collection
-Private mNames As Collection
 Private Const HISTORY_LIMIT As Long = 100
 
 Private Sub Form_Load()
-    Dim signatures As Variant, signature As Variant
-    signatures = Split("ServerSet()|JoinGame(Player)|LeftGame(Player)|JoinMap(Player)|LeaveMap(Player)|OnScriptedTile(Player)|OnNpcDeath(Attacker, NpcNum, MapNum, NpcNumOnMap)|OnDeathByNpc(Victim, NpcNum, MapNum, NpcNumOnMap)|OnDeathByPlayer(Victim, Attacker, MapNum, MapMoral)|OnLevelUp(Player)|OnEquipItem(Player, InvNum, ItemType, ItemNum)|OnUnEquipItem(Player, InvNum, ItemType, ItemNum)|OnUseItem(Player, InvNum, ItemType, ItemNum)|OnItemDrop(Player, ItemNum, ItemVal, ItemDur, InvSlot)|OnTime(tTime, tSeconds)", "|")
-    For Each signature In signatures
-        cboEvents.AddItem CStr(signature)
-    Next
-    cboEvents.ListIndex = 0
+    ScaleMode = vbTwips
+    picLineNumbers.ScaleMode = vbPixels
+    picLineNumbers.AutoRedraw = True
+    picLineNumbers.Font.Name = "Courier New"
+    picLineNumbers.Font.Size = 10
+    tmrLineNumbers.Enabled = True
     ResetDocument vbNullString, vbNullString
     RefreshFiles
     If Len(Dir$(App.Path & "\scripts\Main.as")) > 0 Then LoadScript App.Path & "\scripts\Main.as"
@@ -171,15 +190,56 @@ Private Sub Form_Resize()
     If WindowState = vbMinimized Then Exit Sub
     If Width < 10000 Then Width = 10000
     If Height < 6000 Then Height = 6000
-    lstFiles.Height = ScaleHeight - 1200
-    txtCode.Move 2460, 480, ScaleWidth - 2580, ScaleHeight - 1200
+    lstFiles.Move 120, 480, 2220, ScaleHeight - 1035
+    cmdDelete.Move 120, ScaleHeight - 435, 2220, 315
+    LayoutCodePane
     cboProcedures.Width = ScaleWidth - 6600
     cmdSave.Left = ScaleWidth - 4020
     cmdSaveAs.Left = ScaleWidth - 2760
     cmdNew.Left = ScaleWidth - 1380
-    cboEvents.Move 2460, ScaleHeight - 600, ScaleWidth - 4620
-    cmdInsert.Move ScaleWidth - 2040, ScaleHeight - 600
-    lblStatus.Move 120, ScaleHeight - 240, ScaleWidth - 240
+    DrawLineNumbers True
+End Sub
+
+Private Sub LayoutCodePane()
+    Dim gutterWidth As Single, lineCount As Long
+    lineCount = SendMessage(txtCode.hwnd, &HBA, 0, 0) ' EM_GETLINECOUNT
+    gutterWidth = picLineNumbers.TextWidth(CStr(lineCount)) + 8
+    If gutterWidth < 24 Then gutterWidth = 24
+    gutterWidth = gutterWidth * Screen.TwipsPerPixelX
+    picLineNumbers.Move 2400, 480, gutterWidth, ScaleHeight - 600
+    txtCode.Move 2400 + gutterWidth, 480, ScaleWidth - 2520 - gutterWidth, ScaleHeight - 600
+End Sub
+
+Private Sub tmrLineNumbers_Timer()
+    If Not mBusy And WindowState <> vbMinimized Then DrawLineNumbers
+End Sub
+
+Private Sub DrawLineNumbers(Optional ByVal force As Boolean = False)
+    Dim firstLine As Long, lineCount As Long, line As Long, charIndex As Long
+    Dim point As EditorScrollPoint, ignored As Long, state As String, number As String
+    If mBusy Then Exit Sub
+    firstLine = SendMessage(txtCode.hwnd, &HCE, 0, 0) ' EM_GETFIRSTVISIBLELINE
+    lineCount = SendMessage(txtCode.hwnd, &HBA, 0, 0)
+    charIndex = SendMessage(txtCode.hwnd, &HBB, firstLine, 0) ' EM_LINEINDEX
+    ignored = GetCharPosition(txtCode.hwnd, &H426, point, charIndex) ' EM_POSFROMCHAR
+    state = CStr(firstLine) & ":" & CStr(lineCount) & ":" & CStr(point.Y) & ":" & CStr(ScaleHeight) & ":" & CStr(ScaleWidth)
+    If Not force And state = mGutterState Then Exit Sub
+    mGutterState = state
+    LayoutCodePane
+    picLineNumbers.Cls
+    For line = firstLine To lineCount - 1
+        charIndex = SendMessage(txtCode.hwnd, &HBB, line, 0)
+        If charIndex < 0 Then Exit For
+        ignored = GetCharPosition(txtCode.hwnd, &H426, point, charIndex)
+        ' Map the text baseline origin into the gutter, including control borders.
+        ignored = MapEditorPoint(txtCode.hwnd, picLineNumbers.hwnd, point, 1)
+        If point.Y >= picLineNumbers.ScaleHeight Then Exit For
+        number = CStr(line + 1)
+        picLineNumbers.CurrentX = picLineNumbers.ScaleWidth - picLineNumbers.TextWidth(number) - 4
+        picLineNumbers.CurrentY = point.Y
+        picLineNumbers.Print number
+    Next
+    picLineNumbers.Refresh
 End Sub
 
 Private Sub RefreshFiles()
@@ -304,6 +364,43 @@ End Sub
 Private Sub cmdSaveAs_Click()
     SaveScript True
 End Sub
+Private Sub cmdDelete_Click()
+    Dim prompt As String
+    If Len(mPath) = 0 Then Exit Sub
+    prompt = "Delete " & Mid$(mPath, InStrRev(mPath, "\") + 1) & " from disk?"
+    If txtCode.Text <> mSaved Then prompt = prompt & vbCrLf & "Unsaved changes to this script will also be discarded."
+    If MsgBox(prompt, vbYesNo Or vbQuestion Or vbDefaultButton2, "Delete Script") <> vbYes Then Exit Sub
+    DeleteCurrentScript
+End Sub
+
+Private Function DeleteCurrentScript() As Boolean
+    On Error GoTo Failed
+    If Len(mPath) = 0 Then Exit Function
+    Kill mPath
+    ResetDocument vbNullString, vbNullString
+    RefreshFiles
+    DeleteCurrentScript = True
+    Exit Function
+Failed:
+    MsgBox "Cannot delete script: " & Err.Description, vbExclamation
+End Function
+
+' Rich Edit 3+ exposes pixel positions for both scroll axes. Older VB6 controls
+' fall back to the first visible line.
+Private Sub CaptureScroll(ByRef point As EditorScrollPoint, ByRef topLine As Long, ByRef pixels As Boolean)
+    topLine = SendMessage(txtCode.hwnd, &HCE, 0, 0)
+    pixels = (SendScrollMessage(txtCode.hwnd, &H4DD, 0, point) <> 0)
+End Sub
+
+Private Sub RestoreScroll(ByRef point As EditorScrollPoint, ByVal topLine As Long, ByVal pixels As Boolean)
+    Dim ignored As Long
+    If pixels Then
+        ignored = SendScrollMessage(txtCode.hwnd, &H4DE, 0, point)
+    Else
+        ignored = SendMessage(txtCode.hwnd, &HB6, 0, topLine - SendMessage(txtCode.hwnd, &HCE, 0, 0))
+    End If
+End Sub
+
 Private Sub cmdNew_Click()
     If CanLeave Then ResetDocument "' SadScript include file" & vbCrLf, vbNullString
 End Sub
@@ -337,16 +434,26 @@ Private Sub txtCode_Change()
 End Sub
 
 Private Sub RestoreHistory(ByVal direction As Long)
-    Dim caret As Long
+    Dim caret As Long, selectionLength As Long, topLine As Long, ignored As Long
+    Dim point As EditorScrollPoint, pixels As Boolean
     If mHistoryIndex + direction < 1 Or mHistoryIndex + direction > mHistory.Count Then Exit Sub
     caret = txtCode.SelStart
+    selectionLength = txtCode.SelLength
+    CaptureScroll point, topLine, pixels
+    tmrHighlight.Enabled = False
+    ignored = SendMessage(txtCode.hwnd, &HB, 0, 0)
     mHistoryIndex = mHistoryIndex + direction
     mBusy = True
     txtCode.Text = CStr(mHistory(mHistoryIndex))
     If caret > Len(txtCode.Text) Then caret = Len(txtCode.Text)
+    If selectionLength > Len(txtCode.Text) - caret Then selectionLength = Len(txtCode.Text) - caret
     txtCode.SelStart = caret
+    txtCode.SelLength = selectionLength
     mBusy = False
-    HighlightCode
+    HighlightCode False
+    RestoreScroll point, topLine, pixels
+    ignored = SendMessage(txtCode.hwnd, &HB, 1, 0)
+    txtCode.Refresh
     UpdateStatus
 End Sub
 Private Sub mnuUndo_Click()
@@ -393,16 +500,12 @@ Private Sub txtCode_SelChange()
     If Not mBusy Then UpdateStatus
 End Sub
 Private Sub UpdateStatus()
-    Dim prefix As String, line As Long, column As Long, lastBreak As Long
     Caption = "Script Editor - " & IIf(Len(mPath) = 0, "Untitled", Mid$(mPath, InStrRev(mPath, "\") + 1))
     If txtCode.Text <> mSaved Then Caption = Caption & " *"
-    prefix = Left$(txtCode.Text, txtCode.SelStart)
-    line = UBound(Split(prefix, vbLf)) + 1
-    lastBreak = InStrRev(prefix, vbLf)
-    column = Len(prefix) - lastBreak + 1
-    lblStatus.Caption = "Line " & line & ", Column " & column & "   |   SadScript / VBScript   |   Save, then use Database > Reload Scripts to apply."
+    cmdDelete.Enabled = (Len(mPath) > 0)
     mnuUndo.Enabled = (mHistoryIndex > 1)
     mnuRedo.Enabled = (mHistoryIndex < mHistory.Count)
+    DrawLineNumbers
 End Sub
 
 Private Sub tmrHighlight_Timer()
@@ -418,16 +521,17 @@ Private Function IsWord(ByVal ch As String) As Boolean
     If Len(ch) = 0 Then Exit Function
     IsWord = (ch Like "[A-Za-z0-9_]")
 End Function
-Private Sub HighlightCode()
+Private Sub HighlightCode(Optional ByVal redraw As Boolean = True)
     Dim code As String, pos As Long, first As Long, ch As String, word As String
     Dim selection As Long, length As Long, topLine As Long, ignored As Long
     Dim keywords As String
+    Dim point As EditorScrollPoint, pixels As Boolean
     If mBusy Then Exit Sub
     On Error GoTo Done
     mBusy = True
     selection = txtCode.SelStart
     length = txtCode.SelLength
-    topLine = SendMessage(txtCode.hwnd, &HCE, 0, 0)
+    CaptureScroll point, topLine, pixels
     ignored = SendMessage(txtCode.hwnd, &HB, 0, 0)
     code = txtCode.Text
     txtCode.SelStart = 0
@@ -480,16 +584,17 @@ Private Sub HighlightCode()
 Done:
     txtCode.SelStart = selection
     txtCode.SelLength = length
-    ignored = SendMessage(txtCode.hwnd, &HB6, 0, topLine - SendMessage(txtCode.hwnd, &HCE, 0, 0))
-    ignored = SendMessage(txtCode.hwnd, &HB, 1, 0)
-    txtCode.Refresh
+    RestoreScroll point, topLine, pixels
+    If redraw Then
+        ignored = SendMessage(txtCode.hwnd, &HB, 1, 0)
+        txtCode.Refresh
+    End If
     mBusy = False
 End Sub
 
 Private Sub IndexProcedures(ByVal code As String)
     Dim lines As Variant, entry As Variant, text As String, offset As Long, name As String, n As Long
     Set mStarts = New Collection
-    Set mNames = New Collection
     cboProcedures.Clear
     lines = Split(code, vbLf)
     For Each entry In lines
@@ -504,7 +609,6 @@ Private Sub IndexProcedures(ByVal code As String)
             If n > 0 Then name = Trim$(Left$(name, n - 1))
             cboProcedures.AddItem text
             mStarts.Add offset
-            mNames.Add LCase$(name)
         End If
         offset = offset + Len(CStr(entry)) + 1
     Next
@@ -513,24 +617,5 @@ Private Sub cboProcedures_Click()
     If mBusy Or cboProcedures.ListIndex < 0 Then Exit Sub
     txtCode.SelStart = CLng(mStarts(cboProcedures.ListIndex + 1))
     txtCode.SelLength = 0
-    txtCode.SetFocus
-End Sub
-Private Sub cmdInsert_Click()
-    Dim signature As String, name As String, i As Long
-    signature = cboEvents.Text
-    If Len(signature) = 0 Then Exit Sub
-    name = LCase$(Left$(signature, InStr(signature, "(") - 1))
-    HighlightCode
-    For i = 1 To mNames.Count
-        If CStr(mNames(i)) = name Then
-            cboProcedures.ListIndex = i - 1
-            cboProcedures_Click
-            Exit Sub
-        End If
-    Next
-    txtCode.SelStart = Len(txtCode.Text)
-    txtCode.SelLength = 0
-    txtCode.SelText = vbCrLf & "Sub " & signature & vbCrLf & "    ' Add your script here." & vbCrLf & "End Sub" & vbCrLf
-    HighlightCode
     txtCode.SetFocus
 End Sub

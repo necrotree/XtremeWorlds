@@ -18,7 +18,7 @@
                               "Left":  8,
                               "Top":  32,
                               "Width":  148,
-                              "Height":  440,
+                              "Height":  451,
                               "TabIndex":  0
                           },
                           {
@@ -85,45 +85,11 @@
                               "_className":  "PictureBox",
                               "Name":  "hostCode",
                               "FontName":  "MS Sans Serif",
-                              "Left":  164,
+                              "Left":  184,
                               "Top":  32,
-                              "Width":  628,
-                              "Height":  440,
+                              "Width":  608,
+                              "Height":  480,
                               "TabIndex":  5
-                          },
-                          {
-                              "_clsid":  "{33AD4F08-6699-11CF-B70C-00AA0060D393}",
-                              "_className":  "ComboBox",
-                              "Name":  "cboEvents",
-                              "FontName":  "MS Sans Serif",
-                              "Left":  164,
-                              "Top":  480,
-                              "Width":  492,
-                              "Height":  21,
-                              "Style":  2,
-                              "TabIndex":  6
-                          },
-                          {
-                              "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
-                              "_className":  "CommandButton",
-                              "Name":  "cmdInsert",
-                              "FontName":  "MS Sans Serif",
-                              "Caption":  "Insert event",
-                              "Left":  664,
-                              "Top":  480,
-                              "Width":  128,
-                              "Height":  21,
-                              "TabIndex":  7
-                          },
-                          {
-                              "_clsid":  "{33AD4ED8-6699-11CF-B70C-00AA0060D393}",
-                              "_className":  "Label",
-                              "Name":  "lblStatus",
-                              "FontName":  "MS Sans Serif",
-                              "Left":  8,
-                              "Top":  504,
-                              "Width":  784,
-                              "Height":  16
                           },
                           {
                               "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
@@ -213,12 +179,50 @@
                                                     "Caption":  "Select \u0026All"
                                                 }
                                             ]
+                          },
+                          {
+                              "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "CommandButton",
+                              "Name":  "cmdDelete",
+                              "Caption":  "Delete",
+                              "Left":  8,
+                              "Top":  491,
+                              "Width":  148,
+                              "Height":  21,
+                              "TabIndex":  8,
+                              "Enabled":  0,
+                              "FontName":  "MS Sans Serif"
+                          },
+                          {
+                              "_clsid":  "{33AD4ED0-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "PictureBox",
+                              "Name":  "picLineNumbers",
+                              "Left":  160,
+                              "Top":  32,
+                              "Width":  24,
+                              "Height":  480,
+                              "BorderStyle":  0,
+                              "AutoRedraw":  -1,
+                              "ScaleMode":  3,
+                              "BackColor":  15790320,
+                              "ForeColor":  8421504,
+                              "TabStop":  0,
+                              "FontName":  "Courier New",
+                              "FontSize":  10
+                          },
+                          {
+                              "_clsid":  "{33AD4F28-6699-11CF-B70C-00AA0060D393}",
+                              "_className":  "Timer",
+                              "Name":  "tmrLineNumbers",
+                              "Interval":  75,
+                              "Enabled":  -1
                           }
                       ],
         "FormDesignerId":  "{76D68BBD-030F-48AA-97D8-9DF693291AA2}",
         "Width":  800,
         "Height":  520,
         "ScaleWidth":  12000,
-        "ScaleHeight":  7800
+        "ScaleHeight":  7800,
+        "ScaleMode":  1
     }
 ]

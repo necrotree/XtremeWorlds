@@ -42,7 +42,15 @@ Class clsScriptText
                 RaiseEvent SelChange
             End If
         ElseIf window = mWindow Then
-            If message = WinDevLib.WM_KEYDOWN Then
+            If message = &H304 Or message = &HC7 Or message = &H454 Then
+                ' Route WM_UNDO, EM_UNDO and EM_REDO through the same text history
+                ' as the menu. Rich Edit's own history also contains formatting.
+                key = vbKeyZ
+                If message = &H454 Then key = vbKeyY
+                shift = vbCtrlMask
+                RaiseEvent KeyDown(key, shift)
+                Return True
+            ElseIf message = WinDevLib.WM_KEYDOWN Then
                 key = CInt(wParam)
                 If WinDevLib.GetKeyState(vbKeyControl) < 0 Then shift = shift Or vbCtrlMask
                 If WinDevLib.GetKeyState(vbKeyShift) < 0 Then shift = shift Or vbShiftMask
@@ -108,6 +116,7 @@ Class clsScriptText
         WinDevLib.SendMessage mWindow, WinDevLib.EM_SETCHARFORMAT, WinDevLib.SCF_SELECTION, format
     End Property
     Public Sub Move(ByVal left As Single, ByVal top As Single, ByVal width As Single, ByVal height As Single)
+        If mHost.Left = left And mHost.Top = top And mHost.Width = width And mHost.Height = height Then Return
         mHost.Move left, top, width, height
     End Sub
     Public Sub SetFocus()
@@ -115,6 +124,9 @@ Class clsScriptText
         WinDevLib.SendMessageLong mWindow, WinDevLib.EM_SCROLLCARET, 0, 0
     End Sub
     Public Sub Refresh()
-        mHost.Refresh
+        ' The text is a native child window. Refreshing only its PictureBox host
+        ' can erase the code without repainting it after WM_SETREDRAW is enabled.
+        WinDevLib.InvalidateRect mWindow, ByVal vbNullPtr, True
+        WinDevLib.UpdateWindow mWindow
     End Sub
 End Class
