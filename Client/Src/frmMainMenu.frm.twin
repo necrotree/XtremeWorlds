@@ -9,33 +9,19 @@ Class frmMainMenu
     Attribute VB_PredeclaredId = True
     Attribute VB_Exposed = False
     Option Explicit
-    Public WithEvents txtSpecial As clsNativeRichText
+    Private mCharacterSprites(0 To 2) As Long
     
     ' Check to make sure there are not 2 clients and Play Music!
     
     Private Sub Form_Load()
-        Set txtSpecial = New clsNativeRichText
-        txtSpecial.Attach hosttxtSpecial, True, 0, 9.75
         Dim FileName As String
         If App.PrevInstance = True Then
-            MsgBox "Another Playerworlds Client is already running! Please run only one client at a time!", Error
+            MsgBox "Another client is already running! Please run only one client at a time!", Error
         End If
     
         FileName = App.Path & DATA_PATH & "Data.dat"
-        txtIP.Text = GameData.IP       ' GetVar(FileName, "IPCONFIG", "IP")
-        txtPort.Text = GameData.Port   ' GetVar(FileName, "IPCONFIG", "PORT")
         txtEncKey.Text = Trim$(ENC_KEY)
-        Me.Caption = GAME_NAME
-        
-        ' Used for Credits
-        Dim result As Long
-        With txtSpecial
-            result = SetWindowLong(.hwnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
-            .SelColor = QBColor(White)
-            .SelAlignment = 2
-            .SelText = "John Rognile" & vbNewLine & "Robin Perris" & vbNewLine & "Dmitry Bromberg" & vbNewLine & "Jon Petros" & vbNewLine & "Liam Stewart" & vbNewLine & "Chris Kremer" & vbNewLine & "Mr. Shannara" & vbNewLine & "PW Community" & vbNewLine & "MS Community"
-        End With
-    
+        Me.Caption = GAME_NAME    
     End Sub
     
     Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -70,55 +56,6 @@ Class frmMainMenu
         'Game Options
     End Sub
     
-    Private Sub picIPCancel_Click()
-        mnuIPConfig.Visible = False
-    End Sub
-    
-    Private Sub picIPConfig_Click()
-        txtIP.Text = GameData.IP
-        txtPort.Text = GameData.Port
-        mnuIPConfig.Visible = True
-    
-    On Error Resume Next
-        txtIP.SetFocus
-    End Sub
-    
-    Private Sub picIPSave_Click()
-        Dim IP, Port As String
-        Dim FileName As String
-        Dim fErr As Integer
-        Dim Texto As String
-    
-        IP = Trim$(txtIP.Text)
-        Port = Val(Trim$(txtPort.Text))
-        FileName = App.Path & DATA_PATH & "Data.dat"
-    
-        fErr = 0
-        If fErr = 0 And Len(Trim$(IP)) = 0 Then
-            fErr = 1
-            Call MsgBox("Inform a correct IP.", vbCritical, GAME_NAME)
-            Exit Sub
-        End If
-        If fErr = 0 And Port <= 0 Then
-            fErr = 1
-            Call MsgBox("Inform a correct Port.", vbCritical, GAME_NAME)
-            Exit Sub
-        End If
-        If fErr = 0 Then
-            GameData.IP = txtIP.Text
-            GameData.Port = txtPort.Text
-            Dim F  As Long
-            F = FreeFile
-            Open FileName For Binary As #F
-            Put #F, , GameData
-            Close #F
-        End If
-        mnuIPConfig.Visible = False
-        Call TcpInit
-    End Sub
-    
-    ' Login Subs
-    
     Private Sub picLogin_Click()
         If GameData.SaveLogin = 1 Then
             chkSaveUser.Value = 1
@@ -127,7 +64,9 @@ Class frmMainMenu
         End If
         ' txtLoginName.Text = GameData.Username
         ' txtLoginPassword.Text = Encryption_XOR_DecryptString(GameData.Password, ENC_KEY)
+        HideMenuPanels
         mnuLogin.Visible = True
+        mnuLogin.ZOrder 0
         
     On Error Resume Next
         txtLoginName.SetFocus
@@ -150,7 +89,7 @@ Class frmMainMenu
         Dim F As Long
         F = FreeFile
         Open FileName For Binary As #F
-        Put #F, , GameData
+        Put #F,, GameData
         Close #F
     
         Call LoginConnect
@@ -167,7 +106,7 @@ Class frmMainMenu
     
     Private Sub txtLoginPassword_KeyPress(KeyAscii As Integer)
         If KeyAscii = 13 Then
-            Call LoginConnect
+            Call picLoginConnect_Click
             KeyAscii = 0
         End If
     End Sub
@@ -179,7 +118,9 @@ Class frmMainMenu
     ' New Account Subs
     
     Private Sub picNewAccount_Click()
+        HideMenuPanels
         mnuNewAccount.Visible = True
+        mnuNewAccount.ZOrder 0
     On Error Resume Next
         txtNewAcctName.SetFocus
     End Sub
@@ -189,17 +130,12 @@ Class frmMainMenu
     End Sub
     
     Private Sub picNewAcctConnect_Click()
+        If txtNewAcctPassword.Text <> txtNewAcctVerify.Text Then
+            MsgBox "Passwords do not match.", vbExclamation, GAME_NAME
+            txtNewAcctVerify.SetFocus
+            Exit Sub
+        End If
         Call NewAccountConnect
-    End Sub
-    
-    ' Credits Subs
-    
-    Private Sub picCredits_Click()
-        mnuCredits.Visible = True
-    End Sub
-    
-    Private Sub picCreditsCancel_Click()
-        mnuCredits.Visible = False
     End Sub
     
     ' Delete Account Subs
@@ -247,6 +183,7 @@ Class frmMainMenu
     End Sub
     
     Private Sub cmbClass_Change()
+        If cmbClass.ListIndex < 0 Then Exit Sub
         Call NewCharBltSprite(cmbClass.ListIndex)
         If Class(cmbClass.ListIndex).Sprite = Class(cmbClass.ListIndex).FSprite Then
             optMale.Value = True
@@ -255,21 +192,22 @@ Class frmMainMenu
             optFemale.Visible = False
         ElseIf Class(cmbClass.ListIndex).Sprite <> Class(cmbClass.ListIndex).FSprite Then
             optMale.Value = True
-            optMale.Visible = True
+            optMale.Visible = False
             optFemale.Value = False
-            optFemale.Visible = True
+            optFemale.Visible = False
         End If
     End Sub
     
     Private Sub cmbClass_Click()
-        lblHP.Caption = STR(Class(cmbClass.ListIndex).HP)
-        lblMP.Caption = STR(Class(cmbClass.ListIndex).MP)
-        lblSP.Caption = STR(Class(cmbClass.ListIndex).SP)
+        If cmbClass.ListIndex < 0 Then Exit Sub
+        lblHP.Caption = Str(Class(cmbClass.ListIndex).HP)
+        lblMP.Caption = Str(Class(cmbClass.ListIndex).MP)
+        lblSP.Caption = Str(Class(cmbClass.ListIndex).SP)
     
-        lblSTR.Caption = STR(Class(cmbClass.ListIndex).STR)
-        lblDEF.Caption = STR(Class(cmbClass.ListIndex).DEF)
-        lblSPEED.Caption = STR(Class(cmbClass.ListIndex).speed)
-        lblMAGI.Caption = STR(Class(cmbClass.ListIndex).MAGI)
+        lblSTR.Caption = Str(Class(cmbClass.ListIndex).STR)
+        lblDEF.Caption = Str(Class(cmbClass.ListIndex).DEF)
+        lblSPEED.Caption = Str(Class(cmbClass.ListIndex).speed)
+        lblMAGI.Caption = Str(Class(cmbClass.ListIndex).MAGI)
         Call NewCharBltSprite(cmbClass.ListIndex)
     End Sub
     
@@ -286,7 +224,9 @@ Class frmMainMenu
     
     Private Sub picCharsCancel_Click()
         Call TcpDestroy
+        HideMenuPanels
         mnuLogin.Visible = True
+        mnuLogin.ZOrder 0
         mnuChars.Visible = False
     End Sub
     
@@ -299,5 +239,102 @@ Class frmMainMenu
         End If
     End Sub
     
+
+    Public Sub HideMenuPanels()
+        mnuLogin.Visible = False
+        mnuNewAccount.Visible = False
+        mnuNewCharacter.Visible = False
+        mnuChars.Visible = False
+    End Sub
+
+    Private Sub picWebsite_Click()
+        Dim address As String
+        address = Trim$(WEBSITE)
+        If Len(address) = 0 Then
+            MsgBox "The server has not supplied a website address yet.", vbInformation, GAME_NAME
+            Exit Sub
+        End If
+        If LCase$(Left$(address, 7)) <> "http://" And LCase$(Left$(address, 8)) <> "https://" Then address = "https://" & address
+        ShellExecute Me.hWnd, "open", address, vbNullString, vbNullString, 1
+    End Sub
+
+    Private Sub txtNewAcctVerify_KeyPress(KeyAscii As Integer)
+        If KeyAscii = 13 Then
+            KeyAscii = 0
+            picNewAcctConnect_Click
+        End If
+    End Sub
+
+    Private Sub picPreviousClass_Click()
+        If cmbClass.ListCount = 0 Then Exit Sub
+        cmbClass.ListIndex = (cmbClass.ListIndex + cmbClass.ListCount - 1) Mod cmbClass.ListCount
+    End Sub
+
+    Private Sub picNextClass_Click()
+        If cmbClass.ListCount = 0 Then Exit Sub
+        cmbClass.ListIndex = (cmbClass.ListIndex + 1) Mod cmbClass.ListCount
+    End Sub
+
+    Private Sub picMale_Click()
+        optMale.Value = True
+    End Sub
+
+    Private Sub picFemale_Click()
+        optFemale.Value = True
+    End Sub
+
+    Public Sub SetCharacterSlot(ByVal slot As Long, ByVal name As String, ByVal sprite As Long)
+        Dim preview As Object, label As Object
+        Dim source As RECT, destination As RECT
+        If slot < 0 Or slot > 2 Then Exit Sub
+        Set preview = Me.Controls("picCharacter" & slot)
+        Set label = Me.Controls("lblCharacter" & slot)
+        label.Caption = name
+        If Len(name) = 0 Then label.Caption = "Empty"
+        label.ToolTipText = label.Caption
+        mCharacterSprites(slot) = sprite
+        preview.Cls
+        If Len(name) = 0 Or DD_SpriteSurf Is Nothing Then Exit Sub
+        If sprite < 0 Or (sprite + 1) * PIC_Y > DD_SpriteSurf.Height Then Exit Sub
+        source.Left = 3 * PIC_X
+        source.Top = sprite * PIC_Y
+        source.Right = source.Left + PIC_X
+        source.Bottom = source.Top + PIC_Y
+        destination.Left = 8: destination.Top = 8
+        destination.Right = 40: destination.Bottom = 40
+        DD_SpriteSurf.BltToDC preview.hDC, source, destination
+        preview.Refresh
+    End Sub
+
+    Public Sub SelectCharacterSlot(ByVal slot As Long)
+        Dim i As Long, label As Object
+        If slot < 0 Or slot >= lstChars.ListCount Then Exit Sub
+        lstChars.ListIndex = slot
+        For i = 0 To 2
+            Set label = Me.Controls("lblCharacter" & i)
+            label.ForeColor = RGB(191, 205, 128)
+            label.FontBold = (i = slot)
+            If i = slot Then label.ForeColor = vbWhite
+        Next
+    End Sub
+
+    Private Sub picCharacter0_Click()
+        SelectCharacterSlot 0
+    End Sub
+    Private Sub picCharacter1_Click()
+        SelectCharacterSlot 1
+    End Sub
+    Private Sub picCharacter2_Click()
+        SelectCharacterSlot 2
+    End Sub
+    Private Sub lblCharacter0_Click()
+        SelectCharacterSlot 0
+    End Sub
+    Private Sub lblCharacter1_Click()
+        SelectCharacterSlot 1
+    End Sub
+    Private Sub lblCharacter2_Click()
+        SelectCharacterSlot 2
+    End Sub
 
 End Class

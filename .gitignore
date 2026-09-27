@@ -231,3 +231,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+/Server/data
+/Client/maps
+/Client/data
+/Client/data

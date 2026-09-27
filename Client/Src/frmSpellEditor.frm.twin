@@ -1,0 +1,93 @@
+[FormDesignerId("7D81F62A-C5F3-47C6-BB92-FA5C2E4D7D20")]
+[ClassId("297DFAD9-6C80-4EDF-8378-74F1AAFEEE8C")]
+[InterfaceId("FDD8832D-B89D-4CFE-8DC5-18160BE01D15")]
+[EventInterfaceId("52277A5C-1E22-43FC-81AA-02DB693FEB14")]
+Class frmSpellEditor
+    Attribute VB_Name = "frmSpellEditor"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Public i As Byte
+    
+    
+    Private Sub cmbType_Click()
+        If cmbType.ListIndex <> SPELL_TYPE_GIVEITEM And cmbType.ListIndex <> SPELL_TYPE_WARP Then
+            fraVitals.Visible = True
+            fraGiveItem.Visible = False
+            fraWarp.Visible = False
+        ElseIf cmbType.ListIndex = SPELL_TYPE_GIVEITEM Then
+            fraVitals.Visible = False
+            fraGiveItem.Visible = True
+            fraWarp.Visible = False
+        ElseIf cmbType.ListIndex = SPELL_TYPE_WARP Then
+            fraVitals.Visible = False
+            fraGiveItem.Visible = False
+            fraWarp.Visible = True
+        End If
+    End Sub
+    
+    Private Sub Label6_Click()
+    
+    End Sub
+    
+    Private Sub scrlAnim_Change()
+        lblAnim.Caption = STR(scrlAnim.Value)
+    End Sub
+    
+    Private Sub scrlItemNum_Change()
+        fraGiveItem.Caption = "Give Item " & Trim$(Item(scrlItemNum.Value).name)
+        lblItemNum.Caption = STR(scrlItemNum.Value)
+    End Sub
+    
+    Private Sub scrlItemValue_Change()
+        lblItemValue.Caption = STR(scrlItemValue.Value)
+    End Sub
+    
+    Private Sub scrlLevelReq_Change()
+        lblLevelReq.Caption = STR(scrlLevelReq.Value)
+    End Sub
+    
+    Private Sub scrlMapX_Change()
+        lblMapX.Caption = STR(scrlMapX.Value)
+    End Sub
+    
+    Private Sub scrlMapY_Change()
+        lblMapY.Caption = STR(scrlMapY.Value)
+    End Sub
+    
+    Private Sub scrlMP_Change()
+        lblMP.Caption = STR(scrlMP.Value)
+    End Sub
+    
+    Private Sub scrlVitalMod_Change()
+        lblVitalMod.Caption = STR(scrlVitalMod.Value)
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        Call SpellEditorOk
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Call SpellEditorCancel
+    End Sub
+    
+    Private Sub tmrSpellAnim_Timer()
+    
+        If i > 13 Then i = 0
+        i = i + 1
+        Call SpellEditorBltAnim(i)
+    End Sub
+    
+
+    Private Sub cmdArrows_Click()
+        SendData "REQUESTARROWS" & END_CHAR
+    End Sub
+
+    Private Sub cmbDelivery_Click()
+        txtCastRange.Enabled = (cmbDelivery.ListIndex = 0)
+        cmbArrow.Enabled = (cmbDelivery.ListIndex = 1)
+    End Sub
+End Class

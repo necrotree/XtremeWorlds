@@ -565,6 +565,7 @@ End Sub
 
 Private Sub tmrNativeSockets_Timer()
     If Not GameServer Is Nothing Then GameServer.Poll
+    Call UpdateProjectiles
 End Sub
 
 Private Sub mnuScriptEditor_Click()

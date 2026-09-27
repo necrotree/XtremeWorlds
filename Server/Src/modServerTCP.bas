@@ -801,9 +801,10 @@ Sub SendUpdateSpellTo(ByVal Index As Long, ByVal SpellNum As Long)
 End Sub
 
 Sub SendEditSpellTo(ByVal Index As Long, ByVal SpellNum As Long)
+    Call SendSpellDelivery(Index, SpellNum)
     Dim Packet As String
 
-    Packet = "EDITSPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).name) & SEP_CHAR & Spell(SpellNum).ClassReq & SEP_CHAR & Spell(SpellNum).LevelReq & SEP_CHAR & Spell(SpellNum).Type & SEP_CHAR & Spell(SpellNum).Data1 & SEP_CHAR & Spell(SpellNum).Data2 & SEP_CHAR & Spell(SpellNum).Data3 & SEP_CHAR & Spell(SpellNum).Graphic & END_CHAR
+    Packet = "EDITSPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).name) & SEP_CHAR & Spell(SpellNum).ClassReq & SEP_CHAR & Spell(SpellNum).LevelReq & SEP_CHAR & Spell(SpellNum).Type & SEP_CHAR & Spell(SpellNum).Data1 & SEP_CHAR & Spell(SpellNum).Data2 & SEP_CHAR & Spell(SpellNum).Data3 & SEP_CHAR & Spell(SpellNum).Graphic & SEP_CHAR & Spell(SpellNum).MPReq & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 

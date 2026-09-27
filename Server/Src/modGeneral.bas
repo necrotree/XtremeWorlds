@@ -90,6 +90,7 @@ Sub InitServer()
     Call LoadShops
     Call LoadSigns
     Call LoadSpells
+    Call LoadArrows
     Call LoadGuilds
     Call LoadQuests
     Call SpawnAllMapsItems

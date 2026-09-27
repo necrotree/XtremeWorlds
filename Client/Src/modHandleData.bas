@@ -38,6 +38,7 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Handle Data
     Parse = Split(Data, SEP_CHAR)
+    If HandleProjectilePacket(Parse) Then Exit Sub
 
     ' Add the data to the debug window if we are in debug mode
     If Trim$(Command) = "-debug" Then
@@ -83,7 +84,9 @@ Public Sub HandleData(ByVal Data As String)
         Case "allchars"
             n = 1
 
+            frmMainMenu.HideMenuPanels
             frmMainMenu.mnuChars.Visible = True
+            frmMainMenu.mnuChars.ZOrder 0
             frmMainMenu.Visible = True
             frmSendGetData.Visible = False
 
@@ -94,6 +97,7 @@ Public Sub HandleData(ByVal Data As String)
                 Msg = Trim$(Parse(n + 1))
                 Level = Val(Parse(n + 2))
                 TempCharSprite = Val(Parse(n + 3))
+                frmMainMenu.SetCharacterSlot i - 1, name, TempCharSprite
 
                 If LenB(Trim$(name)) = 0 Then
                     frmMainMenu.lstChars.AddItem "Free Character Slot"
@@ -105,6 +109,7 @@ Public Sub HandleData(ByVal Data As String)
             Next i
 
             frmMainMenu.lstChars.ListIndex = 0
+            frmMainMenu.SelectCharacterSlot 0
             Exit Sub
 
         ' :::::::::::::::::::::::::::::::::
@@ -133,7 +138,7 @@ Public Sub HandleData(ByVal Data As String)
             n = n + 1
 
             For i = 0 To Max_Classes
-                Class(i).name = Parse(n)
+                Class(i).Name = Parse(n)
 
                 Class(i).HP = Val(Parse(n + 1))
                 Class(i).MP = Val(Parse(n + 2))
@@ -159,19 +164,19 @@ Public Sub HandleData(ByVal Data As String)
             frmMainMenu.cmbClass.Clear
 
             For i = 0 To Max_Classes
-                frmMainMenu.cmbClass.AddItem Trim$(Class(i).name)
+                frmMainMenu.cmbClass.AddItem Trim$(Class(i).Name)
             Next i
 
             With frmMainMenu
                 .cmbClass.ListIndex = 0
-                .lblHP.Caption = STR(Class(0).HP)
-                .lblMP.Caption = STR(Class(0).MP)
-                .lblSP.Caption = STR(Class(0).SP)
+                .lblHP.Caption = Str(Class(0).HP)
+                .lblMP.Caption = Str(Class(0).MP)
+                .lblSP.Caption = Str(Class(0).SP)
 
-                .lblSTR.Caption = STR(Class(0).STR)
-                .lblDEF.Caption = STR(Class(0).DEF)
-                .lblSPEED.Caption = STR(Class(0).speed)
-                .lblMAGI.Caption = STR(Class(0).MAGI)
+                .lblSTR.Caption = Str(Class(0).STR)
+                .lblDEF.Caption = Str(Class(0).DEF)
+                .lblSPEED.Caption = Str(Class(0).speed)
+                .lblMAGI.Caption = Str(Class(0).MAGI)
 
                 If Class(.cmbClass.ListIndex).Sprite = Class(.cmbClass.ListIndex).FSprite Then
                     .optMale.Value = True
@@ -200,7 +205,7 @@ Public Sub HandleData(ByVal Data As String)
             n = n + 1
 
             For i = 0 To Max_Classes
-                Class(i).name = Parse(n)
+                Class(i).Name = Parse(n)
 
                 Class(i).HP = Val(Parse(n + 1))
                 Class(i).MP = Val(Parse(n + 2))
@@ -535,6 +540,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Map data packet ::
         ' :::::::::::::::::::::
         Case "mapdata"
+            Call ClearProjectiles
             n = 1
 
             SaveMap.name = Parse(n + 1)
@@ -1069,6 +1075,7 @@ Public Sub HandleData(ByVal Data As String)
             Spell(n).Data2 = Val(Parse(7))
             Spell(n).Data3 = Val(Parse(8))
             Spell(n).Graphic = Val(Parse(9))
+            If UBound(Parse) >= 10 Then Spell(n).MPReq = Val(Parse(10))
 
             ' Initialize the spell editor
             Call SpellEditorInit
@@ -1246,13 +1253,13 @@ Public Sub HandleData(ByVal Data As String)
                 ReDim Preserve Guild(i).Member(1 To MAX_GUILD_MEMBERS) As String * NAME_LENGTH
             Next i
 
-            frmNpcEditor.scrlNum.max = MAX_ITEMS
-            frmMapDmg.scrlItem.max = MAX_ITEMS
-            frmMapKey.scrlItem.max = MAX_ITEMS
-            frmMapItem.scrlItem.max = MAX_ITEMS
-            frmItemEditor.scrlSpell.max = MAX_SPELLS
-            frmSignChoose.scrlSignNum.max = MAX_SIGNS
-            frmGuildCreate.scrlGuild.max = MAX_GUILDS
+            frmNpcEditor.scrlNum.Max = MAX_ITEMS
+            frmMapDmg.scrlItem.Max = MAX_ITEMS
+            frmMapKey.scrlItem.Max = MAX_ITEMS
+            frmMapItem.scrlItem.Max = MAX_ITEMS
+            frmItemEditor.scrlSpell.Max = MAX_SPELLS
+            frmSignChoose.scrlSignNum.Max = MAX_SIGNS
+            frmGuildCreate.scrlGuild.Max = MAX_GUILDS
             Exit Sub
 
         ' ::::::::::::::::::::::::

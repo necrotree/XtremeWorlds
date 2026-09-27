@@ -70,6 +70,10 @@ Sub SetMaxQuests(ByVal Quests As Integer)
     MAX_QUESTS = Val(Quests)
 End Sub
 
+Sub SetMaxArrows(ByVal Arrows As Integer)
+    MAX_ARROWS = Val(Arrows)
+End Sub
+
 Sub SetMaxQuestPlayers(ByVal Players As Integer)
     MAX_QUEST_PLAYERS = Val(Players)
 End Sub

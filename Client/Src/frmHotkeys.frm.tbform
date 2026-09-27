@@ -5,8 +5,8 @@
         "_clsid":  "{33AD4F38-6699-11CF-B70C-00AA0060D393}",
         "FontName":  "MS Sans Serif",
         "Caption":  "Keyboard Shortcuts",
-        "ClientWidth":  6600,
-        "ClientHeight":  6000,
+        "ClientWidth":  15120,
+        "ClientHeight":  8100,
         "BorderStyle":  3,
         "MaxButton":  0,
         "MinButton":  0,
@@ -18,9 +18,9 @@
                               "_clsid":  "{33AD4F10-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Left":  12,
-                              "Top":  12,
-                              "Width":  416,
-                              "Height":  225,
+                              "Top":  304,
+                              "Width":  550,
+                              "Height":  180,
                               "TabIndex":  0
                           },
                           {
@@ -29,10 +29,10 @@
                               "_clsid":  "{33AD4ED8-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Caption":  "Key for selected action:",
-                              "Left":  12,
-                              "Top":  248,
-                              "Width":  180,
-                              "Height":  17
+                              "Left":  580,
+                              "Top":  304,
+                              "Width":  390,
+                              "Height":  20
                           },
                           {
                               "Name":  "cboKey",
@@ -40,10 +40,10 @@
                               "_clsid":  "{33AD4F08-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Style":  2,
-                              "Left":  200,
-                              "Top":  244,
-                              "Width":  228,
-                              "Height":  21,
+                              "Left":  580,
+                              "Top":  328,
+                              "Width":  410,
+                              "Height":  24,
                               "TabIndex":  1
                           },
                           {
@@ -51,11 +51,11 @@
                               "_className":  "Label",
                               "_clsid":  "{33AD4ED8-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
-                              "Caption":  "Select an action and choose a key. Enter always opens/sends chat. Unassign a duplicate key before using it for another action.",
-                              "Left":  12,
-                              "Top":  280,
-                              "Width":  416,
-                              "Height":  37
+                              "Caption":  "Select an action or slot, then click a key above. Green: selected binding. Blue: assigned. Gray: system keys. Enter is reserved for chat/pickup. Choose Unassigned to clear a binding.",
+                              "Left":  580,
+                              "Top":  360,
+                              "Width":  410,
+                              "Height":  68
                           },
                           {
                               "Name":  "cmdArrows",
@@ -63,10 +63,10 @@
                               "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Caption":  "Arrow defaults",
-                              "Left":  12,
-                              "Top":  332,
-                              "Width":  124,
-                              "Height":  25,
+                              "Left":  580,
+                              "Top":  444,
+                              "Width":  196,
+                              "Height":  28,
                               "TabIndex":  2
                           },
                           {
@@ -75,10 +75,10 @@
                               "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Caption":  "WASD defaults",
-                              "Left":  144,
-                              "Top":  332,
-                              "Width":  124,
-                              "Height":  25,
+                              "Left":  786,
+                              "Top":  444,
+                              "Width":  204,
+                              "Height":  28,
                               "TabIndex":  3
                           },
                           {
@@ -87,10 +87,10 @@
                               "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Caption":  "Save",
-                              "Left":  280,
-                              "Top":  368,
-                              "Width":  68,
-                              "Height":  25,
+                              "Left":  786,
+                              "Top":  496,
+                              "Width":  96,
+                              "Height":  28,
                               "TabIndex":  4
                           },
                           {
@@ -99,12 +99,28 @@
                               "_clsid":  "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
                               "FontName":  "MS Sans Serif",
                               "Caption":  "Cancel",
-                              "Left":  360,
-                              "Top":  368,
-                              "Width":  68,
-                              "Height":  25,
+                              "Left":  894,
+                              "Top":  496,
+                              "Width":  96,
+                              "Height":  28,
                               "Cancel":  -1,
                               "TabIndex":  5
+                          },
+                          {
+                              "Name":  "picKeyboard",
+                              "_className":  "PictureBox",
+                              "_clsid":  "{33AD4ED0-6699-11CF-B70C-00AA0060D393}",
+                              "Left":  6,
+                              "Top":  8,
+                              "Width":  996,
+                              "Height":  280,
+                              "ScaleMode":  3,
+                              "AutoRedraw":  true,
+                              "BackColor":  2105376,
+                              "ForeColor":  0,
+                              "FontName":  "Tahoma",
+                              "FontSize":  8,
+                              "TabStop":  false
                           }
                       ],
         "FormDesignerId":  "{E56D5D52-5A4F-4240-9923-E427ABCD8271}",

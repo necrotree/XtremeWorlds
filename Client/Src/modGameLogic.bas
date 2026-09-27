@@ -23,6 +23,7 @@ Public Sub Main()
     FileName = App.Path & DATA_PATH & "Data.dat"
 
     ' Make sure we set that we aren't in the game
+    Call ClearProjectiles
     InGame = False
     GettingMap = True
     InEditor = False
@@ -196,6 +197,8 @@ Public Sub GameLoop()
                         Call BltPlayerTop(i)
                     End If
                 Next i
+
+                Call BltProjectiles
 
                 ' Blit Spell
                 ' If GetVar(App.Path & DATA_PATH & "Data.dat", "OPTIONS", "SPELLGFX") = 1 Then
@@ -867,6 +870,12 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
                 ' Editing shop request
                 If Mid$(MyText, 1, 9) = "/shopedit" Then
                     Call SendRequestEditShop
+                    MyText = vbNullString
+                    Exit Sub
+                End If
+
+                If LCase$(Trim$(MyText)) = "/arrowedit" Then
+                    SendData "REQUESTARROWS" & END_CHAR
                     MyText = vbNullString
                     Exit Sub
                 End If

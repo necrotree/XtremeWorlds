@@ -3,6 +3,7 @@ Option Explicit
 
 Sub HandleData(ByVal Index As Long, ByVal Data As String)
     Dim Parse() As String
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
     Dim name As String
     Dim EncKey As String
     Dim Password As String
@@ -33,6 +34,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
     ' Handle Data
     Parse = Split(Data, SEP_CHAR)
+    If HandleProjectilePacket(Index, Parse) Then Exit Sub
 
     ' :::::::::::::::::::::::::::::::::::::::::::::::
     ' :: Requesting classes for making a character ::
@@ -1902,7 +1904,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         N = Val(Parse(1))
 
         ' Prevent hacking
-        If N < 0 Or N > MAX_SPELLS Then
+        If N < 1 Or N > MAX_SPELLS Then
             Call HackingAttempt(Index, "Invalid Spell Index")
             Exit Sub
         End If
@@ -1925,10 +1927,12 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         N = Val(Parse(1))
 
         ' Prevent hacking
-        If N < 0 Or N > MAX_SPELLS Then
+        If N < 1 Or N > MAX_SPELLS Then
             Call HackingAttempt(Index, "Invalid Spell Index")
             Exit Sub
         End If
+
+        If Not ReadSpellDelivery(Parse, deliveryMode, deliveryArrow, deliveryRange) Then Exit Sub
 
         ' Update the spell
         Spell(N).name = Parse(2)
@@ -1940,6 +1944,8 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Spell(N).Data3 = Val(Parse(8))
         Spell(N).MPReq = Val(Parse(9))
         Spell(N).Graphic = Val(Parse(10))
+
+        Call SaveSpellDelivery(N, deliveryMode, deliveryArrow, deliveryRange)
 
         ' Save it
         Call SendUpdateSpellToAll(N)

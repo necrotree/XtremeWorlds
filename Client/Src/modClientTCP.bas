@@ -542,7 +542,7 @@ Public Sub SendSaveSpell(ByVal SpellNum As Long)
     Dim Packet As String
 
     With Spell(SpellNum)
-        Packet = "SAVESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(.name) & SEP_CHAR & .ClassReq & SEP_CHAR & .LevelReq & SEP_CHAR & .Type & SEP_CHAR & .Data1 & SEP_CHAR & .Data2 & SEP_CHAR & .Data3 & SEP_CHAR & .MPReq & SEP_CHAR & .Graphic & END_CHAR
+        Packet = "SAVESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(.name) & SEP_CHAR & .ClassReq & SEP_CHAR & .LevelReq & SEP_CHAR & .Type & SEP_CHAR & .Data1 & SEP_CHAR & .Data2 & SEP_CHAR & .Data3 & SEP_CHAR & .MPReq & SEP_CHAR & .Graphic & SpellDeliveryPacket(SpellNum) & END_CHAR
     End With
 
     Call SendData(Packet)

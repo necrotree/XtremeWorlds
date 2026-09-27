@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form frmSpellEditor 
    BorderStyle     =   4  'Fixed ToolWindow
    Caption         =   "Spell Editor"
-   ClientHeight    =   7575
+   ClientHeight = 9240
    ClientLeft      =   5400
    ClientTop       =   2280
    ClientWidth     =   4980
@@ -25,6 +25,55 @@ Begin VB.Form frmSpellEditor
    ScaleWidth      =   4980
    ShowInTaskbar   =   0   'False
    StartUpPosition =   2  'CenterScreen
+   Begin VB.Label lblDelivery
+      Left = 120
+      Top = 6180
+      Width = 4800
+      Height = 300
+      Caption = "Spell delivery (all spell types)"
+   End
+   Begin VB.ComboBox cmbDelivery
+      Left = 120
+      Top = 6540
+      Width = 4800
+      Height = 360
+      Style = 2
+   End
+   Begin VB.Label lblCastRange
+      Left = 120
+      Top = 7020
+      Width = 2670
+      Height = 300
+      Caption = "Range cast: distance in tiles"
+   End
+   Begin VB.TextBox txtCastRange
+      Left = 3570
+      Top = 6990
+      Width = 1350
+      Height = 360
+      Text = "32"
+   End
+   Begin VB.ComboBox cmbArrow
+      Left = 120
+      Top = 7500
+      Width = 2670
+      Height = 360
+      Style = 2
+   End
+   Begin VB.CommandButton cmdArrows
+      Left = 2970
+      Top = 7470
+      Width = 1950
+      Height = 420
+      Caption = "Edit arrows..."
+   End
+   Begin VB.Label lblProjectileHelp
+      Left = 120
+      Top = 7950
+      Width = 4800
+      Height = 540
+      Caption = "Projectile mode uses the arrow range. Spell effect and damage remain above."
+   End
    Begin VB.PictureBox picSpells 
       Appearance      =   0  'Flat
       AutoRedraw      =   -1  'True
@@ -49,7 +98,7 @@ Begin VB.Form frmSpellEditor
       Height          =   495
       Left            =   120
       TabIndex        =   8
-      Top             =   6120
+      Top             =   8610
       Width           =   2295
    End
    Begin VB.CommandButton cmdCancel 
@@ -57,7 +106,7 @@ Begin VB.Form frmSpellEditor
       Height          =   495
       Left            =   2640
       TabIndex        =   7
-      Top             =   6120
+      Top             =   8610
       Width           =   2295
    End
    Begin VB.Frame fraWarp 
@@ -470,3 +519,12 @@ Private Sub tmrSpellAnim_Timer()
     i = i + 1
     Call SpellEditorBltAnim(i)
 End Sub
+
+    Private Sub cmdArrows_Click()
+        SendData "REQUESTARROWS" & END_CHAR
+    End Sub
+
+    Private Sub cmbDelivery_Click()
+        txtCastRange.Enabled = (cmbDelivery.ListIndex = 0)
+        cmbArrow.Enabled = (cmbDelivery.ListIndex = 1)
+    End Sub

@@ -11,7 +11,9 @@ Public Const HK_PICKUP As Long = 7
 Public Const HK_CAST As Long = 8
 Public Const HK_ADMIN As Long = 9
 Public Const HK_QUIT As Long = 10
-Public Const HK_COUNT As Long = 10
+Public Const HK_INVENTORY As Long = 11
+Public Const HK_SPELL As Long = HK_INVENTORY + MAX_INV
+Public Const HK_COUNT As Long = HK_SPELL + MAX_PLAYER_SPELLS - 1
 Public Hotkeys(1 To HK_COUNT) As Integer
 Public CustomHotkeys As Boolean
 Public EditingHotkeys As Boolean
@@ -20,10 +22,21 @@ Private Declare Function ReadKeySetting Lib "kernel32" Alias "GetPrivateProfileS
 Private Declare Function WriteKeySetting Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal section As String, ByVal key As String, ByVal value As String, ByVal path As String) As Long
 
 Public Function HotkeyActionName(ByVal action As Long) As String
+    If action >= HK_SPELL Then
+        HotkeyActionName = "Spell slot " & CStr(action - HK_SPELL + 1)
+        Exit Function
+    ElseIf action >= HK_INVENTORY Then
+        HotkeyActionName = "Inventory slot " & CStr(action - HK_INVENTORY + 1)
+        Exit Function
+    End If
     HotkeyActionName = Choose(action, "Move up", "Move down", "Move left", "Move right", "Attack", "Run", "Pick up item", "Cast memorized spell", "Toggle admin panel", "Quit game")
 End Function
 
 Public Sub DefaultHotkeys(ByRef keys() As Integer, ByVal wasd As Boolean)
+    Dim i As Long
+    For i = 1 To HK_COUNT
+        keys(i) = 0
+    Next
     keys(HK_UP) = vbKeyUp
     keys(HK_DOWN) = vbKeyDown
     keys(HK_LEFT) = vbKeyLeft
@@ -48,6 +61,30 @@ Public Function HotkeyName(ByVal key As Integer) As String
         Case 0: HotkeyName = "Unassigned"
         Case 48 To 57, 65 To 90: HotkeyName = Chr$(key)
         Case 112 To 123: HotkeyName = "F" & CStr(key - 111)
+        Case 96 To 105: HotkeyName = "Num " & CStr(key - 96)
+        Case 106: HotkeyName = "Num *"
+        Case 107: HotkeyName = "Num +"
+        Case 109: HotkeyName = "Num -"
+        Case 110: HotkeyName = "Num ."
+        Case 111: HotkeyName = "Num /"
+        Case 8: HotkeyName = "Backspace"
+        Case 9: HotkeyName = "Tab"
+        Case 20: HotkeyName = "Caps Lock"
+        Case 19: HotkeyName = "Pause"
+        Case 44: HotkeyName = "Print Screen"
+        Case 144: HotkeyName = "Num Lock"
+        Case 145: HotkeyName = "Scroll Lock"
+        Case 186: HotkeyName = ";"
+        Case 187: HotkeyName = "="
+        Case 188: HotkeyName = ","
+        Case 189: HotkeyName = "-"
+        Case 190: HotkeyName = "."
+        Case 191: HotkeyName = "/"
+        Case 192: HotkeyName = "`"
+        Case 219: HotkeyName = "["
+        Case 220: HotkeyName = "\"
+        Case 221: HotkeyName = "]"
+        Case 222: HotkeyName = "'"
         Case vbKeyUp: HotkeyName = "Up arrow"
         Case vbKeyDown: HotkeyName = "Down arrow"
         Case vbKeyLeft: HotkeyName = "Left arrow"
@@ -187,4 +224,32 @@ Public Sub ReleaseGameKeys()
     DirRight = False
     ControlDown = False
     ShiftDown = False
+End Sub
+
+' Called once on key release, using the same restrictions as the game buttons.
+Public Sub UseSlotHotkey(ByVal key As Integer)
+    Dim action As Long, slot As Long
+    If Not InGame Or GettingMap Or EditingHotkeys Or Not TxtHasFocus Then Exit Sub
+    If frmMainGame.ChatUnlocked Then Exit Sub
+    For action = HK_INVENTORY To HK_COUNT
+        If GameKeyMatches(action, key) Then
+            If action < HK_SPELL Then
+                slot = action - HK_INVENTORY + 1
+                If GetPlayerInvItemNum(MyIndex, slot) > 0 Then SendUseItem slot
+            Else
+                slot = action - HK_SPELL + 1
+                If Player(MyIndex).Spell(slot) <= 0 Then Exit Sub
+                If GetTickCount <= Player(MyIndex).AttackTimer + 1000 Then Exit Sub
+                If Player(MyIndex).Moving <> 0 Then
+                    AddText "Cannot cast while walking!", BrightRed
+                    Exit Sub
+                End If
+                SendData "cast" & SEP_CHAR & slot & END_CHAR
+                Player(MyIndex).Attacking = 1
+                Player(MyIndex).AttackTimer = GetTickCount
+                Player(MyIndex).CastedSpell = YES
+            End If
+            Exit Sub
+        End If
+    Next
 End Sub

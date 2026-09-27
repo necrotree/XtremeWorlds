@@ -3270,6 +3270,7 @@ Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
     If KeyCode = vbKeyReturn Then ChatEnterDown = False
     If EditingHotkeys Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
     Call CheckInput(0, KeyCode, Shift)
+        Call UseSlotHotkey(KeyCode)
     If GameKeyMatches(HK_ADMIN, KeyCode) Then
         If frmMainGame.Width = 13545 Then
             frmMainGame.fraPlayer.Visible = False

@@ -83,6 +83,7 @@ Public Const MAX_TRADES = 8
 Public Const MAX_GUILDS_SET = 20
 Public MAX_GUILD_MEMBERS As Long
 Public MAX_QUEST_PLAYERS As Long
+Public MAX_ARROWS As Long
 
 Public Const NO = 0
 Public Const YES = 1

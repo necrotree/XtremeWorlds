@@ -749,10 +749,12 @@ Public Sub SpellEditorInit()
         frmSpellEditor.scrlMapY = Spell(EditorIndex).Data3
     End If
 
+    Call InitSpellDeliveryEditor
     frmSpellEditor.Show vbModal
 End Sub
 
 Public Sub SpellEditorOk()
+    If Not SaveSpellDeliveryEditor Then Exit Sub
     Spell(EditorIndex).name = frmSpellEditor.txtName.Text
     Spell(EditorIndex).ClassReq = frmSpellEditor.cmbClassReq.ListIndex
     Spell(EditorIndex).LevelReq = frmSpellEditor.scrlLevelReq.Value

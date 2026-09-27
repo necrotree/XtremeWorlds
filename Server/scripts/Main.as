@@ -20,6 +20,7 @@ Public Const MAX_NPCS = 255 ' Max NPCs
 Public Const MAX_GUILDS = 255 ' Max Guilds
 Public Const MAX_GUILD_MEMBERS = 255 ' Max Guild Members
 Public Const MAX_QUESTS = 255 ' Max Quests
+Public Const MAX_ARROWS = 100 ' Max Arrows
 Public Const MAX_QUEST_PLAYERS = 255 ' Max People Who Can Complete the Quest
 
 
@@ -100,6 +101,7 @@ Sub ServerSet()
     Call SetMaxGuilds(MAX_GUILDS)
     Call SetMaxGuildMembers(MAX_GUILD_MEMBERS)
     Call SetMaxQuests(MAX_QUESTS)
+    Call SetMaxArrows(MAX_ARROWS)
     Call SetMaxQuestPlayers(MAX_QUEST_PLAYERS)
     Call SetStartPosition(START_MAP, START_X, START_Y)
 

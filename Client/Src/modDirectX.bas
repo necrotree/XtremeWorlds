@@ -32,6 +32,7 @@ Public Sub InitSurfaces()
     Set DD_ItemSurf = LoadSurface(Prefix & "items" & GFX_EXT)
     DD_ItemSurf.ColorKey = RGB(255, 255, 255)
     Set DD_SpellSurf = LoadSurface(Prefix & "spells" & GFX_EXT)
+    Set DD_ArrowSurf = LoadSurface(Prefix & "arrows" & GFX_EXT)
 End Sub
 
 Public Sub DestroyDirectX()

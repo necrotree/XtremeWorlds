@@ -1434,6 +1434,7 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     MyScript.ExecuteStatement "\scripts\Main.as", "LeaveMap " & Index
     
     ' Save old map to send erase player data to
+    Call CancelPlayerProjectiles(Index)
     OldMap = GetPlayerMap(Index)
     Call SendLeaveMap(Index, OldMap)
     Call SetPlayerMap(Index, MapNum)
@@ -2112,73 +2113,20 @@ Sub CheckPlayerLevelUp(ByVal Index As Long)
 
 End Sub
 
-Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
-    Dim SpellNum As Long, MPReq As Long, I As Long, N As Long, Damage As Long
-    Dim NpcNum As Long, Name As String, MapNpcNum As Long
+Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal HitType As Long, ByVal N As Long)
+    Dim I As Long, Damage As Long, NpcNum As Long, Name As String, MapNpcNum As Long
     Dim Casted As Boolean, Exp As Long
-
-    Casted = False
-
-    ' Prevent subscript out of range
-    If SpellSlot <= 0 Or SpellSlot > MAX_PLAYER_SPELLS Then
-        Exit Sub
-    End If
-
-    SpellNum = GetPlayerSpell(Index, SpellSlot)
-
-    ' Make sure player has the spell
-    If Not HasSpell(Index, SpellNum) Then
-        Call PlayerMsg(Index, "You do not have this spell!", BrightRed)
-        Exit Sub
-    End If
-
-    I = GetSpellReqLevel(Index, SpellNum)
-    ' MPReq = (I + Spell(SpellNum).Data1 + Spell(SpellNum).Data2 + Spell(SpellNum).Data3)
-    MPReq = GetSpellReqMP(Index, SpellNum)
-
-    ' Check if they have enough MP
-    If GetPlayerMP(Index) < MPReq Then
-        Call PlayerMsg(Index, "Not enough mana points!", BrightRed)
-        Exit Sub
-    End If
-
-    ' Make sure they are the right level
-    If I > GetPlayerLevel(Index) Then
-        Call PlayerMsg(Index, "You must be level " & I & " to cast this spell.", BrightRed)
-        Exit Sub
-    End If
-
-    ' Check if timer is ok
-    If GetTickCount < Player(Index).AttackTimer + 1000 Then
-        Exit Sub
-    End If
-
-    ' Check if the spell is a give item and do that instead of a stat modification
+    If Not CanSpellAffect(Index, SpellNum, HitType, N) Then Exit Sub
+    ' Both delivery modes resolve through this same effect implementation.
     If Spell(SpellNum).Type = SPELL_TYPE_GIVEITEM Then
-        N = FindOpenInvSlot(Index, Spell(SpellNum).Data1)
-
-        If N > 0 Then
-            Call GiveItem(Index, Spell(SpellNum).Data1, Spell(SpellNum).Data2)
-            Call MapMsg(GetPlayerMap(Index), GetPlayerName(Index) & " casts " & Trim$(Spell(SpellNum).Name) & ".", BrightBlue)
-
-            ' Take away the mana points
-            Call SetPlayerMP(Index, GetPlayerMP(Index) - MPReq)
-            Call SendMP(Index)
-            Casted = True
-            Call SendSpellAnim(Index, Spell(SpellNum).Graphic, GetPlayerX(Index), GetPlayerY(Index))
-
-        Else
-            Call PlayerMsg(Index, "Your inventory is full!", BrightRed)
-        End If
-
+        GiveItem N, Spell(SpellNum).Data1, Spell(SpellNum).Data2
+        SendTargetXY Index, GetPlayerX(N), GetPlayerY(N), GetPlayerMap(N), Spell(SpellNum).Graphic
         Exit Sub
     End If
 
-    N = Player(Index).Target
-
-    If Player(Index).TargetType = TARGET_TYPE_PLAYER Then
+    If HitType = TARGET_TYPE_PLAYER Then
         If IsPlaying(N) Then
-            If GetPlayerHP(N) > 0 And GetPlayerMap(Index) = GetPlayerMap(N) And GetPlayerLevel(Index) >= 10 And GetPlayerLevel(N) >= 10 And Map(GetPlayerMap(Index)).Moral = MAP_MORAL_NONE Or Map(GetPlayerMap(Index)).Moral = MAP_MORAL_ARENA And GetPlayerAccess(Index) <= 1 And GetPlayerAccess(N) <= 1 Then
+            If Spell(SpellNum).Type >= SPELL_TYPE_SUBHP And Spell(SpellNum).Type <= SPELL_TYPE_SUBSP Then
                 ' If GetPlayerLevel(n) + 5 >= GetPlayerLevel(Index) Then
                 ' If GetPlayerLevel(n) - 5 <= GetPlayerLevel(Index) Then
                 Call MapMsg(GetPlayerMap(Index), GetPlayerName(Index) & " casts " & Trim$(Spell(SpellNum).Name) & " on " & GetPlayerName(N) & ".", BrightBlue)
@@ -2310,8 +2258,7 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
 ' End If
 
                 ' Take away the mana points
-                Call SetPlayerMP(Index, GetPlayerMP(Index) - MPReq)
-                Call SendMP(Index)
+
                 Casted = True
                 Call SendTargetXY(Index, GetPlayerX(N), GetPlayerY(N), GetPlayerMap(Index), Spell(SpellNum).Graphic)
 
@@ -2340,8 +2287,7 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
                     End Select
 
                     ' Take away the mana points
-                    Call SetPlayerMP(Index, GetPlayerMP(Index) - MPReq)
-                    Call SendMP(Index)
+
                     Casted = True
 
                 ElseIf GetPlayerMap(Index) = GetPlayerMap(N) And Spell(SpellNum).Type = SPELL_TYPE_WARP Then
@@ -2349,8 +2295,7 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
                     Call PlayerWarp(N, Spell(SpellNum).Data1, Spell(SpellNum).Data2, Spell(SpellNum).Data3)
 
                     ' Take away the mana points
-                    Call SetPlayerMP(Index, GetPlayerMP(Index) - MPReq)
-                    Call SendMP(Index)
+
                     Casted = True
                 Else
                     Call PlayerMsg(Index, "Could not cast spell!", BrightRed)
@@ -2362,7 +2307,7 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
     Else
         NpcNum = MapNpc(GetPlayerMap(Index), N).Num
         Name = Trim$(Npc(NpcNum).Name)
-        If Npc(NpcNum).Behavior <> NPC_BEHAVIOR_FRIENDLY And Npc(NpcNum).Behavior <> NPC_BEHAVIOR_SHOPKEEPER Then
+        If CanSpellAffect(Index, SpellNum, HitType, N) Then
             If IsVowel(Name) = True Then
                 Call MapMsg(GetPlayerMap(Index), GetPlayerName(Index) & " casts " & Trim$(Spell(SpellNum).Name) & " on an " & Trim$(Npc(NpcNum).Name) & ".", BrightBlue)
             Else
@@ -2409,7 +2354,7 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
 
                             I = Player(Index).PartyPlayer
                             If I > 0 Then
-                                Call SetPlayerExp(N, GetPlayerExp(I) + Exp)
+                                Call SetPlayerExp(I, GetPlayerExp(I) + Exp)
                                 Call PlayerMsg(I, "You have gained " & Exp & " party experience points.", BrightBlue)
                                 Call SendExp(I)
                             End If
@@ -2427,7 +2372,7 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
                         MapNpc(GetPlayerMap(Index), N).Num = 0
                         MapNpc(GetPlayerMap(Index), N).SpawnWait = GetTickCount
                         MapNpc(GetPlayerMap(Index), N).HP = 0
-                        Call SendDataToMap(GetPlayerMap(Index), "NPCDEAD" & SEP_CHAR & NpcNum & END_CHAR)
+                        Call SendDataToMap(GetPlayerMap(Index), "NPCDEAD" & SEP_CHAR & N & END_CHAR)
 
                         ' Check for level up
                         Call CheckPlayerLevelUp(Index)
@@ -2461,8 +2406,6 @@ Sub CastSpell(ByVal Index As Long, ByVal SpellSlot As Long)
             End Select
 
             ' Take away the mana points
-            Call SetPlayerMP(Index, GetPlayerMP(Index) - MPReq)
-            Call SendMP(Index)
 
         Else
             Call PlayerMsg(Index, "Unable cast spell!", BrightRed)
@@ -2602,6 +2545,7 @@ Sub ClearClasses()
 End Sub
 
 Sub ClearPlayer(ByVal Index As Long)
+    Call CancelPlayerProjectiles(Index)
     Dim I As Long
     Player(Index).Login = vbNullString
     Player(Index).Password = vbNullString
