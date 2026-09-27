@@ -403,6 +403,7 @@ Public Sub ItemEditorInit()
 ' ****************************************************************
 
     frmItemEditor.txtName.Text = Trim$(Item(EditorIndex).name)
+    If Not DD_ItemSurf Is Nothing Then frmItemEditor.scrlPic.Max = 6 * (DD_ItemSurf.Height \ PIC_Y) - 1
     frmItemEditor.scrlPic.Value = Item(EditorIndex).Pic
     frmItemEditor.cmbType.ListIndex = Item(EditorIndex).Type
 
@@ -477,12 +478,7 @@ Public Sub ItemEditorBltItem()
 ' * 06/01/2006  BigRed   Changed BitBlt to DX7
 ' ****************************************************************
 
-    With rec
-        .top = frmItemEditor.scrlPic.Value * PIC_Y
-        .Bottom = .top + PIC_Y
-        .Left = 0
-        .Right = PIC_X
-    End With
+    Call GetItemPictureRect(frmItemEditor.scrlPic.Value, rec)
 
     With rec_pos
         .top = 0
@@ -499,12 +495,7 @@ Public Sub ItemEditorBltItem()
 End Sub
 
 Public Sub BltPlayerInvItem()
-    With rec
-        .top = Item(GetPlayerInvItemNum(MyIndex, frmMainGame.lstInv.ListIndex + 1)).Pic * PIC_Y
-        .Bottom = .top + PIC_Y
-        .Left = 0
-        .Right = PIC_X
-    End With
+    Call GetItemPictureRect(Item(GetPlayerInvItemNum(MyIndex, frmMainGame.lstInv.ListIndex + 1)).Pic, rec)
 
     With rec_pos
         .top = 0
@@ -530,12 +521,7 @@ Public Sub BltPlayerGear()
 
     For i = 0 To 3
         If Equip(i) <> 0 Then
-            With rec
-                .top = Item(GetPlayerInvItemNum(MyIndex, Equip(i))).Pic * PIC_Y
-                .Bottom = .top + PIC_Y
-                .Left = 0
-                .Right = PIC_X
-            End With
+            Call GetItemPictureRect(Item(GetPlayerInvItemNum(MyIndex, Equip(i))).Pic, rec)
 
             With rec_pos
                 .top = 0

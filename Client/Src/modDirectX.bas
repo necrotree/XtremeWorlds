@@ -30,6 +30,7 @@ Public Sub InitSurfaces()
     Set DD_SpriteSurf = LoadSurface(Prefix & "sprites" & GFX_EXT)
     Set DD_TileSurf = LoadSurface(Prefix & "tiles" & GFX_EXT)
     Set DD_ItemSurf = LoadSurface(Prefix & "items" & GFX_EXT)
+    DD_ItemSurf.ColorKey = RGB(255, 255, 255)
     Set DD_SpellSurf = LoadSurface(Prefix & "spells" & GFX_EXT)
 End Sub
 
@@ -233,12 +234,7 @@ Public Sub BltItem(ByVal ItemNum As Long)
         .Right = .Left + PIC_X
     End With
 
-    With rec
-        .top = Item(MapItem(ItemNum).Num).Pic * PIC_Y
-        .Bottom = .top + PIC_Y
-        .Left = 0
-        .Right = .Left + PIC_X
-    End With
+    Call GetItemPictureRect(Item(MapItem(ItemNum).Num).Pic, rec)
 
     Call DD_MiddleBuffer.BltFast(MapItem(ItemNum).X * PIC_X, MapItem(ItemNum).Y * PIC_Y, DD_ItemSurf, rec, True)
 End Sub
@@ -428,3 +424,11 @@ End Sub
 
 
 
+
+' Item pictures are zero-based, ordered left to right across six columns.
+Public Sub GetItemPictureRect(ByVal Picture As Long, ByRef Source As RECT)
+    Source.Left = (Picture Mod 6) * PIC_X
+    Source.Top = (Picture \ 6) * PIC_Y
+    Source.Right = Source.Left + PIC_X
+    Source.Bottom = Source.Top + PIC_Y
+End Sub
