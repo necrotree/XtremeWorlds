@@ -100,6 +100,12 @@
                                                     "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}",
                                                     "_className":  "Menu",
                                                     "Name":  "mnuSetAccess"
+                                                },
+                                                {
+                                                    "Name":  "mnuScriptEditor",
+                                                    "Caption":  "Script \u0026Editor...",
+                                                    "_className":  "Menu",
+                                                    "_clsid":  "{33AD4F68-6699-11CF-B70C-00AA0060D393}"
                                                 }
                                             ]
                           },

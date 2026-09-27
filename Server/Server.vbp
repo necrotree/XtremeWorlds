@@ -1,8 +1,10 @@
 Type=Exe
+Object={3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0; richtx32.ocx
 Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
 Object={48E59290-9880-11CF-9754-00AA00C00908}#1.0#0; MSINET.OCX
 Object={86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0; mscomct2.ocx
 Object={F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0; COMDLG32.OCX
+Form=Src\frmScriptEditor.frm
 Form=Src\frmServer.frm
 Module=modDatabase; Src\modDatabase.bas
 Module=modTypes; Src\modTypes.bas

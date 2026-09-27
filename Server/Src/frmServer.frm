@@ -219,6 +219,9 @@ Begin VB.Form frmServer
       Begin VB.Menu mnuReloadClasses 
          Caption         =   "Reload &Classes"
       End
+      Begin VB.Menu mnuScriptEditor
+         Caption = "Script &Editor..."
+      End
       Begin VB.Menu mnuReloadScripts 
          Caption         =   "Reload &Scripts"
       End
@@ -562,4 +565,8 @@ End Sub
 
 Private Sub tmrNativeSockets_Timer()
     If Not GameServer Is Nothing Then GameServer.Poll
+End Sub
+
+Private Sub mnuScriptEditor_Click()
+    frmScriptEditor.Show , Me
 End Sub
