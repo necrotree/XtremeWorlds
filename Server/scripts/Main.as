@@ -7,7 +7,7 @@
 '* Edit the values below. *
 '**************************
 Public Const GAME_NAME = "XtremeWorlds" ' Name of game
-Public Const WEB_SITE = "http://www.xtremeworlds.com" ' Website
+Public Const WEB_SITE = "https://xtremeworlds.com/" ' Website
 
 Public Const GAME_PORT = 7234 ' Run off What Port?
 Public Const MAX_PLAYERS = 50 ' Max Players
