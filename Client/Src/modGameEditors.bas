@@ -500,6 +500,7 @@ Public Sub BltPlayerInvItem()
     Call GetItemPictureRect(Item(GetPlayerInvItemNum(MyIndex, frmMainGame.lstInv.ListIndex + 1)).Pic, rec)
 
     With rec_pos
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
