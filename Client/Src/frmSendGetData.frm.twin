@@ -1,0 +1,25 @@
+[FormDesignerId("EFA69D45-4B5E-49F6-99A4-0314E3A822F5")]
+[ClassId("EC141A87-D496-4BFE-A2C5-8FC864CF18C6")]
+[InterfaceId("FD182476-3D3D-4B9D-A603-2B6AE6C15DDC")]
+[EventInterfaceId("44C9D383-0DA3-4C5E-B751-E67476ADC57D")]
+Class frmSendGetData
+    Attribute VB_Name = "frmSendGetData"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub Form_KeyPress(KeyAscii As Integer)
+        If (KeyAscii = vbKeyEscape) Then
+            Call GameDestroy
+            End
+        End If
+    End Sub
+    
+    Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Call MoveForm(Me)
+    End Sub
+    
+
+End Class

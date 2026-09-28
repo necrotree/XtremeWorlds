@@ -2,14 +2,15 @@ VERSION 5.00
 Object = "{248DD890-BB45-11CF-9ABC-0080C7E7B78D}#1.0#0"; "mswinsck.ocx"
 Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "richtx32.ocx"
 Object = "{BDC217C8-ED16-11CD-956C-0000C04E4C0A}#1.1#0"; "tabctl32.ocx"
-Begin VB.Form frmMainGame 
+Begin VB.Form frmMainGame
+   Tag = "ArtworkAligned" 
    BackColor       =   &H00000000&
    BorderStyle     =   0  'None
    Caption         =   "Playerworlds"
-   ClientHeight    =   9120
+   ClientHeight    =   10500
    ClientLeft      =   3540
    ClientTop       =   1920
-   ClientWidth     =   12000
+   ClientWidth     =   19890
    BeginProperty Font 
       Name            =   "MS Sans Serif"
       Size            =   9.75
@@ -25,10 +26,10 @@ Begin VB.Form frmMainGame
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   Picture         =   "frmMirage.frx":030A
-   ScaleHeight     =   608
-   ScaleMode       =   0  'User
-   ScaleWidth      =   800
+   Picture = "frmMirage.frx":84382
+   ScaleHeight     =   700
+   ScaleMode       =   3
+   ScaleWidth      =   1326
    StartUpPosition =   2  'CenterScreen
    Visible         =   0   'False
    Begin VB.PictureBox picMapEditor 
@@ -44,13 +45,13 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H80000008&
       Height          =   8925
-      Left            =   120
+      Left            =   14340
       ScaleHeight     =   593
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   255
       TabIndex        =   2
-      Top             =   120
-      Visible         =   0   'False
+      Top             =   585
+      Visible         =   0
       Width           =   3855
       Begin VB.CommandButton cmdSend 
          Caption         =   "Send"
@@ -855,142 +856,226 @@ Begin VB.Form frmMainGame
          Width           =   1215
       End
    End
-   Begin VB.PictureBox picMnuGear 
-      Appearance      =   0  'Flat
-      BackColor       =   &H00400000&
-      BorderStyle     =   0  'None
-      BeginProperty Font 
-         Name            =   "MS Sans Serif"
-         Size            =   8.25
-         Charset         =   0
-         Weight          =   400
-         Underline       =   0   'False
-         Italic          =   0   'False
-         Strikethrough   =   0   'False
-      EndProperty
-      ForeColor       =   &H80000008&
-      Height          =   3990
-      Left            =   255
-      Picture         =   "frmMirage.frx":1BD7A
-      ScaleHeight     =   266
-      ScaleMode       =   3  'Pixel
-      ScaleWidth      =   248
-      TabIndex        =   159
-      Top             =   3900
-      Visible         =   0   'False
-      Width           =   3720
-      Begin VB.PictureBox Equip 
-         AutoRedraw      =   -1  'True
-         BackColor       =   &H80000007&
-         BorderStyle     =   0  'None
-         Height          =   480
-         Index           =   3
-         Left            =   120
-         ScaleHeight     =   32
-         ScaleMode       =   3  'Pixel
-         ScaleWidth      =   32
-         TabIndex        =   163
-         Top             =   3180
-         Width           =   480
+   Begin VB.PictureBox picMnuGear
+      Left = 10155
+      Top = 4200
+      Width = 3975
+      Height = 5310
+      ScaleMode = 3
+      ScaleWidth = 265
+      ScaleHeight = 354
+      BorderStyle = 0
+      Visible = 0
+      Picture = "frmMirage.frx":C6073
+      Begin VB.Label lblGearName
+         Left = 1680
+         Top = 1920
+         Width = 1935
+         Height = 240
+         Visible = 0
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
       End
-      Begin VB.PictureBox Equip 
-         AutoRedraw      =   -1  'True
-         BackColor       =   &H80000007&
-         BorderStyle     =   0  'None
-         Height          =   480
-         Index           =   2
-         Left            =   120
-         ScaleHeight     =   32
-         ScaleMode       =   3  'Pixel
-         ScaleWidth      =   32
-         TabIndex        =   162
-         Top             =   615
-         Width           =   480
+      Begin VB.Label lblGearDur
+         Left = 1680
+         Top = 2325
+         Width = 1275
+         Height = 255
+         Visible = 0
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
       End
-      Begin VB.PictureBox Equip 
-         AutoRedraw      =   -1  'True
-         BackColor       =   &H80000007&
-         BorderStyle     =   0  'None
-         Height          =   480
-         Index           =   1
-         Left            =   120
-         ScaleHeight     =   32
-         ScaleMode       =   3  'Pixel
-         ScaleWidth      =   32
-         TabIndex        =   161
-         Top             =   2325
-         Width           =   480
+      Begin VB.Label lblGearStr
+         Left = 1680
+         Top = 2760
+         Width = 975
+         Height = 255
+         Visible = 0
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
       End
-      Begin VB.PictureBox Equip 
-         AutoRedraw      =   -1  'True
-         BackColor       =   &H80000007&
-         BorderStyle     =   0  'None
-         Height          =   480
-         Index           =   0
-         Left            =   120
-         ScaleHeight     =   32
-         ScaleMode       =   3  'Pixel
-         ScaleWidth      =   32
-         TabIndex        =   160
-         Top             =   1455
-         Width           =   480
+      Begin VB.PictureBox Equip
+         Left = 675
+         Top = 4470
+         Width = 480
+         Height = 480
+         Index = 0
+         AutoRedraw = -1
+         BorderStyle = 0
       End
-      Begin VB.Label lblGearStr 
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Tahoma"
-            Size            =   8.25
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FFFFFF&
-         Height          =   255
-         Left            =   1680
-         TabIndex        =   167
-         Top             =   2760
-         Width           =   975
+      Begin VB.PictureBox Equip
+         Left = 1350
+         Top = 4470
+         Width = 480
+         Height = 480
+         Index = 1
+         AutoRedraw = -1
+         BorderStyle = 0
       End
-      Begin VB.Label lblGearDur 
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Tahoma"
-            Size            =   8.25
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FFFFFF&
-         Height          =   255
-         Left            =   1680
-         TabIndex        =   166
-         Top             =   2325
-         Width           =   1275
+      Begin VB.PictureBox Equip
+         Left = 2025
+         Top = 4470
+         Width = 480
+         Height = 480
+         Index = 2
+         AutoRedraw = -1
+         BorderStyle = 0
       End
-      Begin VB.Label lblGearName 
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Tahoma"
-            Size            =   8.25
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FFFFFF&
-         Height          =   240
-         Left            =   1680
-         TabIndex        =   165
-         Top             =   1920
-         Width           =   1935
+      Begin VB.PictureBox Equip
+         Left = 2700
+         Top = 4470
+         Width = 480
+         Height = 480
+         Index = 3
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 435
+         Width = 1905
+         Height = 225
+         Index = 0
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 735
+         Width = 1905
+         Height = 225
+         Index = 1
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 1035
+         Width = 1905
+         Height = 225
+         Index = 2
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 1335
+         Width = 1905
+         Height = 225
+         Index = 3
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 1635
+         Width = 1905
+         Height = 225
+         Index = 4
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 1935
+         Width = 1905
+         Height = 225
+         Index = 5
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1410
+         Top = 2235
+         Width = 420
+         Height = 225
+         Index = 6
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 3135
+         Top = 2235
+         Width = 420
+         Height = 225
+         Index = 7
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 2535
+         Width = 1905
+         Height = 225
+         Index = 8
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 2835
+         Width = 1905
+         Height = 225
+         Index = 9
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 3135
+         Width = 1905
+         Height = 225
+         Index = 10
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 3435
+         Width = 1905
+         Height = 225
+         Index = 11
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 3735
+         Width = 1905
+         Height = 225
+         Index = 12
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblCharacterValue
+         Left = 1650
+         Top = 4035
+         Width = 1905
+         Height = 225
+         Index = 13
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
       End
    End
    Begin VB.CheckBox chkGUI 
+      Visible = 0
       Height          =   375
       Index           =   0
       Left            =   2040
@@ -999,6 +1084,7 @@ Begin VB.Form frmMainGame
       Width           =   375
    End
    Begin VB.TextBox txtGUI 
+      Visible = 0
       Height          =   375
       Index           =   0
       Left            =   1560
@@ -1007,6 +1093,7 @@ Begin VB.Form frmMainGame
       Width           =   375
    End
    Begin VB.CommandButton cmdGUI 
+      Visible = 0
       Height          =   375
       Index           =   0
       Left            =   600
@@ -1022,7 +1109,7 @@ Begin VB.Form frmMainGame
       ScaleWidth      =   315
       TabIndex        =   153
       Top             =   9240
-      Visible         =   0   'False
+      Visible         =   0
       Width           =   375
    End
    Begin VB.PictureBox picMnuTrain 
@@ -1040,14 +1127,14 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H80000008&
       Height          =   3990
-      Left            =   255
+      Left            =   10155
       Picture         =   "frmMirage.frx":4C9E2
       ScaleHeight     =   266
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   248
       TabIndex        =   109
-      Top             =   3900
-      Visible         =   0   'False
+      Top             =   4200
+      Visible         =   0
       Width           =   3720
       Begin VB.ComboBox cmbStat 
          BackColor       =   &H00FFFFFF&
@@ -1132,14 +1219,14 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H80000008&
       Height          =   3990
-      Left            =   255
+      Left            =   10155
       Picture         =   "frmMirage.frx":56977
       ScaleHeight     =   259.179
       ScaleMode       =   0  'User
       ScaleWidth      =   241.192
       TabIndex        =   27
-      Top             =   3900
-      Visible         =   0   'False
+      Top             =   4200
+      Visible         =   0
       Width           =   3720
       Begin RichTextLib.RichTextBox Notetext 
          Height          =   2895
@@ -1182,226 +1269,331 @@ Begin VB.Form frmMainGame
          Width           =   975
       End
    End
-   Begin VB.PictureBox picInv 
-      Appearance      =   0  'Flat
-      BackColor       =   &H00400000&
-      BorderStyle     =   0  'None
-      BeginProperty Font 
-         Name            =   "MS Sans Serif"
-         Size            =   8.25
-         Charset         =   0
-         Weight          =   400
-         Underline       =   0   'False
-         Italic          =   0   'False
-         Strikethrough   =   0   'False
-      EndProperty
-      ForeColor       =   &H80000008&
-      Height          =   3990
-      Left            =   255
-      Picture         =   "frmMirage.frx":5ACF1
-      ScaleHeight     =   266
-      ScaleMode       =   3  'Pixel
-      ScaleWidth      =   248
-      TabIndex        =   11
-      Top             =   3900
-      Visible         =   0   'False
-      Width           =   3720
-      Begin VB.PictureBox picItem 
-         Appearance      =   0  'Flat
-         AutoRedraw      =   -1  'True
-         BackColor       =   &H00000000&
-         BorderStyle     =   0  'None
-         ForeColor       =   &H80000008&
-         Height          =   480
-         Left            =   1125
-         ScaleHeight     =   32
-         ScaleMode       =   3  'Pixel
-         ScaleWidth      =   32
-         TabIndex        =   81
-         ToolTipText     =   "This is an image of the selected item in your inventory."
-         Top             =   495
-         Width           =   480
+   Begin VB.PictureBox picInv
+      Left = 10155
+      Top = 4200
+      Width = 3975
+      Height = 5730
+      ScaleMode = 3
+      ScaleWidth = 265
+      ScaleHeight = 382
+      AutoRedraw = -1
+      BorderStyle = 0
+      BackColor = 2631720
+      Visible = 0
+      Picture = "frmMirage.frx":B21EA
+      Begin VB.Label lblUseItem
+         Left = 90
+         Top = 5370
+         Width = 630
+         Height = 300
+         Caption = "Use"
+         BackStyle = 0
+         ForeColor = 14809087
       End
-      Begin VB.ListBox lstInv 
-         Appearance      =   0  'Flat
-         BackColor       =   &H00800000&
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   8.25
-            Charset         =   0
-            Weight          =   400
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00000000&
-         Height          =   2130
-         ItemData        =   "frmMirage.frx":640A4
-         Left            =   240
-         List            =   "frmMirage.frx":640A6
-         TabIndex        =   12
-         Top             =   1200
-         Width           =   3255
+      Begin VB.Label lblDropItem
+         Left = 750
+         Top = 5370
+         Width = 630
+         Height = 300
+         Caption = "Drop"
+         BackStyle = 0
+         ForeColor = 14809087
       End
-      Begin VB.Label lblCancel 
-         Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   375
-         Left            =   2640
-         TabIndex        =   15
-         Top             =   3360
-         Width           =   975
+      Begin VB.Label lblCancel
+         Left = 3195
+         Top = 5370
+         Width = 630
+         Height = 300
+         Caption = "Close"
+         BackStyle = 0
+         ForeColor = 14809087
       End
-      Begin VB.Label lblDropItem 
-         Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   255
-         Left            =   1680
-         TabIndex        =   14
-         Top             =   600
-         Width           =   1095
+      Begin VB.ListBox lstInv
+         Left = 240
+         Top = 1200
+         Width = 3255
+         Height = 2130
+         Visible = 0
       End
-      Begin VB.Label lblUseItem 
-         Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   255
-         Left            =   120
-         TabIndex        =   13
-         Top             =   600
-         Width           =   855
+      Begin VB.PictureBox picItem
+         Left = 1125
+         Top = 495
+         Width = 480
+         Height = 480
+         Visible = 0
+      End
+      Begin VB.Label lblInventoryPrevious
+         Left = 1500
+         Top = 5370
+         Width = 300
+         Height = 300
+         Caption = "<"
+         BackStyle = 0
+         ForeColor = 14809087
+      End
+      Begin VB.Label lblInventoryPage
+         Left = 1905
+         Top = 5370
+         Width = 540
+         Height = 300
+         Caption = "1/3"
+         BackStyle = 0
+         ForeColor = 14809087
+      End
+      Begin VB.Label lblInventoryNext
+         Left = 2655
+         Top = 5370
+         Width = 300
+         Height = 300
+         Caption = ">"
+         BackStyle = 0
+         ForeColor = 14809087
       End
    End
-   Begin VB.PictureBox picPlayerSpells 
-      Appearance      =   0  'Flat
-      BackColor       =   &H00400000&
-      BorderStyle     =   0  'None
-      BeginProperty Font 
-         Name            =   "MS Sans Serif"
-         Size            =   8.25
-         Charset         =   0
-         Weight          =   400
-         Underline       =   0   'False
-         Italic          =   0   'False
-         Strikethrough   =   0   'False
-      EndProperty
-      ForeColor       =   &H80000008&
-      Height          =   3990
-      Left            =   255
-      Picture         =   "frmMirage.frx":640A8
-      ScaleHeight     =   266
-      ScaleMode       =   3  'Pixel
-      ScaleWidth      =   248
-      TabIndex        =   16
-      Top             =   3900
-      Visible         =   0   'False
-      Width           =   3720
-      Begin VB.ListBox lstSpells 
-         Appearance      =   0  'Flat
-         BackColor       =   &H00FFFFFF&
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   8.25
-            Charset         =   0
-            Weight          =   400
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00000000&
-         Height          =   2130
-         ItemData        =   "frmMirage.frx":6DB5B
-         Left            =   180
-         List            =   "frmMirage.frx":6DB5D
-         TabIndex        =   17
-         Top             =   1200
-         Width           =   3375
+   Begin VB.PictureBox picPlayerSpells
+      Left = 10155
+      Top = 4200
+      Width = 3975
+      Height = 5730
+      ScaleMode = 3
+      ScaleWidth = 265
+      ScaleHeight = 382
+      BorderStyle = 0
+      Visible = 0
+      Picture = "frmMirage.frx":E11E4
+      Begin VB.Label lblSpellsCancel
+         Left = 3045
+         Top = 5370
+         Width = 750
+         Height = 300
+         Caption = "Close"
+         BackStyle = 0
+         ForeColor = 16777215
       End
-      Begin VB.Label lblForget 
-         Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   375
-         Left            =   1320
-         TabIndex        =   94
-         Top             =   3360
-         Width           =   1095
+      Begin VB.Label lblCast
+         Left = 2100
+         Top = 5370
+         Width = 750
+         Height = 300
+         Caption = "Cast"
+         BackStyle = 0
+         ForeColor = 16777215
       End
-      Begin VB.Label lblCast 
-         Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   375
-         Left            =   120
-         TabIndex        =   19
-         Top             =   3360
-         Width           =   975
+      Begin VB.Label lblForget
+         Left = 2040
+         Top = 3300
+         Width = 1740
+         Height = 435
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
       End
-      Begin VB.Label lblSpellsCancel 
-         Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   375
-         Left            =   2640
-         TabIndex        =   18
-         Top             =   3360
-         Width           =   975
+      Begin VB.ListBox lstSpells
+         Left = 180
+         Top = 1200
+         Width = 3375
+         Height = 2130
+         Visible = 0
+      End
+      Begin VB.Label lblSkillsNext
+         Left = 2040
+         Top = 3945
+         Width = 1740
+         Height = 435
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblSkillsPrevious
+         Left = 2040
+         Top = 4590
+         Width = 1740
+         Height = 435
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblSkillsUpgrade
+         Left = 2040
+         Top = 2715
+         Width = 1740
+         Height = 435
+         Enabled = 0
+         ToolTipText = "Spell upgrades are not supported by this game."
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblSkillsDetails
+         Left = 2145
+         Top = 390
+         Width = 1515
+         Height = 2145
+         Caption = "Select a spell."
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblSkillsPage
+         Left = 240
+         Top = 5370
+         Width = 1500
+         Height = 300
+         Caption = "Page 1"
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 405
+         Width = 1005
+         Height = 510
+         Index = 0
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 405
+         Width = 480
+         Height = 480
+         Index = 0
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 990
+         Width = 1005
+         Height = 510
+         Index = 1
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 990
+         Width = 480
+         Height = 480
+         Index = 1
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 1575
+         Width = 1005
+         Height = 510
+         Index = 2
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 1575
+         Width = 480
+         Height = 480
+         Index = 2
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 2160
+         Width = 1005
+         Height = 510
+         Index = 3
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 2160
+         Width = 480
+         Height = 480
+         Index = 3
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 2745
+         Width = 1005
+         Height = 510
+         Index = 4
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 2745
+         Width = 480
+         Height = 480
+         Index = 4
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 3330
+         Width = 1005
+         Height = 510
+         Index = 5
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 3330
+         Width = 480
+         Height = 480
+         Index = 5
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 3915
+         Width = 1005
+         Height = 510
+         Index = 6
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 3915
+         Width = 480
+         Height = 480
+         Index = 6
+         AutoRedraw = -1
+         BorderStyle = 0
+      End
+      Begin VB.Label lblSkillName
+         Left = 885
+         Top = 4500
+         Width = 1005
+         Height = 510
+         Index = 7
+         Caption = ""
+         BackStyle = 0
+         ForeColor = 16777215
+      End
+      Begin VB.PictureBox picSkillIcon
+         Left = 315
+         Top = 4500
+         Width = 480
+         Height = 480
+         Index = 7
+         AutoRedraw = -1
+         BorderStyle = 0
       End
    End
    Begin VB.PictureBox picLiveStats 
@@ -1410,14 +1602,14 @@ Begin VB.Form frmMainGame
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
       Height          =   3990
-      Left            =   255
+      Left            =   10155
       Picture         =   "frmMirage.frx":6DB5F
       ScaleHeight     =   266
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   248
       TabIndex        =   82
-      Top             =   3900
-      Visible         =   0   'False
+      Top             =   4200
+      Visible         =   0
       Width           =   3720
       Begin VB.Label Label8 
          Alignment       =   2  'Center
@@ -1634,14 +1826,14 @@ Begin VB.Form frmMainGame
       BackColor       =   &H0080FFFF&
       ForeColor       =   &H80000008&
       Height          =   1815
-      Left            =   6360
+      Left            =   3682
       Picture         =   "frmMirage.frx":77871
       ScaleHeight     =   119
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   183
       TabIndex        =   42
-      Top             =   3000
-      Visible         =   0   'False
+      Top             =   2962
+      Visible         =   0
       Width           =   2775
       Begin VB.Label lblNameTop 
          Alignment       =   2  'Center
@@ -1845,10 +2037,10 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   720
-      Left            =   12000
+      Left            =   18315
       TabIndex        =   77
-      Top             =   720
-      Visible         =   0   'False
+      Top             =   1230
+      Visible         =   0
       Width           =   1455
       Begin VB.TextBox txtMapNum 
          BackColor       =   &H00FFFFFF&
@@ -1882,10 +2074,10 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   720
-      Left            =   12000
+      Left            =   18315
       TabIndex        =   75
-      Top             =   0
-      Visible         =   0   'False
+      Top             =   510
+      Visible         =   0
       Width           =   1455
       Begin VB.TextBox txtPlayerName 
          BackColor       =   &H00FFFFFF&
@@ -1919,10 +2111,10 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   720
-      Left            =   12000
+      Left            =   18315
       TabIndex        =   73
-      Top             =   1440
-      Visible         =   0   'False
+      Top             =   1950
+      Visible         =   0
       Width           =   1455
       Begin VB.TextBox txtSpriteNum 
          BackColor       =   &H00FFFFFF&
@@ -1957,10 +2149,10 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   1275
-      Left            =   12000
+      Left            =   18315
       TabIndex        =   69
-      Top             =   7080
-      Visible         =   0   'False
+      Top             =   7590
+      Visible         =   0
       Width           =   1455
       Begin VB.CommandButton cmdSetAccess 
          BackColor       =   &H00FF8080&
@@ -2036,11 +2228,11 @@ Begin VB.Form frmMainGame
          Strikethrough   =   0   'False
       EndProperty
       ForeColor       =   &H00FFFFFF&
-      Height          =   1707
-      Left            =   12000
+      Height          =   1710
+      Left            =   18315
       TabIndex        =   62
-      Top             =   5400
-      Visible         =   0   'False
+      Top             =   5910
+      Visible         =   0
       Width           =   1455
       Begin VB.CommandButton cmdKill 
          BackColor       =   &H00FF8080&
@@ -2184,10 +2376,10 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   555
-      Left            =   12000
+      Left            =   18315
       TabIndex        =   60
-      Top             =   2160
-      Visible         =   0   'False
+      Top             =   2670
+      Visible         =   0
       Width           =   1455
       Begin VB.CommandButton cmdKick 
          BackColor       =   &H00FF8080&
@@ -2226,10 +2418,10 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   2670
-      Left            =   12000
+      Left            =   18315
       TabIndex        =   52
-      Top             =   2745
-      Visible         =   0   'False
+      Top             =   3255
+      Visible         =   0
       Width           =   1455
       Begin VB.CommandButton cmdSetSprite 
          BackColor       =   &H00FF8080&
@@ -2434,11 +2626,11 @@ Begin VB.Form frmMainGame
       _Version        =   393216
    End
    Begin RichTextLib.RichTextBox txtChat 
-      Height          =   1455
-      Left            =   4200
+      Height          =   1920
+      Left            =   270
       TabIndex        =   1
-      Top             =   7080
-      Width           =   7575
+      Top             =   7890
+      Width           =   9600
       _ExtentX        =   13361
       _ExtentY        =   2566
       _Version        =   393217
@@ -2462,7 +2654,7 @@ Begin VB.Form frmMainGame
    Begin VB.PictureBox picScreen 
       Appearance      =   0  'Flat
       BackColor       =   &H00000000&
-      BorderStyle     =   0  'None
+      BorderStyle     =   0
       BeginProperty Font 
          Name            =   "MS Sans Serif"
          Size            =   8.25
@@ -2473,28 +2665,28 @@ Begin VB.Form frmMainGame
          Strikethrough   =   0   'False
       EndProperty
       ForeColor       =   &H00000000&
-      Height          =   5760
-      Left            =   4140
+      Height          =   7200
+      Left            =   270
       ScaleHeight     =   384
-      ScaleMode       =   3  'Pixel
+      ScaleMode       =   0
       ScaleWidth      =   512
       TabIndex        =   0
-      Top             =   1245
-      Width           =   7680
+      Top             =   270
+      Width           =   9600
    End
    Begin VB.PictureBox shpSP 
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   225
-      Left            =   9015
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7A0EA
       ScaleHeight     =   225
       ScaleWidth      =   2295
       TabIndex        =   34
-      Top             =   960
-      Width           =   2295
+      Top             =   1380
+      Width           =   3090
       Begin VB.Label lblSP 
          Alignment       =   2  'Center
          BackStyle       =   0  'Transparent
@@ -2522,28 +2714,28 @@ Begin VB.Form frmMainGame
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   75
-      Left            =   5910
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7A1B3
       ScaleHeight     =   75
       ScaleWidth      =   5400
       TabIndex        =   38
-      Top             =   795
-      Width           =   5400
+      Top             =   1125
+      Width           =   3090
    End
    Begin VB.PictureBox shpMP 
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   225
-      Left            =   6600
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7A588
       ScaleHeight     =   225
       ScaleWidth      =   2325
       TabIndex        =   37
-      Top             =   960
-      Width           =   2325
+      Top             =   855
+      Width           =   3090
       Begin VB.Label lblMP 
          Alignment       =   2  'Center
          BackStyle       =   0  'Transparent
@@ -2571,14 +2763,14 @@ Begin VB.Form frmMainGame
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   225
-      Left            =   6600
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7A982
       ScaleHeight     =   225
       ScaleWidth      =   2325
       TabIndex        =   36
-      Top             =   960
-      Width           =   2325
+      Top             =   855
+      Width           =   3090
       Begin VB.Label lblMP 
          Alignment       =   2  'Center
          BackStyle       =   0  'Transparent
@@ -2606,28 +2798,28 @@ Begin VB.Form frmMainGame
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   75
-      Left            =   5910
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7AA93
       ScaleHeight     =   75
       ScaleWidth      =   5400
       TabIndex        =   39
-      Top             =   795
-      Width           =   5400
+      Top             =   1125
+      Width           =   3090
    End
    Begin VB.PictureBox Picture2 
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   225
-      Left            =   9015
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7AB49
       ScaleHeight     =   225
       ScaleWidth      =   2295
       TabIndex        =   35
-      Top             =   960
-      Width           =   2295
+      Top             =   1380
+      Width           =   3090
       Begin VB.Label lblSP 
          Alignment       =   2  'Center
          BackStyle       =   0  'Transparent
@@ -2665,25 +2857,25 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H00FFFFFF&
       Height          =   360
-      Left            =   4170
+      Left            =   270
       MousePointer    =   1  'Arrow
       TabIndex        =   108
-      Top             =   8535
-      Width           =   7620
+      Top             =   9870
+      Width           =   9600
    End
    Begin VB.PictureBox shpHP 
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   225
-      Left            =   4170
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7AC54
       ScaleHeight     =   225
       ScaleWidth      =   2340
       TabIndex        =   32
-      Top             =   960
-      Width           =   2340
+      Top             =   585
+      Width           =   3090
       Begin VB.Label lblHP 
          Alignment       =   2  'Center
          BackStyle       =   0  'Transparent
@@ -2711,14 +2903,14 @@ Begin VB.Form frmMainGame
       BackColor       =   &H80000005&
       BorderStyle     =   0  'None
       ForeColor       =   &H80000008&
-      Height          =   225
-      Left            =   4170
+      Height          =   165
+      Left            =   10485
       Picture         =   "frmMirage.frx":7AD24
       ScaleHeight     =   225
       ScaleWidth      =   2340
       TabIndex        =   33
-      Top             =   960
-      Width           =   2340
+      Top             =   585
+      Width           =   3090
       Begin VB.Label lblHP 
          Alignment       =   2  'Center
          BackStyle       =   0  'Transparent
@@ -2756,13 +2948,13 @@ Begin VB.Form frmMainGame
       EndProperty
       ForeColor       =   &H80000008&
       Height          =   3990
-      Left            =   255
+      Left            =   10155
       Picture         =   "frmMirage.frx":7AE36
       ScaleHeight     =   266
       ScaleMode       =   3  'Pixel
       ScaleWidth      =   248
       TabIndex        =   114
-      Top             =   3900
+      Top             =   4200
       Width           =   3720
       Begin VB.ListBox lstPlayers 
          Appearance      =   0  'Flat
@@ -2823,14 +3015,15 @@ Begin VB.Form frmMainGame
    End
    Begin VB.Label picGear 
       BackStyle       =   0  'Transparent
-      Height          =   735
-      Left            =   1335
+      Height          =   540
+      Left            =   10080
       TabIndex        =   164
       ToolTipText     =   "View your current equipment."
-      Top             =   1620
-      Width           =   540
+      Top             =   1770
+      Width           =   525
    End
    Begin VB.Label lblGUI 
+      Visible = 0
       Height          =   375
       Index           =   0
       Left            =   1080
@@ -2839,6 +3032,7 @@ Begin VB.Form frmMainGame
       Width           =   375
    End
    Begin VB.Label Label4 
+      Visible = 0
       Alignment       =   2  'Center
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
@@ -2874,42 +3068,43 @@ Begin VB.Form frmMainGame
          Strikethrough   =   0   'False
       EndProperty
       ForeColor       =   &H00FFFFFF&
-      Height          =   255
-      Left            =   8100
+      Height          =   240
+      Left            =   300
       TabIndex        =   125
-      Top             =   240
-      Width           =   2445
+      Top             =   7620
+      Width           =   6300
    End
    Begin VB.Label lblPlayers 
       BackStyle       =   0  'Transparent
-      Height          =   705
-      Left            =   1350
+      Height          =   540
+      Left            =   11190
       TabIndex        =   119
       ToolTipText     =   "View the list of online players."
-      Top             =   2490
+      Top             =   1770
       Width           =   525
    End
    Begin VB.Label cmdMinimize 
       BackStyle       =   0  'Transparent
-      Height          =   270
-      Left            =   11280
+      Height          =   540
+      Left            =   13410
       TabIndex        =   107
-      Top             =   120
-      Width           =   270
+      Top             =   1770
+      Width           =   525
    End
    Begin VB.Label picOptions 
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
       BackStyle       =   0  'Transparent
       ForeColor       =   &H80000008&
-      Height          =   255
-      Left            =   720
+      Height          =   630
+      Left            =   13125
       TabIndex        =   106
       ToolTipText     =   "Change user settings."
-      Top             =   8520
-      Width           =   1335
+      Top             =   2685
+      Width           =   630
    End
    Begin VB.Label lblGameName 
+      Visible = 0
       Alignment       =   2  'Center
       Appearance      =   0  'Flat
       BackColor       =   &H80000005&
@@ -2933,74 +3128,90 @@ Begin VB.Form frmMainGame
    End
    Begin VB.Label lblKeepNotes 
       BackStyle       =   0  'Transparent
-      Height          =   705
-      Left            =   3120
+      Height          =   540
+      Left            =   12300
       TabIndex        =   28
       ToolTipText     =   "Edit your player notes."
-      Top             =   2490
-      Width           =   585
+      Top             =   1770
+      Width           =   525
    End
    Begin VB.Label picBugReport 
       BackStyle       =   0  'Transparent
-      Height          =   255
-      Left            =   2160
+      Height          =   540
+      Left            =   12855
       TabIndex        =   26
       ToolTipText     =   "Report a Bug!"
-      Top             =   8520
-      Width           =   1335
+      Top             =   1770
+      Width           =   525
    End
    Begin VB.Label picQuit 
       BackStyle       =   0  'Transparent
-      Height          =   255
-      Left            =   11610
+      Height          =   435
+      Left            =   11985
       TabIndex        =   25
       ToolTipText     =   "Quit the Game"
-      Top             =   120
-      Width           =   255
+      Top             =   9975
+      Width           =   1815
    End
    Begin VB.Label picStats 
       BackStyle       =   0  'Transparent
-      Height          =   735
-      Left            =   495
+      Height          =   630
+      Left            =   10305
       TabIndex        =   24
       ToolTipText     =   "View your current stats."
-      Top             =   1620
-      Width           =   525
+      Top             =   2685
+      Width           =   630
    End
    Begin VB.Label picTrain 
       BackStyle       =   0  'Transparent
-      Height          =   705
-      Left            =   2250
+      Height          =   540
+      Left            =   11745
       TabIndex        =   23
       ToolTipText     =   "Train your character."
-      Top             =   2490
-      Width           =   555
+      Top             =   1770
+      Width           =   525
    End
    Begin VB.Label picInventory 
       BackStyle       =   0  'Transparent
-      Height          =   735
-      Left            =   3150
+      Height          =   630
+      Left            =   11025
       TabIndex        =   22
       ToolTipText     =   "View your inventory."
-      Top             =   1620
-      Width           =   510
+      Top             =   2685
+      Width           =   630
    End
    Begin VB.Label picSpells 
       BackStyle       =   0  'Transparent
-      Height          =   735
-      Left            =   2250
+      Height          =   630
+      Left            =   12405
       TabIndex        =   21
       ToolTipText     =   "View your spells."
-      Top             =   1620
-      Width           =   510
+      Top             =   2685
+      Width           =   630
    End
    Begin VB.Label picTrade 
       BackStyle       =   0  'Transparent
-      Height          =   705
-      Left            =   510
+      Height          =   540
+      Left            =   10635
       TabIndex        =   20
-      Top             =   2490
+      Top             =   1770
       Width           =   525
+   End
+   Begin VB.Label picWebsite
+      BackStyle = 0
+      Caption = ""
+      Left = 10170
+      Top = 9975
+      Width = 1815
+      Height = 435
+   End
+   Begin VB.Label picGuild
+      BackStyle = 0
+      Caption = ""
+      Left = 11715
+      Top = 2685
+      Width = 630
+      Height = 630
    End
 End
 Attribute VB_Name = "frmMainGame"
@@ -3009,6 +3220,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+    Private InventoryPage As Long
+    Private InventoryClickedSlot As Long
+    Private InventoryBackground As clsDX11Surface
+    Private InventoryCanvas As clsDX11Surface
+
+
 
 Dim KeyShift As Boolean
 Private ChatInputHasFocus As Boolean
@@ -3106,6 +3323,7 @@ Private Sub Equip_Click(index As Integer)
 End Sub
 
 Private Sub Form_Load()
+        LayoutGamePanels
     Call ApplyMovementControls
 
     ' Dim result As Long
@@ -3151,7 +3369,7 @@ End Sub
 Private Sub lblForget_Click()
     If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
         If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
-            If MsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
+            If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
 
             SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR
             picPlayerSpells.Visible = False
@@ -3272,7 +3490,7 @@ Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
     Call CheckInput(0, KeyCode, Shift)
         Call UseSlotHotkey(KeyCode)
     If GameKeyMatches(HK_ADMIN, KeyCode) Then
-        If frmMainGame.Width = 13545 Then
+        If frmMainGame.fraPlayer.Visible Then
             frmMainGame.fraPlayer.Visible = False
             frmMainGame.fraMapNum.Visible = False
             frmMainGame.fraSpriteNum.Visible = False
@@ -3280,7 +3498,7 @@ Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
             frmMainGame.fralvl2.Visible = False
             frmMainGame.fralvl3.Visible = False
             frmMainGame.fralvl4.Visible = False
-            frmMainGame.Width = 12120
+            frmMainGame.LayoutGamePanels
         ' frmMainGame.ScaleWidth = 800
         Else
             Call AdminPanel
@@ -3333,14 +3551,6 @@ Private Sub picPlayerSpells_MouseMove(Button As Integer, Shift As Integer, X As 
 ' Call MovePicture(frmMainGame.picPlayerSpells, Button, Shift, X, Y)
 End Sub
 
-Private Sub picInv_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    SOffsetX = X
-    SOffsetY = Y
-End Sub
-
-Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-' Call MovePicture(frmMainGame.picInv, Button, Shift, X, Y)
-End Sub
 
 Private Sub picScreen_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Call EditorMouseDown(Button, Shift, X, Y)
@@ -3370,7 +3580,7 @@ Private Sub picSign_MouseDown(Button As Integer, Shift As Integer, X As Single, 
 End Sub
 
 Private Sub picSign_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    Call MovePicture(frmMainGame.picSign, Button, Shift, X, Y)
+    CenterSign
 End Sub
 
 Private Sub txtChat_GotFocus()
@@ -3489,13 +3699,16 @@ End Sub
 Private Sub picStats_Click()
     Call CloseSideMenu
     Call SendData("getlivestats" & END_CHAR)
-    picLiveStats.Visible = True
+    picMnuGear.Visible = True
+        RefreshCharacterDetails
+        BltPlayerGear
 End Sub
 
 Private Sub picGear_Click()
     Call CloseSideMenu
     picMnuGear.Visible = True
-    BltPlayerGear
+        RefreshCharacterDetails
+        BltPlayerGear
 End Sub
 
 Private Sub picTrain_Click()
@@ -3552,16 +3765,6 @@ Private Sub Label8_Click()
     If picLiveStats.Visible = True Then picLiveStats.Visible = False
 End Sub
 
-
-
-
-Private Sub lstInv_Click()
-    If Player(MyIndex).Inv(lstInv.ListIndex + 1).Num <> 0 Then
-        Call BltPlayerInvItem
-    Else
-        picItem.Refresh
-    End If
-End Sub
 
 Private Sub lblexit_Click()
     picSign.Visible = False
@@ -3762,7 +3965,7 @@ End Sub
 
 Private Sub cmdBan_Click()
     If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-        Call MsgBox("You must first enter a playername to ban.")
+        Call GameMsgBox("You must first enter a playername to ban.")
     Else
         Call SendBan(Trim$(txtPlayerName.Text))
     End If
@@ -3786,7 +3989,7 @@ End Sub
 
 ' Private Sub cmdKill_Click()
 ' If txtPlayerName.Text = vbNullString Then
-' Call MsgBox("You must first enter a playername to kill.")
+' Call GameMsgBox("You must first enter a playername to kill.")
 ' Else
 ' Call KillPlayer(Trim$(txtPlayerName.Text))
 ' End If
@@ -3798,7 +4001,7 @@ End Sub
 
 Private Sub cmdSetSprite_Click()
     If LenB(txtSpriteNum.Text) = 0 Then
-        Call MsgBox("You must first enter a sprite number to set sprite.")
+        Call GameMsgBox("You must first enter a sprite number to set sprite.")
     Else
         Call SendSetSprite(Trim$(txtSpriteNum.Text))
     End If
@@ -3806,7 +4009,7 @@ End Sub
 
 Private Sub cmdPlayerSprite_Click()
     If LenB(Trim$(txtSpriteNum.Text)) = 0 Or LenB(Trim$(txtPlayerName.Text)) = 0 Then
-        Call MsgBox("You must first enter a sprite number and player name to set the player's sprite.")
+        Call GameMsgBox("You must first enter a sprite number and player name to set the player's sprite.")
     Else
         Call SendPlayerSprite(Trim$(txtSpriteNum.Text), Trim$(txtPlayerName.Text))
     End If
@@ -3822,7 +4025,7 @@ End Sub
 
 Private Sub cmdKick_Click()
     If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-        Call MsgBox("You must first enter a playername to kick.")
+        Call GameMsgBox("You must first enter a playername to kick.")
     Else
         Call SendKick(Trim$(txtPlayerName.Text))
     End If
@@ -3846,7 +4049,7 @@ End Sub
 
 Private Sub cmdSetAccess_Click()
     If LenB(Trim$(txtPlayerName.Text)) = 0 Or LenB(Trim$(txtAccessLevel.Text)) = 0 Then
-        Call MsgBox("You must first enter the playername and accesslevel to setaccess.")
+        Call GameMsgBox("You must first enter the playername and accesslevel to setaccess.")
     Else
         Call SendSetAccess(Trim$(txtPlayerName.Text), Val(txtAccessLevel.Text))
     End If
@@ -3854,7 +4057,7 @@ End Sub
 
 Private Sub cmdWarpmeTo_Click()
     If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-        Call MsgBox("You must first enter the playername to warp yourself to.")
+        Call GameMsgBox("You must first enter the playername to warp yourself to.")
     Else
         Call WarpMeTo(Trim$(txtPlayerName.Text))
     End If
@@ -3862,7 +4065,7 @@ End Sub
 
 Private Sub cmdWarpto_Click()
     If LenB(Trim$(txtMapNum.Text)) = 0 Then
-        Call MsgBox("You must first enter the map number to warp to.")
+        Call GameMsgBox("You must first enter the map number to warp to.")
     Else
         Call WarpTo(Trim$(txtMapNum.Text))
     End If
@@ -3870,7 +4073,7 @@ End Sub
 
 Private Sub cmdWarptome_Click()
     If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-        Call MsgBox("You must first enter the playername to warp to yourself.")
+        Call GameMsgBox("You must first enter the playername to warp to yourself.")
     Else
         Call WarpToMe(Trim$(txtPlayerName.Text))
     End If
@@ -3879,3 +4082,226 @@ End Sub
 Private Sub cmdSignEdit_Click()
     Call SendRequestEditSign
 End Sub
+
+    Public Sub LayoutGamePanels()
+        Dim sidebar As Single, adminLeft As Single, requiredWidth As Single
+        sidebar = 956
+        picMapEditor.Left = Me.ScaleX(sidebar, vbPixels, Me.ScaleMode)
+        picMapEditor.Top = Me.ScaleY(39, vbPixels, Me.ScaleMode)
+        adminLeft = sidebar
+        requiredWidth = 948
+        If picMapEditor.Visible Then
+            requiredWidth = sidebar + Me.ScaleX(picMapEditor.Width, Me.ScaleMode, vbPixels) + 8
+            adminLeft = requiredWidth
+        End If
+        fraPlayer.Left = Me.ScaleX(adminLeft, vbPixels, Me.ScaleMode)
+        fraMapNum.Left = fraPlayer.Left
+        fraSpriteNum.Left = fraPlayer.Left
+        fralvl1.Left = fraPlayer.Left
+        fralvl2.Left = fraPlayer.Left
+        fralvl3.Left = fraPlayer.Left
+        fralvl4.Left = fraPlayer.Left
+        If fraPlayer.Visible Then requiredWidth = adminLeft + Me.ScaleX(fraPlayer.Width, Me.ScaleMode, vbPixels) + 8
+        Me.Width = Me.Width + Me.ScaleX(requiredWidth - Me.ScaleX(Me.ScaleWidth, Me.ScaleMode, vbPixels), vbPixels, vbTwips)
+        CenterSign
+    End Sub
+
+    Public Sub CenterSign()
+        picSign.Left = picScreen.Left + (picScreen.Width - picSign.Width) / 2
+        picSign.Top = picScreen.Top + (picScreen.Height - picSign.Height) / 2
+        If picSign.Visible Then picSign.ZOrder 0
+    End Sub
+
+    Private Sub picWebsite_Click()
+        Dim address As String
+        address = Trim$(WEBSITE)
+        If Len(address) = 0 Then Exit Sub
+        If LCase$(Left$(address, 7)) <> "http://" And LCase$(Left$(address, 8)) <> "https://" Then address = "https://" & address
+        ShellExecute Me.hWnd, "open", address, vbNullString, vbNullString, 1
+    End Sub
+
+    Private Sub picGuild_Click()
+        AddText "Your guild is " & GetPlayerGuild(MyIndex) & ".", HelpColor
+    End Sub
+
+    Private Sub picInv_DblClick()
+        If InventoryClickedSlot > 0 Then SendUseItem InventoryClickedSlot
+    End Sub
+
+    Public Sub DrawInventoryGrid()
+        Dim Bounds As RECT, Source As RECT
+        Dim Cell As Long, Slot As Long, ItemNum As Long, X As Long, Y As Long
+        If DD_ItemSurf Is Nothing Then Exit Sub
+        If InventoryBackground Is Nothing Then
+            Set InventoryBackground = New clsDX11Surface
+            InventoryBackground.LoadFromFile App.Path & "\Gfx\Inventory.jpg"
+            Set InventoryCanvas = New clsDX11Surface
+            InventoryCanvas.Create 265, 354
+        End If
+        Bounds.Right = 265
+        Bounds.Bottom = 354
+        InventoryCanvas.Blt Bounds, InventoryBackground, Bounds
+        For Cell = 0 To 34
+            Slot = InventoryPage * 35 + Cell + 1
+            If Slot <= MAX_INV Then
+                ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    GetItemPictureRect Item(ItemNum).Pic, Source
+                    InventoryCanvas.BltFast 26 + (Cell Mod 5) * 45, 30 + (Cell \ 5) * 45, DD_ItemSurf, Source, True
+                End If
+            End If
+        Next Cell
+        picInv.Cls
+        InventoryCanvas.BltToDC picInv.hDC, Bounds, Bounds
+        Cell = lstInv.ListIndex - InventoryPage * 35
+        If Cell >= 0 And Cell < 35 Then
+            X = 23 + (Cell Mod 5) * 45
+            Y = 27 + (Cell \ 5) * 45
+            picInv.Line (X, Y)-(X + 37, Y + 37), RGB(255, 230, 120), B
+        End If
+        lblInventoryPage.Caption = CStr(InventoryPage + 1) & "/" & CStr((MAX_INV + 34) \ 35)
+        picInv.Refresh
+    End Sub
+
+    Private Function InventorySlotAt(ByVal X As Single, ByVal Y As Single) As Long
+        Dim Column As Long, Row As Long, Slot As Long
+        X = X - 23
+        Y = Y - 27
+        If X < 0 Or Y < 0 Or X >= 225 Or Y >= 315 Then Exit Function
+        Column = Int(X / 45)
+        Row = Int(Y / 45)
+        If X - Column * 45 >= 38 Or Y - Row * 45 >= 38 Then Exit Function
+        Slot = InventoryPage * 35 + Row * 5 + Column + 1
+        If Slot <= MAX_INV Then InventorySlotAt = Slot
+    End Function
+
+    Private Sub picInv_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Dim Slot As Long
+        Slot = InventorySlotAt(X, Y)
+        InventoryClickedSlot = Slot
+        If Button = vbLeftButton And Slot > 0 Then lstInv.ListIndex = Slot - 1
+    End Sub
+
+    Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Dim Slot As Long
+        Slot = InventorySlotAt(X, Y)
+        picInv.ToolTipText = vbNullString
+        If Slot > 0 And Slot <= lstInv.ListCount Then picInv.ToolTipText = lstInv.List(Slot - 1)
+    End Sub
+
+    Private Sub lblInventoryPrevious_Click()
+        If InventoryPage > 0 Then
+            InventoryPage = InventoryPage - 1
+            lstInv.ListIndex = InventoryPage * 35
+        End If
+    End Sub
+
+    Private Sub lblInventoryNext_Click()
+        If (InventoryPage + 1) * 35 < MAX_INV Then
+            InventoryPage = InventoryPage + 1
+            lstInv.ListIndex = InventoryPage * 35
+        End If
+    End Sub
+
+    Private Sub lstInv_Click()
+        If lstInv.ListIndex < 0 Then Exit Sub
+        InventoryPage = lstInv.ListIndex \ 35
+        DrawInventoryGrid
+    End Sub
+    Public Sub RefreshCharacterDetails()
+        If MyIndex < 1 Then Exit Sub
+        lblCharacterValue(0).Caption = Trim$(Class(GetPlayerClass(MyIndex)).name)
+        lblCharacterValue(1).Caption = CStr(GetPlayerLevel(MyIndex))
+        lblCharacterValue(2).Caption = "None"
+        If GetPlayerGuild(MyIndex) > 0 Then lblCharacterValue(2).Caption = CStr(GetPlayerGuild(MyIndex))
+        lblCharacterValue(3).Caption = GetPlayerHP(MyIndex) & " / " & GetPlayerMaxHP(MyIndex)
+        lblCharacterValue(4).Caption = GetPlayerMP(MyIndex) & " / " & GetPlayerMaxMP(MyIndex)
+        lblCharacterValue(5).Caption = GetPlayerExp(MyIndex) & " / " & GetPlayerNextLevel(MyIndex)
+        lblCharacterValue(6).Caption = ChrW$(&H2014)
+        lblCharacterValue(7).Caption = CStr(GetPlayerPOINTS(MyIndex))
+        lblCharacterValue(8).Caption = CStr(GetPlayerSTR(MyIndex))
+        lblCharacterValue(9).Caption = CStr(GetPlayerDEF(MyIndex))
+        lblCharacterValue(9).ToolTipText = "Defense"
+        lblCharacterValue(10).Caption = GetPlayerSP(MyIndex) & " / " & GetPlayerMaxSP(MyIndex)
+        lblCharacterValue(11).Caption = CStr(GetPlayerSPEED(MyIndex))
+        lblCharacterValue(11).ToolTipText = "Speed"
+        lblCharacterValue(12).Caption = CStr(GetPlayerMAGI(MyIndex))
+        lblCharacterValue(12).ToolTipText = "Magic"
+        lblCharacterValue(13).Caption = ChrW$(&H2014)
+        lblCharacterValue(6).ToolTipText = "Not tracked by this game"
+        lblCharacterValue(13).ToolTipText = "Not tracked by this game"
+    End Sub
+
+    Public Sub RefreshSkills()
+        Dim Page As Long, i As Long, Slot As Long, Num As Long
+        Dim Canvas As New clsDX11Surface, Bounds As RECT, Source As RECT
+        If lstSpells.ListIndex < 0 Then Exit Sub
+        Page = lstSpells.ListIndex \ 8
+        lblSkillsPage.Caption = "Page " & (Page + 1) & " / " & ((MAX_PLAYER_SPELLS + 7) \ 8)
+        Canvas.Create 32, 32
+        Bounds.Right = 32
+        Bounds.Bottom = 32
+        For i = 0 To 7
+            Slot = Page * 8 + i + 1
+            Num = 0
+            If Slot <= MAX_PLAYER_SPELLS Then Num = Player(MyIndex).Spell(Slot)
+            lblSkillName(i).Caption = "Empty"
+            lblSkillName(i).ForeColor = RGB(220, 205, 180)
+            Canvas.BltColorFill Bounds, RGB(102, 51, 51)
+            If Num > 0 And Num <= MAX_SPELLS Then
+                lblSkillName(i).Caption = Trim$(Spell(Num).name)
+                If Not DD_SpellSurf Is Nothing Then
+                    Source.Left = 0
+                    Source.Top = Spell(Num).Graphic * PIC_Y
+                    Source.Right = PIC_X
+                    Source.Bottom = Source.Top + PIC_Y
+                    If Source.Top >= 0 And Source.Bottom <= DD_SpellSurf.Height Then Canvas.BltFast 0, 0, DD_SpellSurf, Source, True
+                End If
+            End If
+            If Slot = lstSpells.ListIndex + 1 Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
+            picSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
+            Canvas.BltToDC picSkillIcon(i).hDC, Bounds, Bounds
+            picSkillIcon(i).Refresh
+        Next i
+        Num = Player(MyIndex).Spell(lstSpells.ListIndex + 1)
+        lblSkillsDetails.Caption = "Empty spell slot."
+        If Num > 0 And Num <= MAX_SPELLS Then
+            lblSkillsDetails.Caption = Trim$(Spell(Num).name) & vbCrLf & vbCrLf & "Level: " & Spell(Num).LevelReq & vbCrLf & "Mana: " & Spell(Num).MPReq & vbCrLf & vbCrLf & "Double-click to memorize."
+        End If
+    End Sub
+
+    Private Sub lstSpells_Click()
+        RefreshSkills
+    End Sub
+
+    Private Sub lblSkillName_Click(index As Integer)
+        Dim Slot As Long
+        If lstSpells.ListIndex < 0 Then Exit Sub
+        Slot = (lstSpells.ListIndex \ 8) * 8 + index
+        If Slot < lstSpells.ListCount Then lstSpells.ListIndex = Slot
+    End Sub
+
+    Private Sub picSkillIcon_Click(index As Integer)
+        lblSkillName_Click index
+    End Sub
+
+    Private Sub lblSkillName_DblClick(index As Integer)
+        lblSkillName_Click index
+        lstSpells_DblClick
+    End Sub
+
+    Private Sub picSkillIcon_DblClick(index As Integer)
+        lblSkillName_DblClick index
+    End Sub
+
+    Private Sub lblSkillsNext_Click()
+        Dim Slot As Long
+        Slot = (lstSpells.ListIndex \ 8 + 1) * 8
+        If Slot < lstSpells.ListCount Then lstSpells.ListIndex = Slot
+    End Sub
+
+    Private Sub lblSkillsPrevious_Click()
+        Dim Slot As Long
+        Slot = (lstSpells.ListIndex \ 8 - 1) * 8
+        If Slot >= 0 Then lstSpells.ListIndex = Slot
+    End Sub

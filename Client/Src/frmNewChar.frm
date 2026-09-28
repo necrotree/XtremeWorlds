@@ -323,7 +323,7 @@ Dim i As Long
         ' Prevent high ascii chars
         For i = 1 To Len(Msg)
             If Asc(Mid(Msg, i, 1)) < 32 Or Asc(Mid(Msg, i, 1)) > 126 Then
-                Call MsgBox("You cannot use high ascii chars in your name, please reenter.", vbOKOnly, GAME_NAME)
+                Call GameMsgBox("You cannot use high ascii chars in your name, please reenter.", vbOKOnly, GAME_NAME)
                 txtName.Text = ""
                 Exit Sub
             End If

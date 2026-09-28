@@ -9,6 +9,12 @@ Class frmMainGame
     Attribute VB_PredeclaredId = True
     Attribute VB_Exposed = False
     Option Explicit
+    Private InventoryPage As Long
+    Private InventoryClickedSlot As Long
+    Private InventoryBackground As clsDX11Surface
+    Private InventoryCanvas As clsDX11Surface
+
+
     Public WithEvents txtChat As clsNativeRichText
     Public WithEvents Socket As clsNativeSocket
     Public WithEvents Notetext As clsNativeRichText
@@ -109,6 +115,7 @@ Class frmMainGame
     End Sub
     
     Private Sub Form_Load()
+        LayoutGamePanels
         Call ApplyMovementControls
         Set txtChat = New clsNativeRichText
         txtChat.Attach hosttxtChat, True, 0, 9.75
@@ -160,7 +167,7 @@ Class frmMainGame
     Private Sub lblForget_Click()
         If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
             If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
-                If MsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
+                If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
     
                 SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR
                 picPlayerSpells.Visible = False
@@ -281,7 +288,7 @@ Class frmMainGame
         Call CheckInput(0, KeyCode, Shift)
         Call UseSlotHotkey(KeyCode)
         If GameKeyMatches(HK_ADMIN, KeyCode) Then
-            If frmMainGame.Width = 13545 Then
+            If frmMainGame.fraPlayer.Visible Then
                 frmMainGame.fraPlayer.Visible = False
                 frmMainGame.fraMapNum.Visible = False
                 frmMainGame.fraSpriteNum.Visible = False
@@ -289,7 +296,7 @@ Class frmMainGame
                 frmMainGame.fralvl2.Visible = False
                 frmMainGame.fralvl3.Visible = False
                 frmMainGame.fralvl4.Visible = False
-                frmMainGame.Width = 12120
+                frmMainGame.LayoutGamePanels
             ' frmMainGame.ScaleWidth = 800
             Else
                 Call AdminPanel
@@ -341,15 +348,7 @@ Class frmMainGame
     Private Sub picPlayerSpells_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     ' Call MovePicture(frmMainGame.picPlayerSpells, Button, Shift, X, Y)
     End Sub
-    
-    Private Sub picInv_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        SOffsetX = X
-        SOffsetY = Y
-    End Sub
-    
-    Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    ' Call MovePicture(frmMainGame.picInv, Button, Shift, X, Y)
-    End Sub
+
     
     Private Sub picScreen_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Call EditorMouseDown(Button, Shift, X, Y)
@@ -379,7 +378,7 @@ Class frmMainGame
     End Sub
     
     Private Sub picSign_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        Call MovePicture(frmMainGame.picSign, Button, Shift, X, Y)
+        CenterSign
     End Sub
     
     Private Sub txtChat_GotFocus()
@@ -498,12 +497,15 @@ Class frmMainGame
     Private Sub picStats_Click()
         Call CloseSideMenu
         Call SendData("getlivestats" & END_CHAR)
-        picLiveStats.Visible = True
+        picMnuGear.Visible = True
+        RefreshCharacterDetails
+        BltPlayerGear
     End Sub
     
     Private Sub picGear_Click()
         Call CloseSideMenu
         picMnuGear.Visible = True
+        RefreshCharacterDetails
         BltPlayerGear
     End Sub
     
@@ -559,18 +561,8 @@ Class frmMainGame
     
     Private Sub Label8_Click()
         If picLiveStats.Visible = True Then picLiveStats.Visible = False
-    End Sub
-    
-    
-    
-    
-    Private Sub lstInv_Click()
-        If Player(MyIndex).Inv(lstInv.ListIndex + 1).Num <> 0 Then
-            Call BltPlayerInvItem
-        Else
-            picItem.Refresh
-        End If
-    End Sub
+    End Sub    
+
     
     Private Sub lblexit_Click()
         picSign.Visible = False
@@ -775,7 +767,7 @@ Class frmMainGame
     
     Private Sub cmdBan_Click()
         If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-            Call MsgBox("You must first enter a playername to ban.")
+            Call GameMsgBox("You must first enter a playername to ban.")
         Else
             Call SendBan(Trim$(txtPlayerName.Text))
         End If
@@ -799,7 +791,7 @@ Class frmMainGame
     
     ' Private Sub cmdKill_Click()
     ' If txtPlayerName.Text = vbNullString Then
-    ' Call MsgBox("You must first enter a playername to kill.")
+    ' Call GameMsgBox("You must first enter a playername to kill.")
     ' Else
     ' Call KillPlayer(Trim$(txtPlayerName.Text))
     ' End If
@@ -811,7 +803,7 @@ Class frmMainGame
     
     Private Sub cmdSetSprite_Click()
         If LenB(txtSpriteNum.Text) = 0 Then
-            Call MsgBox("You must first enter a sprite number to set sprite.")
+            Call GameMsgBox("You must first enter a sprite number to set sprite.")
         Else
             Call SendSetSprite(Trim$(txtSpriteNum.Text))
         End If
@@ -819,7 +811,7 @@ Class frmMainGame
     
     Private Sub cmdPlayerSprite_Click()
         If LenB(Trim$(txtSpriteNum.Text)) = 0 Or LenB(Trim$(txtPlayerName.Text)) = 0 Then
-            Call MsgBox("You must first enter a sprite number and player name to set the player's sprite.")
+            Call GameMsgBox("You must first enter a sprite number and player name to set the player's sprite.")
         Else
             Call SendPlayerSprite(Trim$(txtSpriteNum.Text), Trim$(txtPlayerName.Text))
         End If
@@ -835,7 +827,7 @@ Class frmMainGame
     
     Private Sub cmdKick_Click()
         If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-            Call MsgBox("You must first enter a playername to kick.")
+            Call GameMsgBox("You must first enter a playername to kick.")
         Else
             Call SendKick(Trim$(txtPlayerName.Text))
         End If
@@ -859,7 +851,7 @@ Class frmMainGame
     
     Private Sub cmdSetAccess_Click()
         If LenB(Trim$(txtPlayerName.Text)) = 0 Or LenB(Trim$(txtAccessLevel.Text)) = 0 Then
-            Call MsgBox("You must first enter the playername and accesslevel to setaccess.")
+            Call GameMsgBox("You must first enter the playername and accesslevel to setaccess.")
         Else
             Call SendSetAccess(Trim$(txtPlayerName.Text), Val(txtAccessLevel.Text))
         End If
@@ -867,7 +859,7 @@ Class frmMainGame
     
     Private Sub cmdWarpmeTo_Click()
         If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-            Call MsgBox("You must first enter the playername to warp yourself to.")
+            Call GameMsgBox("You must first enter the playername to warp yourself to.")
         Else
             Call WarpMeTo(Trim$(txtPlayerName.Text))
         End If
@@ -875,7 +867,7 @@ Class frmMainGame
     
     Private Sub cmdWarpto_Click()
         If LenB(Trim$(txtMapNum.Text)) = 0 Then
-            Call MsgBox("You must first enter the map number to warp to.")
+            Call GameMsgBox("You must first enter the map number to warp to.")
         Else
             Call WarpTo(Trim$(txtMapNum.Text))
         End If
@@ -883,7 +875,7 @@ Class frmMainGame
     
     Private Sub cmdWarptome_Click()
         If LenB(Trim$(txtPlayerName.Text)) = 0 Then
-            Call MsgBox("You must first enter the playername to warp to yourself.")
+            Call GameMsgBox("You must first enter the playername to warp to yourself.")
         Else
             Call WarpToMe(Trim$(txtPlayerName.Text))
         End If
@@ -894,4 +886,233 @@ Class frmMainGame
     End Sub
     
 
+    Public Sub LayoutGamePanels()
+        Dim sidebar As Single, adminLeft As Single, requiredWidth As Single
+        sidebar = 956
+        picMapEditor.Left = Me.ScaleX(sidebar, vbPixels, Me.ScaleMode)
+        picMapEditor.Top = Me.ScaleY(39, vbPixels, Me.ScaleMode)
+        adminLeft = sidebar
+        requiredWidth = 948
+        If picMapEditor.Visible Then
+            requiredWidth = sidebar + Me.ScaleX(picMapEditor.Width, Me.ScaleMode, vbPixels) + 8
+            adminLeft = requiredWidth
+        End If
+        fraPlayer.Left = Me.ScaleX(adminLeft, vbPixels, Me.ScaleMode)
+        fraMapNum.Left = fraPlayer.Left
+        fraSpriteNum.Left = fraPlayer.Left
+        fralvl1.Left = fraPlayer.Left
+        fralvl2.Left = fraPlayer.Left
+        fralvl3.Left = fraPlayer.Left
+        fralvl4.Left = fraPlayer.Left
+        If fraPlayer.Visible Then requiredWidth = adminLeft + Me.ScaleX(fraPlayer.Width, Me.ScaleMode, vbPixels) + 8
+        Me.Width = Me.Width + Me.ScaleX(requiredWidth - Me.ScaleX(Me.ScaleWidth, Me.ScaleMode, vbPixels), vbPixels, vbTwips)
+        CenterSign
+    End Sub
+
+    Public Sub CenterSign()
+        picSign.Left = picScreen.Left + (picScreen.Width - picSign.Width) / 2
+        picSign.Top = picScreen.Top + (picScreen.Height - picSign.Height) / 2
+        If picSign.Visible Then picSign.ZOrder 0
+    End Sub
+
+    Private Sub picWebsite_Click()
+        Dim address As String
+        address = Trim$(WEBSITE)
+        If Len(address) = 0 Then Exit Sub
+        If LCase$(Left$(address, 7)) = "http://" Then address = Mid$(address, 8)
+        If Left$(address, 2) = "//" Then address = Mid$(address, 3)
+        If LCase$(Left$(address, 8)) <> "https://" Then address = "https://" & address
+        ' The legacy www hostname has no DNS record; preserve any URL path.
+        Const oldWebsite As String = "https://www.xtremeworlds.com"
+        If LCase$(address) = oldWebsite Then
+            address = "https://xtremeworlds.com/"
+        ElseIf LCase$(Left$(address, Len(oldWebsite) + 1)) = oldWebsite & "/" Then
+            address = "https://xtremeworlds.com" & Mid$(address, Len(oldWebsite) + 1)
+        End If
+        ShellExecute Me.hWnd, "open", address, vbNullString, vbNullString, 1
+    End Sub
+
+    Private Sub picGuild_Click()
+        AddText "Your guild is " & GetPlayerGuild(MyIndex) & ".", HelpColor
+    End Sub
+    Private Sub picInv_DblClick()
+        If InventoryClickedSlot > 0 Then SendUseItem InventoryClickedSlot
+    End Sub
+
+    Public Sub DrawInventoryGrid()
+        Dim Bounds As RECT, Source As RECT
+        Dim Cell As Long, Slot As Long, ItemNum As Long, X As Long, Y As Long
+        If DD_ItemSurf Is Nothing Then Exit Sub
+        If InventoryBackground Is Nothing Then
+            Set InventoryBackground = New clsDX11Surface
+            InventoryBackground.LoadFromFile App.Path & "\Gfx\Inventory.jpg"
+            Set InventoryCanvas = New clsDX11Surface
+            InventoryCanvas.Create 265, 354
+        End If
+        Bounds.Right = 265
+        Bounds.Bottom = 354
+        InventoryCanvas.Blt Bounds, InventoryBackground, Bounds
+        For Cell = 0 To 34
+            Slot = InventoryPage * 35 + Cell + 1
+            If Slot <= MAX_INV Then
+                ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    GetItemPictureRect Item(ItemNum).Pic, Source
+                    InventoryCanvas.BltFast 26 + (Cell Mod 5) * 45, 30 + (Cell \ 5) * 45, DD_ItemSurf, Source, True
+                End If
+            End If
+        Next Cell
+        picInv.Cls
+        InventoryCanvas.BltToDC picInv.hDC, Bounds, Bounds
+        Cell = lstInv.ListIndex - InventoryPage * 35
+        If Cell >= 0 And Cell < 35 Then
+            X = 23 + (Cell Mod 5) * 45
+            Y = 27 + (Cell \ 5) * 45
+            picInv.Line (X, Y)-(X + 37, Y + 37), RGB(255, 230, 120), B
+        End If
+        lblInventoryPage.Caption = CStr(InventoryPage + 1) & "/" & CStr((MAX_INV + 34) \ 35)
+        picInv.Refresh
+    End Sub
+
+    Private Function InventorySlotAt(ByVal X As Single, ByVal Y As Single) As Long
+        Dim Column As Long, Row As Long, Slot As Long
+        X = X - 23
+        Y = Y - 27
+        If X < 0 Or Y < 0 Or X >= 225 Or Y >= 315 Then Exit Function
+        Column = Int(X / 45)
+        Row = Int(Y / 45)
+        If X - Column * 45 >= 38 Or Y - Row * 45 >= 38 Then Exit Function
+        Slot = InventoryPage * 35 + Row * 5 + Column + 1
+        If Slot <= MAX_INV Then InventorySlotAt = Slot
+    End Function
+
+    Private Sub picInv_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Dim Slot As Long
+        Slot = InventorySlotAt(X, Y)
+        InventoryClickedSlot = Slot
+        If Button = vbLeftButton And Slot > 0 Then lstInv.ListIndex = Slot - 1
+    End Sub
+
+    Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Dim Slot As Long
+        Slot = InventorySlotAt(X, Y)
+        picInv.ToolTipText = vbNullString
+        If Slot > 0 And Slot <= lstInv.ListCount Then picInv.ToolTipText = lstInv.List(Slot - 1)
+    End Sub
+
+    Private Sub lblInventoryPrevious_Click()
+        If InventoryPage > 0 Then
+            InventoryPage = InventoryPage - 1
+            lstInv.ListIndex = InventoryPage * 35
+        End If
+    End Sub
+
+    Private Sub lblInventoryNext_Click()
+        If (InventoryPage + 1) * 35 < MAX_INV Then
+            InventoryPage = InventoryPage + 1
+            lstInv.ListIndex = InventoryPage * 35
+        End If
+    End Sub
+
+    Private Sub lstInv_Click()
+        If lstInv.ListIndex < 0 Then Exit Sub
+        InventoryPage = lstInv.ListIndex \ 35
+        DrawInventoryGrid
+    End Sub
+    Public Sub RefreshCharacterDetails()
+        If MyIndex < 1 Then Exit Sub
+        lblCharacterValue(0).Caption = Trim$(Class(GetPlayerClass(MyIndex)).name)
+        lblCharacterValue(1).Caption = CStr(GetPlayerLevel(MyIndex))
+        lblCharacterValue(2).Caption = "None"
+        If GetPlayerGuild(MyIndex) > 0 Then lblCharacterValue(2).Caption = CStr(GetPlayerGuild(MyIndex))
+        lblCharacterValue(3).Caption = GetPlayerHP(MyIndex) & " / " & GetPlayerMaxHP(MyIndex)
+        lblCharacterValue(4).Caption = GetPlayerMP(MyIndex) & " / " & GetPlayerMaxMP(MyIndex)
+        lblCharacterValue(5).Caption = GetPlayerExp(MyIndex) & " / " & GetPlayerNextLevel(MyIndex)
+        lblCharacterValue(6).Caption = ChrW$(&H2014)
+        lblCharacterValue(7).Caption = CStr(GetPlayerPOINTS(MyIndex))
+        lblCharacterValue(8).Caption = CStr(GetPlayerSTR(MyIndex))
+        lblCharacterValue(9).Caption = CStr(GetPlayerDEF(MyIndex))
+        lblCharacterValue(9).ToolTipText = "Defense"
+        lblCharacterValue(10).Caption = GetPlayerSP(MyIndex) & " / " & GetPlayerMaxSP(MyIndex)
+        lblCharacterValue(11).Caption = CStr(GetPlayerSPEED(MyIndex))
+        lblCharacterValue(11).ToolTipText = "Speed"
+        lblCharacterValue(12).Caption = CStr(GetPlayerMAGI(MyIndex))
+        lblCharacterValue(12).ToolTipText = "Magic"
+        lblCharacterValue(13).Caption = ChrW$(&H2014)
+        lblCharacterValue(6).ToolTipText = "Not tracked by this game"
+        lblCharacterValue(13).ToolTipText = "Not tracked by this game"
+    End Sub
+    Public Sub RefreshSkills()
+        Dim Page As Long, i As Long, Slot As Long, Num As Long
+        Dim Canvas As New clsDX11Surface, Bounds As RECT, Source As RECT
+        If lstSpells.ListIndex < 0 Then Exit Sub
+        Page = lstSpells.ListIndex \ 8
+        lblSkillsPage.Caption = "Page " & (Page + 1) & " / " & ((MAX_PLAYER_SPELLS + 7) \ 8)
+        Canvas.Create 32, 32
+        Bounds.Right = 32
+        Bounds.Bottom = 32
+        For i = 0 To 7
+            Slot = Page * 8 + i + 1
+            Num = 0
+            If Slot <= MAX_PLAYER_SPELLS Then Num = Player(MyIndex).Spell(Slot)
+            lblSkillName(i).Caption = "Empty"
+            lblSkillName(i).ForeColor = RGB(220, 205, 180)
+            Canvas.BltColorFill Bounds, RGB(102, 51, 51)
+            If Num > 0 And Num <= MAX_SPELLS Then
+                lblSkillName(i).Caption = Trim$(Spell(Num).name)
+                If Not DD_SpellSurf Is Nothing Then
+                    Source.Left = 0
+                    Source.Top = Spell(Num).Graphic * PIC_Y
+                    Source.Right = PIC_X
+                    Source.Bottom = Source.Top + PIC_Y
+                    If Source.Top >= 0 And Source.Bottom <= DD_SpellSurf.Height Then Canvas.BltFast 0, 0, DD_SpellSurf, Source, True
+                End If
+            End If
+            If Slot = lstSpells.ListIndex + 1 Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
+            picSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
+            Canvas.BltToDC picSkillIcon(i).hDC, Bounds, Bounds
+            picSkillIcon(i).Refresh
+        Next i
+        Num = Player(MyIndex).Spell(lstSpells.ListIndex + 1)
+        lblSkillsDetails.Caption = "Empty spell slot."
+        If Num > 0 And Num <= MAX_SPELLS Then
+            lblSkillsDetails.Caption = Trim$(Spell(Num).name) & vbCrLf & vbCrLf & "Level: " & Spell(Num).LevelReq & vbCrLf & "Mana: " & Spell(Num).MPReq & vbCrLf & vbCrLf & "Double-click to memorize."
+        End If
+    End Sub
+
+    Private Sub lstSpells_Click()
+        RefreshSkills
+    End Sub
+
+    Private Sub lblSkillName_Click(index As Integer)
+        Dim Slot As Long
+        If lstSpells.ListIndex < 0 Then Exit Sub
+        Slot = (lstSpells.ListIndex \ 8) * 8 + index
+        If Slot < lstSpells.ListCount Then lstSpells.ListIndex = Slot
+    End Sub
+
+    Private Sub picSkillIcon_Click(index As Integer)
+        lblSkillName_Click index
+    End Sub
+
+    Private Sub lblSkillName_DblClick(index As Integer)
+        lblSkillName_Click index
+        lstSpells_DblClick
+    End Sub
+
+    Private Sub picSkillIcon_DblClick(index As Integer)
+        lblSkillName_DblClick index
+    End Sub
+
+    Private Sub lblSkillsNext_Click()
+        Dim Slot As Long
+        Slot = (lstSpells.ListIndex \ 8 + 1) * 8
+        If Slot < lstSpells.ListCount Then lstSpells.ListIndex = Slot
+    End Sub
+
+    Private Sub lblSkillsPrevious_Click()
+        Dim Slot As Long
+        Slot = (lstSpells.ListIndex \ 8 - 1) * 8
+        If Slot >= 0 Then lstSpells.ListIndex = Slot
+    End Sub
 End Class

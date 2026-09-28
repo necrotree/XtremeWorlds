@@ -1,7 +1,6 @@
 Attribute VB_Name = "modProjectiles"
 Option Explicit
 
-Public Const MAX_ARROWS As Long = 100
 Public Const MAX_PROJECTILES As Long = 256
 Public Type ArrowRec
     Name As String
@@ -22,10 +21,9 @@ Private Type ProjectileRec
     Y As Long
     Updated As Long
 End Type
-Public Arrows(1 To MAX_ARROWS) As ArrowRec
 Public ArrowEditorActive As Boolean
 Public SpellDelivery() As SpellDeliveryRec
-Private Shots(1 To MAX_PROJECTILES) As ProjectileRec
+Public Shots(1 To MAX_PROJECTILES) As ProjectileRec
 Private DeliveryCount As Long
 
 Public Sub EnsureSpellDelivery()
@@ -70,7 +68,7 @@ Public Function SaveSpellDeliveryEditor() As Boolean
     SaveSpellDeliveryEditor = True
     Exit Function
 InvalidRange:
-    MsgBox "Spell range must be a whole number from 1 to 32 tiles.", vbExclamation
+    GameMsgBox "Spell range must be a whole number from 1 to 32 tiles.", vbExclamation
 End Function
 
 Public Function SpellDeliveryPacket(ByVal number As Long) As String
@@ -80,61 +78,6 @@ Public Function SpellDeliveryPacket(ByVal number As Long) As String
     End With
 End Function
 
-Public Function HandleProjectilePacket(ByRef packet() As String) As Boolean
-    Dim number As Long
-    Select Case LCase$(packet(0))
-        Case "spelldelivery", "arrowdata", "arroweditor", "arrowsaved", "projectile", "projectileend"
-            HandleProjectilePacket = True
-        Case Else
-            Exit Function
-    End Select
-    Select Case LCase$(packet(0))
-        Case "spelldelivery"
-            If UBound(packet) <> 4 Then Exit Function
-            EnsureSpellDelivery
-            number = Val(packet(1))
-            If number < 1 Or number > DeliveryCount Then Exit Function
-            If Val(packet(2)) < 0 Or Val(packet(2)) > 1 Then Exit Function
-            If Val(packet(3)) < 1 Or Val(packet(3)) > MAX_ARROWS Then Exit Function
-            If Val(packet(4)) < 1 Or Val(packet(4)) > 32 Then Exit Function
-            SpellDelivery(number).Mode = Val(packet(2))
-            SpellDelivery(number).Arrow = Val(packet(3))
-            SpellDelivery(number).Range = Val(packet(4))
-        Case "arrowdata"
-            If UBound(packet) <> 3 And UBound(packet) <> 4 Then Exit Function
-            number = Val(packet(1))
-            If number < 1 Or number > MAX_ARROWS Then Exit Function
-            Arrows(number).Sprite = Val(packet(2))
-            Arrows(number).Range = Val(packet(3))
-            Arrows(number).Name = vbNullString
-            If UBound(packet) = 4 Then Arrows(number).Name = Left$(packet(4), 50)
-        Case "arroweditor"
-            frmArrowEditor.Show vbModal
-        Case "arrowsaved"
-            If UBound(packet) <> 1 Then Exit Function
-            If ArrowEditorActive Then frmArrowEditor.SaveComplete Val(packet(1))
-        Case "projectileend"
-            If UBound(packet) <> 1 Then Exit Function
-            number = Val(packet(1))
-            If number >= 1 And number <= MAX_PROJECTILES Then Shots(number).Active = False
-        Case "projectile"
-            If UBound(packet) <> 6 Then Exit Function
-            If Not InGame Or GettingMap Then Exit Function
-            number = Val(packet(1))
-            If number < 1 Or number > MAX_PROJECTILES Then Exit Function
-            If Val(packet(2)) <> GetPlayerMap(MyIndex) Then Exit Function
-            If Val(packet(4)) < DIR_UP Or Val(packet(4)) > DIR_RIGHT Then Exit Function
-            With Shots(number)
-                .Active = True
-                .Map = Val(packet(2))
-                .Sprite = Val(packet(3))
-                .Direction = Val(packet(4))
-                .X = Val(packet(5))
-                .Y = Val(packet(6))
-                .Updated = GetTickCount
-            End With
-    End Select
-End Function
 
 Public Sub ClearProjectiles()
     Dim i As Long

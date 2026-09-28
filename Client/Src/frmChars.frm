@@ -112,7 +112,7 @@ End Sub
 Private Sub picDelChar_Click()
 Dim Value As Long
 
-    Value = MsgBox("Are you sure you wish to delete this character?", vbYesNo, GAME_NAME)
+    Value = GameMsgBox("Are you sure you wish to delete this character?", vbYesNo, GAME_NAME)
     If Value = vbYes Then
         Call MenuState(MENU_STATE_DELCHAR)
     End If

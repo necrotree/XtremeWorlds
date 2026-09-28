@@ -78,7 +78,7 @@ Private Sub cboKey_Click()
     problem = ValidateHotkeys(mKeys)
     If Len(problem) > 0 Then
         mKeys(action) = previous
-        MsgBox problem, vbExclamation, "Keyboard Shortcuts"
+        GameMsgBox problem, vbExclamation, "Keyboard Shortcuts"
     End If
     RefreshActions action - 1
 End Sub

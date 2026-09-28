@@ -208,7 +208,7 @@ Private Sub SaveArrow()
     Dim number As Long
     If mSaving Or cmbArrow.ListIndex < 0 Then Exit Sub
     If InStr(txtName.Text, SEP_CHAR) > 0 Or InStr(txtName.Text, END_CHAR) > 0 Then
-        MsgBox "The name contains an unsupported character.", vbExclamation
+        GameMsgBox "The name contains an unsupported character.", vbExclamation
         Exit Sub
     End If
     number = cmbArrow.ListIndex + 1

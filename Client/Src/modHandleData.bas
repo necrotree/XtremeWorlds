@@ -38,7 +38,6 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Handle Data
     Parse = Split(Data, SEP_CHAR)
-    If HandleProjectilePacket(Parse) Then Exit Sub
 
     ' Add the data to the debug window if we are in debug mode
     If Trim$(Command) = "-debug" Then
@@ -85,8 +84,7 @@ Public Sub HandleData(ByVal Data As String)
             n = 1
 
             frmMainMenu.HideMenuPanels
-            frmMainMenu.mnuChars.Visible = True
-            frmMainMenu.mnuChars.ZOrder 0
+            frmMainMenu.SetMenuVisible "mnuChars", True
             frmMainMenu.Visible = True
             frmSendGetData.Visible = False
 
@@ -120,8 +118,7 @@ Public Sub HandleData(ByVal Data As String)
             MyIndex = Val(Parse(1))
 
             frmSendGetData.Visible = True
-            frmMainMenu.mnuChars.Visible = False
-
+            frmMainMenu.SetMenuVisible "mnuChars", False
             Call SetStatus("Receiving game data...")
             Exit Sub
 
@@ -156,9 +153,9 @@ Public Sub HandleData(ByVal Data As String)
             Next i
 
             ' Used for if the player is creating a new character
-            frmMainMenu.mnuNewCharacter.Visible = True
+            frmMainMenu.HideMenuPanels
             frmMainMenu.Visible = True
-            frmMainMenu.txtNewCharName.SetFocus
+            ' Select a class before displaying the name and gender controls.
             frmSendGetData.Visible = False
 
             frmMainMenu.cmbClass.Clear
@@ -185,11 +182,12 @@ Public Sub HandleData(ByVal Data As String)
                     .optFemale.Visible = False
                 ElseIf Class(.cmbClass.ListIndex).Sprite <> Class(.cmbClass.ListIndex).FSprite Then
                     .optMale.Value = True
-                    .optMale.Visible = True
+                    .optMale.Visible = False
                     .optFemale.Value = False
-                    .optFemale.Visible = True
+                    .optFemale.Visible = False
                 End If
             End With
+            frmMainMenu.ShowClassSelection
             Exit Sub
 
         ' :::::::::::::::::::::::::
@@ -277,7 +275,7 @@ Public Sub HandleData(ByVal Data As String)
                 With frmMainGame
                     .lblHP(0).Caption = "HP:   " & GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
                     .lblHP(1).Caption = "HP:   " & GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
-                    .shpHP.Width = (((GetPlayerHP(MyIndex) / 100) / (GetPlayerMaxHP(MyIndex) / 100)) * 156)
+                    .shpHP.Width = (((GetPlayerHP(MyIndex) / 100) / (GetPlayerMaxHP(MyIndex) / 100)) * 211)
                 End With
             End If
             Exit Sub
@@ -291,7 +289,7 @@ Public Sub HandleData(ByVal Data As String)
             If GetPlayerMaxMP(MyIndex) > 0 Then
                 frmMainGame.lblMP(0).Caption = "MP:   " & GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
                 frmMainGame.lblMP(1).Caption = "MP:   " & GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
-                frmMainGame.shpMP.Width = (((GetPlayerMP(MyIndex) / 100) / (GetPlayerMaxMP(MyIndex) / 100)) * 155)
+                frmMainGame.shpMP.Width = (((GetPlayerMP(MyIndex) / 100) / (GetPlayerMaxMP(MyIndex) / 100)) * 211)
             End If
             Exit Sub
 
@@ -304,7 +302,7 @@ Public Sub HandleData(ByVal Data As String)
             If GetPlayerMaxSP(MyIndex) > 0 Then
                 frmMainGame.lblSP(0).Caption = "SP:   " & GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
                 frmMainGame.lblSP(1).Caption = "SP:   " & GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
-                frmMainGame.shpSP.Width = (((GetPlayerSP(MyIndex) / 100) / (GetPlayerMaxSP(MyIndex) / 100)) * 153)
+                frmMainGame.shpSP.Width = (((GetPlayerSP(MyIndex) / 100) / (GetPlayerMaxSP(MyIndex) / 100)) * 211)
             End If
             Exit Sub
 
@@ -312,15 +310,23 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Player exp packet ::
         ' :::::::::::::::::::::::
         Case "playerexp"
-            Player(MyIndex).Exp = Val(Parse(1))
             Call SetPlayerExp(MyIndex, Val(Parse(1)))
             NextLevel = Val(Parse(2))
-            ' frmMainGame.shpEXP.Width = (GetPlayerExp(MyIndex) / 100) / (NextLevel / 100) * 172
-            If GetPlayerExp(MyIndex) > 0 And NextLevel > 0 Then
-                frmMainGame.shpEXP.Width = (((GetPlayerExp(MyIndex) / 100) / (NextLevel / 100)) * 360)
-            End If
-            If GetPlayerExp(MyIndex) = 0 Then
+            Dim experience As Double, remainingExperience As Double, experienceRatio As Double
+            experience = GetPlayerExp(MyIndex)
+            If NextLevel > 0 Then
+                remainingExperience = CDbl(NextLevel) - experience
+                If remainingExperience < 0 Then remainingExperience = 0
+                experienceRatio = experience / NextLevel
+                If experienceRatio < 0 Then experienceRatio = 0
+                If experienceRatio > 1 Then experienceRatio = 1
+                frmMainGame.shpEXP.Width = experienceRatio * 211
+                frmMainGame.lblExperience.Caption = "XP: " & Format$(experience, "#,##0") & " | TNL: " & Format$(remainingExperience, "#,##0")
+                frmMainGame.lblExperience.ToolTipText = "Experience: " & Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0") & "; TNL: " & Format$(remainingExperience, "#,##0")
+            Else
                 frmMainGame.shpEXP.Width = 0
+                frmMainGame.lblExperience.Caption = "XP: " & Format$(experience, "#,##0") & " | TNL: --"
+                frmMainGame.lblExperience.ToolTipText = "The server has not supplied a next-level target."
             End If
             Exit Sub
 
@@ -590,6 +596,7 @@ Public Sub HandleData(ByVal Data As String)
             If InEditor Then
                 InEditor = False
                 frmMainGame.picMapEditor.Visible = False
+                frmMainGame.LayoutGamePanels
 
                 If frmMapWarp.Visible Then
                     Unload frmMapWarp
@@ -832,6 +839,7 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::
         Case "sign"
             frmMainGame.picSign.Visible = True
+            frmMainGame.CenterSign
             ' put all the data into the correct area
             frmMainGame.lblNameTop.Caption = Trim$(Parse(2))
             frmMainGame.lblNameBtm.Caption = Trim$(Parse(2))
@@ -1138,6 +1146,9 @@ Public Sub HandleData(ByVal Data As String)
         Case "spells"
 
             frmMainGame.picPlayerSpells.Visible = True
+            Dim SelectedSpellSlot As Long
+            SelectedSpellSlot = frmMainGame.lstSpells.ListIndex
+            If SelectedSpellSlot < 0 Or SelectedSpellSlot >= MAX_PLAYER_SPELLS Then SelectedSpellSlot = 0
             frmMainGame.lstSpells.Clear
 
             ' Put spells known in player record
@@ -1150,44 +1161,98 @@ Public Sub HandleData(ByVal Data As String)
                 End If
             Next i
 
-            frmMainGame.lstSpells.ListIndex = 0
+            frmMainGame.lstSpells.ListIndex = SelectedSpellSlot
 
             Exit Sub
+            
+        Case "spelldelivery"
+            EnsureSpellDelivery
+            SpellDelivery(Parse(1)).Mode = Val(Parse(2))
+            SpellDelivery(Parse(1)).Arrow = Val(Parse(3))
+            SpellDelivery(Parse(1)).Range = Val(Parse(4))
+            
+        Case "arrowdata"
+            Arrow(Parse(1)).Sprite = Val(Parse(2))
+            Arrow(Parse(1)).Range = Val(Parse(3))
+            Arrow(Parse(1)).Name = vbNullString
+            Arrow(Parse(1)).Name = Left$(Parse(4), 50)
+            
+        Case "arroweditor"
+            InArrowEditor = True
+            
+            frmIndex.Show
+            frmIndex.lstIndex.Clear
 
-        ' :::::::::::::::::::::::
-        ' :: Live Stats Packet ::
-        ' :::::::::::::::::::::::
-        Case "livestats"
+            ' Add the names
+            For i = 1 To MAX_ARROWS
+                frmIndex.lstIndex.AddItem i & ": " & Trim$(Arrow(i).Name)
+            Next i
 
-            ' GetPlayerHP (MyIndex)
-            ' GetPlayerMP (MyIndex)
-            ' GetPlayerSP (MyIndex)
-            If Trim$(Parse(1)) < 1 Then
-                frmMainGame.lblLevel.Caption = "1"
-            Else
-                frmMainGame.lblLevel.Caption = Trim$(Parse(1))
-            End If
+            frmIndex.lstIndex.ListIndex = 0
+            
+        ' ::::::::::::::::::::::
+        ' :: Edit Arrow packet :: <- Used for arrow editor admins only
+        ' ::::::::::::::::::::::
+        Case "editarrow"
+            n = Val(Parse(1))
 
-' lblHP.Caption = GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
-' lblMP.Caption = GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
-' lblSP.Caption = GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
+            ' Update the item
+            Arrow(n).Name = Parse(2)
+            Arrow(n).Range = Val(Parse(3))
+            Arrow(n).Sprite = Val(Parse(4))
+
+            ArrowEditorInit()
+            Exit Sub
+            
+        Case "arrowsaved"
+            If ArrowEditorActive Then frmArrowEditor.SaveComplete Val(Parse(1))
+            
+        Case "projectileend"
+            If Parse(1) >= 1 And Parse(1) <= MAX_PROJECTILES Then Shots(Parse(1)).Active = False
+            
+        Case "projectile"
+            With Shots(Parse(1))
+                .Active = True
+                .Map = Val(Parse(2))
+                .Sprite = Val(Parse(3))
+                .Direction = Val(Parse(4))
+                .X = Val(Parse(5))
+                .Y = Val(Parse(6))
+                .Updated = GetTickCount
+            End With
+
+            ' :::::::::::::::::::::::
+            ' :: Live Stats Packet ::
+            ' :::::::::::::::::::::::
+            Case "livestats"
+                ' GetPlayerHP (MyIndex)
+                ' GetPlayerMP (MyIndex)
+                ' GetPlayerSP (MyIndex)
+                If Trim$(Parse(1)) < 1 Then
+                    frmMainGame.lblLevel.Caption = "1"
+                Else
+                    frmMainGame.lblLevel.Caption = Trim$(Parse(1))
+                End If
+                
+                ' lblHP.Caption = GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
+                ' lblMP.Caption = GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
+                ' lblSP.Caption = GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
 
 
-            frmMainGame.lblSTR.Caption = GetPlayerSTR(MyIndex)
-            frmMainGame.lblDEF.Caption = GetPlayerDEF(MyIndex)
-            frmMainGame.lblMAGI.Caption = GetPlayerMAGI(MyIndex)
-            frmMainGame.lblSPEED.Caption = GetPlayerSPEED(MyIndex)
+                frmMainGame.lblSTR.Caption = GetPlayerSTR(MyIndex)
+                frmMainGame.lblDEF.Caption = GetPlayerDEF(MyIndex)
+                frmMainGame.lblMAGI.Caption = GetPlayerMAGI(MyIndex)
+                frmMainGame.lblSPEED.Caption = GetPlayerSPEED(MyIndex)
 
-            Call SetPlayerPOINTS(MyIndex, Trim$(Parse(6)))
-            frmMainGame.lblPoints.Caption = GetPlayerPOINTS(MyIndex)
-            frmMainGame.lblPlayerPoints.Caption = GetPlayerPOINTS(MyIndex)
+                Call SetPlayerPOINTS(MyIndex, Trim$(Parse(6)))
+                frmMainGame.lblPoints.Caption = GetPlayerPOINTS(MyIndex)
+                frmMainGame.lblPlayerPoints.Caption = GetPlayerPOINTS(MyIndex)
 
-            frmMainGame.lblEXP.Caption = Trim$(Parse(2))
-            frmMainGame.lblTNL.Caption = Int(Trim$(Parse(3)) - Trim$(Parse(2)))
+                frmMainGame.lblEXP.Caption = Trim$(Parse(2))
+                frmMainGame.lblTNL.Caption = Int(Trim$(Parse(3)) - Trim$(Parse(2)))
 
-            frmMainGame.lblCHit.Caption = Trim$(Parse(4)) & "%"
-            frmMainGame.lblBlock.Caption = Trim$(Parse(5)) & "%"
-
+                frmMainGame.lblCHit.Caption = Trim$(Parse(4)) & "%"
+                frmMainGame.lblBlock.Caption = Trim$(Parse(5)) & "%"
 
             Exit Sub
 
@@ -1240,6 +1305,7 @@ Public Sub HandleData(ByVal Data As String)
             MAX_MAPS = Val(Parse(7))
             MAX_GUILDS = Val(Parse(8))
             MAX_GUILD_MEMBERS = Val(Parse(9))
+            MAX_ARROWS = Val(Parse(10))
 
             ReDim Shop(1 To MAX_SHOPS) As ShopRec
             ReDim Sign(1 To MAX_SIGNS) As SignRec
@@ -1248,6 +1314,7 @@ Public Sub HandleData(ByVal Data As String)
             ReDim Player(1 To MAX_PLAYERS) As PlayerRec
             ReDim Npc(1 To MAX_NPCS) As NpcRec
             ReDim Guild(1 To MAX_GUILDS) As GuildRec
+            ReDim Arrow(1 To MAX_ARROWS) As ArrowRec
 
             For i = 1 To MAX_GUILDS
                 ReDim Preserve Guild(i).Member(1 To MAX_GUILD_MEMBERS) As String * NAME_LENGTH

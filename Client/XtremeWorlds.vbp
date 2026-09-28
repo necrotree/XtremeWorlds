@@ -1,4 +1,6 @@
 Type=Exe
+Form=Src\frmGamePrompt.frm
+Module=modGamePrompts; Src\modGamePrompts.bas
 Form=Src\frmArrowEditor.frm
 Module=modProjectiles; Src\modProjectiles.bas
 Module=modHotkeys; Src\modHotkeys.bas

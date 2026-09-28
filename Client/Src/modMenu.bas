@@ -82,26 +82,26 @@ Public Sub MenuState(ByVal State As Long)
     Call SetStatus("Connecting to server...")
     Select Case State
         Case MENU_STATE_NEWACCOUNT
-            frmMainMenu.mnuNewAccount.Visible = False
+            frmMainMenu.SetMenuVisible "mnuNewAccount", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending new account information...")
                 Call SendNewAccount(frmMainMenu.txtNewAcctName.Text, frmMainMenu.txtNewAcctPassword.Text, frmMainMenu.txtEncKey.Text)
             End If
 
         Case MENU_STATE_LOGIN
-            frmMainMenu.mnuLogin.Visible = False
+            frmMainMenu.SetMenuVisible "mnuLogin", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending login information...")
                 Call SendLogin(frmMainMenu.txtLoginName.Text, frmMainMenu.txtLoginPassword.Text, frmMainMenu.txtEncKey.Text)
             End If
 
         Case MENU_STATE_NEWCHAR
-            frmMainMenu.mnuChars.Visible = False
+            frmMainMenu.SetMenuVisible "mnuChars", False
             Call SetStatus("Connected, getting available classes...")
             Call SendGetClasses
 
         Case MENU_STATE_ADDCHAR
-            frmMainMenu.mnuNewCharacter.Visible = False
+            frmMainMenu.SetMenuVisible "mnuNewCharacter", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending character addition data...")
                 If frmMainMenu.optMale.Value = True Then
@@ -112,14 +112,14 @@ Public Sub MenuState(ByVal State As Long)
             End If
 
         Case MENU_STATE_DELCHAR
-            frmMainMenu.mnuChars.Visible = False
+            frmMainMenu.SetMenuVisible "mnuChars", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending character deletion request...")
                 Call SendDelChar(frmMainMenu.lstChars.ListIndex + 1)
             End If
 
         Case MENU_STATE_USECHAR
-            frmMainMenu.mnuChars.Visible = False
+            frmMainMenu.SetMenuVisible "mnuChars", False
             frmMainMenu.Visible = False
             If ConnectToServer = True Then
                 Call GetGameName
@@ -134,6 +134,7 @@ Public Sub MenuState(ByVal State As Long)
     End Select
 
     If Not IsConnected Then
+        frmMainMenu.ShowMenuHome
         frmMainMenu.Visible = True
         frmSendGetData.Visible = False
         Call MsgBox("Sorry, the server seems to be down.  Please try to reconnect in a few minutes or visit " & WEBSITE, vbOKOnly, GAME_NAME)

@@ -782,7 +782,7 @@ Option Explicit
 Private Sub Form_Load()
     Dim FileName As String
     If App.PrevInstance = True Then
-        MsgBox "Another Playerworlds Client is already running! Please run only one client at a time!", Error
+        GameMsgBox "Another Playerworlds Client is already running! Please run only one client at a time!", Error
     End If
 
     FileName = App.Path & DATA_PATH & "Data.dat"
@@ -860,12 +860,12 @@ Private Sub picIPSave_Click()
     fErr = 0
     If fErr = 0 And Len(Trim$(IP)) = 0 Then
         fErr = 1
-        Call MsgBox("Inform a correct IP.", vbCritical, GAME_NAME)
+        Call GameMsgBox("Inform a correct IP.", vbCritical, GAME_NAME)
         Exit Sub
     End If
     If fErr = 0 And Port <= 0 Then
         fErr = 1
-        Call MsgBox("Inform a correct Port.", vbCritical, GAME_NAME)
+        Call GameMsgBox("Inform a correct Port.", vbCritical, GAME_NAME)
         Exit Sub
     End If
     If fErr = 0 Then
@@ -971,7 +971,7 @@ End Sub
 Private Sub picDeleteAccount_Click()
 ' Dim YesNo As Long
 
-' YesNo = MsgBox("You are on the path for a character deletion, are you sure you want to go through with this?", vbYesNo, GAME_NAME)
+' YesNo = GameMsgBox("You are on the path for a character deletion, are you sure you want to go through with this?", vbYesNo, GAME_NAME)
 ' If YesNo = vbYes Then
 ' frmDeleteAccount.Visible = True
 ' Me.Visible = False
@@ -1057,7 +1057,7 @@ End Sub
 Private Sub picDelChar_Click()
     Dim Value As Long
 
-    Value = MsgBox("Are you sure you wish to delete this character?", vbYesNo, GAME_NAME)
+    Value = GameMsgBox("Are you sure you wish to delete this character?", vbYesNo, GAME_NAME)
     If Value = vbYes Then
         Call MenuState(MENU_STATE_DELCHAR)
     End If

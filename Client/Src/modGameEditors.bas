@@ -12,11 +12,12 @@ Public Sub EditorInit()
     SaveMap = Map
     InEditor = True
     frmMainGame.picMapEditor.Visible = True
+    frmMainGame.LayoutGamePanels
 
-    frmMainGame.scrlPicture.max = Int(DD_TileSurf.Height / PIC_Y) - 7
+    frmMainGame.scrlPicture.Max = Int(DD_TileSurf.Height / PIC_Y) - 7
 
     With rec
-        .top = 0
+        .Top = 0
         .Bottom = frmMainGame.picBack.Height
         .Left = 0
         .Right = frmMainGame.picBack.Width
@@ -26,12 +27,12 @@ Public Sub EditorInit()
     Else
         With rec_pos
             If frmMainGame.scrlPicture.Value = 0 Then
-                .top = 0
+                .Top = 0
             Else
-                .top = (frmMainGame.scrlPicture.Value * PIC_Y) * 1
+                .Top = (frmMainGame.scrlPicture.Value * PIC_Y) * 1
             End If
             .Left = 0
-            .Bottom = .top + (frmMainGame.picBack.Height)
+            .Bottom = .Top + (frmMainGame.picBack.Height)
             .Right = frmMainGame.picBack.Width
         End With
 
@@ -187,14 +188,14 @@ Public Sub EditorChooseTile(Button As Integer, Shift As Integer, X As Single, Y 
     End If
 
     With rec_pos
-        .top = EditorTileY * PIC_Y
-        .Bottom = .top + PIC_Y
+        .Top = EditorTileY * PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = EditorTileX * PIC_X
         .Right = .Left + PIC_X
     End With
 
     With rec
-        .top = 0
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
@@ -214,7 +215,7 @@ Public Sub EditorTileScroll()
     ' * 06/01/2006  BigRed     Changed BitBlt to DX7
     ' ****************************************************************
     With rec
-        .top = 0
+        .Top = 0
         .Bottom = frmMainGame.picBack.Height
         .Left = 0
         .Right = frmMainGame.picBack.Width
@@ -224,12 +225,12 @@ Public Sub EditorTileScroll()
     Else
         With rec_pos
             If frmMainGame.scrlPicture.Value = 0 Then
-                .top = 0
+                .Top = 0
             Else
-                .top = (frmMainGame.scrlPicture.Value * PIC_Y) * 1
+                .Top = (frmMainGame.scrlPicture.Value * PIC_Y) * 1
             End If
             .Left = 0
-            .Bottom = .top + (frmMainGame.picBack.Height)
+            .Bottom = .Top + (frmMainGame.picBack.Height)
             .Right = frmMainGame.picBack.Width
         End With
 
@@ -247,6 +248,7 @@ Public Sub EditorCancel()
     Map = SaveMap
     InEditor = False
     frmMainGame.picMapEditor.Visible = False
+    frmMainGame.LayoutGamePanels
     BltMap
 End Sub
 
@@ -481,7 +483,7 @@ Public Sub ItemEditorBltItem()
     Call GetItemPictureRect(frmItemEditor.scrlPic.Value, rec)
 
     With rec_pos
-        .top = 0
+        .Top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
@@ -498,7 +500,6 @@ Public Sub BltPlayerInvItem()
     Call GetItemPictureRect(Item(GetPlayerInvItemNum(MyIndex, frmMainGame.lstInv.ListIndex + 1)).Pic, rec)
 
     With rec_pos
-        .top = 0
         .Bottom = PIC_Y
         .Left = 0
         .Right = PIC_X
@@ -511,33 +512,34 @@ Public Sub BltPlayerInvItem()
 End Sub
 
 Public Sub BltPlayerGear()
-    Dim Equip(4) As Integer
-    Dim i As Byte
-
-    If GetPlayerShieldSlot(MyIndex) > 0 Then Equip(0) = GetPlayerShieldSlot(MyIndex)
-    If GetPlayerArmorSlot(MyIndex) > 0 Then Equip(1) = GetPlayerArmorSlot(MyIndex)
-    If GetPlayerWeaponSlot(MyIndex) > 0 Then Equip(2) = GetPlayerWeaponSlot(MyIndex)
-    If GetPlayerHelmetSlot(MyIndex) > 0 Then Equip(3) = GetPlayerHelmetSlot(MyIndex)
-
+    Dim Slots(3) As Long, i As Long, Num As Long
+    Dim Background As New clsDX11Surface, Canvas As New clsDX11Surface
+    Dim Source As RECT, Bounds As RECT
+    If DD_ItemSurf Is Nothing Then Exit Sub
+    Slots(0) = GetPlayerShieldSlot(MyIndex)
+    Slots(1) = GetPlayerArmorSlot(MyIndex)
+    Slots(2) = GetPlayerWeaponSlot(MyIndex)
+    Slots(3) = GetPlayerHelmetSlot(MyIndex)
+    Background.LoadFromFile App.Path & "\Gfx\Character.jpg"
+    Canvas.Create 32, 32
+    Bounds.Right = 32
+    Bounds.Bottom = 32
     For i = 0 To 3
-        If Equip(i) <> 0 Then
-            Call GetItemPictureRect(Item(GetPlayerInvItemNum(MyIndex, Equip(i))).Pic, rec)
-
-            With rec_pos
-                .top = 0
-                .Bottom = PIC_Y
-                .Left = 0
-                .Right = PIC_X
-            End With
-
-            If DD_ItemSurf Is Nothing Then
-            Else
-                DD_ItemSurf.BltToDC frmMainGame.Equip(i).hDC, rec, rec_pos
+        Source.Left = 45 + i * 45
+        Source.Top = 298
+        Source.Right = Source.Left + 32
+        Source.Bottom = Source.Top + 32
+        Canvas.Blt Bounds, Background, Source
+        frmMainGame.Equip(i).ToolTipText = "Empty"
+        If Slots(i) > 0 And Slots(i) <= MAX_INV Then
+            Num = GetPlayerInvItemNum(MyIndex, Slots(i))
+            If Num > 0 And Num <= MAX_ITEMS Then
+                GetItemPictureRect Item(Num).Pic, Source
+                Canvas.BltFast 0, 0, DD_ItemSurf, Source, True
+                frmMainGame.Equip(i).ToolTipText = Trim$(Item(Num).name) & " (Durability: " & GetPlayerInvItemDur(MyIndex, Slots(i)) & ")"
             End If
-        Else
-            frmMainGame.Equip(i).Picture = LoadPicture(vbNullString)
-
         End If
+        Canvas.BltToDC frmMainGame.Equip(i).hDC, Bounds, Bounds
         frmMainGame.Equip(i).Refresh
     Next i
 End Sub
@@ -583,10 +585,10 @@ Public Sub NpcEditorInit()
     frmNpcEditor.txtName.Text = Trim$(Npc(EditorIndex).name)
     frmNpcEditor.txtAttackSay.Text = Trim$(Npc(EditorIndex).AttackSay)
     frmNpcEditor.scrlSprite.Value = Npc(EditorIndex).Sprite
-    frmNpcEditor.txtSpawnSecs.Text = STR(Npc(EditorIndex).SpawnSecs)
+    frmNpcEditor.txtSpawnSecs.Text = Str(Npc(EditorIndex).SpawnSecs)
     frmNpcEditor.cmbBehavior.ListIndex = Npc(EditorIndex).Behavior
     frmNpcEditor.scrlRange.Value = Npc(EditorIndex).Range
-    frmNpcEditor.txtChance.Text = STR(Npc(EditorIndex).DropChance)
+    frmNpcEditor.txtChance.Text = Str(Npc(EditorIndex).DropChance)
     frmNpcEditor.scrlNum.Value = Npc(EditorIndex).DropItem
     frmNpcEditor.scrlValue.Value = Npc(EditorIndex).DropItemValue
     frmNpcEditor.scrlSTR.Value = Npc(EditorIndex).STR
@@ -719,7 +721,7 @@ Public Sub SpellEditorInit()
 
     frmSpellEditor.cmbClassReq.AddItem "All Classes"
     For i = 0 To Max_Classes
-        frmSpellEditor.cmbClassReq.AddItem Trim$(Class(i).name)
+        frmSpellEditor.cmbClassReq.AddItem Trim$(Class(i).Name)
     Next i
 
     frmSpellEditor.txtName.Text = Trim$(Spell(EditorIndex).name)
@@ -783,6 +785,14 @@ End Sub
 Public Sub SpellEditorCancel()
     InSpellEditor = False
     Unload frmSpellEditor
+End Sub
+
+Public Sub ArrowEditorInit()
+    frmArrowEditor.txtName.Text = Trim$(Arrow(EditorIndex).Name)
+    frmArrowEditor.scrlRange.Value = Arrow(EditorIndex).Range
+    frmArrowEditor.scrlSprite = Arrow(EditorIndex).Sprite
+
+    frmArrowEditor.Show vbModal
 End Sub
 
 

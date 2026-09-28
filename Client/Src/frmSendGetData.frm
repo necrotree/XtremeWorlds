@@ -1,21 +1,22 @@
 VERSION 5.00
-Begin VB.Form frmSendGetData 
+Begin VB.Form frmSendGetData
+   ScaleMode = 3 
    BackColor       =   &H00000000&
    BorderStyle     =   0  'None
    Caption         =   "Playerworlds"
-   ClientHeight    =   825
+   ClientHeight    =   960
    ClientLeft      =   5805
    ClientTop       =   5445
-   ClientWidth     =   4785
+   ClientWidth     =   5040
    ControlBox      =   0   'False
    Icon            =   "frmSendGetData.frx":0000
    KeyPreview      =   -1  'True
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   Picture         =   "frmSendGetData.frx":030C
-   ScaleHeight     =   825
-   ScaleWidth      =   4785
+   Picture = "frmSendGetData.frx":D190
+   ScaleHeight     =   64
+   ScaleWidth      =   336
    ShowInTaskbar   =   0   'False
    StartUpPosition =   2  'CenterScreen
    Begin VB.Label lblStatus 
@@ -31,11 +32,11 @@ Begin VB.Form frmSendGetData
          Strikethrough   =   0   'False
       EndProperty
       ForeColor       =   &H00FFFFFF&
-      Height          =   255
-      Left            =   360
+      Height          =   600
+      Left            =   225
       TabIndex        =   0
-      Top             =   300
-      Width           =   4095
+      Top             =   195
+      Width           =   4590
    End
 End
 Attribute VB_Name = "frmSendGetData"

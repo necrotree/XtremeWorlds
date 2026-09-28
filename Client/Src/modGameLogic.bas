@@ -75,6 +75,7 @@ Public Sub Main()
 
     Call SetStatus("Initializing TCP settings")
     Call TcpInit
+    frmMainMenu.RefreshWebsite
 
 ' Call SetStatus("Initializing FMod")
 ' If FileExist("data\Data.dat") Then
@@ -89,7 +90,7 @@ Public Sub Main()
 ' If FSOUND_Init(44100, 32, 0) = 0 Then
 ' FModInit = False
 ' 'Error
-' MsgBox "An error occured initializing fmod!  Sound will not play!" & vbCrLf & _
+' GameMsgBox "An error occured initializing fmod!  Sound will not play!" & vbCrLf & _
 ' FSOUND_GetErrorString(FSOUND_GetError), vbOKOnly
 ' End If
 ' FSOUND_SetVolume FSOUND_ALL, 0
@@ -311,11 +312,11 @@ Public Sub GameLoop()
                 End If
 
                 ' Draw map name
-                ' If Map.Moral = MAP_MORAL_NONE Then
-                ' Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.Name)) / 2) * 8), 1, Trim$(Map.Name), QBColor(BrightRed))
-                ' Else
-                ' Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.Name)) / 2) * 8), 1, Trim$(Map.Name), QBColor(White))
-                ' End If
+                 If Map.Moral = MAP_MORAL_NONE Then
+                    Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.name)) / 2) * 8), 1, Trim$(Map.name), QBColor(BrightRed))
+                 Else
+                    Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.name)) / 2) * 8), 1, Trim$(Map.name), QBColor(White))
+                 End If
 
                 ' Release DC
                 Call DD_BackBuffer.ReleaseDC(TexthDC)
@@ -383,6 +384,7 @@ Public Sub GameLoop()
                 BltMap
             End If
             MapAnimTimer = GetTickCount
+            If frmMainGame.picMnuGear.Visible Then frmMainGame.RefreshCharacterDetails
         End If
 
         ' Lock fps
@@ -410,7 +412,7 @@ Public Sub GameLoop()
 
     ' Report disconnection if server disconnects
     If IsConnected = False Then
-        Call MsgBox("Thank you for playing " & GAME_NAME & "!", vbOKOnly, GAME_NAME)
+        Call GameMsgBox("Thank you for playing " & GAME_NAME & "!", vbOKOnly, GAME_NAME)
         frmMainMenu.Visible = True
     End If
 
@@ -432,7 +434,7 @@ Sub ProcessMovement(ByVal index As Long)
         frmMainGame.lblSP(0) = "SP: " & Val(GetPlayerSP(MyIndex)) & "/" & Val(GetPlayerMaxSP(MyIndex))
         frmMainGame.lblSP(1) = frmMainGame.lblSP(0)
         If GetPlayerMaxSP(MyIndex) > 0 Then
-            frmMainGame.shpSP.Width = (GetPlayerSP(MyIndex) / GetPlayerMaxSP(MyIndex)) * 153
+            frmMainGame.shpSP.Width = (GetPlayerSP(MyIndex) / GetPlayerMaxSP(MyIndex)) * 211
         End If
     End If
 End Sub
@@ -650,7 +652,7 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
                 Call AddText("Social Commands:", HelpColor)
                 Call AddText("""msghere = Global Admin Message", HelpColor)
                 Call AddText("=msghere = Private Admin Message", HelpColor)
-                Call AddText("Available Commands: /admin, /loc, /mapeditor, /warpmeto, /warptome, /warpto, /setsprite, /playersprite, /signedit, /mapreport, /kick, /ban, /unban, /itemedit, /respawn, /npcedit, /motd, /shopedit, /spelledit, /guild", HelpColor)
+                Call AddText("Available Commands: /admin, /loc, /mapeditor, /warpmeto, /warptome, /warpto, /setsprite, /playersprite, /signedit, /mapreport, /kick, /ban, /unban, /itemedit, /respawn, /npcedit, /motd, /shopedit, /spelledit, /arrowedit, /guild", HelpColor)
                 MyText = vbNullString
                 Exit Sub
             End If
@@ -795,6 +797,13 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
                 MyText = vbNullString
                 Exit Sub
             End If
+            
+            ' Editing arrow request
+            If Mid$(MyText, 1, 10) = "/arrowedit" Then
+                Call SendRequestEdiArrow
+                MyText = vbNullString
+                Exit Sub
+            End If
 
             ' MOTD change
             If Mid$(MyText, 1, 5) = "/motd" Then
@@ -870,12 +879,6 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
                 ' Editing shop request
                 If Mid$(MyText, 1, 9) = "/shopedit" Then
                     Call SendRequestEditShop
-                    MyText = vbNullString
-                    Exit Sub
-                End If
-
-                If LCase$(Trim$(MyText)) = "/arrowedit" Then
-                    SendData "REQUESTARROWS" & END_CHAR
                     MyText = vbNullString
                     Exit Sub
                 End If
@@ -1152,51 +1155,19 @@ Public Function FindXY(X As Single, Y As Single)
 End Function
 
 Public Sub NewCharBltSprite(ByVal ListIndexSprite As Integer)
-    With rec
-        If frmMainMenu.optMale.Value = True Then
-            .Top = Int(Class(ListIndexSprite).Sprite) * PIC_Y
-        Else
-            .Top = Int(Class(ListIndexSprite).FSprite) * PIC_Y
-        End If
-        .Bottom = .Top + PIC_Y
-        .Left = 3 * PIC_X
-        .Right = .Left + PIC_X
-    End With
-
-    With rec_pos
-        .Top = 0
-        .Bottom = PIC_Y
-        .Left = 0
-        .Right = PIC_X
-    End With
-
-    If DD_SpriteSurf Is Nothing Then
+    Dim sprite As Long
+    If ListIndexSprite < 0 Or ListIndexSprite > Max_Classes Then Exit Sub
+    If frmMainMenu.optMale.Value Then
+        sprite = Class(ListIndexSprite).Sprite
     Else
-        DD_SpriteSurf.BltToDC frmMainMenu.picPic.hDC, rec, rec_pos
+        sprite = Class(ListIndexSprite).FSprite
     End If
-    frmMainMenu.picPic.Refresh
+    Set frmMainMenu.imgNewCharSprite.Picture = MenuSpritePicture(sprite)
+    Set frmMainMenu.imgClassSprite.Picture = frmMainMenu.imgNewCharSprite.Picture
 End Sub
 
 Public Sub BltPlayerCharSprite()
-    With rec
-        .Top = Int(TempCharSprite) * PIC_Y
-        .Bottom = .Top + PIC_Y
-        .Left = 3 * PIC_X
-        .Right = .Left + PIC_X
-    End With
-
-    With rec_pos
-        .Top = 0
-        .Bottom = PIC_Y
-        .Left = 0
-        .Right = PIC_X
-    End With
-
-    If DD_SpriteSurf Is Nothing Then
-    Else
-        DD_SpriteSurf.BltToDC frmMainMenu.picPic.hDC, rec, rec_pos
-    End If
-    frmMainMenu.picPic.Refresh
+    Set frmMainMenu.imgNewCharSprite.Picture = MenuSpritePicture(TempCharSprite)
 End Sub
 
 Public Sub NpcEditorBltSprite()
@@ -1256,7 +1227,9 @@ Public Sub SpriteChangeBltSprite()
 End Sub
 
 Public Sub UpdateInventory()
-    Dim i As Long
+    Dim i As Long, SelectedSlot As Long
+    SelectedSlot = frmMainGame.lstInv.ListIndex
+    If SelectedSlot < 0 Or SelectedSlot >= MAX_INV Then SelectedSlot = 0
 
     frmMainGame.lstInv.Clear
 
@@ -1278,7 +1251,8 @@ Public Sub UpdateInventory()
         End If
     Next i
 
-    frmMainGame.lstInv.ListIndex = 0
+    frmMainGame.lstInv.ListIndex = SelectedSlot
+    If frmMainGame.picMnuGear.Visible Then BltPlayerGear
 End Sub
 
 ' Sub ResizeGUI()
@@ -1320,9 +1294,7 @@ Public Sub GrabHD()
 End Sub
 
 Sub AdminPanel()
-    If GetPlayerAccess(MyIndex) > 0 Then
-        frmMainGame.Width = 13545
-    End If
+
     Select Case GetPlayerAccess(MyIndex)
         Case ADMIN_MONITER
             frmMainGame.fraPlayer.Visible = True
@@ -1360,6 +1332,7 @@ Sub AdminPanel()
         frmMainGame.fralvl3.Visible = True
         frmMainGame.fralvl4.Visible = True
     End If
+    Call frmMainGame.LayoutGamePanels
 End Sub
 
 Public Sub vbDABLDraw16(surface As clsDX11Surface, srcRect As RECT, X As Long, Y As Long, alphaval As Long, ScreenWidth As Integer, ScreenHeight As Integer, Optional Clip As Boolean = True)

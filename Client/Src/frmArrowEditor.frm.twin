@@ -9,33 +9,8 @@ Private Sub Form_Load()
     Dim i As Long
     ArrowEditorActive = True
     mBusy = True
-    For i = 1 To MAX_ARROWS
-        cmbArrow.AddItem "Arrow " & CStr(i)
-    Next
     If Not DD_ArrowSurf Is Nothing Then scrlSprite.Max = DD_ArrowSurf.Height \ PIC_Y - 1
     mBusy = False
-    cmbArrow.ListIndex = 0
-End Sub
-
-Private Sub cmbArrow_Click()
-    Dim number As Long
-    If mBusy Or cmbArrow.ListIndex < 0 Then Exit Sub
-    number = cmbArrow.ListIndex + 1
-    mBusy = True
-    txtName.Text = Arrows(number).Name
-    If Arrows(number).Sprite >= 0 And Arrows(number).Sprite <= scrlSprite.Max Then
-        scrlSprite.Value = Arrows(number).Sprite
-    Else
-        scrlSprite.Value = 0
-    End If
-    If Arrows(number).Range >= 1 And Arrows(number).Range <= 32 Then
-        scrlRange.Value = Arrows(number).Range
-    Else
-        scrlRange.Value = 8
-    End If
-    mBusy = False
-    lblStatus.Caption = vbNullString
-    DrawPreview
 End Sub
 
 Private Sub scrlSprite_Change()
@@ -77,24 +52,22 @@ Private Sub cmdOk_Click()
 End Sub
 
 Private Sub SaveArrow()
-    Dim number As Long
-    If mSaving Or cmbArrow.ListIndex < 0 Then Exit Sub
+    If mSaving Then Exit Sub
     If InStr(txtName.Text, SEP_CHAR) > 0 Or InStr(txtName.Text, END_CHAR) > 0 Then
-        MsgBox "The name contains an unsupported character.", vbExclamation
+        GameMsgBox "The name contains an unsupported character.", vbExclamation
         Exit Sub
     End If
-    number = cmbArrow.ListIndex + 1
     mSaving = True
     SetEditingEnabled False
-    lblStatus.Caption = "Saving arrow " & number & "..."
-    SendData "SAVEARROW" & SEP_CHAR & number & SEP_CHAR & scrlSprite.Value & SEP_CHAR & scrlRange.Value & SEP_CHAR & Trim$(txtName.Text) & END_CHAR
+    lblStatus.Caption = "Saving arrow " & EditorIndex & "..."
+    SendData "SAVEARROW" & SEP_CHAR & EditorIndex & SEP_CHAR & scrlSprite.Value & SEP_CHAR & scrlRange.Value & SEP_CHAR & Trim$(txtName.Text) & END_CHAR
 End Sub
 
 Public Sub SaveComplete(ByVal number As Long)
-    If Not mSaving Or number <> cmbArrow.ListIndex + 1 Then Exit Sub
-    Arrows(number).Name = Trim$(txtName.Text)
-    Arrows(number).Sprite = scrlSprite.Value
-    Arrows(number).Range = scrlRange.Value
+    If Not mSaving Then Exit Sub
+    Arrow(number).Name = Trim$(txtName.Text)
+    Arrow(number).Sprite = scrlSprite.Value
+    Arrow(number).Range = scrlRange.Value
     mSaving = False
     SetEditingEnabled True
     lblStatus.Caption = "Arrow " & number & " saved."
@@ -102,7 +75,6 @@ Public Sub SaveComplete(ByVal number As Long)
 End Sub
 
 Private Sub SetEditingEnabled(ByVal enabled As Boolean)
-    cmbArrow.Enabled = enabled
     txtName.Enabled = enabled
     scrlSprite.Enabled = enabled
     scrlRange.Enabled = enabled

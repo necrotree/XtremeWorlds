@@ -70,7 +70,7 @@ Public Sub PlayMidi(Song As Integer)
     End If
 
     If Not FileExist(FilePath, True) Then
-        MsgBox "Music file " & Song & " doesn't exist"
+        GameMsgBox "Music file " & Song & " doesn't exist"
         Exit Sub
     End If
 
@@ -79,12 +79,12 @@ Public Sub PlayMidi(Song As Integer)
         ' Loading was successful
         If FMUSIC_PlaySong(songHandle) = 0 Then
             ' Something went wrong
-            MsgBox "An error occured playing the song!" & vbCrLf & _
+            GameMsgBox "An error occured playing the song!" & vbCrLf & _
                     FSOUND_GetErrorString(FSOUND_GetError), vbOKOnly
         End If
     Else
         ' Something went wrong
-        MsgBox "An error occured opening the song!" & vbCrLf & _
+        GameMsgBox "An error occured opening the song!" & vbCrLf & _
                 FSOUND_GetErrorString(FSOUND_GetError), vbOKOnly
     End If
     CurrentSong = Song
@@ -117,7 +117,7 @@ Public Sub PlayMP3(Song As Integer)
     End If
 
     If Not FileExist(FilePath, True) Then
-        MsgBox "Music file " & Song & " doesn't exist"
+        GameMsgBox "Music file " & Song & " doesn't exist"
         Exit Sub
     End If
 
@@ -126,11 +126,11 @@ Public Sub PlayMP3(Song As Integer)
         StreamChannel = FSOUND_Stream_Play(FSOUND_FREE, streamHandle)
         If StreamChannel = 0 Then
             ' Error occured
-            MsgBox "An error occured playing the stream!" & vbCrLf & _
+            GameMsgBox "An error occured playing the stream!" & vbCrLf & _
                     FSOUND_GetErrorString(FSOUND_GetError), vbOKOnly
         End If
     Else
-        MsgBox "An error occured opening the stream!" & vbCrLf & _
+        GameMsgBox "An error occured opening the stream!" & vbCrLf & _
                 FSOUND_GetErrorString(FSOUND_GetError), vbOKOnly
         Exit Sub
     End If
