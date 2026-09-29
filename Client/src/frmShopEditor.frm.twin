@@ -1,0 +1,48 @@
+[FormDesignerId("88B5183D-8B55-432E-8BA6-95D6668AB75D")]
+[ClassId("60AE2FDE-314B-4BDB-B390-DAB58A66C8B6")]
+[InterfaceId("D350F73B-6CAA-40FB-BFEF-2102018DB0A3")]
+[EventInterfaceId("A1779747-F2DE-4ECF-BDD2-977737889A07")]
+Class frmShopEditor
+    Attribute VB_Name = "frmShopEditor"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub cmbItemGive_KeyUp(KeyCode As Integer, Shift As Integer)
+    
+        If cmbItemGive.ListIndex > 0 Then
+            cmbitem2Give.Enabled = True
+            txtItem2GiveValue.Enabled = True
+        Else
+            cmbitem2Give.Enabled = False
+            txtItem2GiveValue.Enabled = False
+        End If
+    
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        Call ShopEditorOk
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Call ShopEditorCancel
+    End Sub
+    
+    Private Sub cmdUpdate_Click()
+        Dim index As Long
+    
+        index = lstTradeItem.ListIndex + 1
+        Shop(EditorIndex).TradeItem(index).GiveItem = cmbItemGive.ListIndex
+        Shop(EditorIndex).TradeItem(index).GiveValue = Val(txtItemGiveValue.Text)
+        Shop(EditorIndex).TradeItem(index).GiveItem2 = cmbitem2Give.ListIndex
+        Shop(EditorIndex).TradeItem(index).GiveValue2 = Val(txtItem2GiveValue.Text)
+        Shop(EditorIndex).TradeItem(index).GetItem = cmbItemGet.ListIndex
+        Shop(EditorIndex).TradeItem(index).GetValue = Val(txtItemGetValue.Text)
+    
+        Call UpdateShopTrade
+    End Sub
+    
+
+End Class

@@ -141,6 +141,7 @@ Public InShopEditor As Boolean
 Public InSpellEditor As Boolean
 Public EditorIndex As Long
 Public InSignEditor As Boolean
+Public InArrowEditor As Boolean
 
 ' Game fps
 Public GameFPS As Long

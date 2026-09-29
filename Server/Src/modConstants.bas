@@ -69,6 +69,10 @@ Public MAX_SPELLS As Long
 Public MAX_SIGNS As Long
 Public MAX_GUILDS As Long
 Public MAX_QUESTS As Long
+Public MAX_ARROWS As Long
+Public MAX_GUILD_MEMBERS As Long
+Public MAX_QUEST_PLAYERS As Long
+Public Const MAX_PROJECTILES = 256
 Public Const MAX_PLAYERS_SET = 100
 Public Const BASE_MAX_ITEMS = 500
 Public Const BASE_MAX_NPCS = 500
@@ -81,9 +85,7 @@ Public Const BASE_MAX_SPELLS = 500
 Public Const BASE_MAX_SIGNS = 500
 Public Const MAX_TRADES = 8
 Public Const MAX_GUILDS_SET = 20
-Public MAX_GUILD_MEMBERS As Long
-Public MAX_QUEST_PLAYERS As Long
-Public MAX_ARROWS As Long
+Public COnst BASE_MAX_ARROWS = 100
 
 Public Const NO = 0
 Public Const YES = 1

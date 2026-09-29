@@ -4,7 +4,7 @@ Public GameServer As clsServer
 
 Sub UpdateCaption()
     frmServer.Caption = GAME_NAME & " :: Server"
-    frmServer.txtPort.Text = STR$(GameServer.LocalPort)
+    frmServer.txtPort.Text = Str$(GameServer.LocalPort)
     frmServer.txtOnline.Text = TotalOnlinePlayers
 End Sub
 
@@ -303,7 +303,7 @@ Sub IncomingData(ByVal Socket As clsNativeConnection, ByVal Data As clsNativePac
     DataLength = Len(Buffer)
     Index = CLng(Socket.UserData)
     If Buffer = "top" Then
-        top = STR(TotalOnlinePlayers)
+        top = Str(TotalOnlinePlayers)
         Call SendDataTo(Index, top)
         Call CloseSocket(Index)
     End If
@@ -396,7 +396,7 @@ Sub SendChars(ByVal Index As Long)
 
     Packet = "ALLCHARS" & SEP_CHAR
     For I = 1 To MAX_CHARS
-        Packet = Packet & Trim$(Player(Index).Char(I).name) & SEP_CHAR & Trim$(Class(Player(Index).Char(I).Class).name) & SEP_CHAR & Player(Index).Char(I).Level & SEP_CHAR & Player(Index).Char(I).Sprite & SEP_CHAR
+        Packet = Packet & Trim$(Player(Index).Char(I).Name) & SEP_CHAR & Trim$(Class(Player(Index).Char(I).Class).Name) & SEP_CHAR & Player(Index).Char(I).Level & SEP_CHAR & Player(Index).Char(I).Sprite & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
 
@@ -444,7 +444,7 @@ Sub SendMap(ByVal Index As Long, ByVal MapNum As Long)
     Dim X As Long
     Dim y As Long
 
-    Packet = "MAPDATA" & SEP_CHAR & MapNum & SEP_CHAR & Trim$(Map(MapNum).name) & SEP_CHAR & Map(MapNum).Revision & SEP_CHAR & Map(MapNum).Moral & SEP_CHAR & Map(MapNum).Up & SEP_CHAR & Map(MapNum).Down & SEP_CHAR & Map(MapNum).Left & SEP_CHAR & Map(MapNum).Right & SEP_CHAR & Map(MapNum).Music & SEP_CHAR & Map(MapNum).BootMap & SEP_CHAR & Map(MapNum).BootX & SEP_CHAR & Map(MapNum).BootY & SEP_CHAR & Map(MapNum).Shop & SEP_CHAR
+    Packet = "MAPDATA" & SEP_CHAR & MapNum & SEP_CHAR & Trim$(Map(MapNum).Name) & SEP_CHAR & Map(MapNum).Revision & SEP_CHAR & Map(MapNum).Moral & SEP_CHAR & Map(MapNum).Up & SEP_CHAR & Map(MapNum).Down & SEP_CHAR & Map(MapNum).Left & SEP_CHAR & Map(MapNum).Right & SEP_CHAR & Map(MapNum).Music & SEP_CHAR & Map(MapNum).BootMap & SEP_CHAR & Map(MapNum).BootX & SEP_CHAR & Map(MapNum).BootY & SEP_CHAR & Map(MapNum).Shop & SEP_CHAR
 
     For y = 0 To MAX_MAPY
         For X = 0 To MAX_MAPX
@@ -523,7 +523,7 @@ Sub SendItems(ByVal Index As Long)
     Dim I As Long
 
     For I = 1 To MAX_ITEMS
-        If Trim$(Item(I).name) <> "" Then
+        If Trim$(Item(I).Name) <> "" Then
             Call SendUpdateItemTo(Index, I)
         End If
     Next I
@@ -534,7 +534,7 @@ Sub SendNpcs(ByVal Index As Long)
     Dim I As Long
 
     For I = 1 To MAX_NPCS
-        If Trim$(Npc(I).name) <> "" Then
+        If Trim$(Npc(I).Name) <> "" Then
             Call SendUpdateNpcTo(Index, I)
         End If
     Next I
@@ -653,49 +653,49 @@ End Sub
 Sub SendUpdateItemToAll(ByVal ItemNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATEITEM" & SEP_CHAR & ItemNum & SEP_CHAR & Trim$(Item(ItemNum).name) & SEP_CHAR & Item(ItemNum).Pic & SEP_CHAR & Item(ItemNum).Type & SEP_CHAR & Item(ItemNum).Data1 & SEP_CHAR & Item(ItemNum).Data2 & SEP_CHAR & Item(ItemNum).Data3 & END_CHAR
+    Packet = "UPDATEITEM" & SEP_CHAR & ItemNum & SEP_CHAR & Trim$(Item(ItemNum).Name) & SEP_CHAR & Item(ItemNum).Pic & SEP_CHAR & Item(ItemNum).Type & SEP_CHAR & Item(ItemNum).Data1 & SEP_CHAR & Item(ItemNum).Data2 & SEP_CHAR & Item(ItemNum).Data3 & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateItemTo(ByVal Index As Long, ByVal ItemNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATEITEM" & SEP_CHAR & ItemNum & SEP_CHAR & Trim(Item(ItemNum).name) & SEP_CHAR & Item(ItemNum).Pic & SEP_CHAR & Item(ItemNum).Type & SEP_CHAR & Item(ItemNum).Data1 & SEP_CHAR & Item(ItemNum).Data2 & SEP_CHAR & Item(ItemNum).Data3 & END_CHAR
+    Packet = "UPDATEITEM" & SEP_CHAR & ItemNum & SEP_CHAR & Trim(Item(ItemNum).Name) & SEP_CHAR & Item(ItemNum).Pic & SEP_CHAR & Item(ItemNum).Type & SEP_CHAR & Item(ItemNum).Data1 & SEP_CHAR & Item(ItemNum).Data2 & SEP_CHAR & Item(ItemNum).Data3 & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
 Sub SendUpdateGuildToAll(ByVal GuildNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATEGUILD" & SEP_CHAR & GuildNum & SEP_CHAR & Trim$(Guild(GuildNum).name) & SEP_CHAR & Trim$(Guild(GuildNum).Abbreviation) & SEP_CHAR & Trim$(Guild(GuildNum).Founder) & END_CHAR
+    Packet = "UPDATEGUILD" & SEP_CHAR & GuildNum & SEP_CHAR & Trim$(Guild(GuildNum).Name) & SEP_CHAR & Trim$(Guild(GuildNum).Abbreviation) & SEP_CHAR & Trim$(Guild(GuildNum).Founder) & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateGuildTo(ByVal Index As Long, ByVal GuildNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATEGUILD" & SEP_CHAR & GuildNum & SEP_CHAR & Trim$(Guild(GuildNum).name) & SEP_CHAR & Trim$(Guild(GuildNum).Abbreviation) & SEP_CHAR & Trim$(Guild(GuildNum).Founder) & END_CHAR
+    Packet = "UPDATEGUILD" & SEP_CHAR & GuildNum & SEP_CHAR & Trim$(Guild(GuildNum).Name) & SEP_CHAR & Trim$(Guild(GuildNum).Abbreviation) & SEP_CHAR & Trim$(Guild(GuildNum).Founder) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
 Sub SendEditItemTo(ByVal Index As Long, ByVal ItemNum As Long)
     Dim Packet As String
 
-    Packet = "EDITITEM" & SEP_CHAR & ItemNum & SEP_CHAR & Trim$(Item(ItemNum).name) & SEP_CHAR & Item(ItemNum).Pic & SEP_CHAR & Item(ItemNum).Type & SEP_CHAR & Item(ItemNum).Data1 & SEP_CHAR & Item(ItemNum).Data2 & SEP_CHAR & Item(ItemNum).Data3 & END_CHAR
+    Packet = "EDITITEM" & SEP_CHAR & ItemNum & SEP_CHAR & Trim$(Item(ItemNum).Name) & SEP_CHAR & Item(ItemNum).Pic & SEP_CHAR & Item(ItemNum).Type & SEP_CHAR & Item(ItemNum).Data1 & SEP_CHAR & Item(ItemNum).Data2 & SEP_CHAR & Item(ItemNum).Data3 & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
 Sub SendUpdateNpcToAll(ByVal NpcNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATENPC" & SEP_CHAR & NpcNum & SEP_CHAR & Trim$(Npc(NpcNum).name) & SEP_CHAR & Npc(NpcNum).Sprite & END_CHAR
+    Packet = "UPDATENPC" & SEP_CHAR & NpcNum & SEP_CHAR & Trim$(Npc(NpcNum).Name) & SEP_CHAR & Npc(NpcNum).Sprite & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateNpcTo(ByVal Index As Long, ByVal NpcNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATENPC" & SEP_CHAR & NpcNum & SEP_CHAR & Trim$(Npc(NpcNum).name) & SEP_CHAR & Npc(NpcNum).Sprite & END_CHAR
+    Packet = "UPDATENPC" & SEP_CHAR & NpcNum & SEP_CHAR & Trim$(Npc(NpcNum).Name) & SEP_CHAR & Npc(NpcNum).Sprite & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -706,7 +706,7 @@ End Sub
 Sub SendEditNpcTo(ByVal Index As Long, ByVal NpcNum As Long)
     Dim Packet As String
 
-    Packet = "EDITNPC" & SEP_CHAR & NpcNum & SEP_CHAR & Trim$(Npc(NpcNum).name) & SEP_CHAR & Trim$(Npc(NpcNum).AttackSay) & SEP_CHAR & Npc(NpcNum).Sprite & SEP_CHAR & Npc(NpcNum).SpawnSecs & SEP_CHAR & Npc(NpcNum).Behavior & SEP_CHAR & Npc(NpcNum).Range & SEP_CHAR & Npc(NpcNum).DropChance & SEP_CHAR & Npc(NpcNum).DropItem & SEP_CHAR & Npc(NpcNum).DropItemValue & SEP_CHAR & Npc(NpcNum).STR & SEP_CHAR & Npc(NpcNum).DEF & SEP_CHAR & Npc(NpcNum).SPEED & SEP_CHAR & Npc(NpcNum).MAGI & SEP_CHAR & Npc(NpcNum).MaxHP & SEP_CHAR & Npc(NpcNum).GiveEXP & SEP_CHAR & Npc(NpcNum).ShopCall & END_CHAR
+    Packet = "EDITNPC" & SEP_CHAR & NpcNum & SEP_CHAR & Trim$(Npc(NpcNum).Name) & SEP_CHAR & Trim$(Npc(NpcNum).AttackSay) & SEP_CHAR & Npc(NpcNum).Sprite & SEP_CHAR & Npc(NpcNum).SpawnSecs & SEP_CHAR & Npc(NpcNum).Behavior & SEP_CHAR & Npc(NpcNum).Range & SEP_CHAR & Npc(NpcNum).DropChance & SEP_CHAR & Npc(NpcNum).DropItem & SEP_CHAR & Npc(NpcNum).DropItemValue & SEP_CHAR & Npc(NpcNum).STR & SEP_CHAR & Npc(NpcNum).DEF & SEP_CHAR & Npc(NpcNum).SPEED & SEP_CHAR & Npc(NpcNum).MAGI & SEP_CHAR & Npc(NpcNum).MaxHP & SEP_CHAR & Npc(NpcNum).GiveEXP & SEP_CHAR & Npc(NpcNum).ShopCall & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -715,16 +715,6 @@ Sub SendExp(ByVal Index As Long)
     Dim N, f As Byte
 
     Packet = "PLAYEREXP" & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & END_CHAR
-    Call SendDataTo(Index, Packet)
-
-
-    N = Int(GetPlayerSTR(Index) / 2) + Int(GetPlayerLevel(Index) / 2)
-    f = Int(GetPlayerDEF(Index) / 2) + Int(GetPlayerLevel(Index) / 2)
-    If N > 100 Then N = 100
-    If f > 100 Then f = 100
-
-    Packet = "LIVESTATS" & SEP_CHAR & GetPlayerLevel(Index) & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & SEP_CHAR & N & SEP_CHAR & f & SEP_CHAR & GetPlayerPOINTS(Index) & END_CHAR
-
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -739,7 +729,7 @@ Sub SendShops(ByVal Index As Long)
     Dim I As Long
 
     For I = 1 To MAX_SHOPS
-        If Trim$(Shop(I).name) <> "" Then
+        If Trim$(Shop(I).Name) <> "" Then
             Call SendUpdateShopTo(Index, I)
         End If
     Next I
@@ -748,14 +738,14 @@ End Sub
 Sub SendUpdateShopToAll(ByVal ShopNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESHOP" & SEP_CHAR & ShopNum & SEP_CHAR & Trim$(Shop(ShopNum).name) & END_CHAR
+    Packet = "UPDATESHOP" & SEP_CHAR & ShopNum & SEP_CHAR & Trim$(Shop(ShopNum).Name) & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateShopTo(ByVal Index As Long, ByVal ShopNum)
     Dim Packet As String
 
-    Packet = "UPDATESHOP" & SEP_CHAR & ShopNum & SEP_CHAR & Trim$(Shop(ShopNum).name) & END_CHAR
+    Packet = "UPDATESHOP" & SEP_CHAR & ShopNum & SEP_CHAR & Trim$(Shop(ShopNum).Name) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -763,7 +753,7 @@ Sub SendEditShopTo(ByVal Index As Long, ByVal ShopNum As Long)
     Dim Packet As String
     Dim I As Long
 
-    Packet = "EDITSHOP" & SEP_CHAR & ShopNum & SEP_CHAR & Trim$(Shop(ShopNum).name) & SEP_CHAR & Trim$(Shop(ShopNum).JoinSay) & SEP_CHAR & Trim$(Shop(ShopNum).LeaveSay) & SEP_CHAR & Shop(ShopNum).FixesItems & SEP_CHAR
+    Packet = "EDITSHOP" & SEP_CHAR & ShopNum & SEP_CHAR & Trim$(Shop(ShopNum).Name) & SEP_CHAR & Trim$(Shop(ShopNum).JoinSay) & SEP_CHAR & Trim$(Shop(ShopNum).LeaveSay) & SEP_CHAR & Shop(ShopNum).FixesItems & SEP_CHAR
     For I = 1 To MAX_TRADES
         Packet = Packet & Shop(ShopNum).TradeItem(I).GiveItem & SEP_CHAR & Shop(ShopNum).TradeItem(I).GiveValue & SEP_CHAR & Shop(ShopNum).TradeItem(I).GetItem & SEP_CHAR & Shop(ShopNum).TradeItem(I).GetValue & SEP_CHAR & Shop(ShopNum).TradeItem(I).GiveItem2 & SEP_CHAR & Shop(ShopNum).TradeItem(I).GiveValue2 & SEP_CHAR
     Next I
@@ -776,7 +766,7 @@ Sub SendSpells(ByVal Index As Long)
     Dim I As Long
 
     For I = 1 To MAX_SPELLS
-        If Trim$(Spell(I).name) <> "" Then
+        If Trim$(Spell(I).Name) <> "" Then
             Call SendUpdateSpellTo(Index, I)
         End If
     Next I
@@ -786,7 +776,7 @@ Sub SendGuilds(ByVal Index As Long)
     Dim I As Long
 
     For I = 1 To MAX_GUILDS
-        If Trim$(Guild(I).name) <> vbNullString Then
+        If Trim$(Guild(I).Name) <> vbNullString Then
             Call SendUpdateGuildTo(Index, I)
         End If
     Next I
@@ -795,14 +785,14 @@ End Sub
 Sub SendUpdateSpellToAll(ByVal SpellNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).name) & END_CHAR
+    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateSpellTo(ByVal Index As Long, ByVal SpellNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).name) & END_CHAR
+    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -810,7 +800,7 @@ Sub SendEditSpellTo(ByVal Index As Long, ByVal SpellNum As Long)
     Call SendSpellDelivery(Index, SpellNum)
     Dim Packet As String
 
-    Packet = "EDITSPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).name) & SEP_CHAR & Spell(SpellNum).ClassReq & SEP_CHAR & Spell(SpellNum).LevelReq & SEP_CHAR & Spell(SpellNum).Type & SEP_CHAR & Spell(SpellNum).Data1 & SEP_CHAR & Spell(SpellNum).Data2 & SEP_CHAR & Spell(SpellNum).Data3 & SEP_CHAR & Spell(SpellNum).Graphic & SEP_CHAR & Spell(SpellNum).MPReq & END_CHAR
+    Packet = "EDITSPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & SEP_CHAR & Spell(SpellNum).ClassReq & SEP_CHAR & Spell(SpellNum).LevelReq & SEP_CHAR & Spell(SpellNum).Type & SEP_CHAR & Spell(SpellNum).Data1 & SEP_CHAR & Spell(SpellNum).Data2 & SEP_CHAR & Spell(SpellNum).Data3 & SEP_CHAR & Spell(SpellNum).Graphic & SEP_CHAR & Spell(SpellNum).MPReq & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -832,9 +822,9 @@ Sub SendTrade(ByVal Index As Long, ByVal ShopNum As Long)
                 y = Spell(Item(X).Data1).ClassReq
 
                 If y = 0 Then
-                    Call PlayerMsg(Index, Trim$(Item(X).name) & " can be used by all classes.", Yellow)
+                    Call PlayerMsg(Index, Trim$(Item(X).Name) & " can be used by all classes.", Yellow)
                 Else
-                    Call PlayerMsg(Index, Trim$(Item(X).name) & " can only be used by a " & GetClassName(y - 1) & ".", Yellow)
+                    Call PlayerMsg(Index, Trim$(Item(X).Name) & " can only be used by a " & GetClassName(y - 1) & ".", Yellow)
                 End If
             End If
         End If
@@ -891,7 +881,7 @@ End Sub
 Sub SendMaxes(ByVal Index As Long)
     Dim Packet As String
 
-    Packet = "SENDMAXES" & SEP_CHAR & MAX_NPCS & SEP_CHAR & MAX_ITEMS & SEP_CHAR & MAX_PLAYERS & SEP_CHAR & MAX_SHOPS & SEP_CHAR & MAX_SPELLS & SEP_CHAR & MAX_SIGNS & SEP_CHAR & MAX_MAPS_SET & SEP_CHAR & MAX_GUILDS & SEP_CHAR & MAX_GUILD_MEMBERS & END_CHAR
+    Packet = "SENDMAXES" & SEP_CHAR & MAX_NPCS & SEP_CHAR & MAX_ITEMS & SEP_CHAR & MAX_PLAYERS & SEP_CHAR & MAX_SHOPS & SEP_CHAR & MAX_SPELLS & SEP_CHAR & MAX_SIGNS & SEP_CHAR & MAX_MAPS_SET & SEP_CHAR & MAX_GUILDS & SEP_CHAR & MAX_GUILD_MEMBERS & SEP_CHAR & MAX_ARROWS & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -935,7 +925,7 @@ Sub SendSign(ByVal Index As Long)
     Dim I As Long
 
     For I = 1 To MAX_SIGNS
-        If Trim(Sign(I).name) <> "" Then
+        If Trim(Sign(I).Name) <> "" Then
             Call SendUpdateSignTo(Index, I)
         End If
     Next I
@@ -944,28 +934,28 @@ End Sub
 Sub SendUpdateSignToAll(ByVal SignNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).name) & END_CHAR
+    Packet = "UPDATESIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).Name) & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateSignTo(ByVal Index As Long, ByVal SignNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).name) & END_CHAR
+    Packet = "UPDATESIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).Name) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
 Sub SendEditSignTo(ByVal Index As Long, ByVal SignNum As Long)
     Dim Packet As String
 
-    Packet = "EDITSIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).name) & SEP_CHAR & Trim$(Sign(SignNum).Background) & SEP_CHAR & Trim$(Sign(SignNum).Line1) & SEP_CHAR & Trim$(Sign(SignNum).Line2) & SEP_CHAR & Trim$(Sign(SignNum).Line3) & END_CHAR
+    Packet = "EDITSIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).Name) & SEP_CHAR & Trim$(Sign(SignNum).Background) & SEP_CHAR & Trim$(Sign(SignNum).Line1) & SEP_CHAR & Trim$(Sign(SignNum).Line2) & SEP_CHAR & Trim$(Sign(SignNum).Line3) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
 Sub SendSignTo(ByVal Index As Long, ByVal SignNum As Long)
     Dim Packet As String
 
-    Packet = "SIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).name) & SEP_CHAR & Trim$(Sign(SignNum).Background) & SEP_CHAR & Trim$(Sign(SignNum).Line1) & SEP_CHAR & Trim$(Sign(SignNum).Line2) & SEP_CHAR & Trim$(Sign(SignNum).Line3) & END_CHAR
+    Packet = "SIGN" & SEP_CHAR & SignNum & SEP_CHAR & Trim$(Sign(SignNum).Name) & SEP_CHAR & Trim$(Sign(SignNum).Background) & SEP_CHAR & Trim$(Sign(SignNum).Line1) & SEP_CHAR & Trim$(Sign(SignNum).Line2) & SEP_CHAR & Trim$(Sign(SignNum).Line3) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -1021,4 +1011,11 @@ Sub SendPlayerStats(ByVal Index As Long)
     Call SendWornEquipment(Index)
     Call SendPlayerData(Index)
 
+End Sub
+
+Sub SendEditArrowTo(ByVal Index As Long, ByVal arrowNum As Long)
+    Dim Packet As String
+
+    Packet = "EDITARROW" & SEP_CHAR & arrowNum & SEP_CHAR & Trim$(Arrow(arrowNum).Name) & SEP_CHAR & Trim$(Arrow(arrowNum).Range) & SEP_CHAR & Arrow(arrowNum).Sprite & END_CHAR
+    Call SendDataTo(Index, Packet)
 End Sub

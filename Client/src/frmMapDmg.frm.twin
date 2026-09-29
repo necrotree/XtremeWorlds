@@ -1,0 +1,32 @@
+[FormDesignerId("AA6B6973-0DB0-4FBA-969B-4020B0F398B6")]
+[ClassId("F4BED95C-289C-43B9-A09F-80D210F44039")]
+[InterfaceId("70E26383-24E7-4A27-A421-409DE3080A6C")]
+[EventInterfaceId("843012ED-119E-48FA-AABA-6E9F09A428D6")]
+Class frmMapDmg
+    Attribute VB_Name = "frmMapDmg"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        KillValue = scrlDamage.Value
+        KillVoidItem = scrlItem.Value
+        Unload Me
+    End Sub
+    
+    Private Sub scrlDamage_Change()
+        lblDamage.Caption = Trim$(scrlDamage.Value)
+    End Sub
+    
+    Private Sub scrlItem_Change()
+        lblItem.Caption = STR$(scrlItem.Value)
+        lblName.Caption = Trim$(Item(scrlItem.Value).name)
+    End Sub
+    
+    
+
+End Class

@@ -690,3 +690,15 @@ Public Sub EnsureDataFolders(ByVal root As String)
         End If
     Next folder
 End Sub
+
+Public Sub WriteArrowRec(ByVal file As clsDataFile, ByRef value As ArrowRec)
+    file.WriteText value.Name, NAME_LENGTH
+    file.WriteLong value.Range()
+    file.WriteLong value.Sprite()
+End Sub
+
+Public Sub ReadArrowRec(ByVal file As clsDataFile, ByRef value As ArrowRec)
+    value.Name = file.ReadText(NAME_LENGTH)
+    value.Range = file.ReadLong()
+    value.Sprite = file.ReadLong()
+End Sub

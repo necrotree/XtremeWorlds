@@ -1,0 +1,107 @@
+[FormDesignerId("C2E070EB-5518-4DF4-BABA-BC5649909F8C")]
+[ClassId("D0DC3254-78E3-4173-8B81-91ECCA19A967")]
+[InterfaceId("B5624166-DE28-4134-B735-2DF8D6DAC7E4")]
+[EventInterfaceId("35F901E9-650C-49E0-8728-FE62504F69FB")]
+Class frmMapProperties
+    Attribute VB_Name = "frmMapProperties"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub cmdStop_Click()
+        Call Audio.StopChannel(MusicHandle)
+    End Sub
+    
+    Private Sub cmdTest_Click()
+        If scrlMusic.Value = 0 Then
+            Exit Sub
+        Else
+            Call Audio.SwitchMusic(scrlMusic.Value)
+        End If
+    End Sub
+    
+    Private Sub Form_Load()
+        Dim X As Long, Y As Long, i As Long
+    
+        txtName.Text = Trim$(Map.name)
+        txtUp.Text = Str(Map.Up)
+        txtDown.Text = Str(Map.Down)
+        txtLeft.Text = Str(Map.Left)
+        txtRight.Text = Str(Map.Right)
+        cmbMoral.ListIndex = Map.Moral
+        scrlMusic.Value = Map.Music
+        txtBootMap.Text = Str(Map.BootMap)
+        txtBootX.Text = Str(Map.BootX)
+        txtBootY.Text = Str(Map.BootY)
+    
+        If Str(Map.Indoors) = 0 Then
+            optOutside.Value = True
+            optInside.Value = False
+        ElseIf Str(Map.Indoors) = 1 Then
+            optInside.Value = True
+            optOutside.Value = False
+        End If
+    
+        cmbShop.AddItem "No Shop"
+        For X = 1 To MAX_SHOPS
+            cmbShop.AddItem X & ": " & Trim$(Shop(X).name)
+        Next X
+        cmbShop.ListIndex = Map.Shop
+    
+        For X = 1 To MAX_MAP_NPCS
+            cmbNpc(X - 1).AddItem "No NPC"
+        Next X
+    
+        For Y = 1 To MAX_NPCS
+            For X = 1 To MAX_MAP_NPCS
+                cmbNpc(X - 1).AddItem Y & ": " & Trim$(Npc(Y).name)
+            Next X
+        Next Y
+    
+        For i = 1 To MAX_MAP_NPCS
+            cmbNpc(i - 1).ListIndex = Map.Npc(i)
+        Next i
+    End Sub
+    
+    Private Sub scrlMusic_Change()
+        lblMusic.Caption = Str(scrlMusic.Value)
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        Dim X As Long, Y As Long, i As Long
+    
+        Map.name = txtName.Text
+        Map.Up = Val(txtUp.Text)
+        Map.Down = Val(txtDown.Text)
+        Map.Left = Val(txtLeft.Text)
+        Map.Right = Val(txtRight.Text)
+        Map.Moral = cmbMoral.ListIndex
+        Map.Music = scrlMusic.Value
+        Map.BootMap = Val(txtBootMap.Text)
+        Map.BootX = Val(txtBootX.Text)
+        Map.BootY = Val(txtBootY.Text)
+        Map.Shop = cmbShop.ListIndex
+    
+        If optInside.Value = True Then
+            Map.Indoors = 1
+        ElseIf optOutside.Value = True Then
+            Map.Indoors = 0
+        End If
+    
+        For i = 1 To MAX_MAP_NPCS
+            Map.Npc(i) = cmbNpc(i - 1).ListIndex
+        Next i
+    
+        Call Audio.StopChannel(MusicHandle)
+        Unload Me
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    
+
+End Class

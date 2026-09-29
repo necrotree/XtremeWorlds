@@ -1,0 +1,98 @@
+[FormDesignerId("2F9766CC-FE5E-4939-B3D1-67FDD49EB783")]
+[ClassId("4B9F470E-B4BD-4F92-A25B-35118941EB62")]
+[InterfaceId("ECDA9E1A-2EF7-4EF8-BF39-C986B63F5C07")]
+[EventInterfaceId("2BBC2F71-E826-44CC-9EBE-E0E676373445")]
+Class frmDrop
+    Attribute VB_Name = "frmDrop"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Ammount As Long
+    
+    Private Sub Form_Load()
+        Me.Caption = GAME_NAME & " :: Drop Item"
+        Dim InvNum As Long
+    
+        Ammount = 1
+        InvNum = frmMainGame.lstInv.ListIndex + 1
+    
+        frmDrop.lblName = Trim$(Item(GetPlayerInvItemNum(MyIndex, InvNum)).name)
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        Dim InvNum As Long
+    
+        InvNum = frmMainGame.lstInv.ListIndex + 1
+    
+        Call SendDropItem(InvNum, Ammount)
+        Unload Me
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdPlus1_Click()
+        Ammount = Ammount + 1
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdMinus1_Click()
+        Ammount = Ammount - 1
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdPlus10_Click()
+        Ammount = Ammount + 10
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdMinus10_Click()
+        Ammount = Ammount - 10
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdPlus100_Click()
+        Ammount = Ammount + 100
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdMinus100_Click()
+        Ammount = Ammount - 100
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdPlus1000_Click()
+        Ammount = Ammount + 1000
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub cmdMinus1000_Click()
+        Ammount = Ammount - 1000
+        Call ProcessAmmount
+    End Sub
+    
+    Private Sub ProcessAmmount()
+        Dim InvNum As Long
+    
+        InvNum = frmMainGame.lstInv.ListIndex + 1
+    
+        ' Check if more then max and set back to max if so
+        If Ammount > GetPlayerInvItemValue(MyIndex, InvNum) Then
+            Ammount = GetPlayerInvItemValue(MyIndex, InvNum)
+        End If
+    
+        ' Make sure its not 0
+        If Ammount <= 0 Then
+            Ammount = 1
+        End If
+    
+        frmDrop.lblAmmount.Caption = Ammount & "/" & GetPlayerInvItemValue(MyIndex, InvNum)
+    End Sub
+    
+
+End Class

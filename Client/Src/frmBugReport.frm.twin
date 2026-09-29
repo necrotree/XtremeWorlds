@@ -3,6 +3,7 @@
 [InterfaceId("FE28C0FA-826E-4438-90A4-B554A6618F6A")]
 [EventInterfaceId("20E31626-DD08-41D1-BA7A-3AE6C8D9C709")]
 Class frmBugReport
+    Option Explicit Off
     Attribute VB_Name = "frmBugReport"
     Attribute VB_GlobalNameSpace = False
     Attribute VB_Creatable = False

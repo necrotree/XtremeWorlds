@@ -34,7 +34,6 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
     ' Handle Data
     Parse = Split(Data, SEP_CHAR)
-    If HandleProjectilePacket(Index, Parse) Then Exit Sub
 
     ' :::::::::::::::::::::::::::::::::::::::::::::::
     ' :: Requesting classes for making a character ::
@@ -129,8 +128,8 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
             ' Delete names from master name file
             Call LoadPlayer(Index, name)
             For I = 1 To MAX_CHARS
-                If Trim$(Player(Index).Char(I).name) <> "" Then
-                    Call DeleteName(Player(Index).Char(I).name)
+                If Trim$(Player(Index).Char(I).Name) <> "" Then
+                    Call DeleteName(Player(Index).Char(I).Name)
                 End If
             Next I
             Call ClearPlayer(Index)
@@ -771,8 +770,8 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                             Call PlayerMsg(Index, "Your attack does nothing.", BrightRed)
                         End If
                     Else
-                        Call PlayerMsg(Index, GetPlayerName(I) & "'s " & Trim$(Item(GetPlayerInvItemNum(I, GetPlayerShieldSlot(I))).name) & " has blocked your hit!", BrightCyan)
-                        Call PlayerMsg(I, "Your " & Trim$(Item(GetPlayerInvItemNum(I, GetPlayerShieldSlot(I))).name) & " has blocked " & GetPlayerName(Index) & "'s hit!", BrightCyan)
+                        Call PlayerMsg(Index, GetPlayerName(I) & "'s " & Trim$(Item(GetPlayerInvItemNum(I, GetPlayerShieldSlot(I))).Name) & " has blocked your hit!", BrightCyan)
+                        Call PlayerMsg(I, "Your " & Trim$(Item(GetPlayerInvItemNum(I, GetPlayerShieldSlot(I))).Name) & " has blocked " & GetPlayerName(Index) & "'s hit!", BrightCyan)
                     End If
 
                     Exit Sub
@@ -917,14 +916,12 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         SnPacket = "signnames"
         For Sn = 1 To MAX_SIGNS
-            SnPacket = SnPacket & SEP_CHAR & Trim(Sign(Sn).name)
+            SnPacket = SnPacket & SEP_CHAR & Trim(Sign(Sn).Name)
         Next Sn
         SnPacket = SnPacket & END_CHAR
         Call SendDataTo(Index, SnPacket)
 
         Call SendDataTo(Index, "SIGNEDITOR" & END_CHAR)
-
-
         Exit Sub
     End If
 
@@ -971,7 +968,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
 
         ' Update the sign
-        Sign(N).name = Trim$(Parse(2))
+        Sign(N).Name = Trim$(Parse(2))
         Sign(N).Background = Trim$(Parse(3))
         Sign(N).Line1 = Trim$(Parse(4))
         Sign(N).Line2 = Trim$(Parse(5))
@@ -1000,6 +997,64 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         ' Send sign info
         Call SendSignTo(Index, N)
+    End If
+    
+    ' ::::::::::::::::::::::
+    ' :: Edit arrow packet ::
+    ' ::::::::::::::::::::::
+    If LCase(Parse(0)) = "editarrow" Then
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_MAPPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
+        End If
+
+        ' The sign #
+        N = Val(Parse(1))
+
+        ' Prevent hacking
+        If N < 0 Or N > MAX_ARROWS Then
+            Call HackingAttempt(Index, "Invalid Arrow Index")
+            Exit Sub
+        End If
+
+        Call AddLog(GetPlayerName(Index) & " editing arrow #" & N & ".", ADMIN_LOG)
+        Call SendEditArrowTo(Index, N)
+    End If
+    
+    If (LCase(Parse(0)) = "savearrow") Then
+        If UBound(Parse) = 4 Then
+            Arrow(Parse(1)).Name = Trim$(Parse(4))
+            PutVar DeliveryFile, "Arrow" & CStr(Parse(1)), "Name", Arrow(Parse(1)).Name
+        End If
+        Arrow(Parse(1)).Sprite = Parse(2)
+        Arrow(Parse(1)).Range = Parse(3)
+        PutVar DeliveryFile, "Arrow" & CStr(Parse(1)), "Sprite", CStr(Parse(2))
+        PutVar DeliveryFile, "Arrow" & CStr(Parse(1)), "Range", CStr(Parse(3))
+        SendDataTo Index, "ARROWSAVED" & SEP_CHAR & Parse(1) & END_CHAR
+        AddLog GetPlayerName(Index) & " saved arrow #" & Parse(1), ADMIN_LOG
+    End If
+    
+    ' ::::::::::::::::::::::::::::::
+    ' :: Request edit arrow packet ::
+    ' ::::::::::::::::::::::::::::::
+    Dim Ar As Long
+    Dim arPacket As String
+    If LCase(Parse(0)) = "requesteditarrow" Then
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_MAPPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
+        End If
+
+        arPacket = "arrownames"
+        For Ar = 1 To MAX_ARROWS
+            arPacket = arPacket & SEP_CHAR & Trim(Arrow(Ar).Name)
+        Next Ar
+        arPacket = arPacket & END_CHAR
+        Call SendDataTo(Index, arPacket)
+
+        Call SendDataTo(Index, "ARROWEDITOR" & END_CHAR)
     End If
 
     ' :::::::::::::::::::::::
@@ -1030,7 +1085,6 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
-
 
     ' ::::::::::::::::::::::::
     ' :: Warp to map packet ::
@@ -1121,23 +1175,6 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Exit Sub
     End If
 
-    ' ::::::::::::::::::::::::::
-    ' ::  Live Stats  packet  ::
-    ' ::::::::::::::::::::::::::
-    If LCase$(Parse(0)) = "getlivestats" Then
-' Dim Packet As String
-' N = Critical Hit, I = Block
-
-        N = Int(GetPlayerSTR(Index) / 2) + Int(GetPlayerLevel(Index) / 2)
-        I = Int(GetPlayerDEF(Index) / 2) + Int(GetPlayerLevel(Index) / 2)
-        If N > 100 Then N = 100
-        If I > 100 Then I = 100
-
-        Packet = "LIVESTATS" & SEP_CHAR & GetPlayerLevel(Index) & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & SEP_CHAR & N & SEP_CHAR & I & SEP_CHAR & GetPlayerPOINTS(Index) & END_CHAR
-
-        Call SendDataTo(Index, Packet)
-        Exit Sub
-    End If
 
 
     ' ::::::::::::::::::::::::::::::::::
@@ -1169,7 +1206,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         N = 1
 
         MapNum = GetPlayerMap(Index)
-        Map(MapNum).name = Parse(N + 1)
+        Map(MapNum).Name = Parse(N + 1)
         Map(MapNum).Revision = Map(MapNum).Revision + 1
         Map(MapNum).Moral = Val(Parse(N + 3))
         Map(MapNum).Up = Val(Parse(N + 4))
@@ -1403,7 +1440,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         ' Add all the maps to the list.
         Packet = "MAPREPORTADD" & SEP_CHAR
         For N = 1 To MAX_MAPS_SET
-            Packet = Packet & Trim$(Map(N).name) & SEP_CHAR
+            Packet = Packet & Trim$(Map(N).Name) & SEP_CHAR
         Next N
         Call SendDataTo(Index, Packet & END_CHAR)
 
@@ -1425,7 +1462,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Packet = "SIGNNAMES" & SEP_CHAR
         For N = 1 To MAX_SIGNS
-            Packet = Packet & Trim$(Sign(N).name) & SEP_CHAR
+            Packet = Packet & Trim$(Sign(N).Name) & SEP_CHAR
         Next N
         Call SendDataTo(Index, Packet & END_CHAR)
     End If
@@ -1665,7 +1702,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
 
         ' Update the item
-        Item(N).name = Parse(2)
+        Item(N).Name = Parse(2)
         Item(N).Pic = Val(Parse(3))
         Item(N).Type = Val(Parse(4))
         Item(N).Data1 = Val(Parse(5))
@@ -1702,7 +1739,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
 
         ' Update the Guild
-        Guild(N).name = Trim$(Parse(2))
+        Guild(N).Name = Trim$(Parse(2))
         Guild(N).Abbreviation = Trim$(Parse(3))
         Guild(N).Founder = Trim$(Parse(4))
 
@@ -1774,7 +1811,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
 
         ' Update the npc
-        Npc(N).name = Parse(2)
+        Npc(N).Name = Parse(2)
         Npc(N).AttackSay = Parse(3)
         Npc(N).Sprite = Val(Parse(4))
         Npc(N).SpawnSecs = Val(Parse(5))
@@ -1853,7 +1890,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
 
         ' Update the shop
-        Shop(ShopNum).name = Parse(2)
+        Shop(ShopNum).Name = Parse(2)
         Shop(ShopNum).JoinSay = Parse(3)
         Shop(ShopNum).LeaveSay = Parse(4)
         Shop(ShopNum).FixesItems = Val(Parse(5))
@@ -1935,7 +1972,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         If Not ReadSpellDelivery(Parse, deliveryMode, deliveryArrow, deliveryRange) Then Exit Sub
 
         ' Update the spell
-        Spell(N).name = Parse(2)
+        Spell(N).Name = Parse(2)
         Spell(N).ClassReq = Val(Parse(3))
         Spell(N).LevelReq = Val(Parse(4))
         Spell(N).Type = Val(Parse(5))
@@ -2255,10 +2292,10 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         For I = 1 To MAX_MAP_ITEMS
             If MapItem(GetPlayerMap(Index), I).Num > 0 Then
                 If MapItem(GetPlayerMap(Index), I).X = X And MapItem(GetPlayerMap(Index), I).y = y Then
-                    If IsVowel(Item(MapItem(GetPlayerMap(Index), I).Num).name) = True Then
-                        Call PlayerMsg(Index, "You see an " & Trim$(Item(MapItem(GetPlayerMap(Index), I).Num).name) & ".", Yellow)
+                    If IsVowel(Item(MapItem(GetPlayerMap(Index), I).Num).Name) = True Then
+                        Call PlayerMsg(Index, "You see an " & Trim$(Item(MapItem(GetPlayerMap(Index), I).Num).Name) & ".", Yellow)
                     Else
-                        Call PlayerMsg(Index, "You see a " & Trim$(Item(MapItem(GetPlayerMap(Index), I).Num).name) & ".", Yellow)
+                        Call PlayerMsg(Index, "You see a " & Trim$(Item(MapItem(GetPlayerMap(Index), I).Num).Name) & ".", Yellow)
                     End If
                     Exit Sub
                 End If
@@ -2272,10 +2309,10 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                     ' Change target
                     Player(Index).Target = I
                     Player(Index).TargetType = TARGET_TYPE_NPC
-                    If IsVowel(Npc(MapNpc(GetPlayerMap(Index), I).Num).name) = True Then
-                        Call PlayerMsg(Index, "Your target is now an " & Trim$(Npc(MapNpc(GetPlayerMap(Index), I).Num).name) & ".", Yellow)
+                    If IsVowel(Npc(MapNpc(GetPlayerMap(Index), I).Num).Name) = True Then
+                        Call PlayerMsg(Index, "Your target is now an " & Trim$(Npc(MapNpc(GetPlayerMap(Index), I).Num).Name) & ".", Yellow)
                     Else
-                        Call PlayerMsg(Index, "Your target is now a " & Trim$(Npc(MapNpc(GetPlayerMap(Index), I).Num).name) & ".", Yellow)
+                        Call PlayerMsg(Index, "Your target is now a " & Trim$(Npc(MapNpc(GetPlayerMap(Index), I).Num).Name) & ".", Yellow)
                     End If
                     Exit Sub
                 End If
@@ -2452,7 +2489,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                 PlayerMsg Index, "No spell here.", Red
 
             Else
-                PlayerMsg Index, "You have forgotten the spell" & vbQuote & Trim$(Spell(.Spell(N)).name) & vbQuote, Green
+                PlayerMsg Index, "You have forgotten the spell" & vbQuote & Trim$(Spell(.Spell(N)).Name) & vbQuote, Green
                 .Spell(N) = 0
                 Call SendSpells(Index)
             End If

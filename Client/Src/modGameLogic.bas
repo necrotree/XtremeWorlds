@@ -6,7 +6,6 @@ Attribute VB_Name = "modGameLogic"
 ' ****************************************************************
 Option Explicit
 
-
 Public Sub Main()
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
@@ -51,9 +50,6 @@ Public Sub Main()
     Call SetStatus("Loading Game Data")
     FileName = App.Path & DATA_PATH & "Data.dat"
 
-    Call SetStatus("Registering Plugins")
-    LoadDllList
-
     If Not FileExist("data\Data.dat") Then
         GameData.IP = "127.0.0.1"
         GameData.Port = 7234
@@ -75,34 +71,33 @@ Public Sub Main()
 
     Call SetStatus("Initializing TCP settings")
     Call TcpInit
+
     frmMainMenu.RefreshWebsite
-
-' Call SetStatus("Initializing FMod")
-' If FileExist("data\Data.dat") Then
-' MUSIC_EXT = Trim$(GetVar(FileName, "MUSICINFO", "MUSICEXT"))
-' Else
-' MUSIC_EXT = ".mid"
-' Call PutVar(FileName, "MUSICINFO", "MUSICEXT", ".mid")
-' End If
-' FModInit = True
-' If LenB(MUSIC_EXT) <> 0 Then
-' FModInit = True
-' If FSOUND_Init(44100, 32, 0) = 0 Then
-' FModInit = False
-' 'Error
-' GameMsgBox "An error occured initializing fmod!  Sound will not play!" & vbCrLf & _
-' FSOUND_GetErrorString(FSOUND_GetError), vbOKOnly
-' End If
-' FSOUND_SetVolume FSOUND_ALL, 0
-' End If
-
     frmSendGetData.Visible = False
+    frmMainMenu.Show
+End Sub
 
-    If GameData.Autoupdater = 1 Then
-        frmAutoPatcher.Show
-    Else
-        frmMainMenu.Show
+Public Sub InitSound()
+
+    If Audio Is Nothing Then
+        Set Audio = New clsBASS
     End If
+
+    BassInit = Audio.Initialize(-1, 44100)
+
+    If BassInit = False Then
+        GameMsgBox "BASS failed to initialize: " & Audio.LastErrorString()
+        Exit Sub
+    End If
+
+    MusicHandle = Audio.OpenStream(App.Path & "\music\music1.mp3", True)
+
+    If MusicHandle = 0 Then
+        GameMsgBox "BASS failed to open stream: " & Audio.LastErrorString()
+        Exit Sub
+    End If
+
+    Audio.Play(MusicHandle)
 
 End Sub
 
@@ -345,7 +340,7 @@ Public Sub GameLoop()
 
         End If
 
-        If GetTickCount > WalkTimer + 30 Then
+        If GetTickCount > WalkTimer + 5 Then
             ' Check if player is trying to move
             Call CheckMovement
 
@@ -367,9 +362,6 @@ Public Sub GameLoop()
                     Call ProcessNpcMovement(i)
                 End If
             Next i
-
-            ' Handle the volume of the music
-            Call HandleVolume
 
             WalkTimer = GetTickCount
         End If
@@ -1163,7 +1155,6 @@ Public Sub NewCharBltSprite(ByVal ListIndexSprite As Integer)
         sprite = Class(ListIndexSprite).FSprite
     End If
     Set frmMainMenu.imgNewCharSprite.Picture = MenuSpritePicture(sprite)
-    Set frmMainMenu.imgClassSprite.Picture = frmMainMenu.imgNewCharSprite.Picture
 End Sub
 
 Public Sub BltPlayerCharSprite()

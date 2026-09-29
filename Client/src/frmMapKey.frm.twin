@@ -1,0 +1,34 @@
+[FormDesignerId("3AF7AFF3-02EC-422D-A2AF-96C3AD8F95E9")]
+[ClassId("6B03D03A-566A-4EA3-8C1B-916C28C3FD2C")]
+[InterfaceId("C0B7CDC7-DDDF-47CC-AE44-57EC49F7773F")]
+[EventInterfaceId("74016996-935C-431D-AA8C-E758FF04539E")]
+Class frmMapKey
+    Attribute VB_Name = "frmMapKey"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub Form_Load()
+        lblName.Caption = Trim$(Item(scrlItem.Value).name)
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        KeyEditorNum = scrlItem.Value
+        KeyEditorTake = chkTake.Value
+        Unload Me
+    End Sub
+    
+    Private Sub scrlItem_Change()
+        lblItem.Caption = STR(scrlItem.Value)
+        lblName.Caption = Trim$(Item(scrlItem.Value).name)
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    
+
+End Class

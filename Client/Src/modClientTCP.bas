@@ -365,6 +365,13 @@ Public Sub SendSaveSign(ByVal SignNum As Long)
     Call SendData(Packet)
 End Sub
 
+Sub SendRequestEdiArrow()
+    Dim Packet As String
+
+    Packet = "REQUESTEDITARROW" & END_CHAR
+    Call SendData(Packet)
+End Sub
+
 Sub SendKick(ByVal name As String)
     Dim Packet As String
 

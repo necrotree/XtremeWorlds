@@ -58,7 +58,7 @@ Private Function CompileSpriteShader(ByVal EntryPoint As String, ByVal Profile A
     Source = Source & "if(options.x > 0.5 && all(abs(rgb-tint.rgb) < (0.5/255.0))) discard;" & vbCrLf
     Source = Source & "return float4(rgb, tint.a); }"
     Bytes = StrConv(Source, vbFromUnicode)
-    Result = WinDevLib.D3DCompile(Bytes(0), UBound(Bytes) + 1, "Playerworlds sprites", ByVal vbNullPtr, ByVal vbNullPtr, EntryPoint, Profile, 0, 0, Code, Errors)
+    Result = WinDevLib.D3DCompile(Bytes(0), UBound(Bytes) + 1, "XtremeWorlds sprites", ByVal vbNullPtr, ByVal vbNullPtr, EntryPoint, Profile, 0, 0, Code, Errors)
     If Result < 0 Then
         Dim Message As String
         If Not Errors Is Nothing Then
@@ -91,7 +91,7 @@ Public Sub DX11Initialize(ByVal WindowHandle As LongPtr)
     If mWidth < 1 Then mWidth = 1
     If mHeight < 1 Then mHeight = 1
     With Desc
-        .BufferDesc.Width = mWidth
+        .BufferDesc.width = mWidth
         .BufferDesc.Height = mHeight
         .BufferDesc.Format = WinDevLib.DXGI_FORMAT_B8G8R8A8_UNORM
         .SampleDesc.Count = 1
@@ -119,8 +119,8 @@ Public Sub DX11Initialize(ByVal WindowHandle As LongPtr)
     Set Code = CompileSpriteShader("PS", "ps_4_0")
     DX11Device.CreatePixelShader ByVal Code.GetBufferPointer, Code.GetBufferSize, Nothing, mPixelShader
     BufferDesc.ByteWidth = 64
-    BufferDesc.Usage = WinDevLib.D3D11_USAGE_DEFAULT
-    BufferDesc.BindFlags = WinDevLib.D3D11_BIND_CONSTANT_BUFFER
+    BufferDesc.usage = WinDevLib.D3D11_USAGE_DEFAULT
+    BufferDesc.bindflags = WinDevLib.D3D11_BIND_CONSTANT_BUFFER
     DX11Device.CreateBuffer BufferDesc, ByVal vbNullPtr, mConstants
     With SamplerDesc
         .Filter = WinDevLib.D3D11_FILTER_MIN_MAG_MIP_POINT
@@ -142,7 +142,7 @@ Public Sub DX11Initialize(ByVal WindowHandle As LongPtr)
         .RenderTargetWriteMask = 15
     End With
     DX11Device.CreateBlendState BlendDesc, mBlend
-    RasterDesc.FillMode = WinDevLib.D3D11_FILL_SOLID
+    RasterDesc.fillMode = WinDevLib.D3D11_FILL_SOLID
     RasterDesc.CullMode = WinDevLib.D3D11_CULL_NONE
     RasterDesc.DepthClipEnable = 1
     DX11Device.CreateRasterizerState RasterDesc, mRasterizer
@@ -193,7 +193,7 @@ Private Sub DrawQuad(ByVal Target As WinDevLib.ID3D11RenderTargetView, ByVal Wid
     Dim EmptyView As WinDevLib.ID3D11ShaderResourceView
     Dim EmptyClass As WinDevLib.ID3D11ClassInstance
     DX11RequireGPU
-    Viewport.Width = Width
+    Viewport.width = Width
     Viewport.Height = Height
     Viewport.MaxDepth = 1
     DX11Context.PSSetShaderResources 0, 1, EmptyView

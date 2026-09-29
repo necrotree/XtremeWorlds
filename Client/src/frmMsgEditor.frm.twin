@@ -1,0 +1,40 @@
+[FormDesignerId("E67474C3-DC2C-4DC1-B05F-D78D9CC0813D")]
+[ClassId("8928616C-D273-4ED4-BDDC-330307674A9A")]
+[InterfaceId("34442ECE-0B81-4384-83AB-6182E3DD490D")]
+[EventInterfaceId("F66A521A-EE84-48BE-81F6-A055107B4144")]
+Class frmMsgEditor
+    Attribute VB_Name = "frmMsgEditor"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        MsgEditorText = Trim$(txtMsgEditorText.Text)
+        If optPlayer.Value = True Then
+            MsgEditorType = 0
+        ElseIf optGlobal.Value = True Then
+            MsgEditorType = 1
+        End If
+        Unload Me
+    End Sub
+    
+    Private Sub optGlobal_Click()
+        If optPlayer.Value = True Then
+            optPlayer.Value = False
+            optGlobal.Value = True
+        End If
+    End Sub
+    
+    Private Sub optPlayer_Click()
+        If optGlobal.Value = True Then
+            optGlobal.Value = False
+            optPlayer.Value = True
+        End If
+    End Sub
+    
+
+End Class

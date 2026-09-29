@@ -52,6 +52,7 @@ Sub InitServer()
     ReDim Item(1 To MAX_ITEMS) As ItemRec
     ReDim Npc(1 To MAX_NPCS) As NpcRec
     ReDim Guild(1 To MAX_GUILDS) As GuildRec
+    ReDim Arrow(1 To MAX_ARROWS) As ArrowRec
     For G = 1 To MAX_GUILDS
         ReDim Preserve Guild(G).Member(1 To MAX_GUILD_MEMBERS) As String * NAME_LENGTH
     Next G

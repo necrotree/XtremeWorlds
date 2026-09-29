@@ -37,7 +37,7 @@ Class frmServer
     
     Private Sub lstPlayers_MouseDown(Button As Integer, Shift As Integer, X As Single, y As Single)
         If Button = vbKeyRButton Then
-            Me.PopupMenu mnuPlayers
+            Me.PopUpMenu mnuPlayers
         End If
     End Sub
     
@@ -92,7 +92,7 @@ Class frmServer
         If name <> vbNullString Then
             I = FindPlayer(name)
         Else
-            MsgBox ("Player Not Online!")
+            MsgBox ("Player ot Online!")
             Exit Sub
         End If
     
@@ -106,10 +106,10 @@ Class frmServer
                 Call PlayerMsg(I, "Your access has been changed.", BrightRed)
                 Call SendPlayerData(I)
             Else
-                MsgBox ("Invalid Access!")
+                MsgBox ("Invalid access!")
             End If
         Else
-            MsgBox ("Player Not Online!")
+            MsgBox ("Player not online!")
         End If
     End Sub
     
@@ -127,7 +127,6 @@ Class frmServer
     
     Private Sub PlayerTimer_Timer()
         Dim I As Long
-    
     
         If PlayerI <= HighIndex Then
             If IsPlaying(PlayerI) Then
@@ -249,7 +248,7 @@ Class frmServer
         ShutOn = False
         ServerLog = True
         Me.Caption = GAME_NAME & " :: Server"
-        Me.txtIP.Text = GameServer.LocalAddress
+8       Me.txtIP.Text = GameServer.LocalAddress
         ShowServerPage 0
     End Sub
 
@@ -305,8 +304,6 @@ Class frmServer
     ' Private Sub Socket_Close(index As Integer)
     ' Call CloseSocket(index)
     ' End Sub
-    
-    
 
     Private Sub tmrNativeSockets_Timer()
         If Not GameServer Is Nothing Then GameServer.Poll

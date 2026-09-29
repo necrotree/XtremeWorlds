@@ -1,0 +1,27 @@
+[FormDesignerId("78C6C4E0-99AC-45A3-906C-88D6DC2AA6ED")]
+[ClassId("E9CF4F43-5861-4D06-BF4D-7A006F7508B6")]
+[InterfaceId("9377F933-2BFC-4E4A-80BA-3F70CFEE6BD1")]
+[EventInterfaceId("228B8A07-32A0-416B-B6A0-B1D0C9763437")]
+Class frmMapBlock
+    Attribute VB_Name = "frmMapBlock"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        ' Block Types: 0 = Player, 1 = NPC, 2 = Flight
+        ' Data Values: 0 = Off, 1 = On
+        ' Checkbox Values: 0 = Unchecked, 1 = Checked
+        ' Simply save the checked value since it corresponds directly to the on off.
+        EditorBlockPlayer = chkBlockType(0).Value
+        EditorBlockNPC = chkBlockType(1).Value
+        EditorBlockFlight = chkBlockType(2).Value
+        Unload Me
+    End Sub
+    
+
+End Class

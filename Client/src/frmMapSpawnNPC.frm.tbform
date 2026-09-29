@@ -1,0 +1,87 @@
+[
+   {
+      "StartUpPosition": 2,
+      "ShowInTaskbar": 0,
+      "ScaleWidth": 4590,
+      "ScaleHeight": 3060,
+      "MinButton": 0,
+      "MaxButton": 0,
+      "LinkTopic": "Form1",
+      "Icon":"AAABAAEAICAQAAAAAADoAgAAFgAAACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAwMDAAICAgAAAAP8AAP8AAAD//wD/AAAA/wD/AP//AAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMzMzMzAAAAAAAAAAAAMzMzMzMzMzMAAAAAAAAAAzMzM7u7u7MzMAAAAAAAAzMzO7v////7uzMAAAAAADMzO7////////+zAAAAADMzM7v/////////swAAAAMzM7u//////////7MAAAADMzu//////////7uzAAAAAzO7//////////u7MwAAAAMzv////7u7u7u7MzAAAAADM7///7uzMzMzMzMAAAAAAzO///szMzMzMzMAAAAAAAMzv//7MAAAAAAAAAAAAAADM7v/+wAAAAAAAAAAAAAAADM7v/uwAAAAAAAAAAAAAAADM7u/uzAAAAAAAAAAAAAAADMzu/+7AAAAAAAAAAAAAAAAMzu7/7MAAAAAAAAAAAAAAAAzM7u7MAAAAAAAAAAAAAAAADMzO7MwAAAAAAAAAAAAAAAAAzMzMzAAAAAAAAAAAAAAAAAAAzMzMwAAAAAAAAAAAAAAAAAAAAMzMwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//////////////////////////////////wA///AAD//gAAf/gAAD/wAAA/wAAAP4AAAD+AAAA/gAAAP4AAAH+AAAD/gAAD/4Af//+AP///wB///+AH///wA////AD///8Af///wB////gH////gP////4P///////////////w0K",
+      "ControlBox": 0,
+      "ClientWidth": 4590,
+      "ClientTop": 4500,
+      "ClientLeft": 4920,
+      "ClientHeight": 3060,
+      "Caption": "NPC Spawn",
+      "BorderStyle": 4,
+      "FontName":"MS Sans Serif",
+      "_clsid": "{33AD4F38-6699-11CF-B70C-00AA0060D393}",
+      "FormDesignerId": "{FB91C191-2D3A-4D79-97DF-0310CD5864FB}",
+      "Width":306,
+      "Height":204,
+      "Name":"frmMapSpawnNPC",
+      "_children": [      {
+         "Width":289,
+         "Top":8,
+         "TabIndex": 0,
+         "Left":8,
+         "Height":121,
+         "FontName":"MS Sans Serif",
+         "_clsid": "{33AD4F10-6699-11CF-B70C-00AA0060D393}",
+         "_className": "ListBox",
+         "Name":"lstNPC"
+      },
+            {
+         "Width":137,
+         "Top":160,
+         "TabIndex": 1,
+         "Left":8,
+         "Height":33,
+         "Caption": "OK",
+         "FontName":"MS Sans Serif",
+         "_clsid": "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
+         "_className": "CommandButton",
+         "Name":"cmdOK"
+      },
+            {
+         "Width":137,
+         "Top":160,
+         "TabIndex": 2,
+         "Left":160,
+         "Height":33,
+         "Caption": "Cancel",
+         "FontName":"MS Sans Serif",
+         "_clsid": "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
+         "_className": "CommandButton",
+         "Name":"cmdCancel"
+      },
+            {
+         "Width":137,
+         "Top":136,
+         "Text": "NPC Direction",
+         "TabIndex": 3,
+         "List":["Up","Down","Left","Right"],
+         "Left":160,
+         "ItemData":[0,0,0,0],
+         "Height":21,
+         "FontName":"MS Sans Serif",
+         "_clsid": "{33AD4F08-6699-11CF-B70C-00AA0060D393}",
+         "_className": "ComboBox",
+         "Name":"cmbNPCDir"
+      },
+            {
+         "Width":73,
+         "Top":136,
+         "TabIndex": 4,
+         "Left":8,
+         "Height":17,
+         "Caption": "Stationary",
+         "FontName":"MS Sans Serif",
+         "_clsid": "{33AD4EF8-6699-11CF-B70C-00AA0060D393}",
+         "_className": "CheckBox",
+         "Name":"chkStationary"
+      }
+      ]
+   }
+]

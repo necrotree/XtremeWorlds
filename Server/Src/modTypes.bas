@@ -17,6 +17,7 @@ Public Spell() As SpellRec
 Public Guild() As GuildRec
 Public Quest() As QuestRec
 Public Ban() As BanRec
+Public Arrow() As ArrowRec
 
 Type PlayerInvRec
   Num As Long

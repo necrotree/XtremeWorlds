@@ -12,8 +12,6 @@ Class frmMainMenu
     Private mCharacterSprites(0 To 2) As Long
     Private mWebsitePolls As Long
     
-    ' Check to make sure there are not 2 clients and Play Music!
-    
     Private Sub Form_Load()
         Dim FileName As String
         If App.PrevInstance = True Then
@@ -22,7 +20,6 @@ Class frmMainMenu
     
         FileName = App.Path & DATA_PATH & "Data.dat"
         txtEncKey.Text = Trim$(ENC_KEY)
-        Me.Caption = GAME_NAME
         InitializeMenuImages
         ShowMenuHome
     End Sub
@@ -58,10 +55,9 @@ Class frmMainMenu
     Private Sub picGameOptions_Click()
         'Game Options
     End Sub
-    
+
     Private Sub picLogin_Click()
         If GameData.SaveLogin = 1 Then
-            chkSaveUser.Value = 1
             txtLoginName.Text = GameData.Username                                                     ' GetVar(FileName, "LOGIN", "LOGIN")
             txtLoginPassword.Text = Encryption_XOR_DecryptString(Trim$(GameData.Password), ENC_KEY)   ' Trim$(Encryption_XOR_DecryptString(GetVar(FileName, "LOGIN", "PASS"), ENC_KEY))
         End If
@@ -78,11 +74,11 @@ Class frmMainMenu
         Dim FileName As String
         FileName = App.Path & DATA_PATH & "Data.dat"
     
-        If chkSaveUser.Value = 1 Then
+        If GameData.SaveLogin = 1 Then
             GameData.SaveLogin = 1
             GameData.Username = txtLoginName.Text
             GameData.Password = Encryption_XOR_EncryptString(Trim$(txtLoginPassword.Text), ENC_KEY)
-        ElseIf chkSaveUser.Value = 0 Then
+        ElseIf GameData.SaveLogin = 0 Then
             GameData.SaveLogin = 0
             GameData.Username = vbNullString
             GameData.Password = vbNullString
@@ -154,7 +150,6 @@ Class frmMainMenu
     ' Exit Game Subs
     
     Private Sub picQuit_Click()
-        Call StopMidi
         Call GameDestroy
     End Sub
     
@@ -241,7 +236,6 @@ Unavailable:
     ' Character Subs
     
     Private Sub picUseChar_Click()
-        Call StopMidi
         Call MenuState(MENU_STATE_USECHAR)
     End Sub
     
@@ -433,21 +427,27 @@ Private Sub picRegisterLogin_Click()
     Private Sub picClassFighter_Click()
         ChooseNamedClass "Fighter"
     End Sub
+    
     Private Sub picClassWizard_Click()
         ChooseNamedClass "Wizard"
     End Sub
+    
     Private Sub picClassCelestial_Click()
         ChooseNamedClass "Celestial"
     End Sub
+    
     Private Sub picClassGuardian_Click()
         ChooseNamedClass "Guardian"
     End Sub
+    
     Private Sub picClassAssassin_Click()
         ChooseNamedClass "Assassin"
     End Sub
-Private Sub picClassNext_Click()
+    
+    Private Sub picClassNext_Click()
         picNextClass_Click
     End Sub
+    
     Private Sub picClassContinue_Click()
         If cmbClass.ListIndex < 0 Then Exit Sub
         HideMenuPanels
@@ -455,6 +455,7 @@ Private Sub picClassNext_Click()
         RefreshSelectedClass
         txtNewCharName.SetFocus
     End Sub
+    
     Private Sub picClassBack_Click()
         Call TcpDestroy
         ShowMenuHome

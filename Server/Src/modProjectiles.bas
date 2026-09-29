@@ -1,7 +1,6 @@
 Attribute VB_Name = "modProjectiles"
 Option Explicit
 
-Public Const MAX_PROJECTILES As Long = 256
 Public Type ArrowRec
     Name As String
     Sprite As Long
@@ -24,13 +23,12 @@ Private Type ProjectileRec
     Remaining As Long
     LastStep As Long
 End Type
-Public Arrows(1 To MAX_ARROWS) As ArrowRec
 Public SpellDelivery() As SpellDeliveryRec
 Private Shots(1 To MAX_PROJECTILES) As ProjectileRec
 Private DeliveryReady As Boolean
 Private UpdatingShots As Boolean
 
-Private Function DeliveryFile() As String
+Public Function DeliveryFile() As String
     DeliveryFile = App.Path & "\data\Projectiles.ini"
 End Function
 
@@ -44,26 +42,60 @@ Public Function DeliveryInteger(ByVal text As String, ByVal minimum As Long, ByV
     DeliveryInteger = True
 End Function
 
-Public Sub LoadProjectiles()
-    Dim i As Long, value As Long, section As String
-    ReDim SpellDelivery(1 To MAX_SPELLS)
-    For i = 1 To MAX_ARROWS
-        Arrows(i).Sprite = 0
-        Arrows(i).Range = 8
-        section = "Arrow" & CStr(i)
-        Arrows(i).Name = Left$(GetVar(DeliveryFile, section, "Name"), 50)
-        If DeliveryInteger(GetVar(DeliveryFile, section, "Sprite"), 0, 4095, value) Then Arrows(i).Sprite = value
-        If DeliveryInteger(GetVar(DeliveryFile, section, "Range"), 1, 32, value) Then Arrows(i).Range = value
+Sub SaveArrows()
+    Dim I As Long
+
+    Call SetStatus("Saving arrows... ")
+
+    For I = 1 To MAX_ARROWS
+
+        If Not FileExist("data\arrows\arrow" & I & ".arw") Then
+            Call SetStatus("Saving arrow... ")
+
+            DoEvents
+            Call SaveArrow(I)
+        End If
+
     Next
-    For i = 1 To MAX_SPELLS
-        section = "Spell" & CStr(i)
-        SpellDelivery(i).Range = 32
-        SpellDelivery(i).Arrow = 1
-        If DeliveryInteger(GetVar(DeliveryFile, section, "Mode"), 0, 1, value) Then SpellDelivery(i).Mode = value
-        If DeliveryInteger(GetVar(DeliveryFile, section, "Arrow"), 1, MAX_ARROWS, value) Then SpellDelivery(i).Arrow = value
-        If DeliveryInteger(GetVar(DeliveryFile, section, "Range"), 1, 32, value) Then SpellDelivery(i).Range = value
+
+End Sub
+
+Sub SaveArrow(ByVal arrowNum As Long)
+    Dim FileName As String
+    Dim f  As Long
+
+    FileName = App.Path & "\data\arrows\arrow" & arrowNum & ".arw"
+
+    Dim dataFile4 As clsDataFile
+    Set dataFile4 = New clsDataFile
+    WriteArrowRec dataFile4, Arrow(arrowNum)
+    dataFile4.Save FileName
+End Sub
+
+Sub CheckArrows()
+    Call SaveArrows
+End Sub
+
+Sub LoadArrows()
+    Dim FileName As String
+    Dim I As Long
+    Dim f As Long
+
+    Call CheckArrows
+
+    For I = 1 To MAX_ARROWS
+        Call SetStatus("Loading arrows... ")
+        FileName = App.Path & "\data\arrows\arrow" & I & ".arw"
+
+        Dim dataFile5 As clsDataFile
+        Set dataFile5 = New clsDataFile
+        dataFile5.Load FileName
+        ReadArrowRec dataFile5, Arrow(I)
+        dataFile5.RequireEnd
+
+        DoEvents
     Next
-    DeliveryReady = True
+
 End Sub
 
 Public Sub SendSpellDelivery(ByVal Index As Long, ByVal number As Long)
@@ -182,7 +214,7 @@ Public Sub CastSpell(ByVal Index As Long, ByVal slot As Long)
             tx = GetPlayerPixelX(target): ty = GetPlayerPixelY(target)
         Else
             tx = MapNpc(GetPlayerMap(Index), target).X * PIC_X
-            ty = MapNpc(GetPlayerMap(Index), target).Y * PIC_Y
+            ty = MapNpc(GetPlayerMap(Index), target).y * PIC_Y
         End If
         dx = tx - GetPlayerPixelX(Index): dy = ty - GetPlayerPixelY(Index)
         distance = SpellDelivery(number).Range * PIC_X
@@ -200,9 +232,9 @@ Public Sub CastSpell(ByVal Index As Long, ByVal slot As Long)
 End Sub
 
 Private Function LaunchProjectile(ByVal owner As Long, ByVal number As Long) As Boolean
-    Dim i As Long, arrow As Long
-    arrow = SpellDelivery(number).Arrow
-    If arrow < 1 Or arrow > MAX_ARROWS Then Exit Function
+    Dim i As Long, num As Long
+    num = SpellDelivery(number).Arrow
+    If num < 1 Or num > MAX_ARROWS Then Exit Function
     For i = 1 To MAX_PROJECTILES
         If Not Shots(i).Active Then
             With Shots(i)
@@ -210,11 +242,11 @@ Private Function LaunchProjectile(ByVal owner As Long, ByVal number As Long) As 
                 .Owner = owner
                 .Map = GetPlayerMap(owner)
                 .Spell = number
-                .Sprite = Arrows(arrow).Sprite
+                .Sprite = Arrow(num).Sprite
                 .Direction = GetPlayerDir(owner)
                 .X = GetPlayerPixelX(owner) + PIC_X \ 2
                 .Y = GetPlayerPixelY(owner) + PIC_Y \ 2
-                .Remaining = Arrows(arrow).Range * PIC_X
+                .Remaining = Arrow(num).Range * PIC_X
                 .LastStep = GetTickCount
             End With
             SendProjectile i
@@ -278,7 +310,7 @@ Private Function ProjectileTarget(ByVal number As Long) As Boolean
     Next
     For i = 1 To MAX_MAP_NPCS
         If MapNpc(mapNumber, i).Num > 0 And MapNpc(mapNumber, i).HP > 0 Then
-            tx = MapNpc(mapNumber, i).X * PIC_X: ty = MapNpc(mapNumber, i).Y * PIC_Y
+            tx = MapNpc(mapNumber, i).X * PIC_X: ty = MapNpc(mapNumber, i).y * PIC_Y
             If Shots(number).X >= tx And Shots(number).X < tx + PIC_X And Shots(number).Y >= ty And Shots(number).Y < ty + PIC_Y Then
                 RemoveProjectile number
                 If CanSpellAffect(owner, spellNumber, TARGET_TYPE_NPC, i) Then ApplySpellEffect owner, spellNumber, TARGET_TYPE_NPC, i

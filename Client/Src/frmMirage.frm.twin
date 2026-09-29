@@ -135,18 +135,6 @@ Class frmMainGame
         Socket.Attach Me.hWnd
         Set Notetext = New clsNativeRichText
         Notetext.Attach hostNotetext, False, 16777215, 9.75, "Rockwell"
-        With cmbChatChannel
-            .Clear
-            .AddItem "All"
-            .AddItem "Local"
-            .AddItem "Global"
-            .AddItem "Emote"
-            .AddItem "Private"
-            .AddItem "Party"
-            .AddItem "Guild"
-            .AddItem "System"
-            .ListIndex = ChatHistoryAll
-        End With
         SetChatHistoryChannel ChatHistoryAll
     
         ' Dim result As Long
@@ -187,10 +175,6 @@ Class frmMainGame
         
         Call GameDestroy
     
-    End Sub
-    
-    Private Sub cmbChatChannel_Click()
-        SetChatHistoryChannel cmbChatChannel.ListIndex
     End Sub
 
     Private Sub lblForget_Click()
@@ -606,7 +590,7 @@ Class frmMainGame
     
     Private Sub Label8_Click()
         If picLiveStats.Visible = True Then picLiveStats.Visible = False
-    End Sub    
+    End Sub
 
     
     Private Sub lblexit_Click()
@@ -1014,7 +998,6 @@ Class frmMainGame
             X = 23 + (Cell Mod 5) * 45
             Y = 27 + (Cell \ 5) * 45
         End If
-        lblInventoryPage.Caption = CStr(InventoryPage + 1) & "/" & CStr((MAX_INV + 34) \ 35)
         Set imgInventory.Picture = MenuSurfacePicture(InventoryCanvas, CLng(X), CLng(Y))
     End Sub
 
@@ -1065,7 +1048,7 @@ Class frmMainGame
     End Sub
     Public Sub RefreshCharacterDetails()
         If MyIndex < 1 Then Exit Sub
-        lblCharacterValue(0).Caption = Trim$(Class(GetPlayerClass(MyIndex)).name)
+        lblCharacterValue(0).Caption = Trim$(Class(GetPlayerClass(MyIndex)).Name)
         lblCharacterValue(1).Caption = CStr(GetPlayerLevel(MyIndex))
         lblCharacterValue(2).Caption = "None"
         If GetPlayerGuild(MyIndex) > 0 Then lblCharacterValue(2).Caption = CStr(GetPlayerGuild(MyIndex))
@@ -1091,7 +1074,6 @@ Class frmMainGame
         Dim Canvas As New clsDX11Surface, Bounds As RECT, Source As RECT
         If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
         Page = lstSpells.ListIndex \ 8
-        lblSkillsPage.Caption = "Page " & (Page + 1) & " / " & ((MAX_PLAYER_SPELLS + 7) \ 8)
         Canvas.Create 32, 32
         Bounds.Right = 32
         Bounds.Bottom = 32
@@ -1158,6 +1140,7 @@ Class frmMainGame
         Slot = (lstSpells.ListIndex \ 8 - 1) * 8
         If Slot >= 0 Then lstSpells.ListIndex = Slot
     End Sub
+    
     Private Sub InitializeImageMenus()
         Set picMnuGear = New clsImageMenu
         picMnuGear.Initialize "picMnuGear", "imgCharacter"
@@ -1211,6 +1194,22 @@ Class frmMainGame
     End Sub
     Private Sub lblSkillsUpgrade_Click()
         GameMsgBox "This server does not provide skill upgrades. Double-click a learned skill to memorize it.", vbOKOnly, "Skills"
+    End Sub
+    
+    Private Sub imgMap_Click()
+        SetChatHistoryChannel(ChatHistoryAll)
+    End Sub
+    
+    Private Sub imgGlobal_Click()
+        SetChatHistoryChannel(ChatHistoryGlobal)
+    End Sub
+    
+    Private Sub imgGuild_Click()
+        SetChatHistoryChannel(ChatHistoryGuild)
+    End Sub
+    
+    Private Sub imgPM_Click()
+        SetChatHistoryChannel(ChatHistoryPrivate)
     End Sub
 
 End Class

@@ -1,0 +1,29 @@
+[FormDesignerId("D64B1139-E5B1-4C5D-9C49-7265C18B41F2")]
+[ClassId("C7113921-43B7-4DF2-B563-5FDBB1997D40")]
+[InterfaceId("4B69FCED-DFB8-48EC-9796-14B5F6FFB8F1")]
+[EventInterfaceId("7385666E-43F4-422C-8A2F-718BBE63861D")]
+Class frmSetSprite
+    Attribute VB_Name = "frmSetSprite"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdSend_Click()
+        SpriteNum = scrlSprite.Value
+        Unload Me
+    End Sub
+    
+    Private Sub tmrsprite_Timer()
+        Call SpriteChangeBltSprite
+    End Sub
+    
+    Private Sub scrlSprite_Change()
+        lblSpriteNum.Caption = STR(scrlSprite.Value)
+    End Sub
+    
+
+End Class

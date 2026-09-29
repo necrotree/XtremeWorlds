@@ -1,0 +1,95 @@
+[FormDesignerId("047023BF-949F-45FD-A954-ECF544B7BA49")]
+[ClassId("B008D835-93C7-4124-B476-9D42D5A71D33")]
+[InterfaceId("E4836B8D-F097-458B-BCB6-E2686946E7C0")]
+[EventInterfaceId("3DBBF596-5400-4978-9A02-2C367A5E8F0B")]
+Class frmItemEditor
+    Attribute VB_Name = "frmItemEditor"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub cmdOK_Click()
+        Call ItemEditorOk
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Call ItemEditorCancel
+    End Sub
+    
+    Private Sub cmbType_Click()
+        If (cmbType.ListIndex >= ITEM_TYPE_WEAPON) And (cmbType.ListIndex <= ITEM_TYPE_SHIELD) Then
+            fraEquipment.Visible = True
+        Else
+            fraEquipment.Visible = False
+        End If
+    
+        If (cmbType.ListIndex >= ITEM_TYPE_POTIONADDHP) And (cmbType.ListIndex <= ITEM_TYPE_POTIONSUBSP) Then
+            fraVitals.Visible = True
+        Else
+            fraVitals.Visible = False
+        End If
+    
+        If (cmbType.ListIndex = ITEM_TYPE_SPELL) Then
+            fraSpell.Visible = True
+        Else
+            fraSpell.Visible = False
+        End If
+    
+        If (cmbType.ListIndex = ITEM_TYPE_WARP) Then
+            fraWarp.Visible = True
+        Else
+            fraWarp.Visible = False
+        End If
+    End Sub
+    
+    Private Sub scrlMapX_Change()
+        lblMapX.Caption = STR(scrlMapX.Value)
+    End Sub
+    
+    Private Sub scrlMapY_Change()
+        lblMapY.Caption = STR(scrlMapY.Value)
+    End Sub
+    
+    Private Sub scrlPic_Change()
+        lblPic.Caption = STR(scrlPic.Value)
+    End Sub
+    
+    Private Sub scrlVitalMod_Change()
+        lblVitalMod.Caption = STR(scrlVitalMod.Value)
+    End Sub
+    
+    Private Sub scrlVitalAdd_Change()
+    End Sub
+    
+    Private Sub scrlDurability_Change()
+        lblDurability.Caption = STR(scrlDurability.Value)
+    End Sub
+    
+    Private Sub scrlStrength_Change()
+        lblStrength.Caption = STR(scrlStrength.Value)
+    End Sub
+    
+    Private Sub scrlSpell_Change()
+        If scrlSpell.Value > 0 Then
+            lblSpellName.Caption = Trim$(Spell(scrlSpell.Value).name)
+            lblSpell.Caption = STR(scrlSpell.Value)
+        ElseIf scrlSpell.Value = 0 Then
+            lblSpellName.Caption = "Select a Spell"
+            lblSpell.Caption = STR(scrlSpell.Value)
+        End If
+    End Sub
+    
+    Private Sub tmrPic_Timer()
+        Call ItemEditorBltItem
+    End Sub
+    
+    Private Sub txtMap_Change()
+        If Val(txtMap.Text) <= 0 Or Val(txtMap.Text) > MAX_MAPS Then
+            txtMap.Text = "1"
+        End If
+    End Sub
+    
+
+End Class

@@ -354,7 +354,7 @@ Public Sub Encryption_XOR_EncryptByte(ByteArray() As Byte, Optional Key As Strin
     ' Get the size of the source array
     ByteLen = UBound(ByteArray) + 1
 
-    ' Loop thru the data encrypting it with simply XOR´ing with the key
+    ' Loop thru the data encrypting it with simply XORï¿½ing with the key
     For Offset = 0 To (ByteLen - 1)
         ByteArray(Offset) = ByteArray(Offset) Xor m_XORKey(Offset Mod m_XORKeyLen)
     Next

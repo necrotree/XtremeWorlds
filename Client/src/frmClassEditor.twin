@@ -1,0 +1,109 @@
+[FormDesignerId("F747C5DD-28FC-443A-9E4B-3D49FE43C0AC")]
+[ClassId("BCC21470-A2FC-492B-B753-82927EA4BC8C")]
+[InterfaceId("63E6CF40-ED5E-431A-9BF3-359B16795EDF")]
+[EventInterfaceId("1483909F-FEC9-4EF1-88A1-6C8792F3E49D")]
+Class frmClassEditor
+    Attribute VB_Name = "frmEditor_Class"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    
+    Private Sub Form_Load()
+        SyncValues
+    End Sub
+    
+    Private Sub scrlSprite_Change()
+        lblSprite.Caption = CStr(scrlSprite.Value)
+        ' Draw / refresh the class sprite preview in picSprite here.
+    End Sub
+    
+    Private Sub scrlSprite_Scroll()
+        scrlSprite_Change
+    End Sub
+    
+    Private Sub scrlSTR_Change()
+        lblSTR.Caption = CStr(scrlSTR.Value)
+    End Sub
+    
+    Private Sub scrlSTR_Scroll()
+        scrlSTR_Change
+    End Sub
+    
+    Private Sub scrlDEF_Change()
+        lblDEF.Caption = CStr(scrlDEF.Value)
+    End Sub
+    
+    Private Sub scrlDEF_Scroll()
+        scrlDEF_Change
+    End Sub
+    
+    Private Sub scrlSPD_Change()
+        lblSPD.Caption = CStr(scrlSPD.Value)
+    End Sub
+    
+    Private Sub scrlSPD_Scroll()
+        scrlSPD_Change
+    End Sub
+    
+    Private Sub scrlMAGI_Change()
+        lblMAGI.Caption = CStr(scrlMAGI.Value)
+    End Sub
+    
+    Private Sub scrlMAGI_Scroll()
+        scrlMAGI_Change
+    End Sub
+    
+    Private Sub scrlStartHP_Change()
+        lblStartHP.Caption = CStr(scrlStartHP.Value)
+    End Sub
+    
+    Private Sub scrlStartHP_Scroll()
+        scrlStartHP_Change
+    End Sub
+    
+    Private Sub scrlStartMP_Change()
+        lblStartMP.Caption = CStr(scrlStartMP.Value)
+    End Sub
+    
+    Private Sub scrlStartMP_Scroll()
+        scrlStartMP_Change
+    End Sub
+    
+    Private Sub scrlStartSP_Change()
+        lblStartSP.Caption = CStr(scrlStartSP.Value)
+    End Sub
+    
+    Private Sub scrlStartSP_Scroll()
+        scrlStartSP_Change
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        SaveCurrentClass
+        Unload Me
+    End Sub
+    
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub SaveCurrentClass()
+        ' Wire this into the XtremeWorlds class data structure / packet code.
+        ' Fields: Name, Sprite, STR, DEF, SPD, MAGI,
+        ' StartHP, StartMP, StartSP, HP/MP/SP points, Hidden.
+    End Sub
+    
+    Private Sub SyncValues()
+        lblSprite.Caption = CStr(scrlSprite.Value)
+        lblSTR.Caption = CStr(scrlSTR.Value)
+        lblDEF.Caption = CStr(scrlDEF.Value)
+        lblSPD.Caption = CStr(scrlSPD.Value)
+        lblMAGI.Caption = CStr(scrlMAGI.Value)
+        lblStartHP.Caption = CStr(scrlStartHP.Value)
+        lblStartMP.Caption = CStr(scrlStartMP.Value)
+        lblStartSP.Caption = CStr(scrlStartSP.Value)
+    End Sub
+    
+
+End Class

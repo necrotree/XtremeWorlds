@@ -18,7 +18,7 @@ Option Explicit
 
 ' This function gets a number passed in by the user and returns the number + 5
 Public Function ChangeNumber(vNum As Variant) As Variant
-    MsgBox "The incomming number is" & STR(vNum) & vbNewLine & "This message is from the clsCommands"
+    MsgBox "The incomming number is" & Str(vNum) & vbNewLine & "This message is from the clsCommands"
     ChangeNumber = vNum + 5
 End Function
 
@@ -70,16 +70,16 @@ Sub SetMaxQuests(ByVal Quests As Integer)
     MAX_QUESTS = Val(Quests)
 End Sub
 
-Sub SetMaxArrows(ByVal Arrows As Integer)
-    MAX_ARROWS = Val(Arrows)
-End Sub
-
 Sub SetMaxQuestPlayers(ByVal Players As Integer)
     MAX_QUEST_PLAYERS = Val(Players)
 End Sub
 
 Sub SetWebsite(ByVal Site As String)
     GAME_WEBSITE = Trim$(Site)
+End Sub
+
+Sub SetMaxArrows(ByVal Arrows As Integer)
+    MAX_ARROWS = Val(Arrows)
 End Sub
 
 Sub SetStartPosition(ByVal Map As Integer, ByVal X As Byte, ByVal y As Byte)

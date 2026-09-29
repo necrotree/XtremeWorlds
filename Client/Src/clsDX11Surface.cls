@@ -50,14 +50,14 @@ Public Sub Create(ByVal Width As Long, ByVal Height As Long)
     If Width < 1 Or Height < 1 Then Err.Raise 5, , "Invalid surface dimensions."
     CloseSurface
     With Desc
-        .Width = Width
+        .width = Width
         .Height = Height
         .MipLevels = 1
         .ArraySize = 1
         .Format = WinDevLib.DXGI_FORMAT_B8G8R8A8_UNORM
         .SampleDesc.Count = 1
-        .Usage = WinDevLib.D3D11_USAGE_DEFAULT
-        .BindFlags = WinDevLib.D3D11_BIND_RENDER_TARGET Or WinDevLib.D3D11_BIND_SHADER_RESOURCE
+        .usage = WinDevLib.D3D11_USAGE_DEFAULT
+        .bindflags = WinDevLib.D3D11_BIND_RENDER_TARGET Or WinDevLib.D3D11_BIND_SHADER_RESOURCE
         .MiscFlags = WinDevLib.D3D11_RESOURCE_MISC_GDI_COMPATIBLE
     End With
     DX11Device.CreateTexture2D Desc, ByVal vbNullPtr, mTexture
@@ -101,9 +101,9 @@ Public Sub LoadFromFile(ByVal FileName As String)
         For OffsetY = 0 To Height - 1 Step PageHeight
             Rows = Height - OffsetY
             If Rows > PageHeight Then Rows = PageHeight
-            Region.X = 0
-            Region.Y = OffsetY
-            Region.Width = Width
+            Region.x = 0
+            Region.y = OffsetY
+            Region.width = Width
             Region.Height = Rows
             ReDim Pixels(0 To Width * Rows * 4 - 1)
             DX11Check Converter.CopyPixels(Region, Width * 4, Width * Rows * 4, Pixels(0)), "Reading image page"
@@ -145,7 +145,11 @@ Public Sub DrawTo(ByVal Target As WinDevLib.ID3D11RenderTargetView, ByVal Target
     If mPages Is Nothing Then
         DX11Draw Target, TargetWidth, TargetHeight, Me, Destination, SourceRect, Keyed, Opacity
     Else
-        If SourceRect.Left < 0 Or SourceRect.Top < 0 Or SourceRect.Right > mWidth Or SourceRect.Bottom > mHeight Then Err.Raise 5, , "Source rectangle is outside the image."
+        If SourceRect.Left < 0 Or SourceRect.Top < 0 Or SourceRect.Right > mWidth Or SourceRect.Bottom > mHeight Then
+            'Err.Raise 5, , "Source rectangle is outside the image."
+            Exit Sub
+        End If
+        
         For I = 1 To mPages.Count
             If PageRectangles(I, SourceRect, Destination, PageSource, PageDestination) Then
                 Set Page = mPages.Item(I)

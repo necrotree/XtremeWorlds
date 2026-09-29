@@ -1,0 +1,30 @@
+[FormDesignerId("F76F02FC-FCDA-4251-BFFA-4F92D1688360")]
+[ClassId("59DBCC18-96FB-4DE3-A473-8735BE3C5E6A")]
+[InterfaceId("484EB5EB-0EAA-47F5-BBBC-64DCF664A863")]
+[EventInterfaceId("109EE83E-3F97-4CEE-B4B7-0D8516B12D68")]
+Class frmSignChoose
+    Attribute VB_Name = "frmSignChoose"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+    
+    Private Sub cmdOK_Click()
+        SignNum = scrlSignNum.Value
+        Unload Me
+    End Sub
+    
+    Private Sub Form_Load()
+        scrlSignNum.max = MAX_SIGNS
+    End Sub
+    
+    Private Sub scrlSignNum_Change()
+        lblSignNum.Caption = STR$(scrlSignNum.Value)
+        lblSignName.Caption = Trim$(Sign(scrlSignNum.Value).name)
+    End Sub
+    
+
+End Class

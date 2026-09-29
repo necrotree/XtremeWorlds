@@ -260,7 +260,7 @@ Private Function CmnGetHDData(hdi As HDINFO) As String
             ' Piattaforma non supportata (Win32S)
             Err.Raise 10002, , "Illegal platform (only WNT, W98 or W95)"   ' Altre piattaforme non gestite
     End Select
-    ' Controllo validità handle
+    ' Controllo validitï¿½ handle
     If hdh = 0 Then
         Err.Raise 10003, , "Error on CreateFile"
     End If

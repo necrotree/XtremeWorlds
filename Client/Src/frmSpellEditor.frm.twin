@@ -34,36 +34,36 @@ Class frmSpellEditor
     End Sub
     
     Private Sub scrlAnim_Change()
-        lblAnim.Caption = STR(scrlAnim.Value)
+        lblAnim.Caption = Str(scrlAnim.Value)
     End Sub
     
     Private Sub scrlItemNum_Change()
         fraGiveItem.Caption = "Give Item " & Trim$(Item(scrlItemNum.Value).name)
-        lblItemNum.Caption = STR(scrlItemNum.Value)
+        lblItemNum.Caption = Str(scrlItemNum.Value)
     End Sub
     
     Private Sub scrlItemValue_Change()
-        lblItemValue.Caption = STR(scrlItemValue.Value)
+        lblItemValue.Caption = Str(scrlItemValue.Value)
     End Sub
     
     Private Sub scrlLevelReq_Change()
-        lblLevelReq.Caption = STR(scrlLevelReq.Value)
+        lblLevelReq.Caption = Str(scrlLevelReq.Value)
     End Sub
     
     Private Sub scrlMapX_Change()
-        lblMapX.Caption = STR(scrlMapX.Value)
+        lblmapX.Caption = Str(scrlMapX.Value)
     End Sub
     
     Private Sub scrlMapY_Change()
-        lblMapY.Caption = STR(scrlMapY.Value)
+        lblMapY.Caption = Str(scrlMapY.Value)
     End Sub
     
     Private Sub scrlMP_Change()
-        lblMP.Caption = STR(scrlMP.Value)
+        lblMP.Caption = Str(scrlMP.Value)
     End Sub
     
     Private Sub scrlVitalMod_Change()
-        lblVitalMod.Caption = STR(scrlVitalMod.Value)
+        lblVitalMod.Caption = Str(scrlVitalMod.Value)
     End Sub
     
     Private Sub cmdOK_Click()
@@ -83,7 +83,7 @@ Class frmSpellEditor
     
 
     Private Sub cmdArrows_Click()
-        SendData "REQUESTARROWS" & END_CHAR
+        SendRequestEdiArrow()
     End Sub
 
     Private Sub cmbDelivery_Click()

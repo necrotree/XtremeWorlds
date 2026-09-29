@@ -3,7 +3,7 @@ Option Explicit
 
 Public Sub InitDirectX()
     DestroyDirectX
-    DX11Initialize frmMainGame.picScreen.hwnd
+    DX11Initialize frmMainGame.picScreen.hWnd
     InitSurfaces
 End Sub
 
@@ -98,7 +98,7 @@ Public Sub BltMap()
     Dim F2Anim As Long
     Dim X As Long, Y As Long
 
-    rec.top = 0
+    rec.Top = 0
     rec.Bottom = (MAX_MAPY + 1) * 32
     rec.Left = 0
     rec.Right = (MAX_MAPX + 1) * 32
@@ -122,8 +122,8 @@ Public Sub BltMap()
             End With
 
             With rec
-                .top = Int(Ground / 7) * PIC_Y
-                .Bottom = .top + PIC_Y
+                .Top = Int(Ground / 7) * PIC_Y
+                .Bottom = .Top + PIC_Y
                 .Left = (Ground - Int(Ground / 7) * 7) * PIC_X
                 .Right = .Left + PIC_X
             End With
@@ -132,8 +132,8 @@ Public Sub BltMap()
             If (MapAnim = 0) Or (Anim2 <= 0) Then
                 ' Is there an animation tile to plot?
                 If Anim1 > 0 And TempTile(X, Y).DoorOpen = NO Then
-                    rec.top = Int(Anim1 / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(Anim1 / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Anim1 - Int(Anim1 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -141,8 +141,8 @@ Public Sub BltMap()
             Else
                 ' Is there a second animation tile to plot?
                 If Anim2 > 0 Then
-                    rec.top = Int(Anim2 / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(Anim2 / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Anim2 - Int(Anim2 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -152,8 +152,8 @@ Public Sub BltMap()
             If (MapAnim = 0) Or (M2Anim <= 0) Then
                 ' Is there an animation tile to plot?
                 If Mask2 > 0 Then
-                    rec.top = Int(Mask2 / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(Mask2 / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Mask2 - Int(Mask2 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -161,8 +161,8 @@ Public Sub BltMap()
             Else
                 ' Is there a second animation tile to plot?
                 If M2Anim > 0 Then
-                    rec.top = Int(M2Anim / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(M2Anim / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (M2Anim - Int(M2Anim / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -173,8 +173,8 @@ Public Sub BltMap()
                 ' Is there an animation tile to plot?
 
                 If Fringe > 0 Then
-                    rec.top = Int(Fringe / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(Fringe / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Fringe - Int(Fringe / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -183,8 +183,8 @@ Public Sub BltMap()
             Else
 
                 If FAnim > 0 Then
-                    rec.top = Int(FAnim / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(FAnim / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (FAnim - Int(FAnim / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -196,8 +196,8 @@ Public Sub BltMap()
             ' Is there an animation tile to plot?
 
                 If Fringe2 > 0 Then
-                    rec.top = Int(Fringe2 / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(Fringe2 / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Fringe2 - Int(Fringe2 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -206,8 +206,8 @@ Public Sub BltMap()
             Else
 
                 If F2Anim > 0 Then
-                    rec.top = Int(F2Anim / 7) * PIC_Y
-                    rec.Bottom = rec.top + PIC_Y
+                    rec.Top = Int(F2Anim / 7) * PIC_Y
+                    rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (F2Anim - Int(F2Anim / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
                     Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
@@ -229,8 +229,8 @@ Public Sub BltItem(ByVal ItemNum As Long)
 
     ' Only used if ever want to switch to blt rather then bltfast
     With rec_pos
-        .top = MapItem(ItemNum).Y * PIC_Y
-        .Bottom = .top + PIC_Y
+        .Top = MapItem(ItemNum).Y * PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = MapItem(ItemNum).X * PIC_X
         .Right = .Left + PIC_X
     End With
@@ -267,13 +267,13 @@ Public Sub BltPlayer(ByVal index As Long)
     End With
 
     With rec
-        .top = (GetPlayerSprite(index) * GameData.PlayerY)
-        .Bottom = .top + PIC_Y
-        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * GameData.PlayerX
-        .Right = .Left + GameData.PlayerX
+        .Top = (GetPlayerSprite(index) * GameData.PlayerY)
+        .Bottom = .Top + PIC_Y * 2
+        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * (GameData.PlayerX + 16)
+        .Right = .Left + (GameData.PlayerX + 16)
     End With
 
-    If GameData.PlayerX > 32 Then
+    If GameData.PlayerX > 48 Then
         X = (GetPlayerX(index) * PIC_X) + (Player(index).XOffset) - (GameData.PlayerX / 4)
     Else
         X = (GetPlayerX(index) * PIC_X) + (Player(index).XOffset)
@@ -284,7 +284,7 @@ Public Sub BltPlayer(ByVal index As Long)
     If Y < 0 Then
         Y = 0
         With rec
-            .top = .top + (Y * -1)
+            .Top = .Top + (Y * -1)
         End With
     End If
 
@@ -295,8 +295,8 @@ Public Sub BltPlayerTop(ByVal index As Long)
     Dim X As Long, Y As Long
 
     With rec
-        .top = (GetPlayerSprite(index) * GameData.PlayerY) - GameData.PlayerY
-        .Bottom = .top + (GameData.PlayerY - 32)
+        .Top = (GetPlayerSprite(index) * GameData.PlayerY) - GameData.PlayerY
+        .Bottom = .Top + (GameData.PlayerY - 32)
         .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * GameData.PlayerX
         .Right = .Left + GameData.PlayerX
     End With
@@ -314,7 +314,7 @@ Public Sub BltPlayerTop(ByVal index As Long)
     If Y < 0 Then
         Y = 0
         With rec
-            .top = .top + (Y * -1)
+            .Top = .Top + (Y * -1)
         End With
     End If
 
@@ -341,8 +341,8 @@ Sub BltSpell(ByVal VicX As Long, ByVal VicY As Long, ByVal SpellAnim As Byte)
     End If
 
     ' 32x32 Spells
-    rec.top = SpellAnim * PIC_Y
-    rec.Bottom = rec.top + PIC_Y
+    rec.Top = SpellAnim * PIC_Y
+    rec.Bottom = rec.Top + PIC_Y
     rec.Left = SpellVar * PIC_X
     rec.Right = rec.Left + PIC_X
 
@@ -367,8 +367,8 @@ Public Sub BltNpc(ByVal MapNpcNum As Long)
 
     ' Only used if ever want to switch to blt rather then bltfast
     With rec_pos
-        .top = MapNpc(MapNpcNum).Y * PIC_Y + MapNpc(MapNpcNum).YOffset
-        .Bottom = .top + PIC_Y
+        .Top = MapNpc(MapNpcNum).Y * PIC_Y + MapNpc(MapNpcNum).YOffset
+        .Bottom = .Top + PIC_Y
         .Left = MapNpc(MapNpcNum).X * PIC_X + MapNpc(MapNpcNum).XOffset
         .Right = .Left + PIC_X
     End With
@@ -401,8 +401,8 @@ Public Sub BltNpc(ByVal MapNpcNum As Long)
     End With
 
     With rec
-        .top = Npc(MapNpc(MapNpcNum).Num).Sprite * PIC_Y
-        .Bottom = .top + PIC_Y
+        .Top = Npc(MapNpc(MapNpcNum).Num).Sprite * PIC_Y
+        .Bottom = .Top + PIC_Y
         .Left = (MapNpc(MapNpcNum).Dir * 3 + Anim) * PIC_X
         .Right = .Left + PIC_X
     End With
@@ -416,7 +416,7 @@ Public Sub BltNpc(ByVal MapNpcNum As Long)
     If Y < 0 Then
         Y = 0
         With rec
-            .top = .top + (Y * -1)
+            .Top = .Top + (Y * -1)
         End With
     End If
 

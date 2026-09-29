@@ -20,6 +20,7 @@ Public Shop() As ShopRec
 Public Sign() As SignRec
 Public Spell() As SpellRec
 Public Guild() As GuildRec
+Public Arrow() As ArrowRec
 Public GameData As DataRec
 
 Public Type TextSize
@@ -43,6 +44,7 @@ Type DataRec
   PlayerY As Integer
   XOffset As Byte
   YOffset As Byte
+  WASD As Byte
 End Type
   
 Type PlayerInvRec
@@ -141,7 +143,7 @@ Type MapRec
 End Type
 
 Type ClassRec
-  name As String * NAME_LENGTH
+  Name As String * NAME_LENGTH
   Sprite As Integer
   FSprite As Integer
   

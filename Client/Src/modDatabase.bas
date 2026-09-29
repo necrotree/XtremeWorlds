@@ -73,7 +73,7 @@ Public Sub SaveLocalMap(ByVal MapNum As Long)
 
     F = FreeFile
     Open FileName For Binary As #F
-    Put #F, , SaveMap
+    Put #F,, SaveMap
     Close #F
 End Sub
 
@@ -91,7 +91,7 @@ Public Sub LoadMap(ByVal MapNum As Long)
 
     F = FreeFile
     Open FileName For Binary As #F
-    Get #F, , SaveMap
+    Get #F,, SaveMap
     Close #F
 End Sub
 
@@ -110,7 +110,7 @@ Public Function GetMapRevision(ByVal MapNum As Long) As Long
 
     F = FreeFile
     Open FileName For Binary As #F
-    Get #F, , TmpMap
+    Get #F,, TmpMap
     Close #F
 
     GetMapRevision = TmpMap.Revision
@@ -152,7 +152,7 @@ Public Function GetMap(ByVal MapNum As Long) As MapRec
 
     F = FreeFile
     Open FileName For Binary As #F
-    Get #F, , GetMap
+    Get #F,, GetMap
     Close #F
 End Function
 

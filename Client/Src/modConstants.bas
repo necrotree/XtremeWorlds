@@ -9,7 +9,7 @@ Attribute VB_Name = "modConstants"
 Option Explicit
 
 ' Encryption Key
-Public Const ENC_KEY = "¦£»-Å¦%ôtgq|\=+-_`~€ƒ…Šª©®¬§«±º¾¿Á¯õþøðæç¼½*-/+><;;:)(*^@$%^&@($GhdgbfkmsdKJGuyfkjesgf654765145674944?âF¦†ÿ?¢Ç"
+Public Const ENC_KEY = "ï¿½ï¿½ï¿½-Å¦%ï¿½tgq|\=+-_`~ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç¼½*-/+><;;:)(*^@$%^&@($GhdgbfkmsdKJGuyfkjesgf654765145674944?ï¿½Fï¿½ï¿½ï¿½?ï¿½ï¿½"
 
 ' Music Extension
 Public MUSIC_EXT As String
@@ -122,6 +122,7 @@ Public MAX_SPELLS As Long
 Public MAX_SIGNS As Long
 Public MAX_MAPS As Long
 Public MAX_GUILDS As Long
+Public MAX_ARROWS As Long
 
 Public Const BASE_MAX_PLAYERS As Integer = 500
 Public Const BASE_MAX_ITEMS As Integer = 500

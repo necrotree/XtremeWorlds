@@ -12,8 +12,6 @@ Private mKeyH(0 To 110) As Long
 Private mKeyCaption(0 To 110) As String
 Private mKeyCount As Long
 
-
-
 Private Sub Form_Load()
     Dim i As Long
     EditingHotkeys = True

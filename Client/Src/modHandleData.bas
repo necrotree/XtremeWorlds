@@ -277,8 +277,8 @@ Public Sub HandleData(ByVal Data As String)
             Call SetPlayerHP(MyIndex, Val(Parse(2)))
             If GetPlayerMaxHP(MyIndex) > 0 Then
                 With frmMainGame
-                    .lblHP(0).Caption = "HP:   " & GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
-                    .lblHP(1).Caption = "HP:   " & GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
+                    .lblHP(0).Caption = GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
+                    .lblHP(1).Caption = GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
                     .shpHP.Width = (((GetPlayerHP(MyIndex) / 100) / (GetPlayerMaxHP(MyIndex) / 100)) * 211)
                 End With
             End If
@@ -291,8 +291,8 @@ Public Sub HandleData(ByVal Data As String)
             Player(MyIndex).MaxMP = Val(Parse(1))
             Call SetPlayerMP(MyIndex, Val(Parse(2)))
             If GetPlayerMaxMP(MyIndex) > 0 Then
-                frmMainGame.lblMP(0).Caption = "MP:   " & GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
-                frmMainGame.lblMP(1).Caption = "MP:   " & GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
+                frmMainGame.lblMP(0).Caption = GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
+                frmMainGame.lblMP(1).Caption = GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
                 frmMainGame.shpMP.Width = (((GetPlayerMP(MyIndex) / 100) / (GetPlayerMaxMP(MyIndex) / 100)) * 211)
             End If
             Exit Sub
@@ -304,8 +304,8 @@ Public Sub HandleData(ByVal Data As String)
             Player(MyIndex).MaxSP = Val(Parse(1))
             Call SetPlayerSP(MyIndex, Val(Parse(2)))
             If GetPlayerMaxSP(MyIndex) > 0 Then
-                frmMainGame.lblSP(0).Caption = "SP:   " & GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
-                frmMainGame.lblSP(1).Caption = "SP:   " & GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
+                frmMainGame.lblSP(0).Caption = GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
+                frmMainGame.lblSP(1).Caption = GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
                 frmMainGame.shpSP.Width = (((GetPlayerSP(MyIndex) / 100) / (GetPlayerMaxSP(MyIndex) / 100)) * 211)
             End If
             Exit Sub
@@ -325,11 +325,11 @@ Public Sub HandleData(ByVal Data As String)
                 If experienceRatio < 0 Then experienceRatio = 0
                 If experienceRatio > 1 Then experienceRatio = 1
                 frmMainGame.shpEXP.Width = experienceRatio * 211
-                frmMainGame.lblExperience.Caption = "XP: " & Format$(experience, "#,##0") & " | TNL: " & Format$(remainingExperience, "#,##0")
+                frmMainGame.lblExperience.Caption = Format$(experience, "#,##0") & Format$(remainingExperience, "#,##0")
                 frmMainGame.lblExperience.ToolTipText = "Experience: " & Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0") & "; TNL: " & Format$(remainingExperience, "#,##0")
             Else
                 frmMainGame.shpEXP.Width = 0
-                frmMainGame.lblExperience.Caption = "XP: " & Format$(experience, "#,##0") & " | TNL: --"
+                frmMainGame.lblExperience.Caption = Format$(experience, "#,##0")
                 frmMainGame.lblExperience.ToolTipText = "The server has not supplied a next-level target."
             End If
             Exit Sub
@@ -684,8 +684,8 @@ Public Sub HandleData(ByVal Data As String)
             ' Play music
             If LenB(MUSIC_EXT) <> 0 Then
                 If CurrentSong = Map.Music Then Exit Sub
-
-                Call SwitchSong(Map.Music)
+                
+                Call Audio.SwitchMusic(Map.Music)
             End If
 
             Exit Sub
@@ -1314,6 +1314,8 @@ Public Sub HandleData(ByVal Data As String)
         ' :::::::::::::::::
         Case "sendname"
             GAME_NAME = Trim$(Parse(1))
+            frmMainGame.Caption = GAME_NAME
+            frmMainMenu.Caption = GAME_NAME
             Exit Sub
 
         ' ::::::::::::::::::
