@@ -42,6 +42,7 @@ Public Sub UnloadAllForms()
 End Sub
 
 Sub GameDestroy()
+    Audio.Shutdown
     InGame = False
     Call DestroyDirectX
     Call TcpDestroy
