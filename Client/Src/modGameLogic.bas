@@ -71,6 +71,9 @@ Public Sub Main()
 
     Call SetStatus("Initializing TCP settings")
     Call TcpInit
+    
+    Call SetStatus("Initializing BASS")
+    InitSound
 
     frmMainMenu.RefreshWebsite
     frmSendGetData.Visible = False
@@ -90,7 +93,7 @@ Public Sub InitSound()
         Exit Sub
     End If
 
-    MusicHandle = Audio.OpenStream(App.Path & "\music\music1.mp3", True)
+    MusicHandle = Audio.OpenStream(App.Path & "\music\music1.ogg", True)
 
     If MusicHandle = 0 Then
         GameMsgBox "BASS failed to open stream: " & Audio.LastErrorString()

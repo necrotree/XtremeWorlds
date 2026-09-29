@@ -60,7 +60,7 @@ Missing:
 End Function
 
 Public Sub SwitchMusic(ByVal Music As Long)
-    MusicHandle = Audio.OpenStream(App.Path & "\music\" + Music + ".mp3", True)
+    MusicHandle = Audio.OpenStream(App.Path & "\music\" + Music + ".ogg", True)
 
     If MusicHandle = 0 Then
         GameMsgBox "BASS failed to open stream: " & Audio.LastErrorString()
