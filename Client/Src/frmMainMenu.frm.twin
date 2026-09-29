@@ -404,6 +404,8 @@ Private Sub picRegisterLogin_Click()
         End If
         If cmbClass.ListIndex < 0 Then cmbClass.ListIndex = 0
         SetMenuVisible "mnuClassSelection", True
+        picClassContinue.ZOrder 0
+        picClassBack.ZOrder 0
         RefreshSelectedClass
     End Sub
 
@@ -454,8 +456,8 @@ Private Sub picClassNext_Click()
         txtNewCharName.SetFocus
     End Sub
     Private Sub picClassBack_Click()
-        HideMenuPanels
-        SetMenuVisible "mnuChars", True
+        Call TcpDestroy
+        ShowMenuHome
     End Sub
 
     ' Image controls are not containers. Tags group the flat Image, Label,

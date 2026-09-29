@@ -125,6 +125,9 @@ Class frmMainGame
     Private Sub Form_Load()
         InitializeImageMenus
         LayoutGamePanels
+        picPlayerList.Visible = False
+        lstPlayers.Visible = False
+        picPM.Visible = False
         Call ApplyMovementControls
         Set txtChat = New clsNativeRichText
         txtChat.Attach hosttxtChat, True, 0, 9.75, "Rockwell"
@@ -132,6 +135,19 @@ Class frmMainGame
         Socket.Attach Me.hWnd
         Set Notetext = New clsNativeRichText
         Notetext.Attach hostNotetext, False, 16777215, 9.75, "Rockwell"
+        With cmbChatChannel
+            .Clear
+            .AddItem "All"
+            .AddItem "Local"
+            .AddItem "Global"
+            .AddItem "Emote"
+            .AddItem "Private"
+            .AddItem "Party"
+            .AddItem "Guild"
+            .AddItem "System"
+            .ListIndex = ChatHistoryAll
+        End With
+        SetChatHistoryChannel ChatHistoryAll
     
         ' Dim result As Long
         ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
@@ -173,6 +189,10 @@ Class frmMainGame
     
     End Sub
     
+    Private Sub cmbChatChannel_Click()
+        SetChatHistoryChannel cmbChatChannel.ListIndex
+    End Sub
+
     Private Sub lblForget_Click()
         If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
             If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
@@ -191,6 +211,9 @@ Class frmMainGame
         wasVisible = picWho.Visible
         CloseSideMenu
         If Not wasVisible Then
+            picPlayerList.Visible = True
+            lstPlayers.Visible = True
+            picPM.Visible = True
             picWho.Visible = True
             SendWhosOnline
         End If
@@ -575,6 +598,7 @@ Class frmMainGame
     End Sub
     
     Private Sub picPM_Click()
+        If lstPlayers.ListIndex < 0 Then Exit Sub
         MyText = "!" & lstPlayers.List(lstPlayers.ListIndex) & " "
     On Error Resume Next
         Call UnlockChat
@@ -1166,6 +1190,9 @@ Class frmMainGame
     End Sub
     Private Sub lblWhoClose_Click()
         picWho.Visible = False
+        picPlayerList.Visible = False
+        lstPlayers.Visible = False
+        picPM.Visible = False
     End Sub
     Private Sub lblWhoMessage_Click()
         If lstWho.ListIndex < 0 Then Exit Sub

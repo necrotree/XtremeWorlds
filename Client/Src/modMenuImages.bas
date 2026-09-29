@@ -28,25 +28,30 @@ Public Function MenuSpritePicture(ByVal Sprite As Long) As IPictureDisp
     Dim description As MenuPictureDescriptor, iid As MenuPictureGuid
     Dim picture As IPictureDisp
     Dim errorNumber As Long, errorText As String
+    Dim frameWidth As Long, frameHeight As Long
     If DD_SpriteSurf Is Nothing Then Exit Function
-    If Sprite < 0 Or (Sprite + 1) * PIC_Y > DD_SpriteSurf.Height Then Exit Function
-    If 4 * PIC_X > DD_SpriteSurf.Width Then Exit Function
+    If Sprite < 0 Or GameData.PlayerY < 1 Or GameData.PlayerX < 0 Then Exit Function
+    frameWidth = GameData.PlayerX + 16
+    frameHeight = PIC_Y * 2
+    If frameWidth < 1 Or frameWidth > DD_SpriteSurf.Width Then Exit Function
+    If Sprite > (DD_SpriteSurf.Height - frameHeight) \ GameData.PlayerY Then Exit Function
+    If (DIR_DOWN * 3 + 1) * frameWidth > DD_SpriteSurf.Width Then Exit Function
+    source.Top = Sprite * GameData.PlayerY
+    source.Bottom = source.Top + frameHeight
+    source.Left = (DIR_DOWN * 3) * frameWidth
+    source.Right = source.Left + frameWidth
     On Error GoTo Failed
     screenDC = WinDevLib.GetDC(0)
     If screenDC = 0 Then Err.Raise 5, , "Cannot create sprite preview DC."
     memoryDC = WinDevLib.CreateCompatibleDC(screenDC)
-    bitmap = WinDevLib.CreateCompatibleBitmap(screenDC, 48, 48)
+    bitmap = WinDevLib.CreateCompatibleBitmap(screenDC, frameWidth, frameHeight)
     WinDevLib.ReleaseDC 0, screenDC
     screenDC = 0
     If memoryDC = 0 Or bitmap = 0 Then Err.Raise 7, , "Cannot allocate sprite preview."
     previous = WinDevLib.SelectObject(memoryDC, bitmap)
-    WinDevLib.PatBlt memoryDC, 0, 0, 48, 48, WinDevLib.BLACKNESS
-    source.Left = 3 * PIC_X
-    source.Top = Sprite * PIC_Y
-    source.Right = source.Left + PIC_X
-    source.Bottom = source.Top + PIC_Y
-    destination.Left = 8: destination.Top = 8
-    destination.Right = 40: destination.Bottom = 40
+    WinDevLib.PatBlt memoryDC, 0, 0, frameWidth, frameHeight, WinDevLib.BLACKNESS
+    destination.Left = 0: destination.Top = 0
+    destination.Right = frameWidth: destination.Bottom = frameHeight
     DD_SpriteSurf.BltToDC memoryDC, source, destination
     WinDevLib.SelectObject memoryDC, previous
     previous = 0

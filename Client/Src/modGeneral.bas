@@ -4,6 +4,28 @@ Option Explicit
 Public SOffsetX As Integer
 Public SOffsetY As Integer
 
+Public Enum ChatHistoryChannel
+    ChatHistoryAll = 0
+    ChatHistoryLocal = 1
+    ChatHistoryGlobal = 2
+    ChatHistoryEmote = 3
+    ChatHistoryPrivate = 4
+    ChatHistoryParty = 5
+    ChatHistoryGuild = 6
+    ChatHistorySystem = 7
+End Enum
+
+Private Const ChatHistoryLimit As Long = 256
+Private Type ChatHistoryEntry
+    Message As String
+    Color As Integer
+    Channel As Long
+End Type
+Private ChatHistory(0 To ChatHistoryLimit - 1) As ChatHistoryEntry
+Private ChatHistoryStart As Long
+Private ChatHistoryCount As Long
+Public ActiveChatHistoryChannel As Long
+
 Public Sub UnloadAllForms()
     Dim frm As Form
 
@@ -36,7 +58,40 @@ Sub MovePicture(PB As PictureBox, Button As Integer, Shift As Integer, X As Sing
 End Sub
 
 ' This sub writes text to the chatbox
-Public Sub AddText(ByVal Msg As String, ByVal Color As Integer)
+Public Sub AddText(ByVal Msg As String, ByVal Color As Integer, Optional ByVal Channel As Long = ChatHistorySystem)
+    Dim slot As Long
+
+    If Channel < ChatHistoryLocal Or Channel > ChatHistorySystem Then Channel = ChatHistorySystem
+    If ChatHistoryCount < ChatHistoryLimit Then
+        slot = (ChatHistoryStart + ChatHistoryCount) Mod ChatHistoryLimit
+        ChatHistoryCount = ChatHistoryCount + 1
+    Else
+        slot = ChatHistoryStart
+        ChatHistoryStart = (ChatHistoryStart + 1) Mod ChatHistoryLimit
+    End If
+    ChatHistory(slot).Message = Msg
+    ChatHistory(slot).Color = Color
+    ChatHistory(slot).Channel = Channel
+
+    If ActiveChatHistoryChannel = ChatHistoryAll Or ActiveChatHistoryChannel = Channel Then
+        AppendChatLine Msg, Color
+    End If
+End Sub
+
+Public Sub SetChatHistoryChannel(ByVal Channel As Long)
+    Dim i As Long, slot As Long
+    If Channel < ChatHistoryAll Or Channel > ChatHistorySystem Then Channel = ChatHistoryAll
+    ActiveChatHistoryChannel = Channel
+    frmMainGame.txtChat.Text = vbNullString
+    For i = 0 To ChatHistoryCount - 1
+        slot = (ChatHistoryStart + i) Mod ChatHistoryLimit
+        If Channel = ChatHistoryAll Or ChatHistory(slot).Channel = Channel Then
+            AppendChatLine ChatHistory(slot).Message, ChatHistory(slot).Color
+        End If
+    Next i
+End Sub
+
+Private Sub AppendChatLine(ByVal Msg As String, ByVal Color As Integer)
     Dim S As String
 
     S = vbNewLine & Msg

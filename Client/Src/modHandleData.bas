@@ -33,6 +33,7 @@ Public Sub HandleData(ByVal Data As String)
     Dim BanPlayer As Long
     Dim Level As Long
     Dim NextLevel As Long
+    Dim chatChannel As Long
     Dim i As Long, n As Long, X As Long, Y As Long
     Dim ShopNum As Long, GiveItem As Long, GiveValue As Long, GiveItem2 As Long, GiveValue2 As Long, GetItem As Long, GetValue As Long
 
@@ -692,8 +693,28 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::::::::::::
         ' :: Social packets ::
         ' ::::::::::::::::::::
-        Case "saymsg", "broadcastmsg", "globalmsg", "playermsg", "mapmsg", "adminmsg"
-            Call AddText(Parse(1), Val(Parse(2)))
+        Case "saymsg", "broadcastmsg", "globalmsg", "playermsg", "mapmsg", "adminmsg", "emotemsg", "partymsg", "guildmsg"
+            Select Case LCase$(Parse(0))
+                Case "saymsg": chatChannel = ChatHistoryLocal
+                Case "broadcastmsg", "globalmsg": chatChannel = ChatHistoryGlobal
+                Case "emotemsg": chatChannel = ChatHistoryEmote
+                Case "mapmsg"
+                    If Val(Parse(2)) = EmoteColor Then
+                        chatChannel = ChatHistoryEmote
+                    Else
+                        chatChannel = ChatHistoryLocal
+                    End If
+                Case "playermsg"
+                    If LCase$(Left$(Parse(1), 9)) = "you tell " Or InStr(1, Parse(1), " tells you, '", vbTextCompare) > 0 Then
+                        chatChannel = ChatHistoryPrivate
+                    Else
+                        chatChannel = ChatHistorySystem
+                    End If
+                Case "partymsg": chatChannel = ChatHistoryParty
+                Case "guildmsg": chatChannel = ChatHistoryGuild
+                Case Else: chatChannel = ChatHistorySystem
+            End Select
+            Call AddText(Parse(1), Val(Parse(2)), chatChannel)
             Exit Sub
 
         ' :::::::::::::::::::::::
