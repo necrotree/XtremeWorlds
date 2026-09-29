@@ -16,7 +16,7 @@ Public Sub NewAccountConnect()
         ' Prevent high ascii chars
         For i = 1 To Len(Msg)
             If Asc(Mid$(Msg, i, 1)) < 32 Or Asc(Mid$(Msg, i, 1)) > 126 Then
-                Call MsgBox("You cannot use high ascii chars in your name, please re-enter.", vbOKOnly, GAME_NAME)
+                Call GameMsgBox("You cannot use high ascii chars in your name, please re-enter.", vbOKOnly, GAME_NAME)
                 frmMainMenu.txtNewAcctName.Text = vbNullString
                 Exit Sub
             End If
@@ -30,11 +30,11 @@ Public Sub LoginConnect()
     If LenB(Trim$(frmMainMenu.txtLoginName.Text)) > 0 And LenB(Trim$(frmMainMenu.txtLoginPassword.Text)) > 0 Then
         Call MenuState(MENU_STATE_LOGIN)
     ElseIf LenB(Trim$(frmMainMenu.txtLoginName.Text)) = 0 And LenB(Trim$(frmMainMenu.txtLoginPassword.Text)) = 0 Then
-        Call MsgBox("Please enter your login name and password!", vbOKOnly)
+        Call GameMsgBox("Please enter your login name and password!", vbOKOnly)
     ElseIf LenB(Trim$(frmMainMenu.txtLoginName.Text)) = 0 Then
-        Call MsgBox("Please enter your login name!", vbOKOnly)
+        Call GameMsgBox("Please enter your login name!", vbOKOnly)
     ElseIf LenB(Trim$(frmMainMenu.txtLoginPassword.Text)) = 0 Then
-        Call MsgBox("Please enter your password!", vbOKOnly)
+        Call GameMsgBox("Please enter your password!", vbOKOnly)
     End If
 End Sub
 
@@ -48,7 +48,7 @@ Public Sub AddCharClick()
         ' Prevent high ascii chars
         For i = 1 To Len(Msg)
             If Asc(Mid$(Msg, i, 1)) < 32 Or Asc(Mid$(Msg, i, 1)) > 126 Then
-                Call MsgBox("You cannot use high ascii chars in your name, please reenter.", vbOKOnly, GAME_NAME)
+                Call GameMsgBox("You cannot use high ascii chars in your name, please reenter.", vbOKOnly, GAME_NAME)
                 frmMainMenu.txtNewCharName.Text = vbNullString
                 Exit Sub
             End If
@@ -61,6 +61,7 @@ End Sub
 Public Sub CloseSideMenu()
     ' Close Mirage Menus
     With frmMainGame
+        .picWho.Visible = False
         .picMnuGear.Visible = False
         .picPlayerSpells.Visible = False
         .picInv.Visible = False
@@ -137,7 +138,7 @@ Public Sub MenuState(ByVal State As Long)
         frmMainMenu.ShowMenuHome
         frmMainMenu.Visible = True
         frmSendGetData.Visible = False
-        Call MsgBox("Sorry, the server seems to be down.  Please try to reconnect in a few minutes or visit " & WEBSITE, vbOKOnly, GAME_NAME)
+        Call GameMsgBox("Sorry, the server seems to be down.  Please try to reconnect in a few minutes or visit " & WEBSITE, vbOKOnly, GAME_NAME)
     End If
 End Sub
 

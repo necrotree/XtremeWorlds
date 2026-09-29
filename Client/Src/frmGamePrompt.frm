@@ -32,45 +32,30 @@ Begin VB.Form frmGamePrompt
       BorderStyle = 0
       BackColor = 2894936
    End
-   Begin VB.Label lblChoice
-      Left = 375
-      Top = 1620
-      Width = 1290
-      Height = 360
-      ForeColor = 14809087
-      BackStyle = 1
-      Caption = ""
-      Index = 0
-      BorderStyle = 1
-      Alignment = 2
-      BackColor = 2894936
-   End
-   Begin VB.Label lblChoice
-      Left = 1785
-      Top = 1620
-      Width = 1290
-      Height = 360
-      ForeColor = 14809087
-      BackStyle = 1
-      Caption = ""
-      Index = 1
-      BorderStyle = 1
-      Alignment = 2
-      BackColor = 2894936
-   End
-   Begin VB.Label lblChoice
-      Left = 3195
-      Top = 1620
-      Width = 1290
-      Height = 360
-      ForeColor = 14809087
-      BackStyle = 1
-      Caption = ""
-      Index = 2
-      BorderStyle = 1
-      Alignment = 2
-      BackColor = 2894936
-   End
+    Begin VB.Image imgOk
+        Left = 0
+        Top = 0
+        Width = 1530
+        Height = 360
+        Stretch = -1
+        Visible = 0
+    End
+    Begin VB.Image imgYes
+        Left = 0
+        Top = 0
+        Width = 1530
+        Height = 360
+        Stretch = -1
+        Visible = 0
+    End
+    Begin VB.Image imgNo
+        Left = 0
+        Top = 0
+        Width = 1530
+        Height = 360
+        Stretch = -1
+        Visible = 0
+    End
 End
 Attribute VB_Name = "frmGamePrompt"
 Attribute VB_PredeclaredId = True
@@ -83,6 +68,9 @@ Attribute VB_PredeclaredId = True
 
     Public Sub Configure(ByVal Message As String, ByVal Buttons As VbMsgBoxStyle, ByVal Title As String)
         Dim i As Long, Lines As Long, Part As Variant
+        ChoiceCount = 0
+        EscapeResult = 0
+        Result = 0
         lblTitle.Caption = Title
         txtMessage.Text = Message
         Lines = 0
@@ -94,67 +82,75 @@ Attribute VB_PredeclaredId = True
         txtMessage.Height = Lines * 17
         Me.Height = (txtMessage.Top + txtMessage.Height + 52) * Screen.TwipsPerPixelY
         Select Case (CLng(Buttons) And 15)
-            Case vbOKCancel
-                SetChoice 0, "OK", vbOK
-                SetChoice 1, "Cancel", vbCancel
-                EscapeResult = vbCancel
-            Case vbYesNo, vbYesNoCancel
-                SetChoice 0, "Yes", vbYes
-                SetChoice 1, "No", vbNo
-                If (CLng(Buttons) And 15) = vbYesNoCancel Then
-                    SetChoice 2, "Cancel", vbCancel
-                    EscapeResult = vbCancel
-                End If
-            Case vbRetryCancel
-                SetChoice 0, "Retry", vbRetry
-                SetChoice 1, "Cancel", vbCancel
-                EscapeResult = vbCancel
-            Case vbAbortRetryIgnore
-                SetChoice 0, "Abort", vbAbort
-                SetChoice 1, "Retry", vbRetry
-                SetChoice 2, "Ignore", vbIgnore
+            Case vbYesNo
+                SetChoice 0, vbYes
+                SetChoice 1, vbNo
+                EscapeResult = vbNo
             Case Else
-                SetChoice 0, "OK", vbOK
+                SetChoice 0, vbOK
                 EscapeResult = vbOK
         End Select
-        For i = 0 To 2
-            lblChoice(i).Visible = (i < ChoiceCount)
-            lblChoice(i).Top = txtMessage.Top + txtMessage.Height + 12
-            lblChoice(i).Left = (ScaleWidth - ChoiceCount * 94 + 8) / 2 + i * 94
-        Next i
+        imgOk.Visible = False
+        imgYes.Visible = False
+        imgNo.Visible = False
+        PositionChoices
         FocusChoice = (CLng(Buttons) And &H300) \ &H100
         If FocusChoice >= ChoiceCount Then FocusChoice = 0
-        HighlightChoice
         PaintSkin
     End Sub
 
-    Private Sub SetChoice(ByVal Index As Long, ByVal Caption As String, ByVal Value As VbMsgBoxResult)
+    Private Sub SetChoice(ByVal Index As Long, ByVal Value As VbMsgBoxResult)
         Choices(Index) = Value
-        lblChoice(Index).Caption = Caption
         ChoiceCount = Index + 1
     End Sub
 
-    Private Sub HighlightChoice()
+    Private Sub PositionChoices()
+        Dim i As Long, x As Long, y As Long
+        y = txtMessage.Top + txtMessage.Height + 12
+        x = (ScaleWidth - ChoiceCount * 110 + 8) / 2
+        For i = 0 To ChoiceCount - 1
+            Select Case Choices(i)
+                Case vbOK
+                    imgOk.Move x, y, 102, 24
+                    imgOk.Visible = True
+                Case vbYes
+                    imgYes.Move x, y, 102, 24
+                    imgYes.Visible = True
+                Case vbNo
+                    imgNo.Move x, y, 102, 24
+                    imgNo.Visible = True
+            End Select
+            x = x + 110
+        Next i
+    End Sub
+
+    Private Sub SelectChoice(ByVal Value As VbMsgBoxResult)
         Dim i As Long
-        For i = 0 To 2
-            lblChoice(i).FontBold = (i = FocusChoice)
-            If i = FocusChoice Then
-                lblChoice(i).BackColor = RGB(110, 68, 53)
-            Else
-                lblChoice(i).BackColor = RGB(88, 44, 44)
+        For i = 0 To ChoiceCount - 1
+            If Choices(i) = Value Then
+                Result = Value
+                Me.Hide
+                Exit Sub
             End If
         Next i
     End Sub
 
-    Private Sub lblChoice_Click(Index As Integer)
-        Result = Choices(Index)
-        Me.Hide
+    Private Sub imgOk_Click()
+        SelectChoice vbOK
+    End Sub
+
+    Private Sub imgYes_Click()
+        SelectChoice vbYes
+    End Sub
+
+    Private Sub imgNo_Click()
+        SelectChoice vbNo
     End Sub
 
     Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
         Select Case KeyCode
             Case vbKeyReturn
-                lblChoice_Click CInt(FocusChoice)
+                If FocusChoice >= 0 And FocusChoice < ChoiceCount Then SelectChoice Choices(FocusChoice)
                 KeyCode = 0
             Case vbKeyEscape
                 If EscapeResult <> 0 Then
@@ -168,7 +164,6 @@ Attribute VB_PredeclaredId = True
                 Else
                     FocusChoice = (FocusChoice + 1) Mod ChoiceCount
                 End If
-                HighlightChoice
                 KeyCode = 0
         End Select
     End Sub

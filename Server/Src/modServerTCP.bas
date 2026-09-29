@@ -381,6 +381,12 @@ Sub SendWhosOnline(ByVal Index As Long)
         s = "There are " & N & " other players online: " & s & "."
     End If
 
+    Dim whoPacket As String
+    whoPacket = "WHOLIST"
+    For I = 1 To HighIndex
+        If IsPlaying(I) And I <> Index Then whoPacket = whoPacket & SEP_CHAR & GetPlayerName(I)
+    Next I
+    SendDataTo Index, whoPacket & END_CHAR
     Call PlayerMsg(Index, s, WhoColor)
 End Sub
 

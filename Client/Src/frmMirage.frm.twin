@@ -9,6 +9,14 @@ Class frmMainGame
     Attribute VB_PredeclaredId = True
     Attribute VB_Exposed = False
     Option Explicit
+    Public picMnuGear As clsImageMenu
+    Public picLiveStats As clsImageMenu
+    Public picMnuTrain As clsImageMenu
+    Public picWho As clsImageMenu
+    Public picInv As clsImageMenu
+    Public picPlayerSpells As clsImageMenu
+    Public picKeepNotes As clsImageMenu
+    Public picSign As clsImageMenu
     Private InventoryPage As Long
     Private InventoryClickedSlot As Long
     Private InventoryBackground As clsDX11Surface
@@ -77,7 +85,7 @@ Class frmMainGame
         Me.WindowState = 1
     End Sub
     
-    Private Sub Equip_Click(index As Integer)
+    Private Sub imgEquipment_Click(index As Integer)
         Select Case index
             Case 0
                 If GetPlayerShieldSlot(MyIndex) <> 0 Then
@@ -115,14 +123,15 @@ Class frmMainGame
     End Sub
     
     Private Sub Form_Load()
+        InitializeImageMenus
         LayoutGamePanels
         Call ApplyMovementControls
         Set txtChat = New clsNativeRichText
-        txtChat.Attach hosttxtChat, True, 0, 9.75
+        txtChat.Attach hosttxtChat, True, 0, 9.75, "Rockwell"
         Set Socket = New clsNativeSocket
         Socket.Attach Me.hWnd
         Set Notetext = New clsNativeRichText
-        Notetext.Attach hostNotetext, False, 16777215, 9.75
+        Notetext.Attach hostNotetext, False, 16777215, 9.75, "Rockwell"
     
         ' Dim result As Long
         ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
@@ -178,7 +187,13 @@ Class frmMainGame
     End Sub
     
     Private Sub lblPlayers_Click()
-        Call CloseSideMenu
+        Dim wasVisible As Boolean
+        wasVisible = picWho.Visible
+        CloseSideMenu
+        If Not wasVisible Then
+            picWho.Visible = True
+            SendWhosOnline
+        End If
     End Sub
     
     Private Sub lblTrain_Click()
@@ -319,16 +334,16 @@ Class frmMainGame
         End If
     End Sub
     
-    Private Sub picKeepNotes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgNotes_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     ' Call MovePicture(frmMainGame.picKeepNotes, Button, Shift, X, Y)
     End Sub
     
-    Private Sub picLiveStats_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgLiveStats_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         SOffsetX = X
         SOffsetY = Y
     End Sub
     
-    Private Sub picLiveStats_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgLiveStats_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     ' Call MovePicture(frmMainGame.picLiveStats, Button, Shift, X, Y)
     End Sub
     
@@ -340,12 +355,12 @@ Class frmMainGame
     ' Call MovePicture(frmMainGame.picMapEditor, Button, Shift, X, Y)
     End Sub
     
-    Private Sub picPlayerSpells_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgSkills_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         SOffsetX = X
         SOffsetY = Y
     End Sub
     
-    Private Sub picPlayerSpells_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgSkills_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
     ' Call MovePicture(frmMainGame.picPlayerSpells, Button, Shift, X, Y)
     End Sub
 
@@ -372,12 +387,12 @@ Class frmMainGame
     
     End Sub
     
-    Private Sub picSign_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgSign_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         SOffsetX = X
         SOffsetY = Y
     End Sub
     
-    Private Sub picSign_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgSign_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         CenterSign
     End Sub
     
@@ -486,8 +501,10 @@ Class frmMainGame
     ' Button Click Codes
     
     Private Sub picSpells_Click()
+        Dim wasVisible As Boolean
+        wasVisible = picPlayerSpells.Visible
         Call CloseSideMenu
-        If picPlayerSpells.Visible = True Then
+        If wasVisible Then
             picPlayerSpells.Visible = False
         Else
             Call SendData("spells" & END_CHAR)
@@ -528,8 +545,10 @@ Class frmMainGame
     End Sub
     
     Private Sub picInventory_Click()
+        Dim wasVisible As Boolean
+        wasVisible = picInv.Visible
         Call CloseSideMenu
-        If picInv.Visible = True Then
+        If wasVisible Then
             picInv.Visible = False
         Else
             Call UpdateInventory
@@ -538,10 +557,12 @@ Class frmMainGame
     End Sub
     
     Private Sub lblKeepNotes_Click()
+        Dim wasVisible As Boolean
+        wasVisible = picKeepNotes.Visible
         Call CloseSideMenu
         ' Dim result As Long
         ' result = SetWindowLong(Notetext.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
-        If picKeepNotes.Visible = True Then
+        If wasVisible Then
             picKeepNotes.Visible = False
         Else
             Notetext.LoadFile (App.Path & DATA_PATH & "notes.txt")
@@ -935,7 +956,7 @@ Class frmMainGame
     Private Sub picGuild_Click()
         AddText "Your guild is " & GetPlayerGuild(MyIndex) & ".", HelpColor
     End Sub
-    Private Sub picInv_DblClick()
+    Private Sub imgInventory_DblClick()
         If InventoryClickedSlot > 0 Then SendUseItem InventoryClickedSlot
     End Sub
 
@@ -945,7 +966,7 @@ Class frmMainGame
         If DD_ItemSurf Is Nothing Then Exit Sub
         If InventoryBackground Is Nothing Then
             Set InventoryBackground = New clsDX11Surface
-            InventoryBackground.LoadFromFile App.Path & "\Gfx\Inventory.jpg"
+            InventoryBackground.LoadFromFile App.Path & "\Gfx\Gui\Inventory.jpg"
             Set InventoryCanvas = New clsDX11Surface
             InventoryCanvas.Create 265, 354
         End If
@@ -962,16 +983,15 @@ Class frmMainGame
                 End If
             End If
         Next Cell
-        picInv.Cls
-        InventoryCanvas.BltToDC picInv.hDC, Bounds, Bounds
+
+        X = -1: Y = -1
         Cell = lstInv.ListIndex - InventoryPage * 35
         If Cell >= 0 And Cell < 35 Then
             X = 23 + (Cell Mod 5) * 45
             Y = 27 + (Cell \ 5) * 45
-            picInv.Line (X, Y)-(X + 37, Y + 37), RGB(255, 230, 120), B
         End If
         lblInventoryPage.Caption = CStr(InventoryPage + 1) & "/" & CStr((MAX_INV + 34) \ 35)
-        picInv.Refresh
+        Set imgInventory.Picture = MenuSurfacePicture(InventoryCanvas, CLng(X), CLng(Y))
     End Sub
 
     Private Function InventorySlotAt(ByVal X As Single, ByVal Y As Single) As Long
@@ -986,18 +1006,18 @@ Class frmMainGame
         If Slot <= MAX_INV Then InventorySlotAt = Slot
     End Function
 
-    Private Sub picInv_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgInventory_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Dim Slot As Long
         Slot = InventorySlotAt(X, Y)
         InventoryClickedSlot = Slot
         If Button = vbLeftButton And Slot > 0 Then lstInv.ListIndex = Slot - 1
     End Sub
 
-    Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Private Sub imgInventory_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Dim Slot As Long
         Slot = InventorySlotAt(X, Y)
-        picInv.ToolTipText = vbNullString
-        If Slot > 0 And Slot <= lstInv.ListCount Then picInv.ToolTipText = lstInv.List(Slot - 1)
+        imgInventory.ToolTipText = vbNullString
+        If Slot > 0 And Slot <= lstInv.ListCount Then imgInventory.ToolTipText = lstInv.List(Slot - 1)
     End Sub
 
     Private Sub lblInventoryPrevious_Click()
@@ -1045,7 +1065,7 @@ Class frmMainGame
     Public Sub RefreshSkills()
         Dim Page As Long, i As Long, Slot As Long, Num As Long
         Dim Canvas As New clsDX11Surface, Bounds As RECT, Source As RECT
-        If lstSpells.ListIndex < 0 Then Exit Sub
+        If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
         Page = lstSpells.ListIndex \ 8
         lblSkillsPage.Caption = "Page " & (Page + 1) & " / " & ((MAX_PLAYER_SPELLS + 7) \ 8)
         Canvas.Create 32, 32
@@ -1069,9 +1089,8 @@ Class frmMainGame
                 End If
             End If
             If Slot = lstSpells.ListIndex + 1 Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
-            picSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
-            Canvas.BltToDC picSkillIcon(i).hDC, Bounds, Bounds
-            picSkillIcon(i).Refresh
+            imgSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
+            Set imgSkillIcon(i).Picture = MenuSurfacePicture(Canvas)
         Next i
         Num = Player(MyIndex).Spell(lstSpells.ListIndex + 1)
         lblSkillsDetails.Caption = "Empty spell slot."
@@ -1086,12 +1105,12 @@ Class frmMainGame
 
     Private Sub lblSkillName_Click(index As Integer)
         Dim Slot As Long
-        If lstSpells.ListIndex < 0 Then Exit Sub
+        If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
         Slot = (lstSpells.ListIndex \ 8) * 8 + index
         If Slot < lstSpells.ListCount Then lstSpells.ListIndex = Slot
     End Sub
 
-    Private Sub picSkillIcon_Click(index As Integer)
+    Private Sub imgSkillIcon_Click(index As Integer)
         lblSkillName_Click index
     End Sub
 
@@ -1100,7 +1119,7 @@ Class frmMainGame
         lstSpells_DblClick
     End Sub
 
-    Private Sub picSkillIcon_DblClick(index As Integer)
+    Private Sub imgSkillIcon_DblClick(index As Integer)
         lblSkillName_DblClick index
     End Sub
 
@@ -1115,4 +1134,56 @@ Class frmMainGame
         Slot = (lstSpells.ListIndex \ 8 - 1) * 8
         If Slot >= 0 Then lstSpells.ListIndex = Slot
     End Sub
+    Private Sub InitializeImageMenus()
+        Set picMnuGear = New clsImageMenu
+        picMnuGear.Initialize "picMnuGear", "imgCharacter"
+        Set picLiveStats = New clsImageMenu
+        picLiveStats.Initialize "picLiveStats", "imgLiveStats"
+        Set picMnuTrain = New clsImageMenu
+        picMnuTrain.Initialize "picMnuTrain", "imgTraining"
+        Set picWho = New clsImageMenu
+        picWho.Initialize "picWho", "imgWho"
+        Set picInv = New clsImageMenu
+        picInv.Initialize "picInv", "imgInventory"
+        Set picPlayerSpells = New clsImageMenu
+        picPlayerSpells.Initialize "picPlayerSpells", "imgSkills"
+        Set picKeepNotes = New clsImageMenu
+        picKeepNotes.Initialize "picKeepNotes", "imgNotes"
+        Set picSign = New clsImageMenu
+        picSign.Initialize "picSign", "imgSign"
+    End Sub
+    Public Sub UpdateWhoList(ByRef names() As String)
+        Dim i As Long, selectedName As String
+        If lstWho.ListIndex >= 0 Then selectedName = lstWho.List(lstWho.ListIndex)
+        lstWho.Clear
+        For i = 1 To UBound(names)
+            If Len(Trim$(names(i))) > 0 Then lstWho.AddItem Trim$(names(i))
+        Next
+        For i = 0 To lstWho.ListCount - 1
+            If lstWho.List(i) = selectedName Then lstWho.ListIndex = i
+        Next
+        If lstWho.ListIndex < 0 And lstWho.ListCount > 0 Then lstWho.ListIndex = 0
+    End Sub
+    Private Sub lblWhoClose_Click()
+        picWho.Visible = False
+    End Sub
+    Private Sub lblWhoMessage_Click()
+        If lstWho.ListIndex < 0 Then Exit Sub
+        MyText = "!" & lstWho.List(lstWho.ListIndex) & " "
+        txtMyTextBox.Text = MyText
+        txtMyTextBox.SetFocus
+        txtMyTextBox.SelStart = Len(MyText)
+    End Sub
+    Private Sub lblWhoFriend_Click()
+        Dim friendName As String, fileName As String
+        If lstWho.ListIndex < 0 Then Exit Sub
+        friendName = lstWho.List(lstWho.ListIndex)
+        fileName = App.Path & DATA_PATH & "Friends.ini"
+        PutVar fileName, Trim$(GetPlayerName(MyIndex)), friendName, "1"
+        GameMsgBox friendName & " was added to your local friends list.", vbOKOnly, "Friends"
+    End Sub
+    Private Sub lblSkillsUpgrade_Click()
+        GameMsgBox "This server does not provide skill upgrades. Double-click a learned skill to memorize it.", vbOKOnly, "Skills"
+    End Sub
+
 End Class

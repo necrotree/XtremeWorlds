@@ -4134,7 +4134,7 @@ End Sub
         If DD_ItemSurf Is Nothing Then Exit Sub
         If InventoryBackground Is Nothing Then
             Set InventoryBackground = New clsDX11Surface
-            InventoryBackground.LoadFromFile App.Path & "\Gfx\Inventory.jpg"
+            InventoryBackground.LoadFromFile App.Path & "\Gfx\Gui\Inventory.jpg"
             Set InventoryCanvas = New clsDX11Surface
             InventoryCanvas.Create 265, 354
         End If

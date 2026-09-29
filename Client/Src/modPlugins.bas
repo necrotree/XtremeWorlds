@@ -39,5 +39,5 @@ Public Sub LoadDllList()
         ShellExecute frmSendGetData.hwnd, "Open", "regsvr32.exe", pluginname(i), 0, 1
     Next
     Screen.MousePointer = vbDefault
-' MsgBox "Loaded Plugin Data", vbOKOnly, "Playerworlds"
+' GameMsgBox "Loaded Plugin Data", vbOKOnly, "Playerworlds"
 End Sub

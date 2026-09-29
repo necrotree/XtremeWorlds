@@ -47,6 +47,9 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Get the packet
     Select Case LCase$(Parse$(0))
+        Case "wholist"
+            frmMainGame.UpdateWhoList Parse
+            Exit Sub
 
         ' ::::::::::::::::::::::::::
         ' :: Alert message packet ::
@@ -56,7 +59,7 @@ Public Sub HandleData(ByVal Data As String)
             frmMainMenu.Visible = True
 
             Msg = Parse(1)
-            Call MsgBox(Msg, vbOKOnly, GAME_NAME)
+            Call GameMsgBox(Msg, vbOKOnly, GAME_NAME)
             Exit Sub
 
         ' ::::::::::::::::::::::::::::

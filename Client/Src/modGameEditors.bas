@@ -257,7 +257,7 @@ Public Sub EditorClearLayer()
 
     ' Ground layer
     If frmMainGame.optGround.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the ground layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the ground layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -271,7 +271,7 @@ Public Sub EditorClearLayer()
 
     ' Mask layer
     If frmMainGame.optMask.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the mask layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the mask layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -285,7 +285,7 @@ Public Sub EditorClearLayer()
 
     ' Mask Animation layer
     If frmMainGame.optAnim.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the animation layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the animation layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -299,7 +299,7 @@ Public Sub EditorClearLayer()
 
     ' Mask 2 layer
     If frmMainGame.optMask2.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the mask 2 layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the mask 2 layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -313,7 +313,7 @@ Public Sub EditorClearLayer()
 
     ' Mask 2 Animation layer
     If frmMainGame.optM2Anim.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the mask 2 animation layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the mask 2 animation layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -327,7 +327,7 @@ Public Sub EditorClearLayer()
 
     ' Fringe layer
     If frmMainGame.optFringe.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the fringe layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the fringe layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -341,7 +341,7 @@ Public Sub EditorClearLayer()
 
     ' Fringe Animation layer
     If frmMainGame.optFAnim.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the fringe animation layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the fringe animation layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -355,7 +355,7 @@ Public Sub EditorClearLayer()
 
     ' Fringe 2 layer
     If frmMainGame.optFringe2.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the fringe 2 layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the fringe 2 layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -369,7 +369,7 @@ Public Sub EditorClearLayer()
 
     ' Fringe 2 Animation layer
     If frmMainGame.optF2Anim.Value = True Then
-        YesNo = MsgBox("Are you sure you wish to clear the fringe 2 animation layer?", vbYesNo, GAME_NAME)
+        YesNo = GameMsgBox("Are you sure you wish to clear the fringe 2 animation layer?", vbYesNo, GAME_NAME)
 
         If YesNo = vbYes Then
             For Y = 0 To MAX_MAPY
@@ -385,7 +385,7 @@ End Sub
 Public Sub EditorClearAttribs()
     Dim YesNo As Long, X As Long, Y As Long
 
-    YesNo = MsgBox("Are you sure you wish to clear the attributes on this map?", vbYesNo, GAME_NAME)
+    YesNo = GameMsgBox("Are you sure you wish to clear the attributes on this map?", vbYesNo, GAME_NAME)
 
     If YesNo = vbYes Then
         For Y = 0 To MAX_MAPY
@@ -521,7 +521,7 @@ Public Sub BltPlayerGear()
     Slots(1) = GetPlayerArmorSlot(MyIndex)
     Slots(2) = GetPlayerWeaponSlot(MyIndex)
     Slots(3) = GetPlayerHelmetSlot(MyIndex)
-    Background.LoadFromFile App.Path & "\Gfx\Character.jpg"
+    Background.LoadFromFile App.Path & "\Gfx\Gui\Character.jpg"
     Canvas.Create 32, 32
     Bounds.Right = 32
     Bounds.Bottom = 32
@@ -531,17 +531,16 @@ Public Sub BltPlayerGear()
         Source.Right = Source.Left + 32
         Source.Bottom = Source.Top + 32
         Canvas.Blt Bounds, Background, Source
-        frmMainGame.Equip(i).ToolTipText = "Empty"
+        frmMainGame.imgEquipment(i).ToolTipText = "Empty"
         If Slots(i) > 0 And Slots(i) <= MAX_INV Then
             Num = GetPlayerInvItemNum(MyIndex, Slots(i))
             If Num > 0 And Num <= MAX_ITEMS Then
                 GetItemPictureRect Item(Num).Pic, Source
                 Canvas.BltFast 0, 0, DD_ItemSurf, Source, True
-                frmMainGame.Equip(i).ToolTipText = Trim$(Item(Num).name) & " (Durability: " & GetPlayerInvItemDur(MyIndex, Slots(i)) & ")"
+                frmMainGame.imgEquipment(i).ToolTipText = Trim$(Item(Num).name) & " (Durability: " & GetPlayerInvItemDur(MyIndex, Slots(i)) & ")"
             End If
         End If
-        Canvas.BltToDC frmMainGame.Equip(i).hDC, Bounds, Bounds
-        frmMainGame.Equip(i).Refresh
+        Set frmMainGame.imgEquipment(i).Picture = MenuSurfacePicture(Canvas)
     Next i
 End Sub
 

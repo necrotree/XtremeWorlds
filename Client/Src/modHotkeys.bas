@@ -175,7 +175,7 @@ Public Function SaveHotkeys(ByRef keys() As Integer) As Boolean
     If moved Then Kill backup
     Exit Function
 Failed:
-    MsgBox "Could not save keyboard shortcuts: " & Err.Description, vbExclamation
+    GameMsgBox "Could not save keyboard shortcuts: " & Err.Description, vbExclamation
     On Error Resume Next
     If moved And Len(Dir$(path)) = 0 Then Name backup As path
 End Function
