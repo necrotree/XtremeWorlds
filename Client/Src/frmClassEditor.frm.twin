@@ -1,0 +1,205 @@
+[FormDesignerId("3A360901-7E3F-4A2E-8256-46F9AF98A805")]
+Class frmClassEditor
+Attribute VB_PredeclaredId = True
+Option Explicit
+Private mClasses() As ClassRec
+Private mCount As Long
+Private mIndex As Long
+Private mBusy As Boolean
+Private mDirty As Boolean
+Private mSaving As Boolean
+Private mCloseAfter As Boolean
+Private mWait As Long
+
+Private Sub Form_Load()
+    ClassEditorOpen = True
+    mIndex = -1
+End Sub
+
+Public Sub LoadClasses(ByRef parts() As String)
+    Dim i As Long, n As Long, selected As Long
+    If UBound(parts) < 1 Then Exit Sub
+    n = Val(parts(1))
+    If n < 0 Or n > 255 Then Exit Sub
+    If UBound(parts) <> 1 + (n + 1) * 7 Then Exit Sub
+    selected = mIndex
+    mBusy = True
+    mCount = n + 1
+    ReDim mClasses(0 To n)
+    cmbClass.Clear
+    For i = 0 To n
+        n = 2 + i * 7
+        mClasses(i).Name = parts(n)
+        mClasses(i).Sprite = Val(parts(n + 1))
+        mClasses(i).FSprite = Val(parts(n + 2))
+        mClasses(i).STR = Val(parts(n + 3))
+        mClasses(i).DEF = Val(parts(n + 4))
+        mClasses(i).speed = Val(parts(n + 5))
+        mClasses(i).MAGI = Val(parts(n + 6))
+        cmbClass.AddItem CStr(i) & ": " & Trim$(mClasses(i).Name)
+    Next i
+    If selected < 0 Or selected >= mCount Then selected = 0
+    cmbClass.ListIndex = selected
+    mBusy = False
+    LoadSelected
+End Sub
+
+Private Function DiscardChanges() As Boolean
+    DiscardChanges = True
+    If mDirty Then DiscardChanges = (GameMsgBox("Discard unsaved class changes?", vbYesNo Or vbDefaultButton2, "Class Editor") = vbYes)
+End Function
+
+Private Sub cmbClass_Click()
+    If mBusy Or mSaving Then Exit Sub
+    If Not DiscardChanges Then
+        mBusy = True
+        cmbClass.ListIndex = mIndex
+        mBusy = False
+        Exit Sub
+    End If
+    LoadSelected
+End Sub
+
+Private Sub LoadSelected()
+    Dim i As Long
+    mIndex = cmbClass.ListIndex
+    If mIndex < 0 Then Exit Sub
+    mBusy = True
+    If mIndex < mCount Then
+        txtName.Text = Trim$(mClasses(mIndex).Name)
+        scrlValue(0).Value = mClasses(mIndex).Sprite
+        scrlValue(1).Value = mClasses(mIndex).FSprite
+        scrlValue(2).Value = mClasses(mIndex).STR
+        scrlValue(3).Value = mClasses(mIndex).DEF
+        scrlValue(4).Value = mClasses(mIndex).speed
+        scrlValue(5).Value = mClasses(mIndex).MAGI
+    Else
+        txtName.Text = "New Class"
+        For i = 0 To 5
+            scrlValue(i).Value = 0
+        Next i
+    End If
+    mBusy = False
+    mDirty = False
+    RefreshPreview
+End Sub
+
+Private Sub cmdNew_Click()
+    If mCount >= 256 Then Exit Sub
+    If Not DiscardChanges Then Exit Sub
+    mBusy = True
+    If cmbClass.ListCount = mCount Then cmbClass.AddItem CStr(mCount) & ": New Class"
+    cmbClass.ListIndex = mCount
+    mBusy = False
+    LoadSelected
+    mDirty = True
+End Sub
+
+Private Sub txtName_Change()
+    If Not mBusy Then mDirty = True
+End Sub
+Private Sub scrlValue_Change(Index As Integer)
+    If mBusy Then Exit Sub
+    mDirty = True
+    RefreshPreview
+End Sub
+Private Sub scrlValue_Scroll(Index As Integer)
+    scrlValue_Change Index
+End Sub
+
+Private Sub RefreshPreview()
+    Dim i As Long, source As RECT, target As RECT
+    For i = 0 To 5
+        lblValue(i).Caption = CStr(scrlValue(i).Value)
+    Next i
+    lblVitals.Caption = "HP: " & (1 + scrlValue(2).Value \ 2 + scrlValue(2).Value) * 2 & "   MP: " & (1 + scrlValue(5).Value \ 2 + scrlValue(5).Value) * 2 & "   SP: " & (1 + scrlValue(4).Value \ 2 + scrlValue(4).Value) * 2
+    For i = 0 To 1
+        picPreview(i).Cls
+        If Not DD_SpriteSurf Is Nothing Then
+            source.Left = 3 * PIC_X
+            source.Top = CLng(scrlValue(i).Value) * PIC_Y
+            source.Right = source.Left + PIC_X
+            source.Bottom = source.Top + PIC_Y
+            If source.Right <= DD_SpriteSurf.Width And source.Bottom <= DD_SpriteSurf.Height Then
+                target.Left = 8: target.Top = 8: target.Right = 72: target.Bottom = 72
+                DD_SpriteSurf.BltToDC picPreview(i).hDC, source, target
+            End If
+        End If
+        picPreview(i).Refresh
+    Next i
+End Sub
+
+Private Sub cmdSave_Click()
+    SaveClass False
+End Sub
+Private Sub cmdSaveReturn_Click()
+    SaveClass True
+End Sub
+Private Sub SaveClass(ByVal closeAfter As Boolean)
+    Dim packet As String, i As Long
+    If mSaving Or mIndex < 0 Then Exit Sub
+    If Len(Trim$(txtName.Text)) = 0 Then
+        GameMsgBox "Enter a class name.", vbExclamation, "Class Editor"
+        Exit Sub
+    End If
+    If InStr(txtName.Text, SEP_CHAR) > 0 Or InStr(txtName.Text, END_CHAR) > 0 Then Exit Sub
+    If Not IsConnected Then
+        SaveFailed "Not connected to the server."
+        Exit Sub
+    End If
+    packet = "SAVECLASS" & SEP_CHAR & mIndex & SEP_CHAR & Trim$(txtName.Text)
+    For i = 0 To 5
+        packet = packet & SEP_CHAR & scrlValue(i).Value
+    Next i
+    mSaving = True
+    mCloseAfter = closeAfter
+    mWait = 0
+    tmrSave.Enabled = True
+    EnableEditing False
+    lblStatus.Caption = "Saving class " & mIndex & "..."
+    SendData packet & END_CHAR
+End Sub
+Private Sub EnableEditing(ByVal enabled As Boolean)
+    Dim i As Long
+    cmbClass.Enabled = enabled
+    txtName.Enabled = enabled
+    cmdNew.Enabled = enabled And mCount < 256
+    cmdSave.Enabled = enabled
+    cmdSaveReturn.Enabled = enabled
+    For i = 0 To 5
+        scrlValue(i).Enabled = enabled
+    Next i
+End Sub
+Public Sub SaveComplete()
+    If Not mSaving Then Exit Sub
+    mSaving = False
+    mDirty = False
+    tmrSave.Enabled = False
+    EnableEditing True
+    lblStatus.Caption = "Class saved. Changes apply to new characters."
+    If mCloseAfter Then Unload Me
+End Sub
+Public Sub SaveFailed(ByVal message As String)
+    mSaving = False
+    tmrSave.Enabled = False
+    EnableEditing True
+    lblStatus.Caption = message
+End Sub
+Private Sub tmrSave_Timer()
+    mWait = mWait + 1
+    If Not IsConnected Or mWait >= 30 Then SaveFailed "Save not confirmed. Reopen the editor to verify before retrying."
+End Sub
+Private Sub cmdCancel_Click()
+    Unload Me
+End Sub
+Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+    If mSaving Then
+        Cancel = True
+    ElseIf Not DiscardChanges Then
+        Cancel = True
+    End If
+End Sub
+Private Sub Form_Unload(Cancel As Integer)
+    ClassEditorOpen = False
+End Sub
+End Class
