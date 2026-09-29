@@ -1,1 +1,0 @@
-closeProjectNow(() => root.loadProject("C:\\Users\\nicke\\Downloads\\PlayerWorlds-master\\PlayerWorlds-master\\Client\\ServerMigration\\BanTest.twinproj", undefined, false));

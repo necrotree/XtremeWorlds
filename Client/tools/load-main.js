@@ -1,1 +1,0 @@
-closeProjectNow(() => root.loadProject("C:\\Users\\nicke\\Downloads\\PlayerWorlds-master\\PlayerWorlds-master\\Client\\Playerworlds.twinproj", undefined, false));
