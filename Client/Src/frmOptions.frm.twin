@@ -82,4 +82,12 @@ Class frmOptions
     Private Sub cmdHotkeys_Click()
         frmHotkeys.Show vbModal, Me
     End Sub
+    
+    Private Sub optPlayerNameOn_Click()
+        GameData.PlayerNames = 1
+    End Sub
+    
+    Private Sub optPlayerNameOff_Click()
+        GameData.PlayerNames = 0
+    End Sub
 End Class
