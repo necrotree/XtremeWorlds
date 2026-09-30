@@ -1,65 +1,45 @@
 Attribute VB_Name = "modGameEditors"
 Option Explicit
 
-Public Sub EditorInit()
-' ****************************************************************
-' * WHEN        WHO        WHAT
-' * ----        ---        ----
-' * 06/01/2006  BigRed     Changed BitBlt to DX7
-' * 07/12/2005  Shannara   Added gfx constants.
-' ****************************************************************
+Private Const EDITOR_TILE_COLUMNS As Long = 7
+Private EditorSelectionWidth As Long
+Private EditorSelectionHeight As Long
+Private EditorAnchorX As Long
+Private EditorAnchorY As Long
+Private EditorSelecting As Boolean
 
+Public Sub EditorInit()
+    Dim lastScrollRow As Long
+    If DD_TileSurf Is Nothing Then Exit Sub
+    If DD_TileSurf.Height < PIC_Y Then Exit Sub
     SaveMap = Map
     InEditor = True
+    EditorSelecting = False
+    EditorSelectionWidth = 1
+    EditorSelectionHeight = 1
     frmMainGame.picMapEditor.Visible = True
     frmMainGame.LayoutGamePanels
+    frmMainGame.picBack.ToolTipText = "Hold the left mouse button and drag to select a block of tiles."
 
-    frmMainGame.scrlPicture.Max = Int(DD_TileSurf.Height / PIC_Y) - 7
-
-    With rec
-        .Top = 0
-        .Bottom = frmMainGame.picBack.Height
-        .Left = 0
-        .Right = frmMainGame.picBack.Width
-    End With
-
-    If DD_TileSurf Is Nothing Then
-    Else
-        With rec_pos
-            If frmMainGame.scrlPicture.Value = 0 Then
-                .Top = 0
-            Else
-                .Top = (frmMainGame.scrlPicture.Value * PIC_Y) * 1
-            End If
-            .Left = 0
-            .Bottom = .Top + (frmMainGame.picBack.Height)
-            .Right = frmMainGame.picBack.Width
-        End With
-
-        DD_TileSurf.BltToDC frmMainGame.picBack.hDC, rec_pos, rec
-        frmMainGame.picBack.Refresh
-    End If
+    lastScrollRow = DD_TileSurf.Height \ PIC_Y - frmMainGame.picBack.ScaleHeight \ PIC_Y
+    If lastScrollRow < 0 Then lastScrollRow = 0
+    If frmMainGame.scrlPicture.Value > lastScrollRow Then frmMainGame.scrlPicture.Value = lastScrollRow
+    frmMainGame.scrlPicture.Max = lastScrollRow
+    EditorTileX = 0
+    EditorTileY = frmMainGame.scrlPicture.Value
+    Call EditorTileScroll
+    Call EditorSelectionPreview
 End Sub
 
 Public Sub EditorMouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    Dim X1, Y1 As Long
+    Dim X1 As Long, Y1 As Long
 
     If InEditor Then
         X1 = Int(X / PIC_X)
         Y1 = Int(Y / PIC_Y)
         If (Button = 1) And (X1 >= 0) And (X1 <= MAX_MAPX) And (Y1 >= 0) And (Y1 <= MAX_MAPY) Then
             If frmMainGame.optLayers.Value = True Then
-                With Map.Tile(X1, Y1)
-                    If frmMainGame.optGround.Value = True Then .Ground = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optMask.Value = True Then .Mask = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optAnim.Value = True Then .Anim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optMask2.Value = True Then .Mask2 = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optM2Anim.Value = True Then .M2Anim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFringe.Value = True Then .Fringe = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFAnim.Value = True Then .FAnim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFringe2.Value = True Then .Fringe2 = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optF2Anim.Value = True Then .F2Anim = EditorTileY * 7 + EditorTileX
-                End With
+                Call EditorPaintSelection(X1, Y1)
             Else
                 With Map.Tile(X1, Y1)
                     If frmMainGame.optBlocked.Value = True Then
@@ -176,67 +156,141 @@ Public Sub EditorMouseDown(Button As Integer, Shift As Integer, X As Single, Y A
     End If
 End Sub
 
+Private Sub EditorPaintSelection(ByVal MapX As Long, ByVal MapY As Long)
+    Dim X As Long, Y As Long, tileNumber As Long
+    If EditorSelectionWidth < 1 Then EditorSelectionWidth = 1
+    If EditorSelectionHeight < 1 Then EditorSelectionHeight = 1
+    For Y = 0 To EditorSelectionHeight - 1
+        For X = 0 To EditorSelectionWidth - 1
+            If MapX + X <= MAX_MAPX And MapY + Y <= MAX_MAPY Then
+                tileNumber = (EditorTileY + Y) * EDITOR_TILE_COLUMNS + EditorTileX + X
+                With Map.Tile(MapX + X, MapY + Y)
+                    If frmMainGame.optGround.Value Then .Ground = tileNumber
+                    If frmMainGame.optMask.Value Then .Mask = tileNumber
+                    If frmMainGame.optAnim.Value Then .Anim = tileNumber
+                    If frmMainGame.optMask2.Value Then .Mask2 = tileNumber
+                    If frmMainGame.optM2Anim.Value Then .M2Anim = tileNumber
+                    If frmMainGame.optFringe.Value Then .Fringe = tileNumber
+                    If frmMainGame.optFAnim.Value Then .FAnim = tileNumber
+                    If frmMainGame.optFringe2.Value Then .Fringe2 = tileNumber
+                    If frmMainGame.optF2Anim.Value Then .F2Anim = tileNumber
+                End With
+            End If
+        Next X
+    Next Y
+End Sub
+
 Public Sub EditorChooseTile(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    ' ****************************************************************
-    ' * WHEN        WHO        WHAT
-    ' * ----        ---        ----
-    ' * 06/01/2006  BigRed     Changed BitBlt to DX7
-    ' ****************************************************************
-    If Button = 1 Then
-        EditorTileX = Int(X / PIC_X)
-        EditorTileY = Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value
+    If Not InEditor Or Button <> 1 Then Exit Sub
+    EditorSelecting = False
+    If DD_TileSurf Is Nothing Then Exit Sub
+    If X < 0 Or X >= frmMainGame.picBack.ScaleWidth Then Exit Sub
+    If Y < 0 Or Y >= frmMainGame.picBack.ScaleHeight Then Exit Sub
+    If X >= EDITOR_TILE_COLUMNS * PIC_X Or X >= DD_TileSurf.Width Then Exit Sub
+    If Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value >= DD_TileSurf.Height \ PIC_Y Then Exit Sub
+    EditorAnchorX = Int(X / PIC_X)
+    EditorAnchorY = Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value
+    EditorSelecting = True
+    EditorSelectionWidth = 0
+    Call EditorUpdateSelection(Button, X, Y)
+End Sub
+
+Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
+    Dim tileX As Long, tileY As Long, lastX As Long, lastY As Long
+    Dim leftTile As Long, topTile As Long, width As Long, height As Long
+    If Not InEditor Or Not EditorSelecting Then Exit Sub
+    If (Button And 1) = 0 Then
+        EditorSelecting = False
+        Exit Sub
     End If
+    If DD_TileSurf Is Nothing Then Exit Sub
+    lastX = frmMainGame.picBack.ScaleWidth \ PIC_X - 1
+    If lastX >= EDITOR_TILE_COLUMNS Then lastX = EDITOR_TILE_COLUMNS - 1
+    If lastX >= DD_TileSurf.Width \ PIC_X Then lastX = DD_TileSurf.Width \ PIC_X - 1
+    lastY = frmMainGame.picBack.ScaleHeight \ PIC_Y - 1
+    tileX = Int(X / PIC_X)
+    tileY = Int(Y / PIC_Y)
+    If tileX < 0 Then tileX = 0
+    If tileX > lastX Then tileX = lastX
+    If tileY < 0 Then tileY = 0
+    If tileY > lastY Then tileY = lastY
+    tileY = tileY + frmMainGame.scrlPicture.Value
+    If tileY >= DD_TileSurf.Height \ PIC_Y Then tileY = DD_TileSurf.Height \ PIC_Y - 1
+    leftTile = EditorAnchorX
+    topTile = EditorAnchorY
+    If tileX < leftTile Then leftTile = tileX
+    If tileY < topTile Then topTile = tileY
+    width = Abs(tileX - EditorAnchorX) + 1
+    height = Abs(tileY - EditorAnchorY) + 1
+    If leftTile = EditorTileX And topTile = EditorTileY And width = EditorSelectionWidth And height = EditorSelectionHeight Then Exit Sub
+    EditorTileX = leftTile
+    EditorTileY = topTile
+    EditorSelectionWidth = width
+    EditorSelectionHeight = height
+    Call EditorTileScroll
+    Call EditorSelectionPreview
+End Sub
 
-    With rec_pos
-        .Top = EditorTileY * PIC_Y
-        .Bottom = .Top + PIC_Y
-        .Left = EditorTileX * PIC_X
-        .Right = .Left + PIC_X
+Public Sub EditorEndSelection(Button As Integer, X As Single, Y As Single)
+    If Button <> 1 Then Exit Sub
+    Call EditorUpdateSelection(Button, X, Y)
+    EditorSelecting = False
+End Sub
+
+Private Sub EditorSelectionPreview()
+    Dim source As RECT, destination As RECT, previewScale As Single
+    If DD_TileSurf Is Nothing Then Exit Sub
+    If EditorSelectionWidth < 1 Or EditorSelectionHeight < 1 Then Exit Sub
+    source.Left = EditorTileX * PIC_X
+    source.Top = EditorTileY * PIC_Y
+    source.Right = source.Left + EditorSelectionWidth * PIC_X
+    source.Bottom = source.Top + EditorSelectionHeight * PIC_Y
+    With frmMainGame.picSelect
+        .Cls
+        previewScale = .ScaleWidth / (source.Right - source.Left)
+        If .ScaleHeight / (source.Bottom - source.Top) < previewScale Then previewScale = .ScaleHeight / (source.Bottom - source.Top)
+        destination.Right = Int((source.Right - source.Left) * previewScale)
+        destination.Bottom = Int((source.Bottom - source.Top) * previewScale)
+        If destination.Right < 1 Then destination.Right = 1
+        If destination.Bottom < 1 Then destination.Bottom = 1
+        destination.Left = (.ScaleWidth - destination.Right) \ 2
+        destination.Top = (.ScaleHeight - destination.Bottom) \ 2
+        destination.Right = destination.Right + destination.Left
+        destination.Bottom = destination.Bottom + destination.Top
+        DD_TileSurf.BltToDC .hDC, source, destination
+        .ToolTipText = EditorSelectionWidth & " x " & EditorSelectionHeight & " tiles"
+        .Refresh
     End With
-
-    With rec
-        .Top = 0
-        .Bottom = PIC_Y
-        .Left = 0
-        .Right = PIC_X
-    End With
-
-    If DD_TileSurf Is Nothing Then
-    Else
-        DD_TileSurf.BltToDC frmMainGame.picSelect.hDC, rec_pos, rec
-    End If
-    frmMainGame.picSelect.Refresh
 End Sub
 
 Public Sub EditorTileScroll()
-    ' ****************************************************************
-    ' * WHEN        WHO        WHAT
-    ' * ----        ---        ----
-    ' * 06/01/2006  BigRed     Changed BitBlt to DX7
-    ' ****************************************************************
-    With rec
-        .Top = 0
-        .Bottom = frmMainGame.picBack.Height
-        .Left = 0
-        .Right = frmMainGame.picBack.Width
+    Dim source As RECT, destination As RECT
+    If DD_TileSurf Is Nothing Then Exit Sub
+    With frmMainGame.picBack
+        .Cls
+        source.Top = frmMainGame.scrlPicture.Value * PIC_Y
+        source.Bottom = source.Top + .ScaleHeight
+        If source.Bottom > DD_TileSurf.Height Then source.Bottom = DD_TileSurf.Height
+        source.Right = .ScaleWidth
+        If source.Right > DD_TileSurf.Width Then source.Right = DD_TileSurf.Width
+        destination.Right = source.Right
+        destination.Bottom = source.Bottom - source.Top
+        DD_TileSurf.BltToDC .hDC, source, destination
+        Call EditorDrawSelection
+        .Refresh
     End With
+End Sub
 
-    If DD_TileSurf Is Nothing Then
-    Else
-        With rec_pos
-            If frmMainGame.scrlPicture.Value = 0 Then
-                .Top = 0
-            Else
-                .Top = (frmMainGame.scrlPicture.Value * PIC_Y) * 1
-            End If
-            .Left = 0
-            .Bottom = .Top + (frmMainGame.picBack.Height)
-            .Right = frmMainGame.picBack.Width
-        End With
-
-        DD_TileSurf.BltToDC frmMainGame.picBack.hDC, rec_pos, rec
-        frmMainGame.picBack.Refresh
-    End If
+Private Sub EditorDrawSelection()
+    Dim left As Long, top As Long, right As Long, bottom As Long
+    If Not InEditor Then Exit Sub
+    If EditorSelectionWidth < 1 Or EditorSelectionHeight < 1 Then Exit Sub
+    left = EditorTileX * PIC_X
+    top = (EditorTileY - frmMainGame.scrlPicture.Value) * PIC_Y
+    right = left + EditorSelectionWidth * PIC_X - 1
+    bottom = top + EditorSelectionHeight * PIC_Y - 1
+    frmMainGame.picBack.Line (left, top)-(right, bottom), vbWhite, B
+    frmMainGame.picBack.Line (left + 1, top + 1)-(right - 1, bottom - 1), vbBlack, B
 End Sub
 
 Public Sub EditorSend()
@@ -247,6 +301,7 @@ End Sub
 Public Sub EditorCancel()
     Map = SaveMap
     InEditor = False
+    EditorSelecting = False
     frmMainGame.picMapEditor.Visible = False
     frmMainGame.LayoutGamePanels
     BltMap
