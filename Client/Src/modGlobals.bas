@@ -17,6 +17,8 @@ Public NPCDmgDamage As Long
 Public NPCDmgTime As Long
 Public NPCWho As Long
 Public II As Long, iii As Long
+Public CurrentClass As Long
+Public CurrentSex As Byte
 
 ' HD Serial Stuff
 Public oHDSN As New clsHDSN

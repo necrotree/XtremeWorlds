@@ -158,14 +158,7 @@ Public Sub HandleData(ByVal Data As String)
             ' Select a class before displaying the name and gender controls.
             frmSendGetData.Visible = False
 
-            frmMainMenu.cmbClass.Clear
-
-            For i = 1 To MAX_CLASS
-                frmMainMenu.cmbClass.AddItem Trim$(Class(i).Name)
-            Next i
-
             With frmMainMenu
-                .cmbClass.ListIndex = 0
                 .lblHP.Caption = Str(Class(1).HP)
                 .lblMP.Caption = Str(Class(1).MP)
                 .lblSP.Caption = Str(Class(1).SP)
@@ -175,17 +168,7 @@ Public Sub HandleData(ByVal Data As String)
                 .lblSPEED.Caption = Str(Class(1).Speed)
                 .lblMAGI.Caption = Str(Class(1).MAGI)
 
-                If Class(1).MSprite = Class(1).FSprite Then
-                    .optMale.Value = True
-                    .optMale.Visible = False
-                    .optFemale.Value = False
-                    .optFemale.Visible = False
-                ElseIf Class(1).MSprite <> Class(1).FSprite Then
-                    .optMale.Value = True
-                    .optMale.Visible = False
-                    .optFemale.Value = False
-                    .optFemale.Visible = False
-                End If
+                CurrentSex = 1
             End With
             frmMainMenu.ShowClassSelection
             Exit Sub
@@ -857,7 +840,7 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::
         Case "sign"
             frmMainGame.picSign.Visible = True
-            frmMainGame.CenterSign
+            
             ' put all the data into the correct area
             frmMainGame.lblNameTop.Caption = Trim$(Parse(2))
             frmMainGame.lblNameBtm.Caption = Trim$(Parse(2))

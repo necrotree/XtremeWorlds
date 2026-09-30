@@ -188,11 +188,11 @@ Unavailable:
     End Sub
     
     Private Sub optFemale_Click()
-        Call NewCharBltSprite(cmbClass.ListIndex)
+        Call NewCharBltSprite(CurrentClass)
     End Sub
     
     Private Sub optMale_Click()
-        Call NewCharBltSprite(cmbClass.ListIndex)
+        Call NewCharBltSprite(CurrentClass)
     End Sub
     
     Private Sub picNewCharAddChar_Click()
@@ -204,28 +204,15 @@ Unavailable:
     End Sub
     
     Private Sub cmbClass_Change()
-        If cmbClass.ListIndex < 0 Then Exit Sub
-        Call NewCharBltSprite(cmbClass.ListIndex)
-        If Class(cmbClass.ListIndex).MSprite = Class(cmbClass.ListIndex).FSprite Then
-            optMale.Value = True
-            optMale.Visible = False
-            optFemale.Value = False
-            optFemale.Visible = False
-        ElseIf Class(cmbClass.ListIndex).MSprite <> Class(cmbClass.ListIndex).FSprite Then
-            optMale.Value = True
-            optMale.Visible = False
-            optFemale.Value = False
-            optFemale.Visible = False
-        End If
+        Call NewCharBltSprite(CurrentClass)
     End Sub
     
     Private Sub cmbClass_Click()
-        If cmbClass.ListIndex <= 0 Then Exit Sub
-        lblSTR.Caption = Str(Class(cmbClass.ListIndex).STR)
-        lblDEF.Caption = Str(Class(cmbClass.ListIndex).DEF)
-        lblSPEED.Caption = Str(Class(cmbClass.ListIndex).Speed)
-        lblMAGI.Caption = Str(Class(cmbClass.ListIndex).MAGI)
-        Call NewCharBltSprite(cmbClass.ListIndex)
+        lblSTR.Caption = Str(Class(CurrentClass).STR)
+        lblDEF.Caption = Str(Class(CurrentClass).DEF)
+        lblSPEED.Caption = Str(Class(CurrentClass).Speed)
+        lblMAGI.Caption = Str(Class(CurrentClass).MAGI)
+        Call NewCharBltSprite(CurrentClass)
     End Sub
     
     ' Character Subs
@@ -294,23 +281,21 @@ Unavailable:
     End Sub
 
     Private Sub picPreviousClass_Click()
-        If cmbClass.ListCount = 0 Then Exit Sub
-        cmbClass.ListIndex = (cmbClass.ListIndex + cmbClass.ListCount - 1) Mod cmbClass.ListCount
-        RefreshSelectedClass
+        CurrentSex = 1
+        NewCharBltSprite(CurrentClass)
     End Sub
 
     Private Sub picNextClass_Click()
-        If cmbClass.ListCount = 0 Then Exit Sub
-        cmbClass.ListIndex = (cmbClass.ListIndex + 1) Mod cmbClass.ListCount
-        RefreshSelectedClass
+        CurrentSex = 0
+        NewCharBltSprite(CurrentClass)
     End Sub
 
     Private Sub picMale_Click()
-        optMale.Value = True
+        CurrentSex = 1
     End Sub
 
     Private Sub picFemale_Click()
-        If picFemale.Enabled Then optFemale.Value = True
+        If picFemale.Enabled Then CurrentSex = 0
     End Sub
 
     Public Sub SetCharacterSlot(ByVal slot As Long, ByVal name As String, ByVal sprite As Long)
@@ -386,12 +371,8 @@ Private Sub picRegisterLogin_Click()
     End Sub
 
     Public Sub ShowClassSelection()
+        CurrentClass = 1
         HideMenuPanels
-        If cmbClass.ListCount = 0 Then
-            SetMenuVisible "mnuChars", True
-            Exit Sub
-        End If
-        If cmbClass.ListIndex < 0 Then cmbClass.ListIndex = 0
         SetMenuVisible "mnuClassSelection", True
         picClassContinue.ZOrder 0
         picClassBack.ZOrder 0
@@ -399,18 +380,16 @@ Private Sub picRegisterLogin_Click()
     End Sub
 
     Private Sub RefreshSelectedClass()
-        If cmbClass.ListIndex <= 0 Then Exit Sub
-        lblSelectedClass.Caption = Trim$(Class(cmbClass.ListIndex).Name)
-        picFemale.Enabled = (Class(cmbClass.ListIndex).MSprite <> Class(cmbClass.ListIndex).FSprite)
-        If Not picFemale.Enabled Then optMale.Value = True
-        NewCharBltSprite cmbClass.ListIndex
+        lblSelectedClass.Caption = Trim$(Class(CurrentClass).Name)
+        picFemale.Enabled = (Class(CurrentClass).MSprite <> Class(CurrentClass).FSprite)
+        NewCharBltSprite CurrentClass
     End Sub
 
     Private Sub ChooseNamedClass(ByVal className As String)
         Dim i As Long
-        For i = 0 To cmbClass.ListCount - 1
+        For i = 1 To MAX_CLASS
             If StrComp(Trim$(Class(i).Name), className, vbTextCompare) = 0 Then
-                cmbClass.ListIndex = i
+                CurrentClass = i
                 RefreshSelectedClass
                 picClassContinue_Click
                 Exit Sub
@@ -443,7 +422,6 @@ Private Sub picRegisterLogin_Click()
     End Sub
     
     Private Sub picClassContinue_Click()
-        If cmbClass.ListIndex < 0 Then Exit Sub
         HideMenuPanels
         SetMenuVisible "mnuNewCharacter", True
         RefreshSelectedClass
@@ -476,5 +454,16 @@ Private Sub picRegisterLogin_Click()
             End If
         Next
     End Sub
+
+    Private Sub lblMale_Click()
+        CurrentSex = 1
+        NewCharBltSprite(CurrentClass)
+    End Sub
+    
+    Private Sub lblFemale_Click()
+        CurrentSex = 0
+        NewCharBltSprite(CurrentClass)
+    End Sub
+
 
 End Class

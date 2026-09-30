@@ -403,10 +403,6 @@ Class frmMainGame
         SOffsetY = Y
     End Sub
     
-    Private Sub imgSign_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-        CenterSign
-    End Sub
-    
     Private Sub txtChat_GotFocus()
         Call SetFocusOnGame
     End Sub
@@ -939,13 +935,6 @@ Class frmMainGame
         fralvl4.Left = fraPlayer.Left
         If fraPlayer.Visible Then requiredWidth = adminLeft + Me.ScaleX(fraPlayer.Width, Me.ScaleMode, vbPixels) + 8
         Me.Width = Me.Width + Me.ScaleX(requiredWidth - Me.ScaleX(Me.ScaleWidth, Me.ScaleMode, vbPixels), vbPixels, vbTwips)
-        CenterSign
-    End Sub
-
-    Public Sub CenterSign()
-        picSign.Left = picScreen.Left + (picScreen.Width - picSign.Width) / 2
-        picSign.Top = picScreen.Top + (picScreen.Height - picSign.Height) / 2
-        If picSign.Visible Then picSign.ZOrder 0
     End Sub
 
     Private Sub picWebsite_Click()

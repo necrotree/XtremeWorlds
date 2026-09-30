@@ -1158,8 +1158,8 @@ End Function
 
 Public Sub NewCharBltSprite(ByVal ListIndexSprite As Integer)
     Dim sprite As Long
-    If ListIndexSprite < 0 Or ListIndexSprite > MAX_CLASS Then Exit Sub
-    If frmMainMenu.optMale.Value Then
+    If ListIndexSprite <= 0 Or ListIndexSprite > MAX_CLASS Then Exit Sub
+    If CurrentSex = 1 Then
         sprite = Class(ListIndexSprite).MSprite
     Else
         sprite = Class(ListIndexSprite).FSprite

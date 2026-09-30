@@ -108,10 +108,10 @@ Public Sub MenuState(ByVal State As Long)
             frmMainMenu.SetMenuVisible "mnuNewCharacter", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending character addition data...")
-                If frmMainMenu.optMale.Value = True Then
-                    Call SendAddChar(frmMainMenu.txtNewCharName, 0, frmMainMenu.cmbClass.ListIndex, frmMainMenu.lstChars.ListIndex + 1)
+                If CurrentSex = 1 Then
+                    Call SendAddChar(frmMainMenu.txtNewCharName, 0, CurrentClass, frmMainMenu.lstChars.ListIndex + 1)
                 Else
-                    Call SendAddChar(frmMainMenu.txtNewCharName, 1, frmMainMenu.cmbClass.ListIndex, frmMainMenu.lstChars.ListIndex + 1)
+                    Call SendAddChar(frmMainMenu.txtNewCharName, 1, CurrentClass, frmMainMenu.lstChars.ListIndex + 1)
                 End If
             End If
 
