@@ -1211,5 +1211,13 @@ Class frmMainGame
     Private Sub imgPM_Click()
         SetChatHistoryChannel(ChatHistoryPrivate)
     End Sub
+    
+    Private Sub cmbClassEditor_Click()
+        Call SendRequestEditClass
+    End Sub
+    
+    Private Sub cmbArrowEditor_Click()
+        Call SendRequestEditArrow
+    End Sub
 
 End Class

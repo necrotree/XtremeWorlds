@@ -53,9 +53,6 @@ Public MOTD As String
 Public SEP_CHAR As String * 1
 Public END_CHAR As String * 1
 
-' Maximum classes
-Public Max_Classes As Byte
-
 ' Text variabls
 Public vbQuote As String
 

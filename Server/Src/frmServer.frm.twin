@@ -247,8 +247,7 @@ Class frmServer
     Private Sub Form_Load()
         ShutOn = False
         ServerLog = True
-        Me.Caption = GAME_NAME & " :: Server"
-8       Me.txtIP.Text = GameServer.LocalAddress
+        Me.Caption = GAME_NAME & " :: Server8       Me.txtIP.Text = GameServer.LocalAddress"
         ShowServerPage 0
     End Sub
 

@@ -133,12 +133,10 @@ Public Sub HandleData(ByVal Data As String)
             n = 1
 
             ' Max classes
-            Max_Classes = Val(Parse(n))
-            ReDim Class(0 To Max_Classes) As ClassRec
+            MAX_CLASS = Val(Parse(n))
+            ReDim Class(1 To MAX_CLASS) As ClassRec
 
-            n = n + 1
-
-            For i = 0 To Max_Classes
+            For i = 1 To MAX_CLASS
                 Class(i).Name = Parse(n)
 
                 Class(i).HP = Val(Parse(n + 1))
@@ -150,10 +148,8 @@ Public Sub HandleData(ByVal Data As String)
                 Class(i).speed = Val(Parse(n + 6))
                 Class(i).MAGI = Val(Parse(n + 7))
 
-                Class(i).Sprite = Val(Parse(n + 8))
+                Class(i).MSprite = Val(Parse(n + 8))
                 Class(i).FSprite = Val(Parse(n + 9))
-
-                n = n + 10
             Next i
 
             ' Used for if the player is creating a new character
@@ -164,27 +160,27 @@ Public Sub HandleData(ByVal Data As String)
 
             frmMainMenu.cmbClass.Clear
 
-            For i = 0 To Max_Classes
+            For i = 1 To MAX_CLASS
                 frmMainMenu.cmbClass.AddItem Trim$(Class(i).Name)
             Next i
 
             With frmMainMenu
                 .cmbClass.ListIndex = 0
-                .lblHP.Caption = Str(Class(0).HP)
-                .lblMP.Caption = Str(Class(0).MP)
-                .lblSP.Caption = Str(Class(0).SP)
+                .lblHP.Caption = Str(Class(1).HP)
+                .lblMP.Caption = Str(Class(1).MP)
+                .lblSP.Caption = Str(Class(1).SP)
 
-                .lblSTR.Caption = Str(Class(0).STR)
-                .lblDEF.Caption = Str(Class(0).DEF)
-                .lblSPEED.Caption = Str(Class(0).speed)
-                .lblMAGI.Caption = Str(Class(0).MAGI)
+                .lblSTR.Caption = Str(Class(1).STR)
+                .lblDEF.Caption = Str(Class(1).DEF)
+                .lblSPEED.Caption = Str(Class(1).speed)
+                .lblMAGI.Caption = Str(Class(1).MAGI)
 
-                If Class(.cmbClass.ListIndex).Sprite = Class(.cmbClass.ListIndex).FSprite Then
+                If Class(1).MSprite = Class(1).FSprite Then
                     .optMale.Value = True
                     .optMale.Visible = False
                     .optFemale.Value = False
                     .optFemale.Visible = False
-                ElseIf Class(.cmbClass.ListIndex).Sprite <> Class(.cmbClass.ListIndex).FSprite Then
+                ElseIf Class(.cmbClass.ListIndex).MSprite <> Class(.cmbClass.ListIndex).FSprite Then
                     .optMale.Value = True
                     .optMale.Visible = False
                     .optFemale.Value = False
@@ -201,12 +197,12 @@ Public Sub HandleData(ByVal Data As String)
             n = 1
 
             ' Max classes
-            Max_Classes = Val(Parse(n))
-            ReDim Class(0 To Max_Classes) As ClassRec
+            MAX_CLASS = Val(Parse(n))
+            ReDim Class(0 To MAX_CLASS) As ClassRec
 
             n = n + 1
 
-            For i = 0 To Max_Classes
+            For i = 1 To MAX_CLASS
                 Class(i).Name = Parse(n)
 
                 Class(i).HP = Val(Parse(n + 1))
@@ -217,8 +213,6 @@ Public Sub HandleData(ByVal Data As String)
                 Class(i).DEF = Val(Parse(n + 5))
                 Class(i).speed = Val(Parse(n + 6))
                 Class(i).MAGI = Val(Parse(n + 7))
-
-                n = n + 8
             Next i
             Exit Sub
 
@@ -1213,6 +1207,20 @@ Public Sub HandleData(ByVal Data As String)
             Next i
 
             frmIndex.lstIndex.ListIndex = 0
+            
+        Case "classeditor"
+            InClassEditor = True
+            
+            frmIndex.Show
+            frmIndex.lstIndex.Clear
+
+            ' Add the names
+            For i = 1 To MAX_CLASS
+                frmIndex.lstIndex.AddItem i & ": " & Trim$(Class(i).Name)
+            Next i
+
+            frmIndex.lstIndex.ListIndex = 0
+        
             
         ' ::::::::::::::::::::::
         ' :: Edit Arrow packet :: <- Used for arrow editor admins only

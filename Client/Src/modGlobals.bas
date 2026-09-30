@@ -142,6 +142,7 @@ Public InSpellEditor As Boolean
 Public EditorIndex As Long
 Public InSignEditor As Boolean
 Public InArrowEditor As Boolean
+Public InClassEditor As Boolean
 
 ' Game fps
 Public GameFPS As Long
@@ -157,9 +158,6 @@ Public GameTime As Long
 ' Used for parsing
 Public SEP_CHAR As String * 1
 Public END_CHAR As String * 1
-
-' Maximum classes
-Public Max_Classes As Byte
 
 ' Spell Animation
 Public VicX As Byte

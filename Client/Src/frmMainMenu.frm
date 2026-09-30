@@ -990,15 +990,15 @@ End Sub
 ' The New Character Sprite Timer
 
 Private Sub timerSprite_Timer()
-' Call NewCharBltSprite(cmbClass.ListIndex)
+' Call NewCharBltSprite(SelectedClassNumber())
 End Sub
 
 Private Sub optFemale_Click()
-    Call NewCharBltSprite(cmbClass.ListIndex)
+    Call NewCharBltSprite(SelectedClassNumber())
 End Sub
 
 Private Sub optMale_Click()
-    Call NewCharBltSprite(cmbClass.ListIndex)
+    Call NewCharBltSprite(SelectedClassNumber())
 End Sub
 
 Private Sub picNewCharAddChar_Click()
@@ -1011,13 +1011,13 @@ Private Sub picNewCharCancel_Click()
 End Sub
 
 Private Sub cmbClass_Change()
-    Call NewCharBltSprite(cmbClass.ListIndex)
-    If Class(cmbClass.ListIndex).Sprite = Class(cmbClass.ListIndex).FSprite Then
+    Call NewCharBltSprite(SelectedClassNumber())
+    If Class(SelectedClassNumber()).Sprite = Class(SelectedClassNumber()).FSprite Then
         optMale.Value = True
         optMale.Visible = False
         optFemale.Value = False
         optFemale.Visible = False
-    ElseIf Class(cmbClass.ListIndex).Sprite <> Class(cmbClass.ListIndex).FSprite Then
+    ElseIf Class(SelectedClassNumber()).Sprite <> Class(SelectedClassNumber()).FSprite Then
         optMale.Value = True
         optMale.Visible = True
         optFemale.Value = False
@@ -1026,15 +1026,15 @@ Private Sub cmbClass_Change()
 End Sub
 
 Private Sub cmbClass_Click()
-    lblHP.Caption = STR(Class(cmbClass.ListIndex).HP)
-    lblMP.Caption = STR(Class(cmbClass.ListIndex).MP)
-    lblSP.Caption = STR(Class(cmbClass.ListIndex).SP)
+    lblHP.Caption = STR(Class(SelectedClassNumber()).HP)
+    lblMP.Caption = STR(Class(SelectedClassNumber()).MP)
+    lblSP.Caption = STR(Class(SelectedClassNumber()).SP)
 
-    lblSTR.Caption = STR(Class(cmbClass.ListIndex).STR)
-    lblDEF.Caption = STR(Class(cmbClass.ListIndex).DEF)
-    lblSPEED.Caption = STR(Class(cmbClass.ListIndex).speed)
-    lblMAGI.Caption = STR(Class(cmbClass.ListIndex).MAGI)
-    Call NewCharBltSprite(cmbClass.ListIndex)
+    lblSTR.Caption = STR(Class(SelectedClassNumber()).STR)
+    lblDEF.Caption = STR(Class(SelectedClassNumber()).DEF)
+    lblSPEED.Caption = STR(Class(SelectedClassNumber()).speed)
+    lblMAGI.Caption = STR(Class(SelectedClassNumber()).MAGI)
+    Call NewCharBltSprite(SelectedClassNumber())
 End Sub
 
 ' Character Subs

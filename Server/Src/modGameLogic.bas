@@ -172,7 +172,7 @@ Function FindOpenQuestSlot(ByVal Index As Long) As Long
 
     FindOpenQuestSlot = 0
 
-    For I = 1 To MAX_QUEST_PLAYERS
+    For I = 1 To MAX_PLAYERS
         If Quest(Index).Player(I) = "" Then
             FindOpenQuestSlot = I
             Exit Function
@@ -1122,13 +1122,12 @@ Sub AttackPlayer(ByVal Attacker As Long, ByVal Victim As Long, ByVal Damage As L
         ' Player is dead
         MyScript.ExecuteStatement "\scripts\Main.as", "OnDeathByPlayer " & Victim & ", " & Attacker & ", " & GetPlayerMap(Attacker) & ", " & Map(GetPlayerMap(Attacker)).Moral
         
-
         ' Warp player away
         With Map(GetPlayerMap(Victim))
             If .BootMap > 0 And .BootX > 0 And .BootY > 0 Then
                 Call PlayerWarp(Victim, .BootMap, .BootX, .BootY)
             Else
-                Call PlayerWarp(Victim, START_MAP, START_X, START_Y)
+                Call PlayerWarp(Victim, Class(GetPlayerClass(Victim)).Map, Class(GetPlayerClass(Victim)).X, Class(GetPlayerClass(Victim)).Y)
             End If
         End With
 
@@ -1227,7 +1226,7 @@ Sub NpcAttackPlayer(ByVal MapNpcNum As Long, ByVal Victim As Long, ByVal Damage 
             If .BootMap > 0 And .BootX > 0 And .BootY > 0 Then
                 Call PlayerWarp(Victim, .BootMap, .BootX, .BootY)
             Else
-                Call PlayerWarp(Victim, START_MAP, START_X, START_Y)
+                Call PlayerWarp(Victim, Class(GetPlayerClass(Victim)).Map, Class(GetPlayerClass(Victim)).X, Class(GetPlayerClass(Victim)).Y)
             End If
         End With
             
@@ -1434,7 +1433,6 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     MyScript.ExecuteStatement "\scripts\Main.as", "LeaveMap " & Index
     
     ' Save old map to send erase player data to
-    Call CancelPlayerProjectiles(Index)
     OldMap = GetPlayerMap(Index)
     Call SendLeaveMap(Index, OldMap)
     Call SetPlayerMap(Index, MapNum)
@@ -1640,7 +1638,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
                     Call PlayerWarp(Index, Map(GetPlayerMap(Index)).BootMap, Map(GetPlayerMap(Index)).BootX, Map(GetPlayerMap(Index)).BootY)
                     Moved = YES
                 Else
-                    Call PlayerWarp(Index, START_MAP, START_X, START_Y)
+                    Call PlayerWarp(Index, Class(GetPlayerClass(Index)).Map, Class(GetPlayerClass(Index)).X, Class(GetPlayerClass(Index)).Y)
                     Moved = YES
                 End If
 
@@ -1924,7 +1922,6 @@ Sub JoinGame(ByVal Index As Long)
     Call SendExp(Index)
     Call SendGuild(Index)
 
-
     ' Warp the player to his saved location
     Call PlayerWarp(Index, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index))
 
@@ -1947,7 +1944,6 @@ Sub LeftGame(ByVal Index As Long)
         If GetTotalMapPlayers(GetPlayerMap(Index)) = 0 Then
             PlayersOnMap(GetPlayerMap(Index)) = NO
         End If
-
 
         ' Check if the player was in a party, and if so cancel it out so the other player doesn't continue to get half exp
         If Player(Index).InParty = YES Then
@@ -2139,15 +2135,15 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
                         If Damage > 0 And Damage < GetPlayerHP(N) Then
                             Call SetPlayerHP(N, GetPlayerHP(N) - Damage)
                             Call SendHP(N)
-                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dealt " & STR$(Damage) & " damage to " & Trim$(GetPlayerName(N)), Yellow)
-                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dealt " & STR$(Damage) & " damage to you!", BrightRed)
+                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dealt " & Str$(Damage) & " damage to " & Trim$(GetPlayerName(N)), Yellow)
+                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dealt " & Str$(Damage) & " damage to you!", BrightRed)
                         ElseIf Damage >= GetPlayerHP(N) Then   ' KillPlayerSpell
                             ' Set HP to nothing
                             Call SetPlayerHP(N, 0)
 
                             ' Check for a weapon and say damage
-                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dealt " & STR$(Damage) & " damage to " & Trim$(GetPlayerName(N)), Yellow)
-                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dealt " & STR$(Damage) & " damage to you!", BrightRed)
+                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dealt " & Str$(Damage) & " damage to " & Trim$(GetPlayerName(N)), Yellow)
+                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dealt " & Str$(Damage) & " damage to you!", BrightRed)
 
                             ' Player is dead
                             If Map(GetPlayerMap(Index)).Moral = MAP_MORAL_ARENA Then
@@ -2199,7 +2195,7 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
                             If Map(GetPlayerMap(N)).BootMap > 0 And Map(GetPlayerMap(N)).BootX > 0 And Map(GetPlayerMap(N)).BootY > 0 Then
                                 Call PlayerWarp(N, Map(GetPlayerMap(N)).BootMap, Map(GetPlayerMap(N)).BootX, Map(GetPlayerMap(N)).BootY)
                             Else
-                                Call PlayerWarp(N, START_MAP, START_X, START_Y)
+                                Call PlayerWarp(N, Class(GetPlayerClass(N)).Map, Class(GetPlayerClass(N)).X, Class(GetPlayerClass(N)).Y)
                             End If
 
                             ' Restore vitals
@@ -2241,14 +2237,14 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
                     Case SPELL_TYPE_SUBMP
                         Call SetPlayerMP(N, GetPlayerMP(N) - Spell(SpellNum).Data1)
                         Call SendMP(N)
-                        Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dispersed " & STR$(Spell(SpellNum).Data1) & " MP from " & Trim$(GetPlayerName(N)), Yellow)
-                        Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dispersed " & STR$(Spell(SpellNum).Data1) & " of your MP!", BrightRed)
+                        Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dispersed " & Str$(Spell(SpellNum).Data1) & " MP from " & Trim$(GetPlayerName(N)), Yellow)
+                        Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dispersed " & Str$(Spell(SpellNum).Data1) & " of your MP!", BrightRed)
 
                     Case SPELL_TYPE_SUBSP
                         Call SetPlayerSP(N, GetPlayerSP(N) - Spell(SpellNum).Data1)
                         Call SendSP(N)
-                        Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dispersed " & STR$(Spell(SpellNum).Data1) & " SP from " & Trim$(GetPlayerName(N)), Yellow)
-                        Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dispersed " & STR$(Spell(SpellNum).Data1) & " of your SP!", BrightRed)
+                        Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " dispersed " & Str$(Spell(SpellNum).Data1) & " SP from " & Trim$(GetPlayerName(N)), Yellow)
+                        Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell dispersed " & Str$(Spell(SpellNum).Data1) & " of your SP!", BrightRed)
                 End Select
 ' Else
 ' Call PlayerMsg(Index, GetPlayerName(n) & " is far to powerful to even consider attacking.", BrightBlue)
@@ -2270,20 +2266,20 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
                         Case SPELL_TYPE_ADDHP
                             Call SetPlayerHP(N, GetPlayerHP(N) + Spell(SpellNum).Data1)
                             Call SendHP(N)
-                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " healed " & Trim$(GetPlayerName(N)) & " for " & STR$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
-                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell healed you for " & STR$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
+                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " healed " & Trim$(GetPlayerName(N)) & " for " & Str$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
+                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell healed you for " & Str$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
 
                         Case SPELL_TYPE_ADDMP
                             Call SetPlayerMP(N, GetPlayerMP(N) + Spell(SpellNum).Data1)
                             Call SendMP(N)
-                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " healed " & Trim$(GetPlayerName(N)) & " for " & STR$(Spell(SpellNum).Data1) & " MP!", BrightGreen)
-                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell healed you for " & STR$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
+                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " healed " & Trim$(GetPlayerName(N)) & " for " & Str$(Spell(SpellNum).Data1) & " MP!", BrightGreen)
+                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell healed you for " & Str$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
 
                         Case SPELL_TYPE_ADDSP
                             Call SetPlayerSP(N, GetPlayerSP(N) + Spell(SpellNum).Data1)
                             Call SendSP(N)
-                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " healed " & Trim$(GetPlayerName(N)) & " for " & STR$(Spell(SpellNum).Data1) & " SP!", BrightGreen)
-                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell healed you for " & STR$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
+                            Call PlayerMsg(Index, Trim$(Spell(SpellNum).Name) & " healed " & Trim$(GetPlayerName(N)) & " for " & Str$(Spell(SpellNum).Data1) & " SP!", BrightGreen)
+                            Call PlayerMsg(N, Trim$(GetPlayerName(Index)) & "'s spell healed you for " & Str$(Spell(SpellNum).Data1) & " HP!", BrightGreen)
                     End Select
 
                     ' Take away the mana points
@@ -2324,7 +2320,7 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
                     Damage = (Int(GetPlayerMAGI(Index) / 4) + Spell(SpellNum).Data1) - Int(Npc(NpcNum).DEF / 2)
                     If Damage > 0 And Damage < MapNpc(GetPlayerMap(Index), N).HP Then
                         MapNpc(GetPlayerMap(Index), N).HP = MapNpc(GetPlayerMap(Index), N).HP - Damage
-                        Call PlayerMsg(Index, "Your spell dealt " & STR$(Damage) & " damage!", Yellow)
+                        Call PlayerMsg(Index, "Your spell dealt " & Str$(Damage) & " damage!", Yellow)
                     ElseIf Damage >= MapNpc(GetPlayerMap(Index), N).HP Then
                         Call PlayerMsg(Index, "Your spell dealt " & Damage & " damage, killing it.", BrightRed)
 
@@ -2537,15 +2533,14 @@ Sub ClearTempTile()
 End Sub
 
 Sub ClearClasses()
-    Dim I As Long
-    ReDim Class(0 To Max_Classes) As ClassRec
-    For I = 0 To Max_Classes
+    Dim I As Integer
+    
+    For I = 1 To MAX_CLASS
         ResetClassRec Class(I)
     Next I
 End Sub
 
 Sub ClearPlayer(ByVal Index As Long)
-    Call CancelPlayerProjectiles(Index)
     Dim I As Long
     Player(Index).Login = vbNullString
     Player(Index).Password = vbNullString

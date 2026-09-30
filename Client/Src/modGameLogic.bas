@@ -647,7 +647,7 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
                 Call AddText("Social Commands:", HelpColor)
                 Call AddText("""msghere = Global Admin Message", HelpColor)
                 Call AddText("=msghere = Private Admin Message", HelpColor)
-                Call AddText("Available Commands: /admin, /loc, /mapeditor, /warpmeto, /warptome, /warpto, /setsprite, /playersprite, /signedit, /mapreport, /kick, /ban, /unban, /itemedit, /respawn, /npcedit, /motd, /shopedit, /spelledit, /arrowedit, /guild", HelpColor)
+                Call AddText("Available Commands: /admin, /loc, /mapeditor, /warpmeto, /warptome, /warpto, /setsprite, /playersprite, /signedit, /mapreport, /kick, /ban, /unban, /itemedit, /respawn, /npcedit, /motd, /shopedit, /spelledit, /arrowedit, /classedit, /guild", HelpColor)
                 MyText = vbNullString
                 Exit Sub
             End If
@@ -795,7 +795,14 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
             
             ' Editing arrow request
             If Mid$(MyText, 1, 10) = "/arrowedit" Then
-                Call SendRequestEdiArrow
+                Call SendRequestEditArrow
+                MyText = vbNullString
+                Exit Sub
+            End If
+            
+            ' Editing class request
+            If Mid$(MyText, 1, 10) = "/classedit" Then
+                Call SendRequestEditClass
                 MyText = vbNullString
                 Exit Sub
             End If
@@ -1151,9 +1158,9 @@ End Function
 
 Public Sub NewCharBltSprite(ByVal ListIndexSprite As Integer)
     Dim sprite As Long
-    If ListIndexSprite < 0 Or ListIndexSprite > Max_Classes Then Exit Sub
+    If ListIndexSprite < 0 Or ListIndexSprite > MAX_CLASS Then Exit Sub
     If frmMainMenu.optMale.Value Then
-        sprite = Class(ListIndexSprite).Sprite
+        sprite = Class(ListIndexSprite).MSprite
     Else
         sprite = Class(ListIndexSprite).FSprite
     End If

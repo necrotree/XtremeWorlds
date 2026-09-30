@@ -9,18 +9,11 @@ Class frmClassEditor
     Attribute VB_PredeclaredId = True
     Attribute VB_Exposed = False
     Option Explicit
+    Private mBusy As Boolean
+    Private mSaving As Boolean
     
     Private Sub Form_Load()
         SyncValues
-    End Sub
-    
-    Private Sub scrlSprite_Change()
-        lblSprite.Caption = CStr(scrlSprite.Value)
-        ' Draw / refresh the class sprite preview in picSprite here.
-    End Sub
-    
-    Private Sub scrlSprite_Scroll()
-        scrlSprite_Change
     End Sub
     
     Private Sub scrlSTR_Change()
@@ -54,33 +47,9 @@ Class frmClassEditor
     Private Sub scrlMAGI_Scroll()
         scrlMAGI_Change
     End Sub
-    
-    Private Sub scrlStartHP_Change()
-        lblStartHP.Caption = CStr(scrlStartHP.Value)
-    End Sub
-    
-    Private Sub scrlStartHP_Scroll()
-        scrlStartHP_Change
-    End Sub
-    
-    Private Sub scrlStartMP_Change()
-        lblStartMP.Caption = CStr(scrlStartMP.Value)
-    End Sub
-    
-    Private Sub scrlStartMP_Scroll()
-        scrlStartMP_Change
-    End Sub
-    
-    Private Sub scrlStartSP_Change()
-        lblStartSP.Caption = CStr(scrlStartSP.Value)
-    End Sub
-    
-    Private Sub scrlStartSP_Scroll()
-        scrlStartSP_Change
-    End Sub
-    
+  
     Private Sub cmdOK_Click()
-        SaveCurrentClass
+        SaveClass
         Unload Me
     End Sub
     
@@ -88,21 +57,45 @@ Class frmClassEditor
         Unload Me
     End Sub
     
-    Private Sub SaveCurrentClass()
-        ' Wire this into the XtremeWorlds class data structure / packet code.
-        ' Fields: Name, Sprite, STR, DEF, SPD, MAGI,
-        ' StartHP, StartMP, StartSP, HP/MP/SP points, Hidden.
+    Private Sub SaveClass()
+        If mSaving Then Exit Sub
+        If InStr(txtName.Text, SEP_CHAR) > 0 Or InStr(txtName.Text, END_CHAR) > 0 Then
+            GameMsgBox "The name contains an unsupported character.", vbExclamation
+            Exit Sub
+        End If
+        mSaving = True
+        lblStatus.Caption = "Saving class " & EditorIndex & "..."
+        SendData "SAVECLASS" & SEP_CHAR & EditorIndex & SEP_CHAR & Trim$(txtName.Text) & SEP_CHAR & scrlMSprite.Value & SEP_CHAR & scrlFSprite.Value & SEP_CHAR & scrlSTR.Value & SEP_CHAR & scrlDEF.Value & SEP_CHAR & scrlSPD.Value & SEP_CHAR & scrlMAGI.Value & SEP_CHAR & scrlMap.Value & SEP_CHAR & scrlX.Value & SEP_CHAR & scrlY.Value & END_CHAR()()
     End Sub
     
     Private Sub SyncValues()
-        lblSprite.Caption = CStr(scrlSprite.Value)
         lblSTR.Caption = CStr(scrlSTR.Value)
         lblDEF.Caption = CStr(scrlDEF.Value)
         lblSPD.Caption = CStr(scrlSPD.Value)
         lblMAGI.Caption = CStr(scrlMAGI.Value)
-        lblStartHP.Caption = CStr(scrlStartHP.Value)
-        lblStartMP.Caption = CStr(scrlStartMP.Value)
-        lblStartSP.Caption = CStr(scrlStartSP.Value)
+        lblMap.Caption = CStr(scrlMap.Value)
+        lblX.Caption = CStr(scrlX.Value)
+        lblY.Caption = CStr(scrlY.Value)
+    End Sub
+    
+    Private Sub scrlMap_Change()
+        lblMap.Caption = CStr(scrlMap.Value)
+    End Sub
+    
+    Private Sub scrlX_Change()
+        lblX.Caption = CStr(scrlX.Value)
+    End Sub
+    
+    Private Sub scrlY_Change()
+        lblY.Caption = CStr(scrlY.Value)
+    End Sub
+    
+    Private Sub scrlFSprite_Change()
+        lblFSprite.Caption = CStr(scrlFSprite.Value)
+    End Sub
+    
+    Private Sub scrlMSprite_Change()
+        lblMSprite.Caption = CStr(scrlMSprite.Value)
     End Sub
     
 

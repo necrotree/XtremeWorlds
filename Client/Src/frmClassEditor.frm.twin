@@ -1,204 +1,146 @@
-[FormDesignerId("3A360901-7E3F-4A2E-8256-46F9AF98A805")]
+[FormDesignerId("F747C5DD-28FC-443A-9E4B-3D49FE43C0AC")]
 Class frmClassEditor
 Attribute VB_PredeclaredId = True
 Option Explicit
-Private mClasses() As ClassRec
-Private mCount As Long
-Private mIndex As Long
-Private mBusy As Boolean
-Private mDirty As Boolean
+Private mLoading As Boolean
 Private mSaving As Boolean
-Private mCloseAfter As Boolean
+Private mNumber As Long
 Private mWait As Long
 
 Private Sub Form_Load()
     ClassEditorOpen = True
-    mIndex = -1
+    mNumber = -1
+    txtName.MaxLength = NAME_LENGTH
 End Sub
 
-Public Sub LoadClasses(ByRef parts() As String)
-    Dim i As Long, n As Long, selected As Long
-    If UBound(parts) < 1 Then Exit Sub
-    n = Val(parts(1))
-    If n < 0 Or n > 255 Then Exit Sub
-    If UBound(parts) <> 1 + (n + 1) * 7 Then Exit Sub
-    selected = mIndex
-    mBusy = True
-    mCount = n + 1
-    ReDim mClasses(0 To n)
-    cmbClass.Clear
-    For i = 0 To n
-        n = 2 + i * 7
-        mClasses(i).Name = parts(n)
-        mClasses(i).Sprite = Val(parts(n + 1))
-        mClasses(i).FSprite = Val(parts(n + 2))
-        mClasses(i).STR = Val(parts(n + 3))
-        mClasses(i).DEF = Val(parts(n + 4))
-        mClasses(i).speed = Val(parts(n + 5))
-        mClasses(i).MAGI = Val(parts(n + 6))
-        cmbClass.AddItem CStr(i) & ": " & Trim$(mClasses(i).Name)
-    Next i
-    If selected < 0 Or selected >= mCount Then selected = 0
-    cmbClass.ListIndex = selected
-    mBusy = False
-    LoadSelected
+Public Sub LoadClass(ByVal number As Long)
+    Dim I As Long, lastSprite As Long
+    mLoading = True
+    mNumber = number
+    Caption = "Class Editor - " & number
+    lastSprite = 32767
+    If Not DD_SpriteSurf Is Nothing Then lastSprite = DD_SpriteSurf.Height \ PIC_Y - 1
+    If lastSprite > 32767 Then lastSprite = 32767
+    If lastSprite < 0 Then lastSprite = 0
+    For I = 0 To 1
+        scrlValue(I).Max = lastSprite
+    Next I
+    With Class(number)
+        txtName.Text = Trim$(.Name)
+        ' Keep older saved sprite IDs editable if the local sheet is smaller.
+        If .Sprite > scrlValue(0).Max Then scrlValue(0).Max = .Sprite
+        If .FSprite > scrlValue(1).Max Then scrlValue(1).Max = .FSprite
+        scrlValue(0).Value = .Sprite
+        scrlValue(1).Value = .FSprite
+        scrlValue(2).Value = .STR
+        scrlValue(3).Value = .DEF
+        scrlValue(4).Value = .speed
+        scrlValue(5).Value = .MAGI
+    End With
+    mLoading = False
+    DrawPreview
+    lblStatus.Caption = "Changes apply to newly created characters."
 End Sub
 
-Private Function DiscardChanges() As Boolean
-    DiscardChanges = True
-    If mDirty Then DiscardChanges = (GameMsgBox("Discard unsaved class changes?", vbYesNo Or vbDefaultButton2, "Class Editor") = vbYes)
-End Function
-
-Private Sub cmbClass_Click()
-    If mBusy Or mSaving Then Exit Sub
-    If Not DiscardChanges Then
-        mBusy = True
-        cmbClass.ListIndex = mIndex
-        mBusy = False
-        Exit Sub
-    End If
-    LoadSelected
-End Sub
-
-Private Sub LoadSelected()
-    Dim i As Long
-    mIndex = cmbClass.ListIndex
-    If mIndex < 0 Then Exit Sub
-    mBusy = True
-    If mIndex < mCount Then
-        txtName.Text = Trim$(mClasses(mIndex).Name)
-        scrlValue(0).Value = mClasses(mIndex).Sprite
-        scrlValue(1).Value = mClasses(mIndex).FSprite
-        scrlValue(2).Value = mClasses(mIndex).STR
-        scrlValue(3).Value = mClasses(mIndex).DEF
-        scrlValue(4).Value = mClasses(mIndex).speed
-        scrlValue(5).Value = mClasses(mIndex).MAGI
-    Else
-        txtName.Text = "New Class"
-        For i = 0 To 5
-            scrlValue(i).Value = 0
-        Next i
-    End If
-    mBusy = False
-    mDirty = False
-    RefreshPreview
-End Sub
-
-Private Sub cmdNew_Click()
-    If mCount >= 256 Then Exit Sub
-    If Not DiscardChanges Then Exit Sub
-    mBusy = True
-    If cmbClass.ListCount = mCount Then cmbClass.AddItem CStr(mCount) & ": New Class"
-    cmbClass.ListIndex = mCount
-    mBusy = False
-    LoadSelected
-    mDirty = True
-End Sub
-
-Private Sub txtName_Change()
-    If Not mBusy Then mDirty = True
-End Sub
 Private Sub scrlValue_Change(Index As Integer)
-    If mBusy Then Exit Sub
-    mDirty = True
-    RefreshPreview
+    If Not mLoading Then DrawPreview
 End Sub
+
 Private Sub scrlValue_Scroll(Index As Integer)
     scrlValue_Change Index
 End Sub
 
-Private Sub RefreshPreview()
-    Dim i As Long, source As RECT, target As RECT
-    For i = 0 To 5
-        lblValue(i).Caption = CStr(scrlValue(i).Value)
-    Next i
-    lblVitals.Caption = "HP: " & (1 + scrlValue(2).Value \ 2 + scrlValue(2).Value) * 2 & "   MP: " & (1 + scrlValue(5).Value \ 2 + scrlValue(5).Value) * 2 & "   SP: " & (1 + scrlValue(4).Value \ 2 + scrlValue(4).Value) * 2
-    For i = 0 To 1
-        picPreview(i).Cls
+Private Sub DrawPreview()
+    Dim I As Long, source As RECT, destination As RECT
+    For I = 0 To 5
+        lblValue(I).Caption = CStr(scrlValue(I).Value)
+    Next I
+    lblVitals.Caption = "Starting HP: " & (1 + scrlValue(2).Value \ 2 + scrlValue(2).Value) * 2 & "   MP: " & (1 + scrlValue(5).Value \ 2 + scrlValue(5).Value) * 2 & "   SP: " & (1 + scrlValue(4).Value \ 2 + scrlValue(4).Value) * 2
+    For I = 0 To 1
+        picPreview(I).Cls
         If Not DD_SpriteSurf Is Nothing Then
             source.Left = 3 * PIC_X
-            source.Top = CLng(scrlValue(i).Value) * PIC_Y
+            source.Top = CLng(scrlValue(I).Value) * PIC_Y
             source.Right = source.Left + PIC_X
             source.Bottom = source.Top + PIC_Y
             If source.Right <= DD_SpriteSurf.Width And source.Bottom <= DD_SpriteSurf.Height Then
-                target.Left = 8: target.Top = 8: target.Right = 72: target.Bottom = 72
-                DD_SpriteSurf.BltToDC picPreview(i).hDC, source, target
+                destination.Left = 8: destination.Top = 8
+                destination.Right = 72: destination.Bottom = 72
+                DD_SpriteSurf.BltToDC picPreview(I).hDC, source, destination
             End If
         End If
-        picPreview(i).Refresh
-    Next i
+        picPreview(I).Refresh
+    Next I
 End Sub
 
-Private Sub cmdSave_Click()
-    SaveClass False
-End Sub
-Private Sub cmdSaveReturn_Click()
-    SaveClass True
-End Sub
-Private Sub SaveClass(ByVal closeAfter As Boolean)
-    Dim packet As String, i As Long
-    If mSaving Or mIndex < 0 Then Exit Sub
-    If Len(Trim$(txtName.Text)) = 0 Then
+Private Sub cmdOk_Click()
+    Dim packet As String, I As Long, character As Long, className As String
+    If mSaving Or mNumber < 0 Then Exit Sub
+    className = Trim$(txtName.Text)
+    If Len(className) = 0 Then
         GameMsgBox "Enter a class name.", vbExclamation, "Class Editor"
         Exit Sub
     End If
-    If InStr(txtName.Text, SEP_CHAR) > 0 Or InStr(txtName.Text, END_CHAR) > 0 Then Exit Sub
+    For I = 1 To Len(className)
+        character = AscW(Mid$(className, I, 1))
+        If character < 32 Or character > 126 Then
+            GameMsgBox "Use printable English characters in the class name.", vbExclamation, "Class Editor"
+            Exit Sub
+        End If
+    Next I
     If Not IsConnected Then
         SaveFailed "Not connected to the server."
         Exit Sub
     End If
-    packet = "SAVECLASS" & SEP_CHAR & mIndex & SEP_CHAR & Trim$(txtName.Text)
-    For i = 0 To 5
-        packet = packet & SEP_CHAR & scrlValue(i).Value
-    Next i
+    packet = "SAVECLASS" & SEP_CHAR & mNumber & SEP_CHAR & className
+    For I = 0 To 5
+        packet = packet & SEP_CHAR & scrlValue(I).Value
+    Next I
     mSaving = True
-    mCloseAfter = closeAfter
     mWait = 0
+    SetEditingEnabled False
     tmrSave.Enabled = True
-    EnableEditing False
-    lblStatus.Caption = "Saving class " & mIndex & "..."
+    lblStatus.Caption = "Saving class " & mNumber & "..."
     SendData packet & END_CHAR
 End Sub
-Private Sub EnableEditing(ByVal enabled As Boolean)
-    Dim i As Long
-    cmbClass.Enabled = enabled
+
+Private Sub SetEditingEnabled(ByVal enabled As Boolean)
+    Dim I As Long
     txtName.Enabled = enabled
-    cmdNew.Enabled = enabled And mCount < 256
-    cmdSave.Enabled = enabled
-    cmdSaveReturn.Enabled = enabled
-    For i = 0 To 5
-        scrlValue(i).Enabled = enabled
-    Next i
+    cmdOk.Enabled = enabled
+    cmdCancel.Enabled = enabled
+    For I = 0 To 5
+        scrlValue(I).Enabled = enabled
+    Next I
 End Sub
-Public Sub SaveComplete()
-    If Not mSaving Then Exit Sub
+
+Public Sub SaveComplete(ByVal number As Long)
+    If Not mSaving Or number <> mNumber Then Exit Sub
     mSaving = False
-    mDirty = False
     tmrSave.Enabled = False
-    EnableEditing True
-    lblStatus.Caption = "Class saved. Changes apply to new characters."
-    If mCloseAfter Then Unload Me
+    Unload Me
 End Sub
+
 Public Sub SaveFailed(ByVal message As String)
     mSaving = False
     tmrSave.Enabled = False
-    EnableEditing True
+    SetEditingEnabled True
     lblStatus.Caption = message
 End Sub
+
 Private Sub tmrSave_Timer()
     mWait = mWait + 1
     If Not IsConnected Or mWait >= 30 Then SaveFailed "Save not confirmed. Reopen the editor to verify before retrying."
 End Sub
+
 Private Sub cmdCancel_Click()
     Unload Me
 End Sub
+
 Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
-    If mSaving Then
-        Cancel = True
-    ElseIf Not DiscardChanges Then
-        Cancel = True
-    End If
+    If mSaving Then Cancel = True
 End Sub
+
 Private Sub Form_Unload(Cancel As Integer)
     ClassEditorOpen = False
 End Sub

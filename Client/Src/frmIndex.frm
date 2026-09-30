@@ -58,7 +58,13 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Sub cmdOK_Click()
-    EditorIndex = lstIndex.ListIndex + 1
+    If lstIndex.ListIndex < 0 Then Exit Sub
+        If InClassEditor Then
+            RequestEditClass lstIndex.ListIndex
+            Unload Me
+            Exit Sub
+        End If
+        EditorIndex = lstIndex.ListIndex + 1
 
     If InItemsEditor = True Then
         Call SendData("EDITITEM" & SEP_CHAR & EditorIndex & END_CHAR)
@@ -79,7 +85,8 @@ Private Sub cmdOK_Click()
 End Sub
 
 Private Sub cmdCancel_Click()
-    InItemsEditor = False
+    InClassEditor = False
+        InItemsEditor = False
     InNpcEditor = False
     InShopEditor = False
     InSpellEditor = False

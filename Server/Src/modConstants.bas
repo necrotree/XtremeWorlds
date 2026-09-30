@@ -70,8 +70,8 @@ Public MAX_SIGNS As Long
 Public MAX_GUILDS As Long
 Public MAX_QUESTS As Long
 Public MAX_ARROWS As Long
+Public MAX_CLASS As Long
 Public MAX_GUILD_MEMBERS As Long
-Public MAX_QUEST_PLAYERS As Long
 Public Const MAX_PROJECTILES = 256
 Public Const MAX_PLAYERS_SET = 100
 Public Const BASE_MAX_ITEMS = 500
@@ -85,7 +85,8 @@ Public Const BASE_MAX_SPELLS = 500
 Public Const BASE_MAX_SIGNS = 500
 Public Const MAX_TRADES = 8
 Public Const MAX_GUILDS_SET = 20
-Public COnst BASE_MAX_ARROWS = 100
+Public Const BASE_MAX_ARROWS = 100
+Public Const BASE_MAX_CLASS = 50
 
 Public Const NO = 0
 Public Const YES = 1
@@ -191,8 +192,4 @@ Public Const SPELL_TYPE_WARP = 7
 ' Target type constants
 Public Const TARGET_TYPE_PLAYER = 0
 Public Const TARGET_TYPE_NPC = 1
-
-Public START_MAP As Long
-Public START_X As Byte
-Public START_Y As Byte
 

@@ -144,18 +144,21 @@ End Type
 
 Type ClassRec
   Name As String * NAME_LENGTH
-  Sprite As Integer
+  MSprite As Integer
   FSprite As Integer
   
   STR As Byte
   DEF As Byte
   speed As Byte
   MAGI As Byte
+  Map As Integer
+  X As Byte
+  Y As Byte
   
-  ' For client use
-  HP As Long
-  MP As Long
-  SP As Long
+  ' Client use only
+  HP As Integer
+  MP As Integer
+  SP As Integer
 End Type
 
 Type ItemRec

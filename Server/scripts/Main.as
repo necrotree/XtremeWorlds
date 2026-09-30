@@ -21,13 +21,8 @@ Public Const MAX_GUILDS = 255 ' Max Guilds
 Public Const MAX_GUILD_MEMBERS = 255 ' Max Guild Members
 Public Const MAX_QUESTS = 255 ' Max Quests
 Public Const MAX_ARROWS = 100 ' Max Arrows
+Public Const MAX_CLASS = 50 ' Max Classes
 Public Const MAX_QUEST_PLAYERS = 255 ' Max People Who Can Complete the Quest
-
-
-' Where will New Players begin?
-Public Const START_MAP = 1
-Public Const START_X = 5
-Public Const START_Y = 8
 
 Public Const DEBUG = YES ' Find errors in script file
 
@@ -102,7 +97,7 @@ Sub ServerSet()
     Call SetMaxGuildMembers(MAX_GUILD_MEMBERS)
     Call SetMaxQuests(MAX_QUESTS)
     Call SetMaxArrows(MAX_ARROWS)
-    Call SetMaxQuestPlayers(MAX_QUEST_PLAYERS)
+    Call SetMaxClasses(MAX_CLASS)
     Call SetStartPosition(START_MAP, START_X, START_Y)
 
     Call SetDebugScripting(DEBUG)

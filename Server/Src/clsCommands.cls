@@ -70,10 +70,6 @@ Sub SetMaxQuests(ByVal Quests As Integer)
     MAX_QUESTS = Val(Quests)
 End Sub
 
-Sub SetMaxQuestPlayers(ByVal Players As Integer)
-    MAX_QUEST_PLAYERS = Val(Players)
-End Sub
-
 Sub SetWebsite(ByVal Site As String)
     GAME_WEBSITE = Trim$(Site)
 End Sub
@@ -82,10 +78,8 @@ Sub SetMaxArrows(ByVal Arrows As Integer)
     MAX_ARROWS = Val(Arrows)
 End Sub
 
-Sub SetStartPosition(ByVal Map As Integer, ByVal X As Byte, ByVal y As Byte)
-    START_MAP = Val(Map)
-    START_X = Val(X)
-    START_Y = Val(y)
+Sub SetMaxClasses(ByVal Classes As Integer)
+    MAX_CLASS = Val(Classes)
 End Sub
 
 Sub GlobalMsg(ByVal Msg As String, ByVal Color As Byte)
@@ -903,7 +897,7 @@ Function IsQuestComplete(ByVal Index As Long, QuestNum As Long) As Boolean
     
     IsQuestComplete = False
 
-    For Q = 1 To MAX_QUEST_PLAYERS
+    For Q = 1 To MAX_PLAYERS
         If Trim$(Quest(QuestNum).Player(Q)) = Trim$(GetPlayerName(Index)) Then
             IsQuestComplete = True
             Exit Function

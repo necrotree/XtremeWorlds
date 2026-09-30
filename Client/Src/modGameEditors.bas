@@ -720,7 +720,7 @@ Public Sub SpellEditorInit()
     frmSpellEditor.picSpells.Picture = LoadPicture(App.Path & "\gfx\spells.bmp")
 
     frmSpellEditor.cmbClassReq.AddItem "All Classes"
-    For i = 0 To Max_Classes
+    For i = 0 To MAX_CLASS
         frmSpellEditor.cmbClassReq.AddItem Trim$(Class(i).Name)
     Next i
 

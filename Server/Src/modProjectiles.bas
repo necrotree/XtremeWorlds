@@ -269,13 +269,6 @@ Private Sub RemoveProjectile(ByVal number As Long)
     SendDataToMap Shots(number).Map, "PROJECTILEEND" & SEP_CHAR & number & END_CHAR
 End Sub
 
-Public Sub CancelPlayerProjectiles(ByVal owner As Long)
-    Dim i As Long
-    For i = 1 To MAX_PROJECTILES
-        If Shots(i).Active And Shots(i).Owner = owner Then RemoveProjectile i
-    Next
-End Sub
-
 Private Function ProjectileBlocked(ByVal mapNumber As Long, ByVal X As Long, ByVal Y As Long) As Boolean
     Dim tx As Long, ty As Long
     ProjectileBlocked = True

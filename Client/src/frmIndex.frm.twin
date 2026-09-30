@@ -31,6 +31,9 @@ Class frmIndex
         If InArrowEditor = True Then
             Call SendData("EDITARROW" & SEP_CHAR & EditorIndex & END_CHAR)
         End If
+        If InClassEditor = True Then
+            Call SendData("EDITCLASS" & SEP_CHAR & EditorIndex & END_CHAR)
+        End If
             
         Unload frmIndex
     End Sub

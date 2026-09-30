@@ -365,13 +365,6 @@ Public Sub SendSaveSign(ByVal SignNum As Long)
     Call SendData(Packet)
 End Sub
 
-Sub SendRequestEdiArrow()
-    Dim Packet As String
-
-    Packet = "REQUESTEDITARROW" & END_CHAR
-    Call SendData(Packet)
-End Sub
-
 Sub SendKick(ByVal name As String)
     Dim Packet As String
 
@@ -614,5 +607,19 @@ Sub SendBugReport(ByVal Message As String, BugType As Byte, BugOccur As Byte, Bu
     Dim Packet As String
 
     Packet = "BUGREPORT" & SEP_CHAR & Message & SEP_CHAR & BugType & SEP_CHAR & BugOccur & SEP_CHAR & BugRepeat & END_CHAR
+    Call SendData(Packet)
+End Sub
+
+Sub SendRequestEditArrow()
+    Dim Packet As String
+
+    Packet = "REQUESTEDITARROW" & END_CHAR
+    Call SendData(Packet)
+End Sub
+
+Sub SendRequestEditClass()
+    Dim Packet As String
+
+    Packet = "REQUESTEDITCLASS" & END_CHAR
     Call SendData(Packet)
 End Sub

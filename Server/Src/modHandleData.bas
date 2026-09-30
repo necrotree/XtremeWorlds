@@ -8,7 +8,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
     Dim EncKey As String
     Dim Password As String
     Dim Sex As Long
-    Dim Class As Long
+    Dim ClassNum As Long
     Dim CharNum As Long
     Dim Msg As String
     Dim IPMask As String
@@ -215,18 +215,12 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         If Not IsPlaying(Index) Then
             name = Parse(1)
             Sex = Val(Parse(2))
-            Class = Val(Parse(3))
+            ClassNum = Val(Parse(3))
             CharNum = Val(Parse(4))
 
             ' Prevent hacking
             If Len(Trim$(name)) < 3 Then
                 Call AlertMsg(Index, "Character name must be at least three characters in length.")
-                Exit Sub
-            End If
-
-            ' Prevent being me
-            If LCase$(Trim$(name)) = "magnus" Then
-                Call AlertMsg(Index, "Lets get one thing straight, you are not me, ok? :)")
                 Exit Sub
             End If
 
@@ -243,18 +237,18 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
             ' Prevent hacking
             If CharNum < 1 Or CharNum > MAX_CHARS Then
-                Call HackingAttempt(Index, "Invalid CharNum")
+                Call HackingAttempt(Index, "Invalid character")
                 Exit Sub
             End If
 
             ' Prevent hacking
             If (Sex < SEX_MALE) Or (Sex > SEX_FEMALE) Then
-                Call HackingAttempt(Index, "Invalid Sex (dont laugh)")
+                Call HackingAttempt(Index, "Invalid Sex (don't laugh)")
                 Exit Sub
             End If
 
             ' Prevent hacking
-            If Class < 0 Or Class > Max_Classes Then
+            If ClassNum <= 0 Or ClassNum > MAX_CLASS Then
                 Call HackingAttempt(Index, "Invalid Class")
                 Exit Sub
             End If
@@ -272,7 +266,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
             End If
 
             ' Everything went ok, add the character
-            Call AddChar(Index, name, Sex, Class, CharNum)
+            Call AddChar(Index, name, Sex, ClassNum, CharNum)
             Call SavePlayer(Index)
             Call AddLog("Character " & name & " added to " & GetPlayerLogin(Index) & "'s account.", PLAYER_LOG)
             Call AlertMsg(Index, "Character has been created!")
@@ -1004,7 +998,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
     ' ::::::::::::::::::::::
     If LCase(Parse(0)) = "editarrow" Then
         ' Prevent hacking
-        If GetPlayerAccess(Index) < ADMIN_MAPPER Then
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
             Call HackingAttempt(Index, "Admin Cloning")
             Exit Sub
         End If
@@ -1022,39 +1016,136 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendEditArrowTo(Index, N)
     End If
     
+    ' ::::::::::::::::::::::
+    ' :: Save arrow packet ::
+    ' ::::::::::::::::::::::
     If (LCase(Parse(0)) = "savearrow") Then
-        If UBound(Parse) = 4 Then
-            Arrow(Parse(1)).Name = Trim$(Parse(4))
-            PutVar DeliveryFile, "Arrow" & CStr(Parse(1)), "Name", Arrow(Parse(1)).Name
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
         End If
+
+        ' Sign #
+        N = Val(Parse(1))
+
+        ' Prevent hacking
+        If N < 0 Or N > MAX_ARROWS Then
+            Call HackingAttempt(Index, "Invalid Arrow Index")
+            Exit Sub
+        End If
+
         Arrow(Parse(1)).Sprite = Parse(2)
         Arrow(Parse(1)).Range = Parse(3)
-        PutVar DeliveryFile, "Arrow" & CStr(Parse(1)), "Sprite", CStr(Parse(2))
-        PutVar DeliveryFile, "Arrow" & CStr(Parse(1)), "Range", CStr(Parse(3))
-        SendDataTo Index, "ARROWSAVED" & SEP_CHAR & Parse(1) & END_CHAR
-        AddLog GetPlayerName(Index) & " saved arrow #" & Parse(1), ADMIN_LOG
+        Arrow(Parse(1)).Name = Trim$(Parse(4))
+
+        ' Save it
+        Call SaveArrow(N)
+        Call AddLog(GetPlayerName(Index) & " saving arrow #" & N & ".", ADMIN_LOG)
+        Exit Sub
     End If
     
     ' ::::::::::::::::::::::::::::::
     ' :: Request edit arrow packet ::
     ' ::::::::::::::::::::::::::::::
-    Dim Ar As Long
+    Dim ar As Long
     Dim arPacket As String
     If LCase(Parse(0)) = "requesteditarrow" Then
         ' Prevent hacking
-        If GetPlayerAccess(Index) < ADMIN_MAPPER Then
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
             Call HackingAttempt(Index, "Admin Cloning")
             Exit Sub
         End If
 
         arPacket = "arrownames"
-        For Ar = 1 To MAX_ARROWS
-            arPacket = arPacket & SEP_CHAR & Trim(Arrow(Ar).Name)
-        Next Ar
+        For ar = 1 To MAX_ARROWS
+            arPacket = arPacket & SEP_CHAR & Trim(Arrow(ar).Name)
+        Next ar
         arPacket = arPacket & END_CHAR
         Call SendDataTo(Index, arPacket)
 
         Call SendDataTo(Index, "ARROWEDITOR" & END_CHAR)
+    End If
+    
+    ' ::::::::::::::::::::::::::::::
+    ' :: Request edit class packet ::
+    ' ::::::::::::::::::::::::::::::
+    Dim cs As Long
+    Dim csPacket As String
+    If LCase(Parse(0)) = "requesteditclass" Then
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
+        End If
+
+        csPacket = "classnames"
+        For cs = 1 To MAX_CLASS
+            csPacket = csPacket & SEP_CHAR & Trim(Class(cs).Name)
+        Next cs
+        csPacket = csPacket & END_CHAR
+        Call SendDataTo(Index, csPacket)
+
+        Call SendDataTo(Index, "CLASSEDITOR" & END_CHAR)
+    End If
+    
+    ' ::::::::::::::::::::::
+    ' :: Edit class packet ::
+    ' ::::::::::::::::::::::
+    If LCase(Parse(0)) = "editclass" Then
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
+        End If
+
+        ' The sign #
+        N = Val(Parse(1))
+
+        ' Prevent hacking
+        If N < 0 Or N > MAX_ARROWS Then
+            Call HackingAttempt(Index, "Invalid Arrow Index")
+            Exit Sub
+        End If
+
+        Call AddLog(GetPlayerName(Index) & " editing arrow #" & N & ".", ADMIN_LOG)
+        Call SendEditArrowTo(Index, N)
+    End If
+    
+    ' ::::::::::::::::::::::
+    ' :: Save class packet ::
+    ' ::::::::::::::::::::::
+    If (LCase(Parse(0)) = "saveclass") Then
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
+        End If
+
+        ' Sign #
+        N = Val(Parse(1))
+
+        ' Prevent hacking
+        If N <= 0 Or N > MAX_CLASS Then
+            Call HackingAttempt(Index, "Invalid Class Index")
+            Exit Sub
+        End If
+
+        Class(N).Name = Parse(2)
+        Class(N).MSprite = Val(Parse(3))
+        Class(N).FSprite = Val(Parse(4))
+        Class(N).STR = Val(Parse(5))
+        Class(N).DEF = Val(Parse(6))
+        Class(N).SPEED = Val(Parse(7))
+        Class(N).MAGI = Val(Parse(8))
+        Class(N).Map = Val(Parse(9))
+        Class(N).X = Val(Parse(10))
+        Class(N).Y = Val(Parse(11))
+
+        ' Save it
+        Call SaveClass(N)
+        Call AddLog(GetPlayerName(Index) & " saving arrow #" & N & ".", ADMIN_LOG)
+        Exit Sub
     End If
 
     ' :::::::::::::::::::::::
@@ -1143,18 +1234,14 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         N = FindPlayer(Parse(2))
         ' The Sprite
         I = Val(Parse(1))
-        If Not Trim$(GetPlayerName(N)) = "Magnus" Then
-            If N > 0 Then
-                Call PlayerMsg(N, "Your Sprite has been changed to " & I & " by " & GetPlayerName(Index) & ".", BrightGreen)
-                Call PlayerMsg(Index, "You changed " & GetPlayerName(N) & "'s sprite to " & I & ".", BrightGreen)
-                Call AddLog(GetPlayerName(Index) & " has changed " & GetPlayerName(N) & "'s Sprite to " & I & ".", ADMIN_LOG)
-                Call SetPlayerSprite(N, I)
-                Call SendPlayerData(N)
-            Else
-                Call PlayerMsg(Index, "Player is not online.", BrightRed)
-            End If
+        If N > 0 Then
+            Call PlayerMsg(N, "Your Sprite has been changed to " & I & " by " & GetPlayerName(Index) & ".", BrightGreen)
+            Call PlayerMsg(Index, "You changed " & GetPlayerName(N) & "'s sprite to " & I & ".", BrightGreen)
+            Call AddLog(GetPlayerName(Index) & " has changed " & GetPlayerName(N) & "'s Sprite to " & I & ".", ADMIN_LOG)
+            Call SetPlayerSprite(N, I)
+            Call SendPlayerData(N)
         Else
-            Call PlayerMsg(Index, "You cannot change Magnus' sprite!", BrightRed)
+            Call PlayerMsg(Index, "Player is not online.", BrightRed)
         End If
         Exit Sub
     End If
@@ -1174,7 +1261,6 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMsg(Index, "Critical Hit Chance: " & N & "%, Block Chance: " & I & "%", White)
         Exit Sub
     End If
-
 
 
     ' ::::::::::::::::::::::::::::::::::
@@ -1715,6 +1801,41 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saved item #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+    
+    ' ::::::::::::::::::::::
+    ' :: Save class packet ::
+    ' ::::::::::::::::::::::
+    If LCase$(Parse(0)) = "saveclass" Then
+        ' Prevent hacking
+        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
+            Call HackingAttempt(Index, "Admin Cloning")
+            Exit Sub
+        End If
+
+        N = Val(Parse(1))
+        If N <= 0 Or N > MAX_CLASS Then
+            Call HackingAttempt(Index, "Invalid Class Index")
+            Exit Sub
+        End If
+
+        ' Update the item
+        Class(N).Name = Parse(2)
+        Class(N).MSprite = Val(Parse(3))
+        Class(N).FSprite = Val(Parse(4))
+        Class(N).STR = Val(Parse(5))
+        Class(N).DEF = Val(Parse(6))
+        Class(N).SPEED = Val(Parse(7))
+        Class(N).MAGI = Val(Parse(8))
+        Class(N).Map = Val(Parse(9))
+        Class(N).X = Val(Parse(10))
+        Class(N).Y = Val(Parse(11))
+        
+        ' Save it
+        Call SendUpdateItemToAll(N)
+        Call SaveItem(N)
+        Call AddLog(GetPlayerName(Index) & " saved item #" & N & ".", ADMIN_LOG)
+        Exit Sub
+    End If
 
     ' :::::::::::::::::::::::
     ' :: Save Guild packet ::
@@ -2095,7 +2216,6 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         ElseIf BugRepeat = 2 Then
             BRepeat = "No"
         End If
-        ' 11.11PM Magnus: Type[Mapping] - Occurs[Often] - Repeat?[Yes]: Message
         BugReport = Time & " " & GetPlayerName(Index) & ": Type[" & BType & "] - Occurs[" & BOccur & "] - Repeat?[" & BRepeat & "]: " & Message
         frmServer.lstBugReport.AddItem BugReport
         Call AddLog(BugReport, BUG_LOG)

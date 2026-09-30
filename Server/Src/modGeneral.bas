@@ -53,12 +53,13 @@ Sub InitServer()
     ReDim Npc(1 To MAX_NPCS) As NpcRec
     ReDim Guild(1 To MAX_GUILDS) As GuildRec
     ReDim Arrow(1 To MAX_ARROWS) As ArrowRec
+    ReDim Class(1 To MAX_CLASS) As ClassRec
     For G = 1 To MAX_GUILDS
         ReDim Preserve Guild(G).Member(1 To MAX_GUILD_MEMBERS) As String * NAME_LENGTH
     Next G
     ReDim Quest(1 To MAX_QUESTS) As QuestRec
     For Q = 1 To MAX_QUESTS
-        ReDim Preserve Quest(Q).Player(1 To MAX_QUEST_PLAYERS) As String * NAME_LENGTH
+        ReDim Preserve Quest(Q).Player(1 To MAX_PLAYERS) As String * NAME_LENGTH
     Next Q
 
     ' Initiate the System Tray
@@ -701,7 +702,7 @@ Function IsQuestComplete(ByVal Index As Long, QuestNum As Long) As Boolean
     
     IsQuestComplete = False
 
-    For Q = 1 To MAX_QUEST_PLAYERS
+    For Q = 1 To MAX_PLAYERS
         If Trim$(Quest(QuestNum).Player(Q)) = Trim$(GetPlayerName(Index)) Then
             IsQuestComplete = True
             Exit Function

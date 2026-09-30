@@ -3415,7 +3415,11 @@ Private Sub picBack_MouseDown(Button As Integer, Shift As Integer, X As Single, 
 End Sub
 
 Private Sub picBack_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-    Call EditorChooseTile(Button, Shift, X, Y)
+    Call EditorUpdateSelection(Button, X, Y)
+End Sub
+
+Private Sub picBack_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+    Call EditorEndSelection(Button, X, Y)
 End Sub
 
 

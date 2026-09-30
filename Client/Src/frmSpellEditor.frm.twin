@@ -83,7 +83,7 @@ Class frmSpellEditor
     
 
     Private Sub cmdArrows_Click()
-        SendRequestEdiArrow()
+        SendRequestEditArrow()
     End Sub
 
     Private Sub cmbDelivery_Click()

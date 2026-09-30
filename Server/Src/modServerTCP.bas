@@ -614,8 +614,8 @@ Sub SendClasses(ByVal Index As Long)
     Dim Packet As String
     Dim I As Long
 
-    Packet = "CLASSESDATA" & SEP_CHAR & Max_Classes & SEP_CHAR
-    For I = 0 To Max_Classes
+    Packet = "CLASSESDATA" & SEP_CHAR & MAX_CLASS & SEP_CHAR
+    For I = 1 To MAX_CLASS
         Packet = Packet & GetClassName(I) & SEP_CHAR & GetClassMaxHP(I) & SEP_CHAR & GetClassMaxMP(I) & SEP_CHAR & GetClassMaxSP(I) & SEP_CHAR & Class(I).STR & SEP_CHAR & Class(I).DEF & SEP_CHAR & Class(I).SPEED & SEP_CHAR & Class(I).MAGI & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
@@ -627,9 +627,9 @@ Sub SendNewCharClasses(ByVal Index As Long)
     Dim Packet As String
     Dim I As Long
 
-    Packet = "NEWCHARCLASSES" & SEP_CHAR & Max_Classes & SEP_CHAR
-    For I = 0 To Max_Classes
-        Packet = Packet & GetClassName(I) & SEP_CHAR & GetClassMaxHP(I) & SEP_CHAR & GetClassMaxMP(I) & SEP_CHAR & GetClassMaxSP(I) & SEP_CHAR & Class(I).STR & SEP_CHAR & Class(I).DEF & SEP_CHAR & Class(I).SPEED & SEP_CHAR & Class(I).MAGI & SEP_CHAR & Class(I).Sprite & SEP_CHAR & Class(I).FSprite & SEP_CHAR
+    Packet = "NEWCHARCLASSES" & SEP_CHAR & MAX_CLASS & SEP_CHAR
+    For I = 1 To MAX_CLASS
+        Packet = Packet & GetClassName(I) & SEP_CHAR & GetClassMaxHP(I) & SEP_CHAR & GetClassMaxMP(I) & SEP_CHAR & GetClassMaxSP(I) & SEP_CHAR & Class(I).STR & SEP_CHAR & Class(I).DEF & SEP_CHAR & Class(I).SPEED & SEP_CHAR & Class(I).MAGI & SEP_CHAR & Class(I).MSprite & SEP_CHAR & Class(I).FSprite & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
 

@@ -123,6 +123,7 @@ Public MAX_SIGNS As Long
 Public MAX_MAPS As Long
 Public MAX_GUILDS As Long
 Public MAX_ARROWS As Long
+Public MAX_CLASS As Long
 
 Public Const BASE_MAX_PLAYERS As Integer = 500
 Public Const BASE_MAX_ITEMS As Integer = 500

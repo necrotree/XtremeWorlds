@@ -1,4 +1,6 @@
 Type=Exe
+Form=Src\frmClassEditor.frm
+Module=modClassEditor; Src\modClassEditor.bas
 Form=Src\frmGamePrompt.frm
 Module=modGamePrompts; Src\modGamePrompts.bas
 Form=Src\frmArrowEditor.frm

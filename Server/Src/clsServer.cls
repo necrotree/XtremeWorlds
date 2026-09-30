@@ -11,8 +11,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Attribute VB_Ext_KEY = "SavedWithClassBuilder6" ,"Yes"
-Attribute VB_Ext_KEY = "Top_Level" ,"Yes"
+Attribute VB_Ext_KEY = "SavedWithClassBuilder6", "Yes"
+Attribute VB_Ext_KEY = "Top_Level", "Yes"
 Option Explicit
 Public Sockets As colSockets
 Private mListener As LongPtr
@@ -74,6 +74,7 @@ Public Sub StopListening()
         mStarted = False
     End If
 End Sub
+
 Public Sub Poll()
     Dim address As WinDevLib.SOCKADDR_IN
     Dim size As Long
@@ -83,7 +84,7 @@ Public Sub Poll()
     Dim code As Long
     If mListener = -1 Or mPolling Then Exit Sub
     mPolling = True
-    On Error GoTo Failed
+    
     For index = 1 To 32
         size = LenB(address)
         handle = WinDevLib.ws_accept(mListener, address, size)
@@ -108,9 +109,6 @@ Public Sub Poll()
     DoEvents
     mPolling = False
     Exit Sub
-Failed:
-    mPolling = False
-    Err.Raise Err.Number, Err.Source, Err.Description
 End Sub
 Public Property Get LocalAddress() As String
     LocalAddress = "0.0.0.0"

@@ -207,12 +207,12 @@ Unavailable:
     Private Sub cmbClass_Change()
         If cmbClass.ListIndex < 0 Then Exit Sub
         Call NewCharBltSprite(cmbClass.ListIndex)
-        If Class(cmbClass.ListIndex).Sprite = Class(cmbClass.ListIndex).FSprite Then
+        If Class(cmbClass.ListIndex).MSprite = Class(cmbClass.ListIndex).FSprite Then
             optMale.Value = True
             optMale.Visible = False
             optFemale.Value = False
             optFemale.Visible = False
-        ElseIf Class(cmbClass.ListIndex).Sprite <> Class(cmbClass.ListIndex).FSprite Then
+        ElseIf Class(cmbClass.ListIndex).MSprite <> Class(cmbClass.ListIndex).FSprite Then
             optMale.Value = True
             optMale.Visible = False
             optFemale.Value = False
@@ -221,11 +221,7 @@ Unavailable:
     End Sub
     
     Private Sub cmbClass_Click()
-        If cmbClass.ListIndex < 0 Then Exit Sub
-        lblHP.Caption = Str(Class(cmbClass.ListIndex).HP)
-        lblMP.Caption = Str(Class(cmbClass.ListIndex).MP)
-        lblSP.Caption = Str(Class(cmbClass.ListIndex).SP)
-    
+        If cmbClass.ListIndex <= 0 Then Exit Sub
         lblSTR.Caption = Str(Class(cmbClass.ListIndex).STR)
         lblDEF.Caption = Str(Class(cmbClass.ListIndex).DEF)
         lblSPEED.Caption = Str(Class(cmbClass.ListIndex).speed)
@@ -404,9 +400,9 @@ Private Sub picRegisterLogin_Click()
     End Sub
 
     Private Sub RefreshSelectedClass()
-        If cmbClass.ListIndex < 0 Then Exit Sub
+        If cmbClass.ListIndex <= 0 Then Exit Sub
         lblSelectedClass.Caption = Trim$(Class(cmbClass.ListIndex).Name)
-        picFemale.Enabled = (Class(cmbClass.ListIndex).Sprite <> Class(cmbClass.ListIndex).FSprite)
+        picFemale.Enabled = (Class(cmbClass.ListIndex).MSprite <> Class(cmbClass.ListIndex).FSprite)
         If Not picFemale.Enabled Then optMale.Value = True
         NewCharBltSprite cmbClass.ListIndex
     End Sub
@@ -421,7 +417,6 @@ Private Sub picRegisterLogin_Click()
                 Exit Sub
             End If
         Next
-        GameMsgBox "This class is not available on this server.", vbInformation, GAME_NAME
     End Sub
 
     Private Sub picClassFighter_Click()

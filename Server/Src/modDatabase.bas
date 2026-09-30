@@ -172,7 +172,7 @@ Sub AddChar(ByVal Index As Long, ByVal Name As String, ByVal Sex As Byte, ByVal 
         Player(Index).Char(CharNum).Class = ClassNum
 
         If Player(Index).Char(CharNum).Sex = SEX_MALE Then
-            Player(Index).Char(CharNum).Sprite = Class(ClassNum).Sprite
+            Player(Index).Char(CharNum).Sprite = Class(ClassNum).MSprite
         Else
             Player(Index).Char(CharNum).Sprite = Class(ClassNum).FSprite
         End If
@@ -184,9 +184,9 @@ Sub AddChar(ByVal Index As Long, ByVal Name As String, ByVal Sex As Byte, ByVal 
         Player(Index).Char(CharNum).SPEED = Class(ClassNum).SPEED
         Player(Index).Char(CharNum).MAGI = Class(ClassNum).MAGI
 
-        Player(Index).Char(CharNum).Map = START_MAP
-        Player(Index).Char(CharNum).X = START_X
-        Player(Index).Char(CharNum).y = START_Y
+        Player(Index).Char(CharNum).Map = Class(ClassNum).Map
+        Player(Index).Char(CharNum).X = Class(ClassNum).X
+        Player(Index).Char(CharNum).y = Class(ClassNum).Y
 
         Player(Index).Char(CharNum).HP = GetPlayerMaxHP(Index)
         Player(Index).Char(CharNum).MP = GetPlayerMaxMP(Index)
@@ -197,8 +197,6 @@ Sub AddChar(ByVal Index As Long, ByVal Name As String, ByVal Sex As Byte, ByVal 
         Open App.Path & "\data\accounts\charlist.txt" For Append As #f
         Print #f, Name
         Close #f
-
-' Call SavePlayer(Index)
 
         Exit Sub
     End If
@@ -244,55 +242,62 @@ Sub SaveAllPlayersOnline()
 End Sub
 
 Sub LoadClasses()
-    Dim FileName As String
     Dim I As Long
+    Dim FileName As String
 
     Call CheckClasses
+    
+    FileName = App.Path & "\data\class.ini"
 
-    FileName = App.Path & "\data\classes.ini"
-
-    Max_Classes = Val(GetVar(FileName, "INIT", "MaxClasses"))
-
-    ReDim Class(0 To Max_Classes) As ClassRec
-
-    Call ClearClasses
-
-    For I = 0 To Max_Classes
+    For I = 1 To MAX_CLASS
         Class(I).Name = GetVar(FileName, "CLASS" & I, "Name")
-        Class(I).Sprite = GetVar(FileName, "CLASS" & I, "Sprite")
+        Class(I).MSprite = GetVar(FileName, "CLASS" & I, "MSprite")
         Class(I).FSprite = GetVar(FileName, "CLASS" & I, "FSprite")
         Class(I).STR = Val(GetVar(FileName, "CLASS" & I, "STR"))
         Class(I).DEF = Val(GetVar(FileName, "CLASS" & I, "DEF"))
         Class(I).SPEED = Val(GetVar(FileName, "CLASS" & I, "SPEED"))
         Class(I).MAGI = Val(GetVar(FileName, "CLASS" & I, "MAGI"))
+        Class(I).Map = Val(GetVar(FileName, "CLASS" & I, "MAP"))
+        Class(I).X = Val(GetVar(FileName, "CLASS" & I, "X"))
+        Class(I).Y = Val(GetVar(FileName, "CLASS" & I, "Y"))
 
         DoEvents
     Next I
 End Sub
 
-Sub SaveClasses()
+Sub SaveClass(ByVal ClassNum As Integer)
     Dim FileName As String
     Dim I As Long
+    
+    I = ClassNum
 
-    FileName = App.Path & "\data\classes.ini"
+    FileName = App.Path & "\data\class.ini"
 
-    Call PutVar(FileName, "INIT", "MaxClasses", CStr(Max_Classes))
+    Call PutVar(FileName, "INIT", "MaxClasses", CStr(MAX_CLASS))
+    Call PutVar(FileName, "CLASS" & I, "Name", Trim$(Class(I).Name))
+    Call PutVar(FileName, "CLASS" & I, "MSprite", Str$(Class(I).MSprite))
+    Call PutVar(FileName, "CLASS" & I, "FSprite", Str$(Class(I).FSprite))
+    Call PutVar(FileName, "CLASS" & I, "STR", Str$(Class(I).STR))
+    Call PutVar(FileName, "CLASS" & I, "DEF", Str$(Class(I).DEF))
+    Call PutVar(FileName, "CLASS" & I, "SPEED", Str$(Class(I).SPEED))
+    Call PutVar(FileName, "CLASS" & I, "MAGI", Str$(Class(I).MAGI))
+    Call PutVar(FileName, "CLASS" & I, "MAP", Str$(Class(I).Map))
+    Call PutVar(FileName, "CLASS" & I, "X", Str$(Class(I).X))
+    Call PutVar(FileName, "CLASS" & I, "Y", Str$(Class(I).Y))
+End Sub
 
-    For I = 0 To Max_Classes
-        Call PutVar(FileName, "CLASS" & I, "Name", Trim$(Class(I).Name))
-        Call PutVar(FileName, "CLASS" & I, "Sprite", Str$(Class(I).Sprite))
-        Call PutVar(FileName, "CLASS" & I, "FSprite", Str$(Class(I).FSprite))
-        Call PutVar(FileName, "CLASS" & I, "STR", Str$(Class(I).STR))
-        Call PutVar(FileName, "CLASS" & I, "DEF", Str$(Class(I).DEF))
-        Call PutVar(FileName, "CLASS" & I, "SPEED", Str$(Class(I).SPEED))
-        Call PutVar(FileName, "CLASS" & I, "MAGI", Str$(Class(I).MAGI))
+Sub SaveClasses()
+    Dim I As Integer
+    
+    For I = 1 To MAX_CLASS
+        SaveClass(I)
     Next I
 End Sub
 
 Sub CheckClasses()
-    If Not FileExist("data\classes.ini") Then
+    If Not FileExist("data\class.ini") Then
         ' First startup reaches here before LoadClasses allocates the array.
-        ReDim Class(0 To Max_Classes) As ClassRec
+        ReDim Class(1 To MAX_CLASS) As ClassRec
         Call ClearClasses
         Call SaveClasses
     End If
@@ -359,12 +364,12 @@ End Sub
 Sub SaveGuilds()
     Dim I As Long
 
-    Call SetStatus("Saving Guilds... ")
+    Call SetStatus("Saving guilds... ")
 
     For I = 1 To MAX_GUILDS
 
         If Not FileExist("data\guilds\guild" & I & ".gld") Then
-            Call SetStatus("Saving Guilds... ")
+            Call SetStatus("Saving guilds... ")
 
             DoEvents
             Call SaveGuild(I)
@@ -394,7 +399,7 @@ Sub LoadGuilds()
     Call CheckGuilds
 
     For I = 1 To MAX_GUILDS
-        Call SetStatus("Loading Guilds... ")
+        Call SetStatus("Loading guilds... ")
         FileName = App.Path & "\data\guilds\guild" & I & ".gld"
 
     Dim dataFile7 As clsDataFile
@@ -419,12 +424,12 @@ End Sub
 Sub SaveQuests()
     Dim I As Long
 
-    Call SetStatus("Saving Quests... ")
+    Call SetStatus("Saving quests... ")
 
     For I = 1 To MAX_QUESTS
 
         If Not FileExist("data\quests\quest" & I & ".qst") Then
-            Call SetStatus("Saving Quests... ")
+            Call SetStatus("Saving quests... ")
 
             DoEvents
             Call SaveQuest(I)
@@ -454,7 +459,7 @@ Sub LoadQuests()
     Call CheckQuests
 
     For I = 1 To MAX_QUESTS
-        Call SetStatus("Loading Quests... ")
+        Call SetStatus("Loading quests... ")
         FileName = App.Path & "\data\quests\quest" & I & ".qst"
 
     Dim dataFile9 As clsDataFile
@@ -477,12 +482,12 @@ End Sub
 Sub SaveShops()
     Dim I As Long
 
-    Call SetStatus("Saving Shops... ")
+    Call SetStatus("Saving shops... ")
 
     For I = 1 To MAX_SHOPS
 
-        If Not FileExist("data\Shops\Shop" & I & ".shp") Then
-            Call SetStatus("Saving Shops... ")
+        If Not FileExist("data\shops\shop" & I & ".shp") Then
+            Call SetStatus("Saving shops... ")
 
             DoEvents
             Call SaveShop(I)
@@ -512,8 +517,8 @@ Sub LoadShops()
     Call CheckShops
 
     For I = 1 To MAX_SHOPS
-        Call SetStatus("Loading Shops... ")
-        FileName = App.Path & "\data\Shops\Shop" & I & ".shp"
+        Call SetStatus("Loading shops... ")
+        FileName = App.Path & "\data\shops\shop" & I & ".shp"
 
     Dim dataFile11 As clsDataFile
     Set dataFile11 = New clsDataFile
@@ -545,12 +550,12 @@ End Sub
 Sub SaveSigns()
     Dim I As Long
 
-    Call SetStatus("Saving Signs... ")
+    Call SetStatus("Saving signs... ")
 
     For I = 1 To MAX_SIGNS
 
-        If Not FileExist("data\Signs\Sign" & I & ".sign") Then
-            Call SetStatus("Saving Signs... ")
+        If Not FileExist("data\signs\sign" & I & ".sign") Then
+            Call SetStatus("Saving signs... ")
 
             DoEvents
             Call SaveSign(I)
@@ -599,12 +604,12 @@ End Sub
 Sub SaveSpells()
     Dim I As Long
 
-    Call SetStatus("Saving Spells... ")
+    Call SetStatus("Saving spells... ")
 
     For I = 1 To MAX_SPELLS
 
-        If Not FileExist("data\Spells\Spell" & I & ".spl") Then
-            Call SetStatus("Saving Spells... ")
+        If Not FileExist("data\spells\spell" & I & ".spl") Then
+            Call SetStatus("Saving spells... ")
 
             DoEvents
             Call SaveSpell(I)
@@ -622,8 +627,8 @@ Sub LoadSpells()
     Call CheckSpells
 
     For I = 1 To MAX_SPELLS
-        Call SetStatus("Loading Spells... ")
-        FileName = App.Path & "\data\Spells\Spell" & I & ".spl"
+        Call SetStatus("Loading spells... ")
+        FileName = App.Path & "\data\spells\spell" & I & ".spl"
 
     Dim dataFile15 As clsDataFile
     Set dataFile15 = New clsDataFile
@@ -655,12 +660,12 @@ End Sub
 Sub SaveNpcs()
     Dim I As Long
 
-    Call SetStatus("Saving Npcs... ")
+    Call SetStatus("Saving npcs... ")
 
     For I = 1 To MAX_NPCS
 
-        If Not FileExist("data\Npcs\Npc" & I & ".npc") Then
-            Call SetStatus("Saving Npcs... ")
+        If Not FileExist("data\npcs\npc" & I & ".npc") Then
+            Call SetStatus("Saving npcs... ")
 
             DoEvents
             Call SaveNpc(I)
@@ -678,8 +683,8 @@ Sub LoadNpcs()
     Call CheckNpcs
 
     For I = 1 To MAX_NPCS
-        Call SetStatus("Loading Npcs... ")
-        FileName = App.Path & "\data\Npcs\Npc" & I & ".npc"
+        Call SetStatus("Loading npcs... ")
+        FileName = App.Path & "\data\npcs\npc" & I & ".npc"
 
     Dim dataFile17 As clsDataFile
     Set dataFile17 = New clsDataFile

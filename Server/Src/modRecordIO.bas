@@ -96,7 +96,7 @@ Public Sub ResetPlayerRec(ByRef value As PlayerRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     value.Name = vbNullString
     value.Sex = 0
-    value.Class = 0
+    value.Class = 1
     value.Sprite = 0
     value.Level = 0
     value.Exp = 0
@@ -331,34 +331,43 @@ End Sub
 Public Sub ReadClassRec(ByVal file As clsDataFile, ByRef value As ClassRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     value.Name = file.ReadText(NAME_LENGTH)
-    value.Sprite = file.ReadInteger()
+    value.MSprite = file.ReadInteger()
     value.FSprite = file.ReadInteger()
     value.STR = file.ReadByte()
     value.DEF = file.ReadByte()
     value.SPEED = file.ReadByte()
     value.MAGI = file.ReadByte()
+    value.Map = file.ReadInteger()
+    value.X = file.ReadByte()
+    value.Y = file.ReadByte()
 End Sub
 
 Public Sub WriteClassRec(ByVal file As clsDataFile, ByRef value As ClassRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     file.WriteText value.Name, NAME_LENGTH
-    file.WriteInteger value.Sprite
+    file.WriteInteger value.MSprite
     file.WriteInteger value.FSprite
     file.WriteByte value.STR
     file.WriteByte value.DEF
     file.WriteByte value.SPEED
     file.WriteByte value.MAGI
+    file.WriteInteger value.Map
+    file.WriteByte value.X
+    file.WriteByte value.Y
 End Sub
 
 Public Sub ResetClassRec(ByRef value As ClassRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     value.Name = vbNullString
-    value.Sprite = 0
+    value.MSprite = 0
     value.FSprite = 0
     value.STR = 0
     value.DEF = 0
     value.SPEED = 0
     value.MAGI = 0
+    value.Map = 1
+    value.X = 5
+    value.Y = 8
 End Sub
 
 Public Sub ReadItemRec(ByVal file As clsDataFile, ByRef value As ItemRec)
@@ -497,7 +506,7 @@ Public Sub ReadQuestRec(ByVal file As clsDataFile, ByRef value As QuestRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     value.Name = file.ReadText(255)
     count = file.ReadArrayCount(NAME_LENGTH)
-    capacity = MAX_QUEST_PLAYERS
+    capacity = MAX_PLAYERS
     If count > capacity Then capacity = count
     ReDim value.Player(1 To capacity) As String * NAME_LENGTH
     For i0 = 1 To capacity
@@ -522,7 +531,7 @@ End Sub
 Public Sub ResetQuestRec(ByRef value As QuestRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     value.Name = vbNullString
-    count = MAX_QUEST_PLAYERS
+    count = MAX_PLAYERS
     If count < 1 Then count = 1
     ReDim value.Player(1 To count) As String * NAME_LENGTH
     For i0 = 1 To count

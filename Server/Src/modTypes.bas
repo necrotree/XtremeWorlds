@@ -153,13 +153,15 @@ End Type
 
 Type ClassRec
   Name As String * NAME_LENGTH
-  Sprite As Integer
+  MSprite As Integer
   FSprite As Integer
-  
   STR As Byte
   DEF As Byte
   SPEED As Byte
   MAGI As Byte
+  Map As Integer
+  X As Byte
+  Y As Byte
 End Type
 
 Type ItemRec
