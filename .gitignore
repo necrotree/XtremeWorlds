@@ -235,3 +235,5 @@ $RECYCLE.BIN/
 /Client/maps
 /Client/data
 *.exe
+/Client/Client
+/Server/Server
