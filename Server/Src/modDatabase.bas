@@ -705,7 +705,7 @@ Sub SaveMap(ByVal MapNum As Long)
     Dim FileName As String
     Dim f As Long
 
-    FileName = App.Path & "\maps\map" & MapNum & ".dat"
+    FileName = App.Path & "\data\maps\map" & MapNum & ".dat"
 
     Dim dataFile18 As clsDataFile
     Set dataFile18 = New clsDataFile
@@ -731,7 +731,7 @@ Sub LoadMaps()
     Call CheckMaps
 
     For I = 1 To MAX_MAPS_SET
-        FileName = App.Path & "\maps\map" & I & ".dat"
+        FileName = App.Path & "\data\maps\map" & I & ".dat"
 
     Dim dataFile19 As clsDataFile
     Set dataFile19 = New clsDataFile
@@ -817,7 +817,7 @@ Sub CheckMaps()
     Call ClearMaps
 
     For I = 1 To MAX_MAPS_SET
-        FileName = "maps\map" & I & ".dat"
+        FileName = "\data\maps\map" & I & ".dat"
 
         ' Check to see if map exists, if it doesn't, create it.
         If Not FileExist(FileName) Then
