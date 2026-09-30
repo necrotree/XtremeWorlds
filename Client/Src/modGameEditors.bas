@@ -1,7 +1,7 @@
 Attribute VB_Name = "modGameEditors"
 Option Explicit
 
-Private Const EDITOR_TILE_COLUMNS As Long = 7
+Private Const EDITOR_TILE_COLUMNS As Long = 12
 Private EditorSelectionWidth As Long
 Private EditorSelectionHeight As Long
 Private EditorAnchorX As Long
@@ -186,51 +186,104 @@ End Sub
 
 Public Sub EditorChooseTile(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Not InEditor Or Button <> 1 Then Exit Sub
+
     EditorSelecting = False
+
     If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+
     If X < 0 Or X >= frmMainGame.picBack.ScaleWidth Then Exit Sub
     If Y < 0 Or Y >= frmMainGame.picBack.ScaleHeight Then Exit Sub
-    If X >= EDITOR_TILE_COLUMNS * PIC_X Or X >= DD_TileSurf(Map.Tileset).Width Then Exit Sub
-    If Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value >= DD_TileSurf(Map.Tileset).Height \ PIC_Y Then Exit Sub
+
+    If Int(X / PIC_X) >= EDITOR_TILE_COLUMNS Then Exit Sub
+
+    If Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value >= _
+       DD_TileSurf(Map.Tileset).Height \ PIC_Y Then Exit Sub
+
     EditorAnchorX = Int(X / PIC_X)
     EditorAnchorY = Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value
+
+    EditorTileX = EditorAnchorX
+    EditorTileY = EditorAnchorY
+
+    EditorSelectionWidth = 1
+    EditorSelectionHeight = 1
+
     EditorSelecting = True
-    EditorSelectionWidth = 0
-    Call EditorUpdateSelection(Button, X, Y)
+
+    Call EditorTileScroll
+    Call EditorSelectionPreview
 End Sub
 
 Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
-    Dim tileX As Long, tileY As Long, lastX As Long, lastY As Long
-    Dim leftTile As Long, topTile As Long, width As Long, height As Long
+    Dim tileX As Long
+    Dim tileY As Long
+    Dim lastX As Long
+    Dim lastY As Long
+    Dim leftTile As Long
+    Dim topTile As Long
+    Dim width As Long
+    Dim height As Long
+
     If Not InEditor Or Not EditorSelecting Then Exit Sub
+
     If (Button And 1) = 0 Then
         EditorSelecting = False
         Exit Sub
     End If
+
     If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+
+    '
+    ' 384 / 32 = 12 columns
+    ' Last valid index = 11
+    '
     lastX = frmMainGame.picBack.ScaleWidth \ PIC_X - 1
-    If lastX >= EDITOR_TILE_COLUMNS Then lastX = EDITOR_TILE_COLUMNS - 1
-    If lastX >= DD_TileSurf(Map.Tileset).Width \ PIC_X Then lastX = DD_TileSurf(Map.Tileset).Width \ PIC_X - 1
+
+    If lastX >= EDITOR_TILE_COLUMNS Then
+        lastX = EDITOR_TILE_COLUMNS - 1
+    End If
+
+    If lastX >= DD_TileSurf(Map.Tileset).Width \ PIC_X Then
+        lastX = DD_TileSurf(Map.Tileset).Width \ PIC_X - 1
+    End If
+
     lastY = frmMainGame.picBack.ScaleHeight \ PIC_Y - 1
+
     tileX = Int(X / PIC_X)
     tileY = Int(Y / PIC_Y)
+
     If tileX < 0 Then tileX = 0
     If tileX > lastX Then tileX = lastX
+
     If tileY < 0 Then tileY = 0
     If tileY > lastY Then tileY = lastY
+
     tileY = tileY + frmMainGame.scrlPicture.Value
-    If tileY >= DD_TileSurf(Map.Tileset).Height \ PIC_Y Then tileY = DD_TileSurf(Map.Tileset).Height \ PIC_Y - 1
+
+    If tileY >= DD_TileSurf(Map.Tileset).Height \ PIC_Y Then
+        tileY = DD_TileSurf(Map.Tileset).Height \ PIC_Y - 1
+    End If
+
     leftTile = EditorAnchorX
     topTile = EditorAnchorY
+
     If tileX < leftTile Then leftTile = tileX
     If tileY < topTile Then topTile = tileY
+
     width = Abs(tileX - EditorAnchorX) + 1
     height = Abs(tileY - EditorAnchorY) + 1
-    If leftTile = EditorTileX And topTile = EditorTileY And width = EditorSelectionWidth And height = EditorSelectionHeight Then Exit Sub
+
+    If leftTile = EditorTileX And _
+       topTile = EditorTileY And _
+       width = EditorSelectionWidth And _
+       height = EditorSelectionHeight Then Exit Sub
+
     EditorTileX = leftTile
     EditorTileY = topTile
+
     EditorSelectionWidth = width
     EditorSelectionHeight = height
+
     Call EditorTileScroll
     Call EditorSelectionPreview
 End Sub
@@ -252,33 +305,61 @@ Private Sub EditorSelectionPreview()
 End Sub
 
 Public Sub EditorTileScroll()
-    Dim source As RECT, destination As RECT
+    Dim source As RECT
+    Dim destination As RECT
+
     If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+
     With frmMainGame.picBack
         .Cls
+
+        source.Left = 0
         source.Top = frmMainGame.scrlPicture.Value * PIC_Y
-        source.Bottom = source.Top + .ScaleHeight
-        If source.Bottom > DD_TileSurf(Map.Tileset).Height Then source.Bottom = DD_TileSurf(Map.Tileset).Height
+
         source.Right = .ScaleWidth
-        If source.Right > DD_TileSurf(Map.Tileset).Width Then source.Right = DD_TileSurf(Map.Tileset).Width
-        destination.Right = source.Right
+        source.Bottom = source.Top + .ScaleHeight
+
+        If source.Right > DD_TileSurf(Map.Tileset).Width Then
+            source.Right = DD_TileSurf(Map.Tileset).Width
+        End If
+
+        If source.Bottom > DD_TileSurf(Map.Tileset).Height Then
+            source.Bottom = DD_TileSurf(Map.Tileset).Height
+        End If
+
+        destination.Left = 0
+        destination.Top = 0
+        destination.Right = source.Right - source.Left
         destination.Bottom = source.Bottom - source.Top
+
         DD_TileSurf(Map.Tileset).BltToDC .hDC, source, destination
+
         Call EditorDrawSelection
+
         .Refresh
     End With
 End Sub
 
 Private Sub EditorDrawSelection()
-    Dim left As Long, top As Long, right As Long, bottom As Long
+    Dim left As Long
+    Dim top As Long
+    Dim right As Long
+    Dim bottom As Long
+
     If Not InEditor Then Exit Sub
     If EditorSelectionWidth < 1 Or EditorSelectionHeight < 1 Then Exit Sub
+
     left = EditorTileX * PIC_X
     top = (EditorTileY - frmMainGame.scrlPicture.Value) * PIC_Y
+
     right = left + EditorSelectionWidth * PIC_X - 1
     bottom = top + EditorSelectionHeight * PIC_Y - 1
-    frmMainGame.picBack.Line (left, top)-(right, bottom), vbWhite, B
-    frmMainGame.picBack.Line (left + 1, top + 1)-(right - 1, bottom - 1), vbBlack, B
+
+    frmMainGame.picBack.Line _
+        (left, top)-(right, bottom), vbWhite, B
+
+    frmMainGame.picBack.Line _
+        (left + 1, top + 1)-(right - 1, bottom - 1), vbBlack, B
 End Sub
 
 Public Sub EditorSend()

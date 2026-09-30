@@ -1,6 +1,8 @@
 Attribute VB_Name = "modDirectX"
 Option Explicit
 
+Private Const TILESET_COLUMNS As Long = 12
+
 Public Sub InitDirectX()
     DestroyDirectX
     DX11Initialize frmMainGame.picScreen.hWnd
@@ -87,13 +89,6 @@ End Sub
 
 
 Public Sub BltMap()
-' ****************************************************************
-' * WHEN    WHO    WHAT
-' * ----    ---    ----
-' * 07/12/2005  Shannara   Optimized function.
-' * 04/10/2007  Robin    Added awesomeness :)
-' ****************************************************************
-
     Dim Ground As Long
     Dim Anim1 As Long
     Dim Anim2 As Long
@@ -104,16 +99,14 @@ Public Sub BltMap()
     Dim Fringe2 As Long
     Dim F2Anim As Long
     Dim X As Long, Y As Long
-    
-    If Map.Tileset = 0 Then
-        Exit Sub
-    End If
+
+    If Map.Tileset = 0 Then Exit Sub
 
     rec.Top = 0
     rec.Bottom = (MAX_MAPY + 1) * 32
     rec.Left = 0
     rec.Right = (MAX_MAPX + 1) * 32
-    
+
     DD_LowerBuffer.BltColorFill rec, RGB(0, 0, 0)
     DD_UpperBuffer.BltColorFill rec, RGB(0, 0, 0)
 
@@ -121,115 +114,173 @@ Public Sub BltMap()
         For Y = 0 To MAX_MAPY
 
             With Map.Tile(X, Y)
-                Ground = Map.Tile(X, Y).Ground
-                Anim1 = Map.Tile(X, Y).Mask
-                Anim2 = Map.Tile(X, Y).Anim
-                Mask2 = Map.Tile(X, Y).Mask2
-                M2Anim = Map.Tile(X, Y).M2Anim
-                Fringe = Map.Tile(X, Y).Fringe
-                FAnim = Map.Tile(X, Y).FAnim
-                Fringe2 = Map.Tile(X, Y).Fringe2
-                F2Anim = Map.Tile(X, Y).F2Anim
+                Ground = .Ground
+                Anim1 = .Mask
+                Anim2 = .Anim
+                Mask2 = .Mask2
+                M2Anim = .M2Anim
+                Fringe = .Fringe
+                FAnim = .FAnim
+                Fringe2 = .Fringe2
+                F2Anim = .F2Anim
             End With
 
-            With rec
-                .Top = Int(Ground / 7) * PIC_Y
-                .Bottom = .Top + PIC_Y
-                .Left = (Ground - Int(Ground / 7) * 7) * PIC_X
-                .Right = .Left + PIC_X
-            End With
-            Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, False)
+            ' Ground
+            rec.Left = (Ground Mod TILESET_COLUMNS) * PIC_X
+            rec.Top = (Ground \ TILESET_COLUMNS) * PIC_Y
+            rec.Right = rec.Left + PIC_X
+            rec.Bottom = rec.Top + PIC_Y
 
+            DD_LowerBuffer.BltFast _
+                X * PIC_X, _
+                Y * PIC_Y, _
+                DD_TileSurf(Map.Tileset), _
+                rec, _
+                False
+
+            ' Mask / Anim
             If (MapAnim = 0) Or (Anim2 <= 0) Then
-                ' Is there an animation tile to plot?
+
                 If Anim1 > 0 And TempTile(X, Y).DoorOpen = NO Then
-                    rec.Top = Int(Anim1 / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (Anim1 - Int(Anim1 / 7) * 7) * PIC_X
+                    rec.Left = (Anim1 Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (Anim1 \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_LowerBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
+
             Else
-                ' Is there a second animation tile to plot?
+
                 If Anim2 > 0 Then
-                    rec.Top = Int(Anim2 / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (Anim2 - Int(Anim2 / 7) * 7) * PIC_X
+                    rec.Left = (Anim2 Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (Anim2 \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_LowerBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
+
             End If
 
+            ' Mask2 / M2Anim
             If (MapAnim = 0) Or (M2Anim <= 0) Then
-                ' Is there an animation tile to plot?
+
                 If Mask2 > 0 Then
-                    rec.Top = Int(Mask2 / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (Mask2 - Int(Mask2 / 7) * 7) * PIC_X
+                    rec.Left = (Mask2 Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (Mask2 \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_LowerBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
+
             Else
-                ' Is there a second animation tile to plot?
+
                 If M2Anim > 0 Then
-                    rec.Top = Int(M2Anim / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (M2Anim - Int(M2Anim / 7) * 7) * PIC_X
+                    rec.Left = (M2Anim Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (M2Anim \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_LowerBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
+
             End If
 
+            ' Fringe / FAnim
             If (MapAnim = 0) Or (FAnim <= 0) Then
-                ' Is there an animation tile to plot?
 
                 If Fringe > 0 Then
-                    rec.Top = Int(Fringe / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (Fringe - Int(Fringe / 7) * 7) * PIC_X
+                    rec.Left = (Fringe Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (Fringe \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_UpperBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
 
             Else
 
                 If FAnim > 0 Then
-                    rec.Top = Int(FAnim / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (FAnim - Int(FAnim / 7) * 7) * PIC_X
+                    rec.Left = (FAnim Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (FAnim \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_UpperBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
 
             End If
 
+            ' Fringe2 / F2Anim
             If (MapAnim = 0) Or (F2Anim <= 0) Then
-            ' Is there an animation tile to plot?
 
                 If Fringe2 > 0 Then
-                    rec.Top = Int(Fringe2 / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (Fringe2 - Int(Fringe2 / 7) * 7) * PIC_X
+                    rec.Left = (Fringe2 Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (Fringe2 \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_UpperBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
 
             Else
 
                 If F2Anim > 0 Then
-                    rec.Top = Int(F2Anim / 7) * PIC_Y
-                    rec.Bottom = rec.Top + PIC_Y
-                    rec.Left = (F2Anim - Int(F2Anim / 7) * 7) * PIC_X
+                    rec.Left = (F2Anim Mod TILESET_COLUMNS) * PIC_X
+                    rec.Top = (F2Anim \ TILESET_COLUMNS) * PIC_Y
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
+                    rec.Bottom = rec.Top + PIC_Y
+
+                    DD_UpperBuffer.BltFast _
+                        X * PIC_X, _
+                        Y * PIC_Y, _
+                        DD_TileSurf(Map.Tileset), _
+                        rec, _
+                        True
                 End If
 
             End If
 
-        Next
-    Next
+        Next Y
+    Next X
 End Sub
-
 
 Public Sub BltItem(ByVal ItemNum As Long)
 ' ****************************************************************
