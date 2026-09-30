@@ -2,16 +2,19 @@ Attribute VB_Name = "modProjectiles"
 Option Explicit
 
 Public Const MAX_PROJECTILES As Long = 256
+
 Public Type ArrowRec
     Name As String
     Sprite As Long
     Range As Long
 End Type
+
 Public Type SpellDeliveryRec
     Mode As Long
     Arrow As Long
     Range As Long
 End Type
+
 Private Type ProjectileRec
     Active As Boolean
     Map As Long
@@ -21,6 +24,7 @@ Private Type ProjectileRec
     Y As Long
     Updated As Long
 End Type
+
 Public ArrowEditorActive As Boolean
 Public SpellDelivery() As SpellDeliveryRec
 Public Shots(1 To MAX_PROJECTILES) As ProjectileRec

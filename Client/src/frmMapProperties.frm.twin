@@ -25,7 +25,7 @@ Class frmMapProperties
     Private Sub Form_Load()
         Dim X As Long, Y As Long, i As Long
     
-        txtName.Text = Trim$(Map.name)
+        txtName.Text = Trim$(Map.Name)
         txtUp.Text = Str(Map.Up)
         txtDown.Text = Str(Map.Down)
         txtLeft.Text = Str(Map.Left)
@@ -72,7 +72,7 @@ Class frmMapProperties
     Private Sub cmdOK_Click()
         Dim X As Long, Y As Long, i As Long
     
-        Map.name = txtName.Text
+        Map.Name = txtName.Text
         Map.Up = Val(txtUp.Text)
         Map.Down = Val(txtDown.Text)
         Map.Left = Val(txtLeft.Text)

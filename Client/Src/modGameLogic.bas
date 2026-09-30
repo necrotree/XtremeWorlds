@@ -315,9 +315,9 @@ Public Sub GameLoop()
 
                 ' Draw map name
                  If Map.Moral = MAP_MORAL_NONE Then
-                    Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.name)) / 2) * 8), 1, Trim$(Map.name), QBColor(BrightRed))
+                    Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.Name)) / 2) * 8), 1, Trim$(Map.Name), QBColor(BrightRed))
                  Else
-                    Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.name)) / 2) * 8), 1, Trim$(Map.name), QBColor(White))
+                    Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.Name)) / 2) * 8), 1, Trim$(Map.Name), QBColor(White))
                  End If
 
                 ' Release DC
@@ -713,7 +713,7 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
             ' Map Editor
             If LCase$(Mid$(MyText, 1, 10)) = "/mapeditor" Then
                 frmMainGame.lblMapNumber.Caption = GetPlayerMap(MyIndex)
-                frmMainGame.lblMapName.Caption = Trim$(Map.name)
+                frmMainGame.lblMapName.Caption = Trim$(Map.Name)
                 Call SendRequestEditMap
                 MyText = vbNullString
                 Exit Sub

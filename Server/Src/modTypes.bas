@@ -130,6 +130,7 @@ Type OldMapRec
   Shop As Byte
   Tile(0 To MAX_MAPX, 0 To MAX_MAPY) As TileRec
   Npc(1 To MAX_MAP_NPCS) As Byte
+  Tileset As Byte
 End Type
 
 Type MapRec
@@ -149,6 +150,7 @@ Type MapRec
   Tile(0 To MAX_MAPX, 0 To MAX_MAPY) As TileRec
   Npc(1 To MAX_MAP_NPCS) As Long
   Respawn As Byte
+  Tileset As Byte
 End Type
 
 Type ClassRec

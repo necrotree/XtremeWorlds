@@ -124,7 +124,7 @@ Type TileRec
 End Type
 
 Type MapRec
-  name As String * NAME_LENGTH
+  Name As String * NAME_LENGTH
   Revision As Long
   Moral As Byte
   Up As Integer
@@ -140,6 +140,7 @@ Type MapRec
   Tile(0 To MAX_MAPX, 0 To MAX_MAPY) As TileRec
   Npc(1 To MAX_MAP_NPCS) As Long
   Respawn As Byte
+  Tileset As Byte
 End Type
 
 Type ClassRec

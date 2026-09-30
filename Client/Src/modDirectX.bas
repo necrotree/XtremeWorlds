@@ -22,13 +22,16 @@ End Function
 
 Public Sub InitSurfaces()
     Dim Prefix As String
+    Dim i As Long
     Prefix = App.Path & GFX_PATH
     Set DD_BackBuffer = NewSurface((MAX_MAPX + 1) * PIC_X, (MAX_MAPY + 1) * PIC_Y)
     Set DD_LowerBuffer = NewSurface(DD_BackBuffer.Width, DD_BackBuffer.Height)
     Set DD_MiddleBuffer = NewSurface(DD_BackBuffer.Width, DD_BackBuffer.Height)
     Set DD_UpperBuffer = NewSurface(DD_BackBuffer.Width, DD_BackBuffer.Height)
     Set DD_SpriteSurf = LoadSurface(Prefix & "sprites" & GFX_EXT)
-    Set DD_TileSurf = LoadSurface(Prefix & "tiles" & GFX_EXT)
+    For i = 1 To 6
+        Set DD_TileSurf(i) = LoadSurface(Prefix & "tiles" & i & GFX_EXT)
+    Next
     Set DD_ItemSurf = LoadSurface(Prefix & "items" & GFX_EXT)
     DD_ItemSurf.ColorKey = RGB(255, 255, 255)
     Set DD_SpellSurf = LoadSurface(Prefix & "spells" & GFX_EXT)
@@ -36,8 +39,12 @@ Public Sub InitSurfaces()
 End Sub
 
 Public Sub DestroyDirectX()
+    Dim i As Long
+    
     Set DD_SpriteSurf = Nothing
-    Set DD_TileSurf = Nothing
+    For i = 1 To 6
+        Set DD_TileSurf(i) = Nothing
+    Next
     Set DD_ItemSurf = Nothing
     Set DD_SpellSurf = Nothing
     Set DD_ArrowSurf = Nothing
@@ -97,6 +104,10 @@ Public Sub BltMap()
     Dim Fringe2 As Long
     Dim F2Anim As Long
     Dim X As Long, Y As Long
+    
+    If Map.Tileset = 0 Then
+        Exit Sub
+    End If
 
     rec.Top = 0
     rec.Bottom = (MAX_MAPY + 1) * 32
@@ -127,7 +138,7 @@ Public Sub BltMap()
                 .Left = (Ground - Int(Ground / 7) * 7) * PIC_X
                 .Right = .Left + PIC_X
             End With
-            Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, False)
+            Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, False)
 
             If (MapAnim = 0) Or (Anim2 <= 0) Then
                 ' Is there an animation tile to plot?
@@ -136,7 +147,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Anim1 - Int(Anim1 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
             Else
                 ' Is there a second animation tile to plot?
@@ -145,7 +156,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Anim2 - Int(Anim2 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
             End If
 
@@ -156,7 +167,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Mask2 - Int(Mask2 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
             Else
                 ' Is there a second animation tile to plot?
@@ -165,7 +176,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (M2Anim - Int(M2Anim / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_LowerBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
             End If
 
@@ -177,7 +188,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Fringe - Int(Fringe / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
 
             Else
@@ -187,7 +198,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (FAnim - Int(FAnim / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
 
             End If
@@ -200,7 +211,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (Fringe2 - Int(Fringe2 / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
 
             Else
@@ -210,7 +221,7 @@ Public Sub BltMap()
                     rec.Bottom = rec.Top + PIC_Y
                     rec.Left = (F2Anim - Int(F2Anim / 7) * 7) * PIC_X
                     rec.Right = rec.Left + PIC_X
-                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf, rec, True)
+                    Call DD_UpperBuffer.BltFast(X * PIC_X, Y * PIC_Y, DD_TileSurf(Map.Tileset), rec, True)
                 End If
 
             End If

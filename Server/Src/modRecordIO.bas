@@ -192,6 +192,7 @@ Public Sub ReadOldMapRec(ByVal file As clsDataFile, ByRef value As OldMapRec)
     value.BootX = file.ReadByte()
     value.BootY = file.ReadByte()
     value.Shop = file.ReadByte()
+    value.Tileset = file.ReadByte()
     For i1 = 0 To MAX_MAPY
     For i0 = 0 To MAX_MAPX
     ReadTileRec file, value.Tile(i0, i1)
@@ -216,6 +217,7 @@ Public Sub WriteOldMapRec(ByVal file As clsDataFile, ByRef value As OldMapRec)
     file.WriteByte value.BootX
     file.WriteByte value.BootY
     file.WriteByte value.Shop
+    file.WriteByte value.Tileset
     For i1 = 0 To MAX_MAPY
     For i0 = 0 To MAX_MAPX
     WriteTileRec file, value.Tile(i0, i1)
@@ -265,6 +267,7 @@ Public Sub ReadMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
     value.BootY = file.ReadByte()
     value.Shop = file.ReadLong()
     value.Indoors = file.ReadByte()
+    value.Tileset = file.ReadByte()
     For i1 = 0 To MAX_MAPY
     For i0 = 0 To MAX_MAPX
     ReadTileRec file, value.Tile(i0, i1)
@@ -291,6 +294,7 @@ Public Sub WriteMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
     file.WriteByte value.BootY
     file.WriteLong value.Shop
     file.WriteByte value.Indoors
+    file.WriteByte value.Tileset
     For i1 = 0 To MAX_MAPY
     For i0 = 0 To MAX_MAPX
     WriteTileRec file, value.Tile(i0, i1)
@@ -326,6 +330,7 @@ Public Sub ResetMapRec(ByRef value As MapRec)
     value.Npc(i0) = 0
     Next i0
     value.Respawn = 0
+    value.Tileset = 1
 End Sub
 
 Public Sub ReadClassRec(ByVal file As clsDataFile, ByRef value As ClassRec)

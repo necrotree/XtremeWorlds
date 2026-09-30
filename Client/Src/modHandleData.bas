@@ -530,7 +530,7 @@ Public Sub HandleData(ByVal Data As String)
             Call ClearProjectiles
             n = 1
 
-            SaveMap.name = Parse(n + 1)
+            SaveMap.Name = Parse(n + 1)
             SaveMap.Revision = Val(Parse(n + 2))
             SaveMap.Moral = Val(Parse(n + 3))
             SaveMap.Up = Val(Parse(n + 4))
@@ -542,8 +542,9 @@ Public Sub HandleData(ByVal Data As String)
             SaveMap.BootX = Val(Parse(n + 10))
             SaveMap.BootY = Val(Parse(n + 11))
             SaveMap.Shop = Val(Parse(n + 12))
+            SaveMap.Tileset = Val(Parse(n + 13))
 
-            n = n + 13
+            n = n + 14
 
             For Y = 0 To MAX_MAPY
                 For X = 0 To MAX_MAPX
@@ -560,7 +561,7 @@ Public Sub HandleData(ByVal Data As String)
                     SaveMap.Tile(X, Y).Data1 = Val(Parse(n + 10))
                     SaveMap.Tile(X, Y).Data2 = Val(Parse(n + 11))
                     SaveMap.Tile(X, Y).Data3 = Val(Parse(n + 12))
-
+                    
                     n = n + 13
                 Next X
             Next Y
@@ -643,16 +644,16 @@ Public Sub HandleData(ByVal Data As String)
             Call BltMap
 
             If Map.Moral = MAP_MORAL_NONE Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.name)
+                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
                 frmMainGame.lblMapInfo.ForeColor = RGB(231, 0, 0)
             ElseIf Map.Moral = MAP_MORAL_SAFE Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.name)
+                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
                 frmMainGame.lblMapInfo.ForeColor = RGB(255, 255, 255)
             ElseIf Map.Moral = MAP_MORAL_INN Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.name)
+                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
                 frmMainGame.lblMapInfo.ForeColor = RGB(220, 192, 0)
             ElseIf Map.Moral = MAP_MORAL_ARENA Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.name)
+                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
                 frmMainGame.lblMapInfo.ForeColor = RGB(174, 174, 174)
             End If
 

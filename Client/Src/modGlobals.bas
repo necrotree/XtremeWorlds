@@ -36,10 +36,9 @@ Public InGame As Boolean
 ' Text variables
 Public vbQuote As String
 
-
 ' Direct3D 11 textures and map layers
 Public DD_SpriteSurf As clsDX11Surface
-Public DD_TileSurf As clsDX11Surface
+Public DD_TileSurf(1 To 6) As clsDX11Surface
 Public DD_ItemSurf As clsDX11Surface
 Public DD_SpellSurf As clsDX11Surface
 Public DD_ArrowSurf As clsDX11Surface
@@ -48,15 +47,12 @@ Public DD_LowerBuffer As clsDX11Surface
 Public DD_MiddleBuffer As clsDX11Surface
 Public DD_UpperBuffer As clsDX11Surface
 
-
 Public rec As RECT
 Public rec_pos As RECT
-
 
 ' Text variables
 Public TexthDC As Long
 Public GameFont As Long
-
 
 ' Game direction vars
 Public DirUp As Boolean
@@ -85,7 +81,6 @@ Public GettingMap As Boolean
 ' Used to check if FPS needs to be drawn
 Public BFPS As Boolean
 Public BLoc As Boolean
-
 
 ' Used to check if in editor or not and variables for use in editor
 Public InEditor As Boolean

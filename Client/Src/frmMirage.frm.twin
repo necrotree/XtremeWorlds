@@ -918,6 +918,7 @@ Class frmMainGame
     Public Sub LayoutGamePanels()
         Dim sidebar As Single, adminLeft As Single, requiredWidth As Single
         sidebar = 956
+        scrlTileset.Value = Map.Tileset
         picMapEditor.Left = Me.ScaleX(sidebar, vbPixels, Me.ScaleMode)
         picMapEditor.Top = Me.ScaleY(39, vbPixels, Me.ScaleMode)
         adminLeft = sidebar
@@ -1211,6 +1212,11 @@ Class frmMainGame
     
     Private Sub cmbArrowEditor_Click()
         Call SendRequestEditArrow
+    End Sub
+    
+    Private Sub scrlTileset_Change()
+        Map.Tileset = scrlTileset.Value
+        EditorInit
     End Sub
 
 End Class

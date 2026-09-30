@@ -1262,7 +1262,6 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Exit Sub
     End If
 
-
     ' ::::::::::::::::::::::::::::::::::
     ' :: Player request for a new map ::
     ' ::::::::::::::::::::::::::::::::::
@@ -1305,8 +1304,9 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Map(MapNum).BootY = Val(Parse(N + 11))
         Map(MapNum).Shop = Val(Parse(N + 12))
         Map(MapNum).Indoors = Val(Parse(N + 13))
+        Map(MapNum).Tileset = Val(Parse(N + 14))
 
-        N = N + 14
+        N = N + 15
 
         For y = 0 To MAX_MAPY
             For X = 0 To MAX_MAPX

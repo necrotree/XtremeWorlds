@@ -281,7 +281,7 @@ Public Sub SendMap()
     Dim Y As Long
 
     With Map
-        Packet = "MAPDATA" & SEP_CHAR & GetPlayerMap(MyIndex) & SEP_CHAR & Trim$(.name) & SEP_CHAR & .Revision & SEP_CHAR & .Moral & SEP_CHAR & .Up & SEP_CHAR & .Down & SEP_CHAR & .Left & SEP_CHAR & .Right & SEP_CHAR & .Music & SEP_CHAR & .BootMap & SEP_CHAR & .BootX & SEP_CHAR & .BootY & SEP_CHAR & .Shop & SEP_CHAR & .Indoors & SEP_CHAR
+        Packet = "MAPDATA" & SEP_CHAR & GetPlayerMap(MyIndex) & SEP_CHAR & Trim$(.Name) & SEP_CHAR & .Revision & SEP_CHAR & .Moral & SEP_CHAR & .Up & SEP_CHAR & .Down & SEP_CHAR & .Left & SEP_CHAR & .Right & SEP_CHAR & .Music & SEP_CHAR & .BootMap & SEP_CHAR & .BootX & SEP_CHAR & .BootY & SEP_CHAR & .Shop & SEP_CHAR & .Indoors & SEP_CHAR & .Tileset & SEP_CHAR
     End With
 
     For Y = 0 To MAX_MAPY

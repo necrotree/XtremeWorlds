@@ -10,8 +10,12 @@ Private EditorSelecting As Boolean
 
 Public Sub EditorInit()
     Dim lastScrollRow As Long
-    If DD_TileSurf Is Nothing Then Exit Sub
-    If DD_TileSurf.Height < PIC_Y Then Exit Sub
+    If Map.Tileset = 0 Then
+        Map.Tileset = 1
+    End If
+    
+    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+    If DD_TileSurf(Map.Tileset).Height < PIC_Y Then Exit Sub
     SaveMap = Map
     InEditor = True
     EditorSelecting = False
@@ -21,7 +25,7 @@ Public Sub EditorInit()
     frmMainGame.LayoutGamePanels
     frmMainGame.picBack.ToolTipText = "Hold the left mouse button and drag to select a block of tiles."
 
-    lastScrollRow = DD_TileSurf.Height \ PIC_Y - frmMainGame.picBack.ScaleHeight \ PIC_Y
+    lastScrollRow = DD_TileSurf(Map.Tileset).Height \ PIC_Y - frmMainGame.picBack.ScaleHeight \ PIC_Y
     If lastScrollRow < 0 Then lastScrollRow = 0
     If frmMainGame.scrlPicture.Value > lastScrollRow Then frmMainGame.scrlPicture.Value = lastScrollRow
     frmMainGame.scrlPicture.Max = lastScrollRow
@@ -183,11 +187,11 @@ End Sub
 Public Sub EditorChooseTile(Button As Integer, Shift As Integer, X As Single, Y As Single)
     If Not InEditor Or Button <> 1 Then Exit Sub
     EditorSelecting = False
-    If DD_TileSurf Is Nothing Then Exit Sub
+    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
     If X < 0 Or X >= frmMainGame.picBack.ScaleWidth Then Exit Sub
     If Y < 0 Or Y >= frmMainGame.picBack.ScaleHeight Then Exit Sub
-    If X >= EDITOR_TILE_COLUMNS * PIC_X Or X >= DD_TileSurf.Width Then Exit Sub
-    If Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value >= DD_TileSurf.Height \ PIC_Y Then Exit Sub
+    If X >= EDITOR_TILE_COLUMNS * PIC_X Or X >= DD_TileSurf(Map.Tileset).Width Then Exit Sub
+    If Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value >= DD_TileSurf(Map.Tileset).Height \ PIC_Y Then Exit Sub
     EditorAnchorX = Int(X / PIC_X)
     EditorAnchorY = Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value
     EditorSelecting = True
@@ -203,10 +207,10 @@ Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
         EditorSelecting = False
         Exit Sub
     End If
-    If DD_TileSurf Is Nothing Then Exit Sub
+    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
     lastX = frmMainGame.picBack.ScaleWidth \ PIC_X - 1
     If lastX >= EDITOR_TILE_COLUMNS Then lastX = EDITOR_TILE_COLUMNS - 1
-    If lastX >= DD_TileSurf.Width \ PIC_X Then lastX = DD_TileSurf.Width \ PIC_X - 1
+    If lastX >= DD_TileSurf(Map.Tileset).Width \ PIC_X Then lastX = DD_TileSurf(Map.Tileset).Width \ PIC_X - 1
     lastY = frmMainGame.picBack.ScaleHeight \ PIC_Y - 1
     tileX = Int(X / PIC_X)
     tileY = Int(Y / PIC_Y)
@@ -215,7 +219,7 @@ Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
     If tileY < 0 Then tileY = 0
     If tileY > lastY Then tileY = lastY
     tileY = tileY + frmMainGame.scrlPicture.Value
-    If tileY >= DD_TileSurf.Height \ PIC_Y Then tileY = DD_TileSurf.Height \ PIC_Y - 1
+    If tileY >= DD_TileSurf(Map.Tileset).Height \ PIC_Y Then tileY = DD_TileSurf(Map.Tileset).Height \ PIC_Y - 1
     leftTile = EditorAnchorX
     topTile = EditorAnchorY
     If tileX < leftTile Then leftTile = tileX
@@ -239,43 +243,27 @@ End Sub
 
 Private Sub EditorSelectionPreview()
     Dim source As RECT, destination As RECT, previewScale As Single
-    If DD_TileSurf Is Nothing Then Exit Sub
+    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
     If EditorSelectionWidth < 1 Or EditorSelectionHeight < 1 Then Exit Sub
     source.Left = EditorTileX * PIC_X
     source.Top = EditorTileY * PIC_Y
     source.Right = source.Left + EditorSelectionWidth * PIC_X
     source.Bottom = source.Top + EditorSelectionHeight * PIC_Y
-    With frmMainGame.picSelect
-        .Cls
-        previewScale = .ScaleWidth / (source.Right - source.Left)
-        If .ScaleHeight / (source.Bottom - source.Top) < previewScale Then previewScale = .ScaleHeight / (source.Bottom - source.Top)
-        destination.Right = Int((source.Right - source.Left) * previewScale)
-        destination.Bottom = Int((source.Bottom - source.Top) * previewScale)
-        If destination.Right < 1 Then destination.Right = 1
-        If destination.Bottom < 1 Then destination.Bottom = 1
-        destination.Left = (.ScaleWidth - destination.Right) \ 2
-        destination.Top = (.ScaleHeight - destination.Bottom) \ 2
-        destination.Right = destination.Right + destination.Left
-        destination.Bottom = destination.Bottom + destination.Top
-        DD_TileSurf.BltToDC .hDC, source, destination
-        .ToolTipText = EditorSelectionWidth & " x " & EditorSelectionHeight & " tiles"
-        .Refresh
-    End With
 End Sub
 
 Public Sub EditorTileScroll()
     Dim source As RECT, destination As RECT
-    If DD_TileSurf Is Nothing Then Exit Sub
+    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
     With frmMainGame.picBack
         .Cls
         source.Top = frmMainGame.scrlPicture.Value * PIC_Y
         source.Bottom = source.Top + .ScaleHeight
-        If source.Bottom > DD_TileSurf.Height Then source.Bottom = DD_TileSurf.Height
+        If source.Bottom > DD_TileSurf(Map.Tileset).Height Then source.Bottom = DD_TileSurf(Map.Tileset).Height
         source.Right = .ScaleWidth
-        If source.Right > DD_TileSurf.Width Then source.Right = DD_TileSurf.Width
+        If source.Right > DD_TileSurf(Map.Tileset).Width Then source.Right = DD_TileSurf(Map.Tileset).Width
         destination.Right = source.Right
         destination.Bottom = source.Bottom - source.Top
-        DD_TileSurf.BltToDC .hDC, source, destination
+        DD_TileSurf(Map.Tileset).BltToDC .hDC, source, destination
         Call EditorDrawSelection
         .Refresh
     End With
