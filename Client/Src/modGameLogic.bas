@@ -85,6 +85,10 @@ Public Sub InitSound()
     If Audio Is Nothing Then
         Set Audio = New clsBASS
     End If
+    
+    If GameData.Music = 0 Then
+        Exit Sub
+    End If
 
     BassInit = Audio.Initialize(-1, 44100)
 

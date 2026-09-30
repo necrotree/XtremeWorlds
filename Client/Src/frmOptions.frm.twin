@@ -17,10 +17,12 @@ Class frmOptions
     
     Private Sub optMusicOff_Click()
         GameData.Music = 0
+        Audio.Shutdown
     End Sub
     
     Private Sub optMusicOn_Click()
         GameData.Music = 1
+        Audio.SwitchMusic(Map.Music)
     End Sub
     
     Private Sub optNPCMouse_Click()
@@ -69,6 +71,7 @@ Class frmOptions
     
     Private Sub Form_Load()
         frmMainGame.txtMyTextBox.Text = vbNullString
+        LoadOptions
     End Sub
     
     Private Sub optWASDOn_Click()
@@ -83,11 +86,49 @@ Class frmOptions
         frmHotkeys.Show vbModal, Me
     End Sub
     
-    Private Sub optPlayerNameOn_Click()
-        GameData.PlayerNames = 1
+    Private Sub LoadOptions()
+
+        ' NPC names
+        Select Case GameData.NpcNames
+            Case 0
+                optNPCOff.Value = True
+            Case 1
+                optNPCOn.Value = True
+            Case 2
+                optNPCMouse.Value = True
+        End Select
+
+        ' Player names
+        Select Case GameData.PlayerNames
+            Case 0
+                optPlayerOff.Value = True
+            Case 1
+                optPlayerOn.Value = True
+            Case 2
+                optPlayerMouse.Value = True
+        End Select
+
+        ' Music
+        If GameData.Music = 1 Then
+            optMusicOn.Value = True
+        Else
+            optMusicOff.Value = True
+        End If
+
+        ' Sound
+        If GameData.Sound = 1 Then
+            optSoundOn.Value = True
+        Else
+            optSoundOff.Value = True
+        End If
+
+        ' WASD movement
+        If GameData.WASD = 1 Then
+            optWASDOn.Value = True
+        Else
+            optWASDOff.Value = True
+        End If
+
     End Sub
-    
-    Private Sub optPlayerNameOff_Click()
-        GameData.PlayerNames = 0
-    End Sub
+
 End Class

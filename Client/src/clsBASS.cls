@@ -60,6 +60,14 @@ Missing:
 End Function
 
 Public Sub SwitchMusic(ByVal Music As Long)
+    
+    If Music = 0 Then
+        Exit Sub
+    End If
+    
+    If GameData.Music = 0 Then
+        Exit Sub
+    End If
 
     ' Stop and free the current music first
     If MusicHandle <> 0 Then
