@@ -180,7 +180,7 @@ Public Sub HandleData(ByVal Data As String)
                     .optMale.Visible = False
                     .optFemale.Value = False
                     .optFemale.Visible = False
-                ElseIf Class(.cmbClass.ListIndex).MSprite <> Class(.cmbClass.ListIndex).FSprite Then
+                ElseIf Class(1).MSprite <> Class(1).FSprite Then
                     .optMale.Value = True
                     .optMale.Visible = False
                     .optFemale.Value = False
