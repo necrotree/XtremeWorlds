@@ -60,14 +60,27 @@ Missing:
 End Function
 
 Public Sub SwitchMusic(ByVal Music As Long)
-    MusicHandle = Audio.OpenStream(App.Path & "\music\" + Music + ".ogg", True)
+
+    ' Stop and free the current music first
+    If MusicHandle <> 0 Then
+        Call Audio.FreeStream(MusicHandle)
+        MusicHandle = 0
+    End If
+
+    Dim FileName As String
+    FileName = App.Path & "\music\music" & CStr(Music) & ".ogg"
+
+    MusicHandle = Audio.OpenStream(FileName, True)
 
     If MusicHandle = 0 Then
-        GameMsgBox "BASS failed to open stream: " & Audio.LastErrorString()
+        GameMsgBox "BASS failed to open stream:" & vbCrLf & _
+                   FileName & vbCrLf & _
+                   Audio.LastErrorString()
         Exit Sub
     End If
-    
+
     Call Audio.Play(MusicHandle)
+
 End Sub
 
 Public Function Initialize(Optional ByVal Device As Long = -1, Optional ByVal Frequency As Long = 44100, Optional ByVal Flags As Long = 0, Optional ByVal WindowHandle As LongPtr = 0) As Boolean
