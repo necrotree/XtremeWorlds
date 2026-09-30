@@ -149,7 +149,7 @@ Type ClassRec
   
   STR As Byte
   DEF As Byte
-  speed As Byte
+  Speed As Byte
   MAGI As Byte
   Map As Integer
   X As Byte

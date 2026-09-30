@@ -145,7 +145,7 @@ Public Sub HandleData(ByVal Data As String)
 
                 Class(i).STR = Val(Parse(n + 4))
                 Class(i).DEF = Val(Parse(n + 5))
-                Class(i).speed = Val(Parse(n + 6))
+                Class(i).Speed = Val(Parse(n + 6))
                 Class(i).MAGI = Val(Parse(n + 7))
 
                 Class(i).MSprite = Val(Parse(n + 8))
@@ -172,7 +172,7 @@ Public Sub HandleData(ByVal Data As String)
 
                 .lblSTR.Caption = Str(Class(1).STR)
                 .lblDEF.Caption = Str(Class(1).DEF)
-                .lblSPEED.Caption = Str(Class(1).speed)
+                .lblSPEED.Caption = Str(Class(1).Speed)
                 .lblMAGI.Caption = Str(Class(1).MAGI)
 
                 If Class(1).MSprite = Class(1).FSprite Then
@@ -211,7 +211,7 @@ Public Sub HandleData(ByVal Data As String)
 
                 Class(i).STR = Val(Parse(n + 4))
                 Class(i).DEF = Val(Parse(n + 5))
-                Class(i).speed = Val(Parse(n + 6))
+                Class(i).Speed = Val(Parse(n + 6))
                 Class(i).MAGI = Val(Parse(n + 7))
             Next i
             Exit Sub
@@ -1220,7 +1220,6 @@ Public Sub HandleData(ByVal Data As String)
             Next i
 
             frmIndex.lstIndex.ListIndex = 0
-        
             
         ' ::::::::::::::::::::::
         ' :: Edit Arrow packet :: <- Used for arrow editor admins only
@@ -1236,9 +1235,27 @@ Public Sub HandleData(ByVal Data As String)
             ArrowEditorInit()
             Exit Sub
             
-        Case "arrowsaved"
-            If ArrowEditorActive Then frmArrowEditor.SaveComplete Val(Parse(1))
-            
+        ' ::::::::::::::::::::::
+        ' :: Edit Class packet :: <- Used for arrow editor admins only
+        ' ::::::::::::::::::::::
+        Case "editclass"
+            n = Val(Parse(1))
+
+            ' Update the item
+            Class(n).Name = Parse(2)
+            Class(n).MSprite = Val(Parse(3))
+            Class(n).FSprite = Val(Parse(4))
+            Class(n).STR = Val(Parse(5))
+            Class(n).DEF = Val(Parse(6))
+            Class(n).Speed = Val(Parse(7))
+            Class(n).MAGI = Val(Parse(8))
+            Class(n).Map = Val(Parse(9))
+            Class(n).X = Val(Parse(10))
+            Class(n).Y = Val(Parse(11))
+
+            ClassEditorInit()
+            Exit Sub
+
         Case "projectileend"
             If Parse(1) >= 1 And Parse(1) <= MAX_PROJECTILES Then Shots(Parse(1)).Active = False
             

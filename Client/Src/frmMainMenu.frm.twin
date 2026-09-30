@@ -19,7 +19,6 @@ Class frmMainMenu
         End If
     
         FileName = App.Path & DATA_PATH & "Data.dat"
-        txtEncKey.Text = Trim$(ENC_KEY)
         InitializeMenuImages
         ShowMenuHome
     End Sub
@@ -224,7 +223,7 @@ Unavailable:
         If cmbClass.ListIndex <= 0 Then Exit Sub
         lblSTR.Caption = Str(Class(cmbClass.ListIndex).STR)
         lblDEF.Caption = Str(Class(cmbClass.ListIndex).DEF)
-        lblSPEED.Caption = Str(Class(cmbClass.ListIndex).speed)
+        lblSPEED.Caption = Str(Class(cmbClass.ListIndex).Speed)
         lblMAGI.Caption = Str(Class(cmbClass.ListIndex).MAGI)
         Call NewCharBltSprite(cmbClass.ListIndex)
     End Sub

@@ -89,14 +89,14 @@ Public Sub MenuState(ByVal State As Long)
             frmMainMenu.SetMenuVisible "mnuNewAccount", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending new account information...")
-                Call SendNewAccount(frmMainMenu.txtNewAcctName.Text, frmMainMenu.txtNewAcctPassword.Text, frmMainMenu.txtEncKey.Text)
+                Call SendNewAccount(frmMainMenu.txtNewAcctName.Text, frmMainMenu.txtNewAcctPassword.Text, ENC_KEY)
             End If
 
         Case MENU_STATE_LOGIN
             frmMainMenu.SetMenuVisible "mnuLogin", False
             If ConnectToServer = True Then
                 Call SetStatus("Connected, sending login information...")
-                Call SendLogin(frmMainMenu.txtLoginName.Text, frmMainMenu.txtLoginPassword.Text, frmMainMenu.txtEncKey.Text)
+                Call SendLogin(frmMainMenu.txtLoginName.Text, frmMainMenu.txtLoginPassword.Text, ENC_KEY)
             End If
 
         Case MENU_STATE_NEWCHAR

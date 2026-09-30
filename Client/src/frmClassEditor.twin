@@ -91,11 +91,13 @@ Class frmClassEditor
     End Sub
     
     Private Sub scrlFSprite_Change()
-        lblFSprite.Caption = CStr(scrlFSprite.Value)
+        lblSprite2.Caption = CStr(scrlFSprite.Value)
+        imgFSprite.Picture = MenuSpritePicture(scrlFSprite.Value)
     End Sub
     
     Private Sub scrlMSprite_Change()
-        lblMSprite.Caption = CStr(scrlMSprite.Value)
+        lblSprite.Caption = CStr(scrlMSprite.Value)
+        imgMSprite.Picture = MenuSpritePicture(scrlMSprite.Value)
     End Sub
     
 

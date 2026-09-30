@@ -1103,13 +1103,13 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         N = Val(Parse(1))
 
         ' Prevent hacking
-        If N < 0 Or N > MAX_ARROWS Then
-            Call HackingAttempt(Index, "Invalid Arrow Index")
+        If N < 0 Or N > MAX_CLASS Then
+            Call HackingAttempt(Index, "Invalid Class Index")
             Exit Sub
         End If
 
-        Call AddLog(GetPlayerName(Index) & " editing arrow #" & N & ".", ADMIN_LOG)
-        Call SendEditArrowTo(Index, N)
+        Call AddLog(GetPlayerName(Index) & " editing class #" & N & ".", ADMIN_LOG)
+        Call SendEditClassTo(Index, N)
     End If
     
     ' ::::::::::::::::::::::

@@ -1019,3 +1019,10 @@ Sub SendEditArrowTo(ByVal Index As Long, ByVal arrowNum As Long)
     Packet = "EDITARROW" & SEP_CHAR & arrowNum & SEP_CHAR & Trim$(Arrow(arrowNum).Name) & SEP_CHAR & Trim$(Arrow(arrowNum).Range) & SEP_CHAR & Arrow(arrowNum).Sprite & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
+
+Sub SendEditClassTo(ByVal Index As Long, ByVal classNum As Long)
+    Dim Packet As String
+    
+    Packet = "EDITCLASS" & SEP_CHAR & classNum & SEP_CHAR & Trim$(Class(classNum).Name) & SEP_CHAR & Class(classNum).MSprite & SEP_CHAR & Class(classNum).FSprite & SEP_CHAR & Class(classNum).STR & SEP_CHAR & Class(classNum).DEF & SEP_CHAR & Class(classNum).MAGI & SEP_CHAR & Class(classNum).SPEED & SEP_CHAR & Class(classNum).Map & SEP_CHAR & Class(classNum).X & SEP_CHAR & Class(classNum).Y & END_CHAR
+    Call SendDataTo(Index, Packet)
+End Sub

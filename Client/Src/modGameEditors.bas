@@ -795,5 +795,22 @@ Public Sub ArrowEditorInit()
     frmArrowEditor.Show vbModal
 End Sub
 
+Public Sub ClassEditorInit()
+    frmClassEditor.txtName.Text = Trim$(Class(EditorIndex).Name)
+    frmClassEditor.scrlMSprite.Value = Class(EditorIndex).MSprite
+    frmClassEditor.scrlFSprite.Value = Class(EditorIndex).FSprite
+    frmClassEditor.scrlSTR.Value = Class(EditorIndex).STR
+    frmClassEditor.scrlDEF.Value = Class(EditorIndex).DEF
+    frmClassEditor.scrlMAGI.Value = Class(EditorIndex).MAGI
+    frmClassEditor.scrlSPD.Value = Class(EditorIndex).Speed
+    frmClassEditor.scrlMap.Value = Class(EditorIndex).Map
+    frmClassEditor.scrlX.Value = Class(EditorIndex).X
+    frmClassEditor.scrlY.Value = Class(EditorIndex).Y
+
+    frmClassEditor.Show vbModal
+End Sub
+
+
+
 
 
