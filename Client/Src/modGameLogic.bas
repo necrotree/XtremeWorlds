@@ -391,7 +391,7 @@ Public Sub GameLoop()
 
             ' Process npc movements (actually move them)
             For i = 1 To MAX_MAP_NPCS
-                If Map.Npc(i) > 0 Then
+                If MapNpc(i).Num > 0 Then
                     Call ProcessNpcMovement(i)
                 End If
             Next i
@@ -465,23 +465,29 @@ Sub ProcessMovement(ByVal index As Long)
 End Sub
 
 Sub ProcessNpcMovement(ByVal MapNpcNum As Long)
-    ' Check if player is walking, and if so process moving them over
-    If MapNpc(MapNpcNum).Moving = MOVING_WALKING Then
-        Select Case MapNpc(MapNpcNum).Dir
-            Case DIR_UP
-                MapNpc(MapNpcNum).YOffset = MapNpc(MapNpcNum).YOffset - WALK_SPEED
-            Case DIR_DOWN
-                MapNpc(MapNpcNum).YOffset = MapNpc(MapNpcNum).YOffset + WALK_SPEED
-            Case DIR_LEFT
-                MapNpc(MapNpcNum).XOffset = MapNpc(MapNpcNum).XOffset - WALK_SPEED
-            Case DIR_RIGHT
-                MapNpc(MapNpcNum).XOffset = MapNpc(MapNpcNum).XOffset + WALK_SPEED
-        End Select
+    Dim stepSize As Long
+    If MapNpc(MapNpcNum).Num <= 0 Or MapNpc(MapNpcNum).Moving <= 0 Then Exit Sub
 
-        ' Check if completed walking over to the next tile
-        If (MapNpc(MapNpcNum).XOffset = 0) And (MapNpc(MapNpcNum).YOffset = 0) Then
-            MapNpc(MapNpcNum).Moving = 0
-        End If
+    stepSize = WALK_SPEED
+    If MapNpc(MapNpcNum).Moving = MOVING_RUNNING Then stepSize = stepSize * 2
+
+    Select Case MapNpc(MapNpcNum).Dir
+        Case DIR_UP
+            MapNpc(MapNpcNum).YOffset = MapNpc(MapNpcNum).YOffset - stepSize
+            If MapNpc(MapNpcNum).YOffset < 0 Then MapNpc(MapNpcNum).YOffset = 0
+        Case DIR_DOWN
+            MapNpc(MapNpcNum).YOffset = MapNpc(MapNpcNum).YOffset + stepSize
+            If MapNpc(MapNpcNum).YOffset > 0 Then MapNpc(MapNpcNum).YOffset = 0
+        Case DIR_LEFT
+            MapNpc(MapNpcNum).XOffset = MapNpc(MapNpcNum).XOffset - stepSize
+            If MapNpc(MapNpcNum).XOffset < 0 Then MapNpc(MapNpcNum).XOffset = 0
+        Case DIR_RIGHT
+            MapNpc(MapNpcNum).XOffset = MapNpc(MapNpcNum).XOffset + stepSize
+            If MapNpc(MapNpcNum).XOffset > 0 Then MapNpc(MapNpcNum).XOffset = 0
+    End Select
+
+    If MapNpc(MapNpcNum).XOffset = 0 And MapNpc(MapNpcNum).YOffset = 0 Then
+        MapNpc(MapNpcNum).Moving = 0
     End If
 End Sub
 
