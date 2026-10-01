@@ -144,7 +144,7 @@ Class frmMainGame
         ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
         ' result = SetWindowLong(txtMyTextBox.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
         
-        Notetext.BackColor = RGB(174, 222, 245)
+        Notetext.BackColor = RGB(214, 188, 154)
         lstInv.BackColor = RGB(174, 222, 245)
         lstSpells.BackColor = RGB(174, 222, 245)
         
@@ -159,6 +159,7 @@ Class frmMainGame
         If EditorscrlPicture >= 0 Then
             scrlPicture.Value = EditorscrlPicture
         End If
+        
         
     End Sub
     
@@ -198,23 +199,19 @@ Class frmMainGame
         wasVisible = picWho.Visible
         CloseSideMenu
         If Not wasVisible Then
-            picPlayerList.Visible = True
-            lstPlayers.Visible = True
-            picPM.Visible = True
             picWho.Visible = True
             SendWhosOnline
         End If
     End Sub
     
     Private Sub lblTrain_Click()
+        Dim currentPoints As Long
+        currentPoints = GetPlayerPOINTS(MyIndex)
+        lblPlayerPoints.Caption = "Current Stat Points: " & CStr(currentPoints)
+        If currentPoints <= 0 Then Exit Sub
         Call SendData("usestatpoint" & SEP_CHAR & cmbStat.ListIndex & END_CHAR)
-        If Val(lblPlayerPoints.Caption) > 0 Then
-            lblPlayerPoints.Caption = Str$(Val(lblPlayerPoints.Caption) - 1)
-        End If
-    End Sub
-    
-    Private Sub lblTrainClose_Click()
-        picMnuTrain.Visible = False
+        Call SetPlayerPOINTS(MyIndex, currentPoints - 1)
+        lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
     End Sub
     
     Private Sub optBlocked_Click()
@@ -535,7 +532,7 @@ Class frmMainGame
     Private Sub picTrain_Click()
         Call CloseSideMenu
         Call SendData("getlivestats" & END_CHAR)
-        lblPlayerPoints.Caption = GetPlayerPOINTS(MyIndex)
+        lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
         picMnuTrain.Visible = True
         frmMainGame.cmbStat.ListIndex = 0
     ' frmTrade.mnuTrain.Visible = True
@@ -596,12 +593,10 @@ Class frmMainGame
         picSign.Visible = False
     End Sub
     
-    Private Sub lblNoteClose_Click()
-        picKeepNotes.Visible = False
-    End Sub
-    
     Private Sub lblNoteSave_Click()
         Dim iFileNum As Integer
+        Dim saveError As String
+        On Error GoTo SaveFailed
     
         ' Get a free file handle
         iFileNum = FreeFile
@@ -613,7 +608,16 @@ Class frmMainGame
     
         Print #iFileNum, Notetext.Text
     
-        Close iFileNum
+        Close #iFileNum
+        picKeepNotes.Visible = False
+        Exit Sub
+
+    SaveFailed:
+        saveError = Err.Description
+        On Error Resume Next
+        Close #iFileNum
+        On Error GoTo 0
+        GameMsgBox "Could not save notes: " & saveError, vbOKOnly, GAME_NAME
     End Sub
     
     Private Sub lstInv_DblClick()
@@ -1180,12 +1184,6 @@ Class frmMainGame
             If lstWho.List(i) = selectedName Then lstWho.ListIndex = i
         Next
         If lstWho.ListIndex < 0 And lstWho.ListCount > 0 Then lstWho.ListIndex = 0
-    End Sub
-    Private Sub lblWhoClose_Click()
-        picWho.Visible = False
-        picPlayerList.Visible = False
-        lstPlayers.Visible = False
-        picPM.Visible = False
     End Sub
     Private Sub lblWhoMessage_Click()
         If lstWho.ListIndex < 0 Then Exit Sub

@@ -1160,14 +1160,14 @@ Begin VB.Form frmMainGame
       Begin VB.Label lblTrain 
          BackStyle       =   0  'Transparent
          Height          =   375
-         Left            =   120
+         Left            =   2640
          TabIndex        =   113
          Top             =   3360
          Width           =   975
       End
       Begin VB.Label lblPlayerPoints 
          BackStyle       =   0  'Transparent
-         Caption         =   "Points"
+         Caption         =   "Current Stat Points: 0"
          BeginProperty Font 
             Name            =   "MS Sans Serif"
             Size            =   8.25
@@ -1178,30 +1178,12 @@ Begin VB.Form frmMainGame
             Strikethrough   =   0   'False
          EndProperty
          ForeColor       =   &H00FFFFFF&
-         Height          =   255
-         Left            =   1920
+         Height          =   300
+         Left            =   210
          TabIndex        =   112
          Top             =   645
-         Width           =   735
-      End
-      Begin VB.Label lblTrainClose 
+         Width           =   3300
          Alignment       =   2  'Center
-         BackStyle       =   0  'Transparent
-         BeginProperty Font 
-            Name            =   "Arial"
-            Size            =   9.75
-            Charset         =   0
-            Weight          =   700
-            Underline       =   0   'False
-            Italic          =   0   'False
-            Strikethrough   =   0   'False
-         EndProperty
-         ForeColor       =   &H00FF00FF&
-         Height          =   375
-         Left            =   2640
-         TabIndex        =   110
-         Top             =   3360
-         Width           =   975
       End
    End
    Begin VB.PictureBox picKeepNotes 
@@ -1229,11 +1211,11 @@ Begin VB.Form frmMainGame
       Visible         =   0
       Width           =   3720
       Begin RichTextLib.RichTextBox Notetext 
-         Height          =   2895
+         Height          =   1800
          Left            =   285
          TabIndex        =   31
          Top             =   630
-         Width           =   2295
+         Width           =   3270
          _ExtentX        =   4048
          _ExtentY        =   5106
          _Version        =   393217
@@ -1252,21 +1234,13 @@ Begin VB.Form frmMainGame
             Strikethrough   =   0   'False
          EndProperty
       End
-      Begin VB.Label lblNoteClose 
-         BackStyle       =   0  'Transparent
-         Height          =   255
-         Left            =   2640
-         TabIndex        =   30
-         Top             =   3360
-         Width           =   975
-      End
       Begin VB.Label lblNoteSave 
          BackStyle       =   0  'Transparent
          Height          =   375
-         Left            =   2640
+         Left            =   1965
          TabIndex        =   29
-         Top             =   2760
-         Width           =   975
+         Top             =   3360
+         Width           =   1530
       End
    End
    Begin VB.PictureBox picInv
@@ -3330,7 +3304,7 @@ Private Sub Form_Load()
     ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
     ' result = SetWindowLong(txtMyTextBox.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
     
-    Notetext.BackColor = RGB(174, 222, 245)
+   Notetext.BackColor = RGB(214, 188, 154)
     lstInv.BackColor = RGB(174, 222, 245)
     lstSpells.BackColor = RGB(174, 222, 245)
     
@@ -3384,14 +3358,13 @@ Private Sub lblPlayers_Click()
 End Sub
 
 Private Sub lblTrain_Click()
-    Call SendData("usestatpoint" & SEP_CHAR & cmbStat.ListIndex & END_CHAR)
-    If Val(lblPlayerPoints.Caption) > 0 Then
-        lblPlayerPoints.Caption = STR$(Val(lblPlayerPoints.Caption) - 1)
-    End If
-End Sub
-
-Private Sub lblTrainClose_Click()
-    picMnuTrain.Visible = False
+   Dim currentPoints As Long
+   currentPoints = GetPlayerPOINTS(MyIndex)
+   lblPlayerPoints.Caption = "Current Stat Points: " & CStr(currentPoints)
+   If currentPoints <= 0 Then Exit Sub
+   Call SendData("usestatpoint" & SEP_CHAR & cmbStat.ListIndex & END_CHAR)
+   Call SetPlayerPOINTS(MyIndex, currentPoints - 1)
+   lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
 End Sub
 
 Private Sub optBlocked_Click()
@@ -3718,7 +3691,7 @@ End Sub
 Private Sub picTrain_Click()
     Call CloseSideMenu
     Call SendData("getlivestats" & END_CHAR)
-    lblPlayerPoints.Caption = GetPlayerPOINTS(MyIndex)
+   lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
     picMnuTrain.Visible = True
     frmMainGame.cmbStat.ListIndex = 0
 ' frmTrade.mnuTrain.Visible = True
@@ -3774,12 +3747,10 @@ Private Sub lblexit_Click()
     picSign.Visible = False
 End Sub
 
-Private Sub lblNoteClose_Click()
-    picKeepNotes.Visible = False
-End Sub
-
 Private Sub lblNoteSave_Click()
     Dim iFileNum As Integer
+   Dim saveError As String
+   On Error GoTo SaveFailed
 
     ' Get a free file handle
     iFileNum = FreeFile
@@ -3791,7 +3762,16 @@ Private Sub lblNoteSave_Click()
 
     Print #iFileNum, Notetext.Text
 
-    Close iFileNum
+   Close #iFileNum
+   picKeepNotes.Visible = False
+   Exit Sub
+
+SaveFailed:
+   saveError = Err.Description
+   On Error Resume Next
+   Close #iFileNum
+   On Error GoTo 0
+   Call GameMsgBox("Could not save notes: " & saveError, vbOKOnly, GAME_NAME)
 End Sub
 
 Private Sub lstInv_DblClick()
