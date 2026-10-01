@@ -5,7 +5,7 @@ Private BubbleSurface As clsDX11Surface
 Private BarsSurface As clsDX11Surface
 Private Const BAR_WIDTH As Long = 56
 Private Const BAR_HEIGHT As Long = 7
-Private Const BARS_HEIGHT As Long = 23
+Private Const BARS_HEIGHT As Long = 15
 Private Const BUBBLE_WIDTH As Long = 160
 Private Const BUBBLE_HEIGHT As Long = 48
 Public Const BUBBLE_TEXT_LIMIT As Long = 240
@@ -32,24 +32,6 @@ Public Sub ClearSpriteOverlay(ByVal index As Long)
     Player(index).BubbleMap = 0
     Player(index).VitalsKnown = False
 End Sub
-
-' Complete messages arrive through the existing shared TCP packet buffer.
-Public Function HandleSpriteOverlayPacket(ByVal packet As String) As Boolean
-    Dim command As String, separator As Long, parts() As String
-    separator = InStr(packet, SEP_CHAR)
-    command = LCase$(packet)
-    If separator > 0 Then command = LCase$(Left$(packet, separator - 1))
-    Select Case command
-        Case "spritebubble", "spritevitals": HandleSpriteOverlayPacket = True
-        Case Else: Exit Function
-    End Select
-    parts = Split(packet, SEP_CHAR)
-    If command = "spritebubble" Then
-        ReceiveSpriteBubble parts
-    Else
-        ReceiveSpriteVitals parts
-    End If
-End Function
 
 Public Function OverlayInteger(ByVal text As String, ByVal maximum As Long, ByRef result As Long) As Boolean
     Dim value As Double
@@ -150,10 +132,11 @@ Public Sub BltSpriteOverlays()
         If OverlayPlayerVisible(index) Then
             hasBubble = BubbleVisible(index)
             OverlayLayout index, hasBubble, bars, bubble
-            If (index = MyIndex Or Player(index).VitalsKnown) And GameData.Vitals = 1 Then
-                DrawVitalBar bars.Left, bars.Top, 0, Player(index).HP, Player(index).MaxHP
-                DrawVitalBar bars.Left, bars.Top + 8, 1, Player(index).MP, Player(index).MaxMP
-                DrawVitalBar bars.Left, bars.Top + 16, 2, Player(index).SP, Player(index).MaxSP
+            If GameData.Vitals <> 2 Then
+                If index = MyIndex Or Player(index).VitalsKnown Then
+                    DrawVitalBar bars.Left, bars.Top, 0, Player(index).HP, Player(index).MaxHP
+                    DrawVitalBar bars.Left, bars.Top + 8, 1, Player(index).MP, Player(index).MaxMP
+                End If
             End If
             If hasBubble Then DrawBubbleSkin bubble
         End If

@@ -23,19 +23,6 @@ Class frmMainMenu
         InitializeMenuImages
         ShowMenuHome
     End Sub
-
-    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-        Dim NewIP As String
-
-        If KeyCode <> vbKeyF1 Then Exit Sub
-        KeyCode = 0
-        NewIP = Trim$(GameInputBox("Enter the server IP address:", Trim$(GameData.IP), GAME_NAME))
-        If Len(NewIP) = 0 Then Exit Sub
-
-        GameData.IP = NewIP
-        Call PutVar(App.Path & "\options.ini", "Options", "IP", NewIP)
-        Call TcpInit
-    End Sub
     
     Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Call MoveForm(frmMainMenu)
@@ -477,6 +464,19 @@ Private Sub picRegisterLogin_Click()
     Private Sub lblFemale_Click()
         CurrentSex = 0
         NewCharBltSprite(CurrentClass)
+    End Sub
+    
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        Dim NewIP As String
+
+        If KeyCode <> vbKeyF1 Then Exit Sub
+        KeyCode = 0
+        NewIP = Trim$(GameInputBox("Enter the server IP address:", Trim$(GameData.IP), GAME_NAME))
+        If Len(NewIP) = 0 Then Exit Sub
+
+        GameData.IP = NewIP
+        Call PutVar(App.Path & "\options.ini", "Options", "IP", NewIP)
+        Call TcpInit
     End Sub
 
 
