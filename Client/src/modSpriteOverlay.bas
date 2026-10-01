@@ -75,8 +75,8 @@ Private Sub DrawTargetMarker()
         Case Else
             GoTo InvalidTarget
     End Select
-    ' Center the 32x32 marker on the shared sprite foot anchor.
-    targetY = GetSpriteFeetY(targetY) - PIC_Y
+    targetX = targetX + 8
+    targetY = targetY + PIC_Y
     DD_BackBuffer.BltFast targetX, targetY, TargetSurface, source, True
     Exit Sub
 
