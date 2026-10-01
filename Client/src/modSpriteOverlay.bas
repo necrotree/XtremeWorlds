@@ -76,8 +76,8 @@ Private Sub DrawTargetMarker()
         Case Else
             GoTo InvalidTarget
     End Select
-    targetX = targetX + 16
-    targetY = targetY + PIC_Y * 2 + 34
+    targetX = targetX + 8
+    targetY = targetY + PIC_Y
     DD_BackBuffer.BltFast targetX, targetY, TargetSurface, source, True
     Exit Sub
 
@@ -209,7 +209,7 @@ Public Sub BltSpriteOverlays()
         If OverlayPlayerVisible(index) Then
             hasBubble = BubbleVisible(index)
             OverlayLayout index, hasBubble, bars, bubble
-            If GameData.Vitals <> 2 Then
+            If GameData.Vitals = 1 Then
                 If index = MyIndex Or Player(index).VitalsKnown Then
                     DrawVitalBar bars.Left, bars.Top, 0, Player(index).HP, Player(index).MaxHP
                     DrawVitalBar bars.Left, bars.Top + 8, 1, Player(index).MP, Player(index).MaxMP
