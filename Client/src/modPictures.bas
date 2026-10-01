@@ -34,9 +34,9 @@ Public Function MenuSpritePicture(ByVal Sprite As Long) As IPictureDisp
     frameWidth = GameData.PlayerX + 16
     frameHeight = PIC_Y * 2
     If frameWidth < 1 Or frameWidth > DD_SpriteSurf.Width Then Exit Function
-    If Sprite > (DD_SpriteSurf.Height - frameHeight) \ GameData.PlayerY Then Exit Function
+    If Sprite > (DD_SpriteSurf.Height - frameHeight) \ frameHeight Then Exit Function
     If (DIR_DOWN * 3 + 1) * frameWidth > DD_SpriteSurf.Width Then Exit Function
-    source.Top = Sprite * GameData.PlayerY
+    source.Top = Sprite * frameHeight
     source.Bottom = source.Top + frameHeight
     source.Left = (DIR_DOWN * 3) * frameWidth
     source.Right = source.Left + frameWidth
