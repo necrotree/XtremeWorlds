@@ -1,4 +1,4 @@
-Attribute VB_Name = "modHandleData"
+﻿Attribute VB_Name = "modHandleData"
 Option Explicit
 
 Sub HandleData(ByVal Index As Long, ByVal Data As String)
@@ -346,6 +346,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Next I
 
         Call AddLog("Map #" & GetPlayerMap(Index) & ": " & GetPlayerName(Index) & " says, '" & Msg & "'", PLAYER_LOG)
+        Call SendSpriteBubble(Index, Msg)
         Call MapMsg(GetPlayerMap(Index), GetPlayerName(Index) & " says, '" & Msg & "'", SayColor)
         Exit Sub
     End If

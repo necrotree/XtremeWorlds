@@ -38,11 +38,13 @@ Public Sub InitSurfaces()
     DD_ItemSurf.ColorKey = RGB(255, 255, 255)
     Set DD_SpellSurf = LoadSurface(Prefix & "spells" & GFX_EXT)
     Set DD_ArrowSurf = LoadSurface(Prefix & "arrows" & GFX_EXT)
+    InitSpriteOverlays
 End Sub
 
 Public Sub DestroyDirectX()
     Dim i As Long
     
+    DestroySpriteOverlays
     Set DD_SpriteSurf = Nothing
     For i = 1 To 6
         Set DD_TileSurf(i) = Nothing
@@ -461,14 +463,14 @@ Public Sub BltNpc(ByVal MapNpcNum As Long)
             .AttackTimer = 0
         End If
     End With
-
+    
     With rec
-        .Top = Npc(MapNpc(MapNpcNum).Num).Sprite * PIC_Y
-        .Bottom = .Top + PIC_Y
-        .Left = (MapNpc(MapNpcNum).Dir * 3 + Anim) * PIC_X
-        .Right = .Left + PIC_X
+        .Top = Npc(MapNpc(MapNpcNum).Num).Sprite * (PIC_Y * 2)
+        .Bottom = .Top + PIC_Y * 2
+        .Left = (MapNpc(MapNpcNum).Dir * 3 + Anim) * (PIC_X + 16)
+        .Right = .Left + (PIC_X + 16)
     End With
-
+    
     With MapNpc(MapNpcNum)
         X = .X * PIC_X + .XOffset
         Y = .Y * PIC_Y + .YOffset - 4

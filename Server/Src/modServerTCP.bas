@@ -414,6 +414,7 @@ Sub SendJoinMap(ByVal Index As Long)
         If IsPlaying(I) And I <> Index And GetPlayerMap(I) = GetPlayerMap(Index) Then
             Packet = Packet & "PLAYERDATA" & SEP_CHAR & I & SEP_CHAR & GetPlayerName(I) & SEP_CHAR & GetPlayerSprite(I) & SEP_CHAR & GetPlayerMap(I) & SEP_CHAR & GetPlayerX(I) & SEP_CHAR & GetPlayerY(I) & SEP_CHAR & GetPlayerDir(I) & SEP_CHAR & GetPlayerAccess(I) & SEP_CHAR & GetPlayerPK(I) & SEP_CHAR & GetPlayerGuild(I) & SEP_CHAR & Player(I).XOffset & SEP_CHAR & Player(I).YOffset & END_CHAR
             Call SendDataTo(Index, Packet)
+            SendSpriteVitals I, Index
         End If
     Next I
 
@@ -421,6 +422,7 @@ Sub SendJoinMap(ByVal Index As Long)
     Packet = "PLAYERDATA" & SEP_CHAR & Index & SEP_CHAR & GetPlayerName(Index) & SEP_CHAR & GetPlayerSprite(Index) & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & GetPlayerAccess(Index) & SEP_CHAR & GetPlayerPK(Index) & SEP_CHAR & GetPlayerGuild(Index) & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
     Call SendDataToMap(GetPlayerMap(Index), Packet)
 
+    SendSpriteVitals Index
 End Sub
 
 Sub SendLeaveMap(ByVal Index As Long, ByVal MapNum As Long)
@@ -437,6 +439,7 @@ Sub SendPlayerData(ByVal Index As Long)
     ' Send index's player data to everyone including himself on the map
     Packet = "PLAYERDATA" & SEP_CHAR & Index & SEP_CHAR & GetPlayerName(Index) & SEP_CHAR & GetPlayerSprite(Index) & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & GetPlayerDir(Index) & SEP_CHAR & GetPlayerAccess(Index) & SEP_CHAR & GetPlayerPK(Index) & SEP_CHAR & GetPlayerGuild(Index) & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
     Call SendDataToMap(GetPlayerMap(Index), Packet)
+    SendSpriteVitals Index
 End Sub
 
 Sub SendMap(ByVal Index As Long, ByVal MapNum As Long)
@@ -572,6 +575,7 @@ Sub SendHP(ByVal Index As Long)
 
     Packet = "PLAYERHP" & SEP_CHAR & GetPlayerMaxHP(Index) & SEP_CHAR & GetPlayerHP(Index) & END_CHAR
     Call SendDataTo(Index, Packet)
+    SendSpriteVitals Index
 End Sub
 
 Sub SendMP(ByVal Index As Long)
@@ -579,6 +583,7 @@ Sub SendMP(ByVal Index As Long)
 
     Packet = "PLAYERMP" & SEP_CHAR & GetPlayerMaxMP(Index) & SEP_CHAR & GetPlayerMP(Index) & END_CHAR
     Call SendDataTo(Index, Packet)
+    SendSpriteVitals Index
 End Sub
 
 Sub SendSP(ByVal Index As Long)
@@ -586,6 +591,7 @@ Sub SendSP(ByVal Index As Long)
 
     Packet = "PLAYERSP" & SEP_CHAR & GetPlayerMaxSP(Index) & SEP_CHAR & GetPlayerSP(Index) & END_CHAR
     Call SendDataTo(Index, Packet)
+    SendSpriteVitals Index
 End Sub
 
 Sub SendStats(ByVal Index As Long)
@@ -1025,4 +1031,26 @@ Sub SendEditClassTo(ByVal Index As Long, ByVal classNum As Long)
     
     Packet = "EDITCLASS" & SEP_CHAR & classNum & SEP_CHAR & Trim$(Class(classNum).Name) & SEP_CHAR & Class(classNum).MSprite & SEP_CHAR & Class(classNum).FSprite & SEP_CHAR & Class(classNum).STR & SEP_CHAR & Class(classNum).DEF & SEP_CHAR & Class(classNum).MAGI & SEP_CHAR & Class(classNum).SPEED & SEP_CHAR & Class(classNum).Map & SEP_CHAR & Class(classNum).X & SEP_CHAR & Class(classNum).Y & END_CHAR
     Call SendDataTo(Index, Packet)
+End Sub
+
+Public Sub SendSpriteVitals(ByVal Index As Long, Optional ByVal Recipient As Long = 0)
+    Dim Packet As String
+    If Not IsPlaying(Index) Then Exit Sub
+    If GetPlayerMap(Index) <= 0 Then Exit Sub
+    Packet = "SPRITEVITALS" & SEP_CHAR & Index & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & GetPlayerHP(Index) & SEP_CHAR & GetPlayerMaxHP(Index) & SEP_CHAR & GetPlayerMP(Index) & SEP_CHAR & GetPlayerMaxMP(Index) & SEP_CHAR & GetPlayerSP(Index) & SEP_CHAR & GetPlayerMaxSP(Index) & END_CHAR
+    If Recipient > 0 Then
+        SendDataTo Recipient, Packet
+    Else
+        SendDataToMap GetPlayerMap(Index), Packet
+    End If
+End Sub
+
+Public Sub SendSpriteBubble(ByVal Index As Long, ByVal Message As String)
+    Dim Packet As String
+    If Not IsPlaying(Index) Then Exit Sub
+    If GetPlayerMap(Index) <= 0 Then Exit Sub
+    Message = Left(Trim(Message), 240)
+    If Len(Message) = 0 Then Exit Sub
+    Packet = "SPRITEBUBBLE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & Message & END_CHAR
+    SendDataToMap GetPlayerMap(Index), Packet
 End Sub

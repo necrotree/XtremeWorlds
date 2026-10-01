@@ -28,7 +28,7 @@ Sub IncomingData(ByVal DataLength As Long)
     Dim Buffer As String
     Dim Packet As String
     Dim top As String * 3
-    Dim Start As Integer
+    Dim Start As Long
 
     frmMainGame.Socket.GetData Buffer, vbString, DataLength
     ' Call Encryption_XOR_DecryptString(Buffer, ENC_KEY)

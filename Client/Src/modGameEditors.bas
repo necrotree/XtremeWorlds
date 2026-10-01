@@ -23,6 +23,7 @@ Public Sub EditorInit()
     EditorSelectionHeight = 1
     frmMainGame.picMapEditor.Visible = True
     frmMainGame.LayoutGamePanels
+    frmMainGame.picBack.SetFocus
     frmMainGame.picBack.ToolTipText = "Hold the left mouse button and drag to select a block of tiles."
 
     lastScrollRow = DD_TileSurf(Map.Tileset).Height \ PIC_Y - frmMainGame.picBack.ScaleHeight \ PIC_Y

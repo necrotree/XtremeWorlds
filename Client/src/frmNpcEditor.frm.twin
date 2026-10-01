@@ -33,43 +33,44 @@ Class frmNpcEditor
     End Sub
     
     Private Sub scrlSprite_Change()
-        lblSprite.Caption = STR(scrlSprite.Value)
+        lblSprite.Caption = Str(scrlSprite.Value)
+        imgSprite.Picture = MenuSpritePicture(scrlSprite.Value)
     End Sub
     
     Private Sub scrlRange_Change()
-        lblRange.Caption = STR(scrlRange.Value)
+        lblRange.Caption = Str(scrlRange.Value)
     End Sub
     
     Private Sub scrlSTR_Change()
-        lblSTR.Caption = STR(scrlSTR.Value)
+        lblSTR.Caption = Str(scrlSTR.Value)
     ' lblStartHP.Caption = STR(scrlSTR.Value * scrlDEF.Value)
     ' lblExpGiven.Caption = STR(scrlSTR.Value * scrlDEF.Value * 2)
     End Sub
     
     Private Sub scrlDEF_Change()
-        lblDEF.Caption = STR(scrlDEF.Value)
+        lblDEF.Caption = Str(scrlDEF.Value)
     ' lblStartHP.Caption = STR(scrlSTR.Value * scrlDEF.Value)
     ' lblExpGiven.Caption = STR(scrlSTR.Value * scrlDEF.Value * 2)
     End Sub
     
     Private Sub scrlSPEED_Change()
-        lblSPEED.Caption = STR(scrlSPEED.Value)
+        lblSPEED.Caption = Str(scrlSPEED.Value)
     ' lblExpGiven.Caption = STR(scrlSTR.Value * scrlDEF.Value * 2)
     End Sub
     
     Private Sub scrlMAGI_Change()
-        lblMAGI.Caption = STR(scrlMAGI.Value)
+        lblMAGI.Caption = Str(scrlMAGI.Value)
     End Sub
     
     Private Sub scrlNum_Change()
-        lblNum.Caption = STR(scrlNum.Value)
+        lblNum.Caption = Str(scrlNum.Value)
         If scrlNum.Value > 0 Then
             lblItemName.Caption = Trim$(Item(scrlNum.Value).name)
         End If
     End Sub
     
     Private Sub scrlValue_Change()
-        lblValue.Caption = STR(scrlValue.Value)
+        lblValue.Caption = Str(scrlValue.Value)
     End Sub
     
     Private Sub cmdOK_Click()
@@ -79,10 +80,5 @@ Class frmNpcEditor
     Private Sub cmdCancel_Click()
         Call NpcEditorCancel
     End Sub
-    
-    Private Sub tmrsprite_Timer()
-        Call NpcEditorBltSprite
-    End Sub
-    
 
 End Class

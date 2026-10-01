@@ -218,6 +218,8 @@ Public Sub GameLoop()
                 Call DD_BackBuffer.BltFast(0, 0, DD_MiddleBuffer, rec, True)
                 Call DD_BackBuffer.BltFast(0, 0, DD_UpperBuffer, rec, True)
 
+                BltSpriteOverlays
+
                 ' Lock the backbuffer so we can draw text and names
                 TexthDC = DD_BackBuffer.GetDC
 
@@ -319,6 +321,8 @@ Public Sub GameLoop()
                  Else
                     Call DrawText(TexthDC, Int((MAX_MAPX + 1) * PIC_X / 2) - (Int(Len(Trim$(Map.Name)) / 2) * 8), 1, Trim$(Map.Name), QBColor(White))
                  End If
+
+                DrawSpriteBubbleText TexthDC
 
                 ' Release DC
                 Call DD_BackBuffer.ReleaseDC(TexthDC)
@@ -1175,34 +1179,6 @@ Public Sub BltPlayerCharSprite()
     Set frmMainMenu.imgNewCharSprite.Picture = MenuSpritePicture(TempCharSprite)
 End Sub
 
-Public Sub NpcEditorBltSprite()
-' ****************************************************************
-' * WHEN    WHO    WHAT
-' * ----    ---    ----
-' * 06/01/2006  BigRed   Changed BitBlt to DX7
-' ****************************************************************
-
-    With rec
-        .Top = frmNpcEditor.scrlSprite.Value * PIC_Y
-        .Bottom = .Top + PIC_Y
-        .Left = 3 * PIC_X
-        .Right = .Left + PIC_X
-    End With
-
-    With rec_pos
-        .Top = 0
-        .Bottom = PIC_Y
-        .Left = 0
-        .Right = PIC_X
-    End With
-
-    If DD_SpriteSurf Is Nothing Then
-    Else
-        DD_SpriteSurf.BltToDC frmNpcEditor.picSprite.hDC, rec, rec_pos
-    End If
-    frmNpcEditor.picSprite.Refresh
-End Sub
-
 Public Sub SpriteChangeBltSprite()
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
@@ -1230,6 +1206,7 @@ Public Sub SpriteChangeBltSprite()
     End If
     frmSetSprite.picSprite.Refresh
 End Sub
+
 
 Public Sub UpdateInventory()
     Dim i As Long, SelectedSlot As Long

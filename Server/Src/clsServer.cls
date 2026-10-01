@@ -26,10 +26,12 @@ Private Sub Class_Initialize()
     Set Sockets = New colSockets
     Set mConnections = New Collection
 End Sub
+
 Private Sub Class_Terminate()
     StopListening
     Set Sockets = Nothing
 End Sub
+
 Public Sub StartListening()
     Dim startup As WinDevLib.WSADATA
     Dim address As WinDevLib.SOCKADDR_IN
@@ -57,6 +59,7 @@ Failed:
     StopListening
     Err.Raise vbObjectError + 2100, "clsServer.StartListening", "Winsock startup/listen failed: " & CStr(code)
 End Sub
+
 Public Sub StopListening()
     Dim connection As clsNativeConnection
     If mListener <> -1 Then
@@ -100,6 +103,7 @@ Public Sub Poll()
             AcceptConnection connection
         End If
     Next
+    
     For index = mConnections.Count To 1 Step -1
         Set connection = mConnections(index)
         connection.Poll
@@ -110,6 +114,7 @@ Public Sub Poll()
     mPolling = False
     Exit Sub
 End Sub
+
 Public Property Get LocalAddress() As String
     LocalAddress = "0.0.0.0"
 End Property

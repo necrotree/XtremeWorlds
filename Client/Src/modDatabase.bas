@@ -189,6 +189,7 @@ Sub ClearPlayer(ByVal index As Long)
     Dim i As Long
     Dim n As Long
 
+    ClearSpriteOverlay index
     Player(index).name = vbNullString
     Player(index).Class = 0
     Player(index).Level = 0
@@ -265,7 +266,7 @@ Sub ClearMap()
     Dim X As Long
     Dim Y As Long
 
-    Map.name = vbNullString
+    Map.Name = vbNullString
     Map.Revision = 0
     Map.Moral = 0
     Map.Up = 0
@@ -341,6 +342,7 @@ Function GetPlayerName(ByVal index As Long) As String
 End Function
 
 Sub SetPlayerName(ByVal index As Long, ByVal name As String)
+    If Trim$(Player(index).name) <> Trim$(name) Then ClearSpriteOverlay index
     Player(index).name = name
 End Sub
 
@@ -497,6 +499,7 @@ Function GetPlayerMap(ByVal index As Long) As Long
 End Function
 
 Sub SetPlayerMap(ByVal index As Long, ByVal MapNum As Long)
+    If Player(index).Map <> MapNum Then ClearSpriteOverlay index
     Player(index).Map = MapNum
 End Sub
 

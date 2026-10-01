@@ -43,7 +43,7 @@ Public Const MAP_EXT As String = ".map"
 
 ' Gfx Path and variables
 Public Const GFX_PATH As String = "\gfx\"
-Public Const GFX_EXT As String = ".bmp"
+Public Const GFX_EXT As String = ".png"
 
 ' API constants
 Public Const SRCAND As Long = &H8800C6

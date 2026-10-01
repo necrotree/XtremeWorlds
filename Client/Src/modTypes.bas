@@ -103,6 +103,10 @@ Type PlayerRec
   AttackTimer As Long
   MapGetTimer As Long
   CastedSpell As Byte
+  BubbleText As String
+  BubbleStarted As Long
+  BubbleMap As Long
+  VitalsKnown As Boolean
   
   Anim As Byte
 End Type

@@ -34,7 +34,7 @@ Private Type SpriteConstants
     Opacity As Single
     UseColorKey As Single
     SolidFill As Single
-    Reserved1 As Single
+    UseTextureAlpha As Single
     Reserved2 As Single
 End Type
 
@@ -54,9 +54,9 @@ Private Function CompileSpriteShader(ByVal EntryPoint As String, ByVal Profile A
     Source = Source & "V VS(uint id : SV_VertexID) { V o; float2 c = float2(id & 1, id >> 1);" & vbCrLf
     Source = Source & "o.p = float4(lerp(dst.xy, dst.zw, c), 0, 1); o.t = lerp(uv.xy, uv.zw, c); return o; }" & vbCrLf
     Source = Source & "float4 PS(V i) : SV_TARGET { if(options.y > 0.5) return tint;" & vbCrLf
-    Source = Source & "float3 rgb = image.Sample(nearestPixel, i.t).rgb;" & vbCrLf
+    Source = Source & "float4 pixel = image.Sample(nearestPixel, i.t); float3 rgb = pixel.rgb;" & vbCrLf
     Source = Source & "if(options.x > 0.5 && all(abs(rgb-tint.rgb) < (0.5/255.0))) discard;" & vbCrLf
-    Source = Source & "return float4(rgb, tint.a); }"
+    Source = Source & "return float4(rgb, tint.a * (options.z > 0.5 ? pixel.a : 1.0)); }"
     Bytes = StrConv(Source, vbFromUnicode)
     Result = WinDevLib.D3DCompile(Bytes(0), UBound(Bytes) + 1, "XtremeWorlds sprites", ByVal vbNullPtr, ByVal vbNullPtr, EntryPoint, Profile, 0, 0, Code, Errors)
     If Result < 0 Then
@@ -243,6 +243,7 @@ Public Sub DX11Draw(ByVal Target As WinDevLib.ID3D11RenderTargetView, ByVal Widt
     Params.Blue = CSng((Key \ &H10000) And &HFF&) / 255!
     Params.Opacity = CSng(Opacity) / 255!
     If Keyed Then Params.UseColorKey = 1
+    If Source.UseAlpha Then Params.UseTextureAlpha = 1
     DrawQuad Target, Width, Height, Source.ShaderView, Params
 End Sub
 

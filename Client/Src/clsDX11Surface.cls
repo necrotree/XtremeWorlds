@@ -19,6 +19,7 @@ Private mSurface As WinDevLib.IDXGISurface1
 Private mWidth As Long
 Private mHeight As Long
 Private mColorKey As Long
+Private mUseAlpha As Boolean
 Private mDC As LongPtr
 Private mPages As Collection
 Private Const PageHeight As Long = 4096
@@ -33,6 +34,15 @@ End Property
 
 Public Property Get ShaderView() As WinDevLib.ID3D11ShaderResourceView
     Set ShaderView = mView
+End Property
+
+' PNG overlays opt into per-pixel alpha; legacy keyed surfaces keep their behavior.
+Public Property Get UseAlpha() As Boolean
+    UseAlpha = mUseAlpha
+End Property
+
+Public Property Let UseAlpha(ByVal Value As Boolean)
+    mUseAlpha = Value
 End Property
 
 Public Property Get ColorKey() As Long
@@ -154,6 +164,7 @@ Public Sub DrawTo(ByVal Target As WinDevLib.ID3D11RenderTargetView, ByVal Target
             If PageRectangles(I, SourceRect, Destination, PageSource, PageDestination) Then
                 Set Page = mPages.Item(I)
                 Page.ColorKey = mColorKey
+                Page.UseAlpha = mUseAlpha
                 DX11Draw Target, TargetWidth, TargetHeight, Page, PageDestination, PageSource, Keyed, Opacity
             End If
         Next

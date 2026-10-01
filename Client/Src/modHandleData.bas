@@ -1382,6 +1382,30 @@ Public Sub HandleData(ByVal Data As String)
             NPCDmgTime = GetTickCount
             II = 0
             Exit Sub
+        
+        ' ::::::::::::::::::::::::
+        ' :: Blit Sprtie Bubble ::
+        ' ::::::::::::::::::::::::
+        Case "spritebubble"
+            Player(MyIndex).BubbleText = Left$(Trim$(Replace(Replace(Parse(3), vbCr, " "), vbLf, " ")), BUBBLE_TEXT_LIMIT)
+            Player(MyIndex).BubbleStarted = GetTickCount
+            Player(MyIndex).BubbleMap = GetPlayerMap(MyIndex)
+            Exit Sub
+        
+        ' ::::::::::::::::::::::::
+        ' :: Blit Sprite Vitals ::
+        ' ::::::::::::::::::::::::
+        Case "spritevitals"
+        Dim values(0 To 5) As Long
+        For i = 0 To 5
+             If Not OverlayInteger(Parse(i + 3), &H7FFFFFFF, values(i)) Then Exit Sub
+         Next i
+         With Player(MyIndex)
+             .HP = values(0): .MaxHP = values(1)
+             .MP = values(2): .MaxMP = values(3)
+             .SP = values(4): .MaxSP = values(5)
+             .VitalsKnown = True
+         End With
 
     End Select
 End Sub

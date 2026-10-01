@@ -63,8 +63,8 @@ Sub DrawPlayerName(ByVal index As Long)
     End If
 
     ' Draw name
-    TextX = GetPlayerX(index) * PIC_X + Player(index).XOffset + Int(PIC_X / 2) - (getSize(TexthDC, GetPlayerName(index)).Width / 2)   ' - ((Len(Trim$(GetPlayerName(index))) / 2) * 6)
-    TextY = GetPlayerY(index) * PIC_Y + Player(index).YOffset - Int(GameData.PlayerY / 2) - 6
+    TextX = GetPlayerX(index) * PIC_X + Player(index).XOffset + Int(24) - (getSize(TexthDC, GetPlayerName(index)).Width / 2)   ' - ((Len(Trim$(GetPlayerName(index))) / 2) * 6)
+    TextY = GetPlayerY(index) * PIC_Y + Player(index).YOffset - Int(GameData.PlayerY / 2) - 2
     Call DrawText(TexthDC, TextX, TextY, GetPlayerName(index), Color)
 End Sub
 
@@ -78,7 +78,7 @@ Sub DrawPlayerGuildName(ByVal index As Long)
     End If
 
     ' Draw name
-    TextX = GetPlayerX(index) * PIC_X + Player(index).XOffset + Int(PIC_X / 2) - (getSize(TexthDC, (Guild(Player(index).Guild).Abbreviation)).Width / 2)   ' - ((Len(Trim$(Guild(Player(index).Guild).Abbreviation)) / 2) * 4.5)
+    TextX = GetPlayerX(index) * PIC_X + Player(index).XOffset + Int(24) - (getSize(TexthDC, (Guild(Player(index).Guild).Abbreviation)).Width / 2)   ' - ((Len(Trim$(Guild(Player(index).Guild).Abbreviation)) / 2) * 4.5)
     TextY = GetPlayerY(index) * PIC_Y + Player(index).YOffset - Int(PIC_Y) - 2
     Call DrawText(TexthDC, TextX, TextY, Trim$(Guild(Player(index).Guild).Abbreviation), QBColor(White))
 End Sub
@@ -89,7 +89,7 @@ Sub DrawMapNPCName(ByVal index As Long)
 
     With Npc(MapNpc(index).Num)
         ' Draw name
-        TextX = MapNpc(index).X * PIC_X + MapNpc(index).XOffset + Int(PIC_X / 2) - (getSize(TexthDC, Trim$(.name)).Width / 2)   ' - ((Len(Trim$(.name)) / 2) * 6)
+        TextX = MapNpc(index).X * PIC_X + MapNpc(index).XOffset + Int(24) - (getSize(TexthDC, Trim$(.name)).Width / 2)   ' - ((Len(Trim$(.name)) / 2) * 6)
         TextY = MapNpc(index).Y * PIC_Y + MapNpc(index).YOffset - Int(PIC_Y / 2) - 2
         DrawText TexthDC, TextX, TextY, Trim$(.name), QBColor(Brown)
     End With

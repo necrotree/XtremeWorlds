@@ -1,4 +1,4 @@
-Attribute VB_Name = "modGameLogic"
+﻿Attribute VB_Name = "modGameLogic"
 Option Explicit
 
 Function GetPlayerDamage(ByVal Index As Long) As Long

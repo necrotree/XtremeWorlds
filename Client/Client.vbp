@@ -1,4 +1,5 @@
 Type=Exe
+Module=modSpriteOverlays; Src\modSpriteOverlays.bas
 Form=Src\frmClassEditor.frm
 Module=modClassEditor; Src\modClassEditor.bas
 Form=Src\frmGamePrompt.frm

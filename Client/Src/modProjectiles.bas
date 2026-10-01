@@ -61,7 +61,6 @@ End Sub
 Public Function SaveSpellDeliveryEditor() As Boolean
     Dim distance As Double
     With frmSpellEditor
-        If .cmbDelivery.ListIndex < 0 Or .cmbArrow.ListIndex < 0 Then Exit Function
         If Not IsNumeric(.txtCastRange.Text) Then GoTo InvalidRange
         distance = Val(.txtCastRange.Text)
         If distance <> Fix(distance) Or distance < 1 Or distance > 32 Then GoTo InvalidRange

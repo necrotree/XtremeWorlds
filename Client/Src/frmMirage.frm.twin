@@ -21,6 +21,7 @@ Class frmMainGame
     Private InventoryClickedSlot As Long
     Private InventoryBackground As clsDX11Surface
     Private InventoryCanvas As clsDX11Surface
+    Private TilesetWheelRemainder As Long
 
 
     Public WithEvents txtChat As clsNativeRichText
@@ -125,6 +126,7 @@ Class frmMainGame
     Private Sub Form_Load()
         InitializeImageMenus
         LayoutGamePanels
+        TilesetWheelRemainder = 0
         picPlayerList.Visible = False
         lstPlayers.Visible = False
         picPM.Visible = False
@@ -133,6 +135,7 @@ Class frmMainGame
         txtChat.Attach hosttxtChat, True, 0, 9.75, "Rockwell"
         Set Socket = New clsNativeSocket
         Socket.Attach Me.hWnd
+        RegisterNativeWindow picBack.hWnd, Me
         Set Notetext = New clsNativeRichText
         Notetext.Attach hostNotetext, False, 16777215, 9.75, "Rockwell"
         SetChatHistoryChannel ChatHistoryAll
@@ -231,6 +234,7 @@ Class frmMainGame
     End Sub
     
     Private Sub picBack_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        picBack.SetFocus
         Call EditorChooseTile(Button, Shift, X, Y)
     End Sub
     
@@ -768,6 +772,23 @@ Class frmMainGame
         frmMsgEditor.Show vbModal
     End Sub
     
+    Public Sub HandleTilesetMouseWheel(ByVal wheelDelta As Long)
+        Dim rowDelta As Long
+        Dim newValue As Long
+
+        If Not InEditor Or wheelDelta = 0 Then Exit Sub
+
+        TilesetWheelRemainder = TilesetWheelRemainder + wheelDelta
+        rowDelta = TilesetWheelRemainder \ 120
+        TilesetWheelRemainder = TilesetWheelRemainder Mod 120
+        If rowDelta = 0 Then Exit Sub
+
+        newValue = scrlPicture.Value - rowDelta * scrlPicture.SmallChange
+        If newValue < scrlPicture.Min Then newValue = scrlPicture.Min
+        If newValue > scrlPicture.Max Then newValue = scrlPicture.Max
+        If newValue <> scrlPicture.Value Then scrlPicture.Value = newValue
+    End Sub
+
     Private Sub scrlPicture_Change()
         Call EditorTileScroll
     End Sub
