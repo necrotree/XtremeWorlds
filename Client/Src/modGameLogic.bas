@@ -1274,11 +1274,37 @@ End Sub
 
 Sub PlayerSearch(Button As Integer, Shift As Integer, X As Single, Y As Single)
     Dim X1 As Long, Y1 As Long
+    Dim i As Long, hasTarget As Boolean
 
     X1 = Int(X / PIC_X)
     Y1 = Int(Y / PIC_Y)
 
     If (X1 >= 0) And (X1 <= MAX_MAPX) And (Y1 >= 0) And (Y1 <= MAX_MAPY) Then
+        For i = 1 To HighIndex
+            If IsPlaying(i) And Player(i).Map = Player(MyIndex).Map And Player(i).X = X1 And Player(i).Y = Y1 Then
+                hasTarget = True
+                TargetType = 1
+                TargetNum = i
+                Exit For
+            End If
+        Next i
+        
+        If Not hasTarget Then
+            For i = 1 To MAX_MAP_NPCS
+                If MapNpc(i).Num > 0 And MapNpc(i).X = X1 And MapNpc(i).Y = Y1 Then
+                    hasTarget = True
+                    TargetType = 2
+                    TargetNum = i
+                    Exit For
+                End If
+            Next i
+        End If
+        
+        If hasTarget Then
+            Call SetTargetMarker(X1, Y1)
+        Else
+            Call ClearTargetMarker
+        End If
         Call SendData("search" & SEP_CHAR & X1 & SEP_CHAR & Y1 & END_CHAR)
     End If
 End Sub

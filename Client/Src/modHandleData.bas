@@ -1279,7 +1279,7 @@ Public Sub HandleData(ByVal Data As String)
 
                 Call SetPlayerPOINTS(MyIndex, Trim$(Parse(6)))
                 frmMainGame.lblPoints.Caption = GetPlayerPOINTS(MyIndex)
-                frmMainGame.lblPlayerPoints.Caption = GetPlayerPOINTS(MyIndex)
+                frmMainGame.lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
 
                 frmMainGame.lblEXP.Caption = Trim$(Parse(2))
                 frmMainGame.lblTNL.Caption = Int(Trim$(Parse(3)) - Trim$(Parse(2)))

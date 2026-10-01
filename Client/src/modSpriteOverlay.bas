@@ -3,6 +3,13 @@ Option Explicit
 
 Private BubbleSurface As clsDX11Surface
 Private BarsSurface As clsDX11Surface
+Private TargetSurface As clsDX11Surface
+Private TargetMarkerVisible As Boolean
+Private TargetMarkerX As Long
+Private TargetMarkerY As Long
+Private TargetMarkerMap As Long
+Public TargetType As Long
+Public TargetNum As Long
 Private Const BAR_WIDTH As Long = 56
 Private Const BAR_HEIGHT As Long = 7
 Private Const BARS_HEIGHT As Long = 15
@@ -17,13 +24,65 @@ Public Sub InitSpriteOverlays()
     Set BarsSurface = New clsDX11Surface
     BarsSurface.LoadFromFile App.Path & GFX_PATH & "misc\bars.png"
     BarsSurface.UseAlpha = True
+    Set TargetSurface = New clsDX11Surface
+    TargetSurface.LoadFromFile App.Path & GFX_PATH & "misc\target.png"
+    TargetSurface.ColorKey = RGB(255, 0, 255)
     If BubbleSurface.Width <> 128 Or BubbleSurface.Height <> 64 Then Err.Raise 5, "Sprite overlays", "chatbubble.png must be 128 x 64."
     If BarsSurface.Width <> BAR_WIDTH Or BarsSurface.Height <> BAR_HEIGHT * 4 Then Err.Raise 5, "Sprite overlays", "bars.png must be 56 x 28."
+    If TargetSurface.Width <> PIC_X Or TargetSurface.Height <> PIC_Y Then Err.Raise 5, "Sprite overlays", "target.png must be 32 x 32."
 End Sub
 
 Public Sub DestroySpriteOverlays()
     Set BubbleSurface = Nothing
     Set BarsSurface = Nothing
+    Set TargetSurface = Nothing
+    TargetMarkerVisible = False
+End Sub
+
+Public Sub SetTargetMarker(ByVal tileX As Long, ByVal tileY As Long)
+    If tileX < 0 Or tileX > MAX_MAPX Or tileY < 0 Or tileY > MAX_MAPY Then Exit Sub
+    TargetMarkerX = tileX
+    TargetMarkerY = tileY
+    TargetMarkerMap = GetPlayerMap(MyIndex)
+    TargetMarkerVisible = True
+End Sub
+
+Public Sub ClearTargetMarker()
+    TargetMarkerVisible = False
+End Sub
+
+Private Sub DrawTargetMarker()
+    Dim source As RECT, targetX As Long, targetY As Long
+    If Not TargetMarkerVisible Then Exit Sub
+    If TargetMarkerMap <> GetPlayerMap(MyIndex) Then
+        TargetMarkerVisible = False
+        Exit Sub
+    End If
+    If TargetSurface Is Nothing Then Exit Sub
+    source.Right = PIC_X
+    source.Bottom = PIC_Y
+    Select Case TargetType
+        Case 1
+            If TargetNum < 1 Or TargetNum > HighIndex Then GoTo InvalidTarget
+            If Not IsPlaying(TargetNum) Or Player(TargetNum).Map <> TargetMarkerMap Then GoTo InvalidTarget
+            targetX = GetPlayerPixelX(TargetNum)
+            If GameData.PlayerX > 48 Then targetX = targetX - GameData.PlayerX / 4
+            targetY = GetPlayerPixelY(TargetNum)
+        Case 2
+            If TargetNum < 1 Or TargetNum > MAX_MAP_NPCS Then GoTo InvalidTarget
+            If MapNpc(TargetNum).Num <= 0 Then GoTo InvalidTarget
+            targetX = MapNpc(TargetNum).X * PIC_X + MapNpc(TargetNum).XOffset
+            targetY = MapNpc(TargetNum).Y * PIC_Y + MapNpc(TargetNum).YOffset - 4
+        Case Else
+            GoTo InvalidTarget
+    End Select
+    targetX = targetX + 16
+    targetY = targetY + PIC_Y * 2 + 34
+    DD_BackBuffer.BltFast targetX, targetY, TargetSurface, source, True
+    Exit Sub
+
+InvalidTarget:
+    ClearTargetMarker
 End Sub
 
 Public Sub ClearSpriteOverlay(ByVal index As Long)
@@ -32,6 +91,24 @@ Public Sub ClearSpriteOverlay(ByVal index As Long)
     Player(index).BubbleMap = 0
     Player(index).VitalsKnown = False
 End Sub
+
+' Complete messages arrive through the existing shared TCP packet buffer.
+Public Function HandleSpriteOverlayPacket(ByVal packet As String) As Boolean
+    Dim command As String, separator As Long, parts() As String
+    separator = InStr(packet, SEP_CHAR)
+    command = LCase$(packet)
+    If separator > 0 Then command = LCase$(Left$(packet, separator - 1))
+    Select Case command
+        Case "spritebubble", "spritevitals": HandleSpriteOverlayPacket = True
+        Case Else: Exit Function
+    End Select
+    parts = Split(packet, SEP_CHAR)
+    If command = "spritebubble" Then
+        ReceiveSpriteBubble parts
+    Else
+        ReceiveSpriteVitals parts
+    End If
+End Function
 
 Public Function OverlayInteger(ByVal text As String, ByVal maximum As Long, ByRef result As Long) As Boolean
     Dim value As Double
@@ -141,6 +218,7 @@ Public Sub BltSpriteOverlays()
             If hasBubble Then DrawBubbleSkin bubble
         End If
     Next index
+    DrawTargetMarker
 End Sub
 
 Private Sub DrawVitalBar(ByVal X As Long, ByVal Y As Long, ByVal row As Long, ByVal value As Long, ByVal maximum As Long)
