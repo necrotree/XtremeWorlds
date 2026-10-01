@@ -14,6 +14,7 @@ Class frmMainMenu
     
     Private Sub Form_Load()
         Dim FileName As String
+        Me.KeyPreview = True
         If App.PrevInstance = True Then
             GameMsgBox "Another client is already running! Please run only one client at a time!", Error
         End If
@@ -21,6 +22,19 @@ Class frmMainMenu
         FileName = App.Path & DATA_PATH & "Data.dat"
         InitializeMenuImages
         ShowMenuHome
+    End Sub
+
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        Dim NewIP As String
+
+        If KeyCode <> vbKeyF1 Then Exit Sub
+        KeyCode = 0
+        NewIP = Trim$(GameInputBox("Enter the server IP address:", Trim$(GameData.IP), GAME_NAME))
+        If Len(NewIP) = 0 Then Exit Sub
+
+        GameData.IP = NewIP
+        Call PutVar(App.Path & "\options.ini", "Options", "IP", NewIP)
+        Call TcpInit
     End Sub
     
     Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)

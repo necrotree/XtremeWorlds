@@ -2,16 +2,20 @@
 Class frmAlert
     Option Explicit
     Public Result As VbMsgBoxResult
+    Public InputValue As String
     Private Choices(2) As VbMsgBoxResult
     Private ChoiceCount As Long
     Private FocusChoice As Long
     Private EscapeResult As VbMsgBoxResult
+    Private InputMode As Boolean
 
     Public Sub Configure(ByVal Message As String, ByVal Buttons As VbMsgBoxStyle, ByVal Title As String)
         Dim i As Long, Lines As Long, Part As Variant
         ChoiceCount = 0
         EscapeResult = 0
         Result = 0
+        InputMode = False
+        InputValue = vbNullString
         lblTitle.Caption = Title
         txtMessage.Text = Message
         ' Long messages scroll inside a fixed-size alert so its header remains readable.
@@ -29,10 +33,28 @@ Class frmAlert
         imgOk.Visible = False
         imgYes.Visible = False
         imgNo.Visible = False
+        txtInput.Visible = False
         PositionChoices
         FocusChoice = (CLng(Buttons) And &H300) \ &H100
         If FocusChoice >= ChoiceCount Then FocusChoice = 0
         PaintSkin
+    End Sub
+
+    Public Sub ConfigureInput(ByVal Message As String, ByVal DefaultValue As String, ByVal Title As String)
+        Configure Message, vbYesNo, Title
+        InputMode = True
+        InputValue = DefaultValue
+        txtMessage.Height = 30
+        txtInput.Move 16, txtMessage.Top + txtMessage.Height + 6, ScaleWidth - 32, 24
+        txtInput.Text = DefaultValue
+        txtInput.Visible = True
+        Me.Height = 152 * Screen.TwipsPerPixelY
+        PositionChoices
+        PaintSkin
+    End Sub
+
+    Private Sub Form_Activate()
+        If InputMode Then txtInput.SetFocus
     End Sub
 
     Private Sub SetChoice(ByVal Index As Long, ByVal Value As VbMsgBoxResult)
@@ -42,7 +64,11 @@ Class frmAlert
 
     Private Sub PositionChoices()
         Dim i As Long, x As Long, y As Long
-        y = txtMessage.Top + txtMessage.Height + 10
+        If InputMode Then
+            y = txtInput.Top + txtInput.Height + 10
+        Else
+            y = txtMessage.Top + txtMessage.Height + 10
+        End If
         x = (ScaleWidth - ChoiceCount * 110 + 8) / 2
         For i = 0 To ChoiceCount - 1
             Select Case Choices(i)
@@ -65,6 +91,7 @@ Class frmAlert
         For i = 0 To ChoiceCount - 1
             If Choices(i) = Value Then
                 Result = Value
+                If InputMode And Value = vbYes Then InputValue = txtInput.Text
                 Me.Hide
                 Exit Sub
             End If

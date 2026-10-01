@@ -6,6 +6,8 @@ Attribute VB_Name = "modGameLogic"
 ' ****************************************************************
 Option Explicit
 
+Public MenuMusicFile As String
+
 Public Sub Main()
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
@@ -15,6 +17,8 @@ Public Sub Main()
 
     Dim i As Long
     Dim FileName As String
+    Dim OptionsFile As String
+    Dim OptionValue As String
 
     Call SetStatus("Loading...")
     frmSendGetData.Visible = True
@@ -65,6 +69,24 @@ Public Sub Main()
         Close #F
     End If
 
+    OptionsFile = App.Path & "\options.ini"
+    OptionValue = GetVar(OptionsFile, "Options", "IP")
+    If Len(Trim$(OptionValue)) = 0 Then
+        OptionValue = "127.0.0.1"
+        PutVar OptionsFile, "Options", "IP", OptionValue
+    End If
+    GameData.IP = OptionValue
+
+    MenuMusicFile = GetVar(OptionsFile, "Options", "MenuMusic")
+    If Len(Trim$(MenuMusicFile)) = 0 Then
+        MenuMusicFile = "music1.ogg"
+        PutVar OptionsFile, "Options", "MenuMusic", MenuMusicFile
+    End If
+    If InStr(MenuMusicFile, "\") > 0 Or InStr(MenuMusicFile, "/") > 0 Or Len(Dir$(App.Path & "\music\" & MenuMusicFile)) = 0 Then
+        MenuMusicFile = "music1.ogg"
+        PutVar OptionsFile, "Options", "MenuMusic", MenuMusicFile
+    End If
+
     LoadHotkeys
     GameData.PlayerX = 32
     GameData.PlayerY = 32
@@ -97,7 +119,7 @@ Public Sub InitSound()
         Exit Sub
     End If
 
-    MusicHandle = Audio.OpenStream(App.Path & "\music\music1.ogg", True)
+    MusicHandle = Audio.OpenStream(App.Path & "\music\" & MenuMusicFile, True)
 
     If MusicHandle = 0 Then
         GameMsgBox "BASS failed to open stream: " & Audio.LastErrorString()

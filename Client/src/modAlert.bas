@@ -27,3 +27,14 @@ Public Function GameMsgBox(ByVal Prompt As String, Optional ByVal Buttons As VbM
     Unload Dialog
     Set Dialog = Nothing
 End Function
+
+Public Function GameInputBox(ByVal Prompt As String, ByVal DefaultValue As String, Optional ByVal Title As String = "") As String
+    Dim Dialog As New frmAlert
+    If Len(Title) = 0 Then Title = GAME_NAME
+    Load Dialog
+    Dialog.ConfigureInput Prompt, DefaultValue, Title
+    Dialog.Show vbModal
+    If Dialog.Result = vbYes Then GameInputBox = Dialog.InputValue
+    Unload Dialog
+    Set Dialog = Nothing
+End Function

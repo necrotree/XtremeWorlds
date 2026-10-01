@@ -10,6 +10,7 @@ Begin VB.Form frmMainMenu
    ClientWidth     =   3900
    ControlBox      =   0   'False
    Icon            =   "frmMainMenu.frx":0000
+   KeyPreview      =   -1  'True
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
@@ -800,6 +801,20 @@ Private Sub Form_Load()
         .SelText = "John Rognile" & vbNewLine & "Robin Perris" & vbNewLine & "Dmitry Bromberg" & vbNewLine & "Jon Petros" & vbNewLine & "Liam Stewart" & vbNewLine & "Chris Kremer" & vbNewLine & "Mr. Shannara" & vbNewLine & "PW Community" & vbNewLine & "MS Community"
     End With
 
+End Sub
+
+Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+   Dim NewIP As String
+
+   If KeyCode <> vbKeyF1 Then Exit Sub
+   KeyCode = 0
+   NewIP = Trim$(GameInputBox("Enter the server IP address:", Trim$(GameData.IP), GAME_NAME))
+   If Len(NewIP) = 0 Then Exit Sub
+
+   GameData.IP = NewIP
+   Call PutVar(App.Path & "\options.ini", "Options", "IP", NewIP)
+   txtIP.Text = NewIP
+   Call TcpInit
 End Sub
 
 Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)

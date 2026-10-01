@@ -213,9 +213,6 @@ Begin VB.Form frmServer
    End
    Begin VB.Menu mnuDatabase 
       Caption         =   "&Database"
-      Begin VB.Menu mnuSetAccess 
-         Caption         =   "Set &Access"
-      End
       Begin VB.Menu mnuReloadClasses 
          Caption         =   "Reload &Classes"
       End
@@ -248,6 +245,9 @@ Begin VB.Form frmServer
       Begin VB.Menu mnuBan 
          Caption         =   "&Ban"
       End
+        Begin VB.Menu mnuSetAccess
+            Caption         =   "Set &Access"
+        End
    End
    Begin VB.Timer tmrNativeSockets
       Enabled = -1
@@ -262,6 +262,8 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+Private Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hwnd As Long, ByVal wMsg As Long, ByVal wParam As Long, ByVal lParam As Long) As Long
+Private Const LB_ITEMFROMPOINT As Long = &H1A9
 
 Private Sub Form_MouseMove(Button As Integer, Shift As Integer, X As Single, y As Single)
     Dim lmsg As Long
@@ -289,9 +291,18 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Private Sub lstPlayers_MouseDown(Button As Integer, Shift As Integer, X As Single, y As Single)
-    If Button = vbKeyRButton Then
-        Me.PopupMenu mnuPlayers
-    End If
+    Dim hitResult As Long, hitIndex As Long
+    Dim pointX As Long, pointY As Long
+
+    If Button <> vbRightButton Then Exit Sub
+    pointX = CLng(X / Screen.TwipsPerPixelX)
+    pointY = CLng(y / Screen.TwipsPerPixelY)
+    hitResult = SendMessage(lstPlayers.hWnd, LB_ITEMFROMPOINT, 0, pointY * &H10000 Or pointX)
+    If (hitResult And &HFFFF0000) <> 0 Then Exit Sub
+    hitIndex = hitResult And &HFFFF&
+    If hitIndex < 0 Or hitIndex >= lstPlayers.ListCount Then Exit Sub
+    lstPlayers.ListIndex = hitIndex
+    Me.PopupMenu mnuPlayers
 End Sub
 
 Private Sub mnuBan_Click()
@@ -337,33 +348,31 @@ Private Sub mnuServerReboot_Click()
 End Sub
 
 Private Sub mnuSetAccess_Click()
-    Dim name As String
-    Dim I As Integer, PlayerAccess As Byte
+    Dim playerIndex As Long, accessLevel As Long
+    Dim accessText As String
 
-    name = InputBox("What is the ONLINE player's name?", "Give Access to whom?", "")
-
-    If name <> vbNullString Then
-        I = FindPlayer(name)
-    Else
-        MsgBox ("Player Not Online!")
+    If lstPlayers.ListIndex < 0 Then Exit Sub
+    playerIndex = FindPlayer(lstPlayers.List(lstPlayers.ListIndex))
+    If playerIndex <= 0 Or Not IsConnected(playerIndex) Then
+        MsgBox "Player not online!"
         Exit Sub
     End If
 
-    PlayerAccess = InputBox("What access level?", "Access (1-6):", "1")
-
-    If IsConnected(I) Then
-        If PlayerAccess <> 0 Then
-            ' sloppy... but whatever
-            Call SetPlayerAccess(I, PlayerAccess)
-
-            Call PlayerMsg(I, "Your access has been changed.", BrightRed)
-            Call SendPlayerData(I)
-        Else
-            MsgBox ("Invalid Access!")
-        End If
-    Else
-        MsgBox ("Player Not Online!")
+    accessText = Trim$(InputBox("What access level?", "Access (1-6):", "1"))
+    If Len(accessText) = 0 Then Exit Sub
+    If Not IsNumeric(accessText) Then
+        MsgBox "Invalid access!"
+        Exit Sub
     End If
+    accessLevel = Val(accessText)
+    If accessLevel < 1 Or accessLevel > 6 Then
+        MsgBox "Invalid access!"
+        Exit Sub
+    End If
+
+    Call SetPlayerAccess(playerIndex, CByte(accessLevel))
+    Call PlayerMsg(playerIndex, "Your access has been changed.", BrightRed)
+    Call SendPlayerData(playerIndex)
 End Sub
 
 Private Sub mnuWarn_Click()
