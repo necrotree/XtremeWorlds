@@ -150,7 +150,7 @@ Public Sub BltSpriteOverlays()
         If OverlayPlayerVisible(index) Then
             hasBubble = BubbleVisible(index)
             OverlayLayout index, hasBubble, bars, bubble
-            If index = MyIndex Or Player(index).VitalsKnown Then
+            If (index = MyIndex Or Player(index).VitalsKnown) And GameData.Vitals = 1 Then
                 DrawVitalBar bars.Left, bars.Top, 0, Player(index).HP, Player(index).MaxHP
                 DrawVitalBar bars.Left, bars.Top + 8, 1, Player(index).MP, Player(index).MaxMP
                 DrawVitalBar bars.Left, bars.Top + 16, 2, Player(index).SP, Player(index).MaxSP

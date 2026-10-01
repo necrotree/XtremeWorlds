@@ -246,14 +246,9 @@ Class frmMainGame
         Call EditorEndSelection(Button, X, Y)
     End Sub
     
-    
-    
-    
-    
     Private Sub picOptions_Click()
         frmOptions.Show vbModal
     End Sub
-    
     
     Private Sub picScreen_KeyDown(KeyCode As Integer, Shift As Integer)
         If KeyCode = vbKeyShift Then

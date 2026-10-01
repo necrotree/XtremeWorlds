@@ -45,6 +45,7 @@ Type DataRec
   XOffset As Byte
   YOffset As Byte
   WASD As Byte
+  Vitals As Byte
 End Type
   
 Type PlayerInvRec

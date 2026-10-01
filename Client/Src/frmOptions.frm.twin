@@ -128,7 +128,22 @@ Class frmOptions
         Else
             optWASDOff.Value = True
         End If
+        
+        ' Vitals
+        If GameData.Vitals = 1 Then
+            optVitalsOn.Value = True
+        Else
+            optVitalsOff.Value = True
+        End If
 
+    End Sub
+    
+    Private Sub optVitalsOn_Click()
+        GameData.Vitals = 1
+    End Sub
+    
+    Private Sub optVitalsOff_Click()
+        GameData.Vitals	= 0
     End Sub
 
 End Class
