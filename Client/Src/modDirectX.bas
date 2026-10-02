@@ -305,16 +305,12 @@ Public Sub BltItem(ByVal ItemNum As Long)
 End Sub
 
 Public Sub BltPlayer(ByVal index As Long)
-    ' ****************************************************************
-    ' * WHEN    WHO    WHAT
-    ' * ----    ---    ----
-    ' * 07/12/2005  Shannara   Optimized function.
-    ' ****************************************************************
-    Dim X As Long, Y As Long
+    Dim X As Long
+    Dim Y As Long
+    Dim SpriteWidth As Long
+    Dim SpriteHeight As Long
 
-    ' Check for player(index).animation
     If Player(index).Attacking = 0 Then
-        ' Use positive pixel remainders for walking frames in every direction.
         Player(index).Anim = ((Player(index).XOffset + Player(index).YOffset) \ 8) Mod 3
     Else
         If Player(index).AttackTimer + 500 > GetTickCount Then
@@ -322,7 +318,6 @@ Public Sub BltPlayer(ByVal index As Long)
         End If
     End If
 
-    ' Check to see if we want to stop making him attack
     With Player(index)
         If .AttackTimer + 1000 < GetTickCount Then
             .Attacking = 0
@@ -330,59 +325,63 @@ Public Sub BltPlayer(ByVal index As Long)
         End If
     End With
 
+    SpriteWidth = GameData.PlayerX + 16
+    SpriteHeight = PIC_Y * 2
+
     With rec
-        .Top = (GetPlayerSprite(index) * GameData.PlayerY)
-        .Bottom = .Top + PIC_Y * 2
-        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * (GameData.PlayerX + 16)
-        .Right = .Left + (GameData.PlayerX + 16)
+        .Top = GetPlayerSprite(index) * GameData.PlayerY
+        .Bottom = .Top + SpriteHeight
+
+        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * SpriteWidth
+        .Right = .Left + SpriteWidth
     End With
 
+    X = GetPlayerPixelX(index)
+    Y = GetPlayerPixelY(index)
+
     If GameData.PlayerX > 48 Then
-        X = (GetPlayerX(index) * PIC_X) + (Player(index).XOffset) - (GameData.PlayerX / 4)
-    Else
-        X = (GetPlayerX(index) * PIC_X) + (Player(index).XOffset)
-    End If
-    Y = (GetPlayerY(index) * PIC_Y) + (Player(index).YOffset)
-
-    ' Check if its out of bounds because of the offset
-    If Y < 0 Then
-        Y = 0
-        With rec
-            .Top = .Top + (Y * -1)
-        End With
+        X = X - (GameData.PlayerX / 4)
     End If
 
-    Call DD_MiddleBuffer.BltFast(X, Y, DD_SpriteSurf, rec, True)
+    ' Keep entire sprite inside game buffer
+    If X < 0 Then X = 0
+    If Y < 0 Then Y = 0
+
+    If X + SpriteWidth > DD_MiddleBuffer.Width Then
+        X = DD_MiddleBuffer.Width - SpriteWidth
+    End If
+
+    If Y + SpriteHeight > DD_MiddleBuffer.Height Then
+        Y = DD_MiddleBuffer.Height - SpriteHeight
+    End If
+
+    DD_MiddleBuffer.BltFast X - 8, Y - 16, DD_SpriteSurf, rec, True
 End Sub
 
 Public Sub BltPlayerTop(ByVal index As Long)
-    Dim X As Long, Y As Long
+    Dim X As Long
+    Dim Y As Long
+    Dim source As RECT
 
-    With rec
+    With source
         .Top = (GetPlayerSprite(index) * GameData.PlayerY) - GameData.PlayerY
         .Bottom = .Top + (GameData.PlayerY - 32)
+
         .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * GameData.PlayerX
         .Right = .Left + GameData.PlayerX
     End With
 
-    If GameData.PlayerX > 32 Then
-        X = (GetPlayerX(index) * PIC_X) + (Player(index).XOffset) - (GameData.PlayerX / 4)
-    Else
-        X = (GetPlayerX(index) * PIC_X) + (Player(index).XOffset)
-    End If
-    Y = (GetPlayerY(index) * PIC_Y) + (Player(index).YOffset)
+    X = GetPlayerPixelX(index)
 
+    If GameData.PlayerX > 32 Then
+        X = X - (GameData.PlayerX / 4)
+    End If
+
+    Y = GetPlayerPixelY(index)
     Y = Y - (GameData.PlayerY - 32)
 
-    ' Check if its out of bounds because of the offset
-    If Y < 0 Then
-        Y = 0
-        With rec
-            .Top = .Top + (Y * -1)
-        End With
-    End If
-
-    Call DD_MiddleBuffer.BltFast(X, Y, DD_SpriteSurf, rec, True)
+    ' Let BltFast clip it
+    DD_MiddleBuffer.BltFast X, Y, DD_SpriteSurf, source, True
 End Sub
 
 Public Sub SpellEditorBltAnim(ByVal Frame As Byte)
@@ -414,81 +413,67 @@ Sub BltSpell(ByVal VicX As Long, ByVal VicY As Long, ByVal SpellAnim As Byte)
     Call DD_MiddleBuffer.BltFast(VicX * PIC_X, VicY * PIC_Y, DD_SpellSurf, rec, True)
 End Sub
 
-Public Sub BltNpc(ByVal MapNpcNum As Long)
-' ****************************************************************
-' * WHEN    WHO    WHAT
-' * ----    ---    ----
-' * 07/12/2005  Shannara   Optimized function.
-' ****************************************************************
+Public Sub BltNPC(ByVal index As Long)
+    Dim X As Long
+    Dim Y As Long
+    Dim SpriteWidth As Long
+    Dim SpriteHeight As Long
+    Dim AnimFrame As Long
+    Dim Direction As Long
+    Dim SpriteNum As Long
 
-    Dim Anim As Byte
-    Dim X As Long, Y As Long
+    If MapNpc(index).Num <= 0 Then Exit Sub
 
-    ' Make sure that theres an npc there, and if not exit the sub
-    If MapNpc(MapNpcNum).Num <= 0 Then
-        Exit Sub
+    ' Walking animation
+    AnimFrame = _
+        ((CLng(MapNpc(index).XOffset) + CLng(MapNpc(index).YOffset)) \ 8) Mod 3
+
+    If AnimFrame < 0 Then
+        AnimFrame = -AnimFrame
     End If
 
-    ' Only used if ever want to switch to blt rather then bltfast
-    With rec_pos
-        .Top = MapNpc(MapNpcNum).Y * PIC_Y + MapNpc(MapNpcNum).YOffset
-        .Bottom = .Top + PIC_Y
-        .Left = MapNpc(MapNpcNum).X * PIC_X + MapNpc(MapNpcNum).XOffset
-        .Right = .Left + PIC_X
-    End With
+    MapNpc(index).Anim = AnimFrame
 
-    ' Check for animation
-    Anim = 0
-    If MapNpc(MapNpcNum).Attacking = 0 Then
-        Select Case MapNpc(MapNpcNum).Dir
-            Case DIR_UP
-                If (MapNpc(MapNpcNum).YOffset < PIC_Y / 2) Then Anim = 1
-            Case DIR_DOWN
-                If (MapNpc(MapNpcNum).YOffset < PIC_Y / 2 * -1) Then Anim = 1
-            Case DIR_LEFT
-                If (MapNpc(MapNpcNum).XOffset < PIC_Y / 2) Then Anim = 1
-            Case DIR_RIGHT
-                If (MapNpc(MapNpcNum).XOffset < PIC_Y / 2 * -1) Then Anim = 1
-        End Select
-    Else
-        If MapNpc(MapNpcNum).AttackTimer + 500 > GetTickCount Then
-            Anim = 2
-        End If
-    End If
+    SpriteWidth = CLng(GameData.PlayerX) + 16
+    SpriteHeight = CLng(PIC_Y) * 2
 
-    ' Check to see if we want to stop making him attack
-    With MapNpc(MapNpcNum)
-        If .AttackTimer + 1000 < GetTickCount Then
-            .Attacking = 0
-            .AttackTimer = 0
-        End If
-    End With
-    
+    SpriteNum = CLng(Npc(MapNpc(index).Num).Sprite)
+    Direction = CLng(MapNpc(index).Dir)
+
     With rec
-        .Top = Npc(MapNpc(MapNpcNum).Num).Sprite * (PIC_Y * 2)
-        .Bottom = .Top + PIC_Y * 2
-        .Left = (MapNpc(MapNpcNum).Dir * 3 + Anim) * (PIC_X + 16)
-        .Right = .Left + (PIC_X + 16)
-    End With
-    
-    With MapNpc(MapNpcNum)
-        X = .X * PIC_X + .XOffset
-        Y = .Y * PIC_Y + .YOffset - 4
+        .Top = SpriteNum * CLng(GameData.PlayerY)
+        .Bottom = .Top + SpriteHeight
+
+        .Left = ((Direction * 3) + AnimFrame) * SpriteWidth
+        .Right = .Left + SpriteWidth
     End With
 
-    ' Check if its out of bounds because of the offset
-    If Y < 0 Then
-        Y = 0
-        With rec
-            .Top = .Top + (Y * -1)
-        End With
+    X = CLng(MapNpc(index).X) * CLng(PIC_X)
+    X = X + CLng(MapNpc(index).XOffset)
+
+    Y = CLng(MapNpc(index).Y) * CLng(PIC_Y)
+    Y = Y + CLng(MapNpc(index).YOffset)
+
+    If GameData.PlayerX > 48 Then
+        X = X - (CLng(GameData.PlayerX) \ 4)
     End If
 
-    Call DD_MiddleBuffer.BltFast(X, Y, DD_SpriteSurf, rec, True)
+    If X < 0 Then X = 0
+    If Y < 0 Then Y = 0
+
+    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
+        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
+    End If
+
+    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
+        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
+    End If
+
+    If X < 0 Then X = 0
+    If Y < 0 Then Y = 0
+
+    DD_MiddleBuffer.BltFast X - 8, Y - 16, DD_SpriteSurf, rec, True
 End Sub
-
-
-
 
 ' Item pictures are zero-based, ordered left to right across six columns.
 Public Sub GetItemPictureRect(ByVal Picture As Long, ByRef Source As RECT)

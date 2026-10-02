@@ -1,4 +1,4 @@
-﻿Attribute VB_Name = "modMenu"
+Attribute VB_Name = "modMenu"
 Option Explicit
 
 Public Sub MoveForm(F As Form)

@@ -50,6 +50,7 @@ Public Sub EditorMouseDown(Button As Integer, Shift As Integer, X As Single, Y A
                     If frmMainGame.optBlocked.Value = True Then
                         .Type = TILE_TYPE_BLOCKED
                         .Data1 = EditorBlockPlayer
+                        If EditorBlockPlayer = 0 And EditorBlockNPC = 0 And EditorBlockFlight = 0 Then .Data1 = 1
                         .Data2 = EditorBlockNPC
                         .Data3 = EditorBlockFlight
                     End If

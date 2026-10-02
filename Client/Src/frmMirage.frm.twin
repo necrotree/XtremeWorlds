@@ -57,7 +57,13 @@ Class frmMainGame
                     BltMap
                 ElseIf frmMainGame.optAttribs.Value = True Then
                     With Map.Tile(X, Y)
-                        If frmMainGame.optBlocked.Value = True Then .Type = TILE_TYPE_BLOCKED
+                        If frmMainGame.optBlocked.Value = True Then
+                            .Type = TILE_TYPE_BLOCKED
+                            .Data1 = EditorBlockPlayer
+                            If EditorBlockPlayer = 0 And EditorBlockNPC = 0 And EditorBlockFlight = 0 Then .Data1 = 1
+                            .Data2 = EditorBlockNPC
+                            .Data3 = EditorBlockFlight
+                        End If
                         If frmMainGame.optWarp.Value = True Then .Type = TILE_TYPE_WARP
                         If frmMainGame.optKill.Value = True Then .Type = TILE_TYPE_KILL
                         If frmMainGame.optItem.Value = True Then .Type = TILE_TYPE_ITEM

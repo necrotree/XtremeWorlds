@@ -92,24 +92,6 @@ Public Sub ClearSpriteOverlay(ByVal index As Long)
     Player(index).VitalsKnown = False
 End Sub
 
-' Complete messages arrive through the existing shared TCP packet buffer.
-Public Function HandleSpriteOverlayPacket(ByVal packet As String) As Boolean
-    Dim command As String, separator As Long, parts() As String
-    separator = InStr(packet, SEP_CHAR)
-    command = LCase$(packet)
-    If separator > 0 Then command = LCase$(Left$(packet, separator - 1))
-    Select Case command
-        Case "spritebubble", "spritevitals": HandleSpriteOverlayPacket = True
-        Case Else: Exit Function
-    End Select
-    parts = Split(packet, SEP_CHAR)
-    If command = "spritebubble" Then
-        ReceiveSpriteBubble parts
-    Else
-        ReceiveSpriteVitals parts
-    End If
-End Function
-
 Public Function OverlayInteger(ByVal text As String, ByVal maximum As Long, ByRef result As Long) As Boolean
     Dim value As Double
     On Error GoTo InvalidValue
@@ -121,36 +103,6 @@ Public Function OverlayInteger(ByVal text As String, ByVal maximum As Long, ByRe
     OverlayInteger = True
 InvalidValue:
 End Function
-
-Private Sub ReceiveSpriteBubble(ByRef parts() As String)
-    Dim index As Long, mapNumber As Long
-    If UBound(parts) <> 3 Then Exit Sub
-    If Not OverlayInteger(parts(1), MAX_PLAYERS, index) Then Exit Sub
-    If index < 1 Then Exit Sub
-    If Not OverlayInteger(parts(2), MAX_MAPS, mapNumber) Then Exit Sub
-    If mapNumber = 0 Or Player(index).Map <> mapNumber Then Exit Sub
-    Player(index).BubbleText = Left$(Trim$(Replace(Replace(parts(3), vbCr, " "), vbLf, " ")), BUBBLE_TEXT_LIMIT)
-    Player(index).BubbleStarted = GetTickCount
-    Player(index).BubbleMap = mapNumber
-End Sub
-
-Private Sub ReceiveSpriteVitals(ByRef parts() As String)
-    Dim index As Long, mapNumber As Long, values(0 To 5) As Long, i As Long
-    If UBound(parts) <> 8 Then Exit Sub
-    If Not OverlayInteger(parts(1), MAX_PLAYERS, index) Then Exit Sub
-    If index < 1 Then Exit Sub
-    If Not OverlayInteger(parts(2), MAX_MAPS, mapNumber) Then Exit Sub
-    If mapNumber = 0 Or Player(index).Map <> mapNumber Then Exit Sub
-    For i = 0 To 5
-        If Not OverlayInteger(parts(i + 3), &H7FFFFFFF, values(i)) Then Exit Sub
-    Next i
-    With Player(index)
-        .HP = values(0): .MaxHP = values(1)
-        .MP = values(2): .MaxMP = values(3)
-        .SP = values(4): .MaxSP = values(5)
-        .VitalsKnown = True
-    End With
-End Sub
 
 Private Function BubbleVisible(ByVal index As Long) As Boolean
     Dim elapsed As Double, duration As Long
@@ -177,28 +129,74 @@ Private Function OverlayPlayerVisible(ByVal index As Long) As Boolean
     OverlayPlayerVisible = (Player(index).Map = Player(MyIndex).Map)
 End Function
 
+Private Sub GetOverlayPlayerSpritePosition(ByVal index As Long, ByRef SpriteX As Long, ByRef SpriteY As Long)
+    Dim X As Long
+    Dim Y As Long
+    Dim SpriteWidth As Long
+    Dim SpriteHeight As Long
+
+    SpriteWidth = CLng(GameData.PlayerX) + 16
+    SpriteHeight = CLng(PIC_Y) * 2
+
+    X = CLng(GetPlayerPixelX(index))
+    Y = CLng(GetPlayerPixelY(index))
+
+    If GameData.PlayerX > 48 Then
+        X = X - (CLng(GameData.PlayerX) \ 4)
+    End If
+
+    ' Match BltPlayer's clamping exactly.
+    If X < 0 Then X = 0
+    If Y < 0 Then Y = 0
+
+    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
+        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
+    End If
+
+    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
+        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
+    End If
+
+    ' BltPlayer draws the final sprite at X - 8, Y - 16.
+    SpriteX = X - 8
+    SpriteY = Y - 16
+End Sub
+
 Private Sub OverlayLayout(ByVal index As Long, ByVal hasBubble As Boolean, ByRef bars As RECT, ByRef bubble As RECT)
-    Dim centerX As Long, playerTop As Long, barTop As Long, bubbleTop As Long
-    ' Match BltPlayer's actual source frame width, feet, and walking offsets.
-    centerX = Player(index).X * PIC_X + Player(index).XOffset
-    If GameData.PlayerX > 48 Then centerX = centerX - GameData.PlayerX / 4
-    centerX = centerX + (GameData.PlayerX + 16) \ 2
-    playerTop = Player(index).Y * PIC_Y + Player(index).YOffset
-    barTop = playerTop + PIC_Y * 2 + 2
-    If barTop + BARS_HEIGHT > DD_BackBuffer.Height Then barTop = DD_BackBuffer.Height - BARS_HEIGHT
-    If barTop < 0 Then barTop = 0
-    bubbleTop = playerTop - Int(GameData.PlayerY / 2) - 6 - BUBBLE_HEIGHT - 4
-    If bubbleTop < 0 Then bubbleTop = 0
-    bars.Left = centerX - BAR_WIDTH \ 2
-    If bars.Left < 0 Then bars.Left = 0
-    If bars.Left + BAR_WIDTH > DD_BackBuffer.Width Then bars.Left = DD_BackBuffer.Width - BAR_WIDTH
-    bars.Top = barTop: bars.Right = bars.Left + BAR_WIDTH: bars.Bottom = barTop + BARS_HEIGHT
-    bubble.Left = centerX - BUBBLE_WIDTH \ 2
-    If bubble.Left < 0 Then bubble.Left = 0
-    If bubble.Left + BUBBLE_WIDTH > DD_BackBuffer.Width Then bubble.Left = DD_BackBuffer.Width - BUBBLE_WIDTH
+    Dim SpriteX As Long
+    Dim SpriteY As Long
+    Dim SpriteWidth As Long
+    Dim SpriteHeight As Long
+    Dim centerX As Long
+    Dim barTop As Long
+    Dim bubbleTop As Long
+
+    SpriteWidth = CLng(GameData.PlayerX) + 16
+    SpriteHeight = CLng(PIC_Y) * 2
+
+    ' Use the exact final position used by BltPlayer.
+    GetOverlayPlayerSpritePosition index, SpriteX, SpriteY
+
+    centerX = SpriteX + (SpriteWidth \ 2)
+
+    ' Vitals stay attached directly below the final sprite position.
+    barTop = SpriteY + SpriteHeight + 2
+
+    bars.Left = centerX - (BAR_WIDTH \ 2)
+    bars.Top = barTop
+    bars.Right = bars.Left + BAR_WIDTH
+    bars.Bottom = bars.Top + BARS_HEIGHT
+
+    ' Bubble stays attached directly above the final sprite position.
+    bubbleTop = SpriteY - BUBBLE_HEIGHT - 4
+
+    bubble.Left = centerX - (BUBBLE_WIDTH \ 2)
     bubble.Top = bubbleTop
     bubble.Right = bubble.Left + BUBBLE_WIDTH
     bubble.Bottom = bubble.Top + BUBBLE_HEIGHT
+
+    ' Do not clamp bars or bubble independently.
+    ' Independent clamping makes overlays slide away from the sprite at edges.
 End Sub
 
 Public Sub BltSpriteOverlays()

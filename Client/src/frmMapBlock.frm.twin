@@ -8,11 +8,22 @@ Class frmMapBlock
     Attribute VB_Creatable = False
     Attribute VB_PredeclaredId = True
     Attribute VB_Exposed = False
+    Private Sub Form_Load()
+        chkBlockType(0).Value = EditorBlockPlayer
+        chkBlockType(1).Value = EditorBlockNPC
+        chkBlockType(2).Value = EditorBlockFlight
+        If EditorBlockPlayer = 0 And EditorBlockNPC = 0 And EditorBlockFlight = 0 Then chkBlockType(0).Value = 1
+    End Sub
+
     Private Sub cmdCancel_Click()
         Unload Me
     End Sub
     
     Private Sub cmdOK_Click()
+        If chkBlockType(0).Value = 0 And chkBlockType(1).Value = 0 And chkBlockType(2).Value = 0 Then
+            GameMsgBox "Select at least one block type.", vbInformation, "Block"
+            Exit Sub
+        End If
         ' Block Types: 0 = Player, 1 = NPC, 2 = Flight
         ' Data Values: 0 = Off, 1 = On
         ' Checkbox Values: 0 = Unchecked, 1 = Checked

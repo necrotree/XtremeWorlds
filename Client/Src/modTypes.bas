@@ -240,6 +240,7 @@ Type MapNpcRec
   X As Byte
   Y As Byte
   Dir As Integer
+  Anim As Byte
 
   ' Client use only
   XOffset As Integer

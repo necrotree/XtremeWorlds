@@ -1485,12 +1485,14 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
 
     X = GetPlayerPixelX(Index)
     y = GetPlayerPixelY(Index)
+    
     Select Case Dir
         Case DIR_UP: y = y - 1
         Case DIR_DOWN: y = y + 1
         Case DIR_LEFT: X = X - 1
         Case DIR_RIGHT: X = X + 1
     End Select
+    
     MapNum = GetPlayerMap(Index)
     If X < 0 Or y < 0 Or X > MAX_MAPX * PIC_X Or y > MAX_MAPY * PIC_Y Then
         X = GetPlayerX(Index)
@@ -1510,6 +1512,12 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
         Call SendPlayerXY(Index)
         Exit Sub
     End If
+    
+    If IsTileBlocked(MapNum, X, y) Then
+        Call SendPlayerXY(Index)
+        Exit Sub
+    End If
+    
     Moved = NO
     If Int(X / PIC_X) <> GetPlayerX(Index) Or Int(y / PIC_Y) <> GetPlayerY(Index) Then
         If Not CanEnterPlayerTile(Index, MapNum, Int(X / PIC_X), Int(y / PIC_Y)) Then
@@ -3127,7 +3135,12 @@ End Sub
 Function CanEnterPlayerTile(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal Y As Long) As Boolean
     Dim I As Long
     If X < 0 Or Y < 0 Or X > MAX_MAPX Or Y > MAX_MAPY Then Exit Function
-    If Map(MapNum).Tile(X, Y).Type = TILE_TYPE_BLOCKED And Map(MapNum).Tile(X, Y).Data1 = 1 Then Exit Function
+    With Map(MapNum).Tile(X, Y)
+        If .Type = TILE_TYPE_BLOCKED Then
+            ' A Block tile with no flags is a solid block (including older maps).
+            If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then Exit Function
+        End If
+    End With
     If Map(MapNum).Tile(X, Y).Type = TILE_TYPE_KEY Or Map(MapNum).Tile(X, Y).Type = TILE_TYPE_DOOR Then
         If TempTile(MapNum).DoorOpen(X, Y) = NO Then Exit Function
     End If
@@ -3140,4 +3153,21 @@ Function CanEnterPlayerTile(ByVal Index As Long, ByVal MapNum As Long, ByVal X A
         If MapNpc(MapNum, I).Num > 0 And MapNpc(MapNum, I).X = X And MapNpc(MapNum, I).y = Y Then Exit Function
     Next I
     CanEnterPlayerTile = True
+End Function
+
+' Check every tile touched by the 32-by-32 player footprint, on every pixel step.
+Private Function IsTileBlocked(ByVal MapNum As Long, ByVal PixelX As Long, ByVal PixelY As Long) As Boolean
+    Dim TileX As Long, TileY As Long
+    For TileY = PixelY \ PIC_Y To (PixelY + PIC_Y - 1) \ PIC_Y
+        For TileX = PixelX \ PIC_X To (PixelX + PIC_X - 1) \ PIC_X
+            With Map(MapNum).Tile(TileX, TileY)
+                If .Type = TILE_TYPE_BLOCKED Then
+                    If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then
+                        IsTileBlocked = True
+                        Exit Function
+                    End If
+                End If
+            End With
+        Next TileX
+    Next TileY
 End Function
