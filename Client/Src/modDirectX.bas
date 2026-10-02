@@ -370,14 +370,14 @@ Public Sub GetSpriteDrawPosition(ByVal Sprite As Long, ByVal PixelX As Long, ByV
     Dim Width As Long, Height As Long
     GetSpriteDimensions Sprite, Width, Height
     X = PixelX - (Width - PIC_X) \ 2
-    ' A 64-pixel frame starts at PixelY + 16, one tile below the old -16.
+    ' A 64-pixel frame starts at PixelY + 48 after the additional 32-pixel shift.
     ' All frame heights share the same feet anchor.
     Y = GetSpriteFeetY(PixelY) - Height
     ' Clip at the buffer edges instead of moving the sprite away from its tile.
 End Sub
 
 Public Function GetSpriteFeetY(ByVal PixelY As Long) As Long
-    GetSpriteFeetY = PixelY + PIC_Y * 2 + PIC_Y \ 2
+    GetSpriteFeetY = PixelY + PIC_Y * 2 + PIC_Y \ 2 + 32
 End Function
 
 Public Sub BltYSortedSprites()
