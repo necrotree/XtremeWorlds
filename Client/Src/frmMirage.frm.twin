@@ -138,7 +138,7 @@ Class frmMainGame
         RegisterNativeWindow picBack.hWnd, Me
         Set Notetext = New clsNativeRichText
         Notetext.Attach hostNotetext, False, 16777215, 9.75, "Rockwell"
-        SetChatHistoryChannel ChatHistoryAll
+        ResetChatHistoryChannels
     
         ' Dim result As Long
         ' result = SetWindowLong(txtChat.hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT)
@@ -1204,19 +1204,19 @@ Class frmMainGame
     End Sub
     
     Private Sub imgMap_Click()
-        SetChatHistoryChannel(ChatHistoryAll)
+        ToggleChatHistoryChannel(ChatHistoryLocal)
     End Sub
     
     Private Sub imgGlobal_Click()
-        SetChatHistoryChannel(ChatHistoryGlobal)
+        ToggleChatHistoryChannel(ChatHistoryGlobal)
     End Sub
     
     Private Sub imgGuild_Click()
-        SetChatHistoryChannel(ChatHistoryGuild)
+        ToggleChatHistoryChannel(ChatHistoryGuild)
     End Sub
     
     Private Sub imgPM_Click()
-        SetChatHistoryChannel(ChatHistoryPrivate)
+        ToggleChatHistoryChannel(ChatHistoryPrivate)
     End Sub
     
     Private Sub cmbClassEditor_Click()
