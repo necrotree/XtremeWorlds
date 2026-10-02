@@ -31,7 +31,7 @@ End Type
 Private ChatHistory(0 To ChatHistoryLimit - 1) As ChatHistoryEntry
 Private ChatHistoryStart As Long
 Private ChatHistoryCount As Long
-Public ActiveChatHistoryChannel As Long
+Private HiddenChatChannels(ChatHistoryLocal To ChatHistorySystem) As Boolean
 
 Public Sub UnloadAllForms()
     Dim frm As Form
@@ -81,23 +81,59 @@ Public Sub AddText(ByVal Msg As String, ByVal Color As Integer, Optional ByVal C
     ChatHistory(slot).Color = Color
     ChatHistory(slot).Channel = Channel
 
-    If ActiveChatHistoryChannel = ChatHistoryAll Or ActiveChatHistoryChannel = Channel Then
+    If IsChatHistoryChannelVisible(Channel) Then
         AppendChatLine Msg, Color
     End If
 End Sub
 
-Public Sub SetChatHistoryChannel(ByVal Channel As Long)
+Public Sub ResetChatHistoryChannels()
+    Erase HiddenChatChannels
+    RefreshChatHistory
+End Sub
+
+Public Sub ToggleChatHistoryChannel(ByVal Channel As Long)
+    Select Case Channel
+        Case ChatHistoryLocal, ChatHistoryGlobal, ChatHistoryGuild, ChatHistoryPrivate
+            HiddenChatChannels(Channel) = Not HiddenChatChannels(Channel)
+        Case Else
+            Exit Sub
+    End Select
+    RefreshChatHistory
+End Sub
+
+Private Function IsChatHistoryChannelVisible(ByVal Channel As Long) As Boolean
+    Select Case Channel
+        Case ChatHistoryLocal, ChatHistoryEmote
+            IsChatHistoryChannelVisible = Not HiddenChatChannels(ChatHistoryLocal)
+        Case ChatHistoryGlobal, ChatHistoryGuild, ChatHistoryPrivate
+            IsChatHistoryChannelVisible = Not HiddenChatChannels(Channel)
+        Case Else
+            ' Party and system messages are always visible.
+            IsChatHistoryChannelVisible = True
+    End Select
+End Function
+
+Private Function ChatChannelToolTip(ByVal Channel As Long, ByVal ChannelName As String) As String
+    If IsChatHistoryChannelVisible(Channel) Then
+        ChatChannelToolTip = ChannelName & " chat: visible (click to hide)"
+    Else
+        ChatChannelToolTip = ChannelName & " chat: hidden (click to show)"
+    End If
+End Function
+
+Private Sub RefreshChatHistory()
     Dim i As Long, slot As Long
 
-    If Channel < ChatHistoryAll Or Channel > ChatHistorySystem Then Channel = ChatHistoryAll
-
-    ActiveChatHistoryChannel = Channel
+    frmMainGame.imgMap.ToolTipText = ChatChannelToolTip(ChatHistoryLocal, "Map")
+    frmMainGame.imgGlobal.ToolTipText = ChatChannelToolTip(ChatHistoryGlobal, "Global")
+    frmMainGame.imgGuild.ToolTipText = ChatChannelToolTip(ChatHistoryGuild, "Guild")
+    frmMainGame.imgPM.ToolTipText = ChatChannelToolTip(ChatHistoryPrivate, "Private")
     frmMainGame.txtChat.Text = vbNullString
 
     For i = 0 To ChatHistoryCount - 1
         slot = (ChatHistoryStart + i) Mod ChatHistoryLimit
 
-        If Channel = ChatHistoryAll Or ChatHistory(slot).Channel = Channel Then
+        If IsChatHistoryChannelVisible(ChatHistory(slot).Channel) Then
             AppendChatLine ChatHistory(slot).Message, ChatHistory(slot).Color
         End If
     Next i
