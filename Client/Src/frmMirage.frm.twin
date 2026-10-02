@@ -160,7 +160,6 @@ Class frmMainGame
             scrlPicture.Value = EditorscrlPicture
         End If
         
-        
     End Sub
     
     Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
@@ -309,7 +308,7 @@ Class frmMainGame
         If EditingHotkeys Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
         Call CheckInput(0, KeyCode, Shift)
         Call UseSlotHotkey(KeyCode)
-        If GameKeyMatches(HK_ADMIN, KeyCode) Then
+        If GameKeyMatches(HK_ADMIN, KeyCode) And GetPlayerAccess(MyIndex) > 0 Then
             If frmMainGame.fraPlayer.Visible Then
                 frmMainGame.fraPlayer.Visible = False
                 frmMainGame.fraMapNum.Visible = False
