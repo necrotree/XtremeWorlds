@@ -1,4 +1,4 @@
-﻿Attribute VB_Name = "modHandleData"
+Attribute VB_Name = "modHandleData"
 Option Explicit
 
 Sub HandleData(ByVal Index As Long, ByVal Data As String)
@@ -2125,12 +2125,12 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         ' The index
         N = FindPlayer(Parse(1))
+        
         ' The access
         I = Val(Parse(2))
 
-
         ' Check for invalid access level
-        If I >= 0 Or I <= 3 Then
+        If I >= 0 And I <= 9 Then
             ' Check if player is on
             If N > 0 Then
                 If GetPlayerAccess(N) <= 0 Then

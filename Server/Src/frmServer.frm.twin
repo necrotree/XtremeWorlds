@@ -105,14 +105,14 @@ Class frmServer
             Exit Sub
         End If
 
-        accessText = Trim$(InputBox("What access level?", "Access (1-6):", "1"))
+        accessText = Trim$(InputBox("What access level?", "Access (0-9):", "1"))
         If Len(accessText) = 0 Then Exit Sub
         If Not IsNumeric(accessText) Then
             MsgBox "Invalid access!"
             Exit Sub
         End If
         accessLevel = Val(accessText)
-        If accessLevel < 1 Or accessLevel > 6 Then
+        If accessLevel < 0 Or accessLevel > 9 Then
             MsgBox "Invalid access!"
             Exit Sub
         End If
