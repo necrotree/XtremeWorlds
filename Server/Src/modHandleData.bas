@@ -2644,9 +2644,9 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
     Exit Sub
 
 ErrorHandle:
-
-
-
+    Msg = "HandleData player " & Index & ": error " & Err.Number & " / " & Err.Source & " / " & Err.Description
+    Debug.Print Msg
+    Call AddLog(Msg, "errors.log")
 End Sub
 
 
