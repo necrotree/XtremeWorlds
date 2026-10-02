@@ -964,13 +964,6 @@ Class frmMainGame
         If LCase$(Left$(address, 7)) = "http://" Then address = Mid$(address, 8)
         If Left$(address, 2) = "//" Then address = Mid$(address, 3)
         If LCase$(Left$(address, 8)) <> "https://" Then address = "https://" & address
-        ' The legacy www hostname has no DNS record; preserve any URL path.
-        Const oldWebsite As String = "https://www.xtremeworlds.com"
-        If LCase$(address) = oldWebsite Then
-            address = "https://xtremeworlds.com/"
-        ElseIf LCase$(Left$(address, Len(oldWebsite) + 1)) = oldWebsite & "/" Then
-            address = "https://xtremeworlds.com" & Mid$(address, Len(oldWebsite) + 1)
-        End If
         ShellExecute Me.hWnd, "open", address, vbNullString, vbNullString, 1
     End Sub
 
