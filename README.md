@@ -334,3 +334,18 @@ Start with a small playable area, get the client/server loop working, and expand
 ## License
 
 XtremeWorlds is released under the **BSD 2-Clause License**. See [`LICENSE`](LICENSE) for the full license text.
+
+## Mixing map tilesets
+
+The map editor loads numbered `tiles1.png` through `tiles255.png` files from the client's graphics directory, skipping missing numbers. The left/right tileset controls select the brush; each painted tile layer keeps its own tileset reference. Fill uses the selected tile on the active layer, including tiles below the first row. Painting, Fill, and rendering calculate row width from each image's width in 32-pixel cells, so sheets can have different numbers of columns.
+
+Build and distribute both the updated client and server together. Existing server maps retain their original tileset and gain per-layer references when edited and saved. The updated server reads old map files; maps saved with per-layer references require the updated server. Keep a backup before upgrading. Clients refresh older local map caches from the server.
+
+To verify in the editor: fill with a second-row tile, paint tiles from two different tilesets on the same layer, switch the picker, then save and reconnect. Repeat on overlay and animation layers and after a server restart; the placed tiles should retain their selected tilesets.
+
+The `.twinproj` files include the updated sources. Reload both projects if they were already open, then rebuild both applications. Run `powershell -NoProfile -ExecutionPolicy Bypass -File tests/check-tilesets.ps1` for the Fill, mixed-sheet, dynamic-width, and map record regression checks. These checks execute the source routines with editor and file mocks; they do not replace an in-game rendering test.
+## Sprite sizes and depth
+
+Players and NPCs render together from back to front by their feet position, including movement offsets. Sprite frames are horizontally centered and drawn one 32-pixel tile lower than the original placement. Names, vitals, speech bubbles, and damage text follow the frame dimensions. Warp attributes remain 32x32 map cells; the editor outlines each warp cell in blue.
+
+Configure frame sizes in `Client/gfx/sprites.ini`: `[Sprites]` supplies the default `Width` and `Height`, while `[Sprite0]`, `[Sprite1]`, and subsequent sections override individual sprites. Each sprite occupies a row of twelve frames (four directions with three animation frames each). Rows stack vertically using their configured heights, and the image must fit all twelve frames at each configured width. The bundled defaults are 48x64.

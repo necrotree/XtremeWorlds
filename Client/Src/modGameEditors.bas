@@ -1,22 +1,28 @@
 Attribute VB_Name = "modGameEditors"
 Option Explicit
 
-Private Const EDITOR_TILE_COLUMNS As Long = 12
+
 Private EditorSelectionWidth As Long
 Private EditorSelectionHeight As Long
 Private EditorAnchorX As Long
 Private EditorAnchorY As Long
 Private EditorSelecting As Boolean
 
+Public Function EditorTileColumns() As Long
+    EditorTileColumns = TilesetColumns(EditorTileset)
+End Function
+
 Public Sub EditorInit()
     Dim lastScrollRow As Long
-    If Map.Tileset = 0 Then
-        Map.Tileset = 1
+    If Map.Tileset = 0 Then Map.Tileset = 1
+    If Not InEditor Then EditorTileset = Map.Tileset
+    If EditorTileset = 0 Then
+        EditorTileset = 1
     End If
     
-    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
-    If DD_TileSurf(Map.Tileset).Height < PIC_Y Then Exit Sub
-    SaveMap = Map
+    If DD_TileSurf(EditorTileset) Is Nothing Then Exit Sub
+    If DD_TileSurf(EditorTileset).Height < PIC_Y Then Exit Sub
+    If Not InEditor Then SaveMap = Map
     InEditor = True
     EditorSelecting = False
     EditorSelectionWidth = 1
@@ -26,7 +32,7 @@ Public Sub EditorInit()
     frmMainGame.picBack.SetFocus
     frmMainGame.picBack.ToolTipText = "Hold the left mouse button and drag to select a block of tiles."
 
-    lastScrollRow = DD_TileSurf(Map.Tileset).Height \ PIC_Y - frmMainGame.picBack.ScaleHeight \ PIC_Y
+    lastScrollRow = DD_TileSurf(EditorTileset).Height \ PIC_Y - frmMainGame.picBack.ScaleHeight \ PIC_Y
     If lastScrollRow < 0 Then lastScrollRow = 0
     If frmMainGame.scrlPicture.Value > lastScrollRow Then frmMainGame.scrlPicture.Value = lastScrollRow
     frmMainGame.scrlPicture.Max = lastScrollRow
@@ -169,18 +175,8 @@ Private Sub EditorPaintSelection(ByVal MapX As Long, ByVal MapY As Long)
     For Y = 0 To EditorSelectionHeight - 1
         For X = 0 To EditorSelectionWidth - 1
             If MapX + X <= MAX_MAPX And MapY + Y <= MAX_MAPY Then
-                tileNumber = (EditorTileY + Y) * EDITOR_TILE_COLUMNS + EditorTileX + X
-                With Map.Tile(MapX + X, MapY + Y)
-                    If frmMainGame.optGround.Value Then .Ground = tileNumber
-                    If frmMainGame.optMask.Value Then .Mask = tileNumber
-                    If frmMainGame.optAnim.Value Then .Anim = tileNumber
-                    If frmMainGame.optMask2.Value Then .Mask2 = tileNumber
-                    If frmMainGame.optM2Anim.Value Then .M2Anim = tileNumber
-                    If frmMainGame.optFringe.Value Then .Fringe = tileNumber
-                    If frmMainGame.optFAnim.Value Then .FAnim = tileNumber
-                    If frmMainGame.optFringe2.Value Then .Fringe2 = tileNumber
-                    If frmMainGame.optF2Anim.Value Then .F2Anim = tileNumber
-                End With
+                tileNumber = (EditorTileY + Y) * EditorTileColumns + EditorTileX + X
+                EditorPaintTile MapX + X, MapY + Y, tileNumber
             End If
         Next X
     Next Y
@@ -191,15 +187,15 @@ Public Sub EditorChooseTile(Button As Integer, Shift As Integer, X As Single, Y 
 
     EditorSelecting = False
 
-    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+    If DD_TileSurf(EditorTileset) Is Nothing Then Exit Sub
 
     If X < 0 Or X >= frmMainGame.picBack.ScaleWidth Then Exit Sub
     If Y < 0 Or Y >= frmMainGame.picBack.ScaleHeight Then Exit Sub
 
-    If Int(X / PIC_X) >= EDITOR_TILE_COLUMNS Then Exit Sub
+    If Int(X / PIC_X) >= EditorTileColumns Then Exit Sub
 
     If Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value >= _
-       DD_TileSurf(Map.Tileset).Height \ PIC_Y Then Exit Sub
+       DD_TileSurf(EditorTileset).Height \ PIC_Y Then Exit Sub
 
     EditorAnchorX = Int(X / PIC_X)
     EditorAnchorY = Int(Y / PIC_Y) + frmMainGame.scrlPicture.Value
@@ -233,7 +229,7 @@ Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
         Exit Sub
     End If
 
-    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+    If DD_TileSurf(EditorTileset) Is Nothing Then Exit Sub
 
     '
     ' 384 / 32 = 12 columns
@@ -241,12 +237,12 @@ Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
     '
     lastX = frmMainGame.picBack.ScaleWidth \ PIC_X - 1
 
-    If lastX >= EDITOR_TILE_COLUMNS Then
-        lastX = EDITOR_TILE_COLUMNS - 1
+    If lastX >= EditorTileColumns Then
+        lastX = EditorTileColumns - 1
     End If
 
-    If lastX >= DD_TileSurf(Map.Tileset).Width \ PIC_X Then
-        lastX = DD_TileSurf(Map.Tileset).Width \ PIC_X - 1
+    If lastX >= DD_TileSurf(EditorTileset).Width \ PIC_X Then
+        lastX = DD_TileSurf(EditorTileset).Width \ PIC_X - 1
     End If
 
     lastY = frmMainGame.picBack.ScaleHeight \ PIC_Y - 1
@@ -262,8 +258,8 @@ Public Sub EditorUpdateSelection(Button As Integer, X As Single, Y As Single)
 
     tileY = tileY + frmMainGame.scrlPicture.Value
 
-    If tileY >= DD_TileSurf(Map.Tileset).Height \ PIC_Y Then
-        tileY = DD_TileSurf(Map.Tileset).Height \ PIC_Y - 1
+    If tileY >= DD_TileSurf(EditorTileset).Height \ PIC_Y Then
+        tileY = DD_TileSurf(EditorTileset).Height \ PIC_Y - 1
     End If
 
     leftTile = EditorAnchorX
@@ -298,7 +294,7 @@ End Sub
 
 Private Sub EditorSelectionPreview()
     Dim source As RECT, destination As RECT, previewScale As Single
-    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+    If DD_TileSurf(EditorTileset) Is Nothing Then Exit Sub
     If EditorSelectionWidth < 1 Or EditorSelectionHeight < 1 Then Exit Sub
     source.Left = EditorTileX * PIC_X
     source.Top = EditorTileY * PIC_Y
@@ -310,7 +306,7 @@ Public Sub EditorTileScroll()
     Dim source As RECT
     Dim destination As RECT
 
-    If DD_TileSurf(Map.Tileset) Is Nothing Then Exit Sub
+    If DD_TileSurf(EditorTileset) Is Nothing Then Exit Sub
 
     With frmMainGame.picBack
         .Cls
@@ -321,12 +317,12 @@ Public Sub EditorTileScroll()
         source.Right = .ScaleWidth
         source.Bottom = source.Top + .ScaleHeight
 
-        If source.Right > DD_TileSurf(Map.Tileset).Width Then
-            source.Right = DD_TileSurf(Map.Tileset).Width
+        If source.Right > DD_TileSurf(EditorTileset).Width Then
+            source.Right = DD_TileSurf(EditorTileset).Width
         End If
 
-        If source.Bottom > DD_TileSurf(Map.Tileset).Height Then
-            source.Bottom = DD_TileSurf(Map.Tileset).Height
+        If source.Bottom > DD_TileSurf(EditorTileset).Height Then
+            source.Bottom = DD_TileSurf(EditorTileset).Height
         End If
 
         destination.Left = 0
@@ -334,7 +330,7 @@ Public Sub EditorTileScroll()
         destination.Right = source.Right - source.Left
         destination.Bottom = source.Bottom - source.Top
 
-        DD_TileSurf(Map.Tileset).BltToDC .hDC, source, destination
+        DD_TileSurf(EditorTileset).BltToDC .hDC, source, destination
 
         Call EditorDrawSelection
 
@@ -922,21 +918,59 @@ Public Sub ArrowEditorInit()
 End Sub
 
 Public Sub ClassEditorInit()
-    frmClassEditor.txtName.Text = Trim$(Class(EditorIndex).Name)
-    frmClassEditor.scrlMSprite.Value = Class(EditorIndex).MSprite
-    frmClassEditor.scrlFSprite.Value = Class(EditorIndex).FSprite
-    frmClassEditor.scrlSTR.Value = Class(EditorIndex).STR
-    frmClassEditor.scrlDEF.Value = Class(EditorIndex).DEF
-    frmClassEditor.scrlMAGI.Value = Class(EditorIndex).MAGI
-    frmClassEditor.scrlSPD.Value = Class(EditorIndex).Speed
-    frmClassEditor.scrlMap.Value = Class(EditorIndex).Map
-    frmClassEditor.scrlX.Value = Class(EditorIndex).X
-    frmClassEditor.scrlY.Value = Class(EditorIndex).Y
-
+    Load frmClassEditor
+    frmClassEditor.LoadClass EditorIndex
     frmClassEditor.Show vbModal
 End Sub
 
 
+Public Sub EditorFillLayer()
+    Dim X As Long, Y As Long
+    For Y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            EditorPaintTile X, Y, EditorTileY * EditorTileColumns + EditorTileX
+        Next X
+    Next Y
+    BltMap
+End Sub
 
-
-
+Private Sub EditorPaintTile(ByVal X As Long, ByVal Y As Long, ByVal tileNumber As Long)
+    With Map.Tile(X, Y)
+        If frmMainGame.optGround.Value Then
+            .Ground = tileNumber
+            Map.LayerTileset(X, Y, 0) = EditorTileset
+        End If
+        If frmMainGame.optMask.Value Then
+            .Mask = tileNumber
+            Map.LayerTileset(X, Y, 1) = EditorTileset
+        End If
+        If frmMainGame.optAnim.Value Then
+            .Anim = tileNumber
+            Map.LayerTileset(X, Y, 2) = EditorTileset
+        End If
+        If frmMainGame.optMask2.Value Then
+            .Mask2 = tileNumber
+            Map.LayerTileset(X, Y, 3) = EditorTileset
+        End If
+        If frmMainGame.optM2Anim.Value Then
+            .M2Anim = tileNumber
+            Map.LayerTileset(X, Y, 4) = EditorTileset
+        End If
+        If frmMainGame.optFringe.Value Then
+            .Fringe = tileNumber
+            Map.LayerTileset(X, Y, 5) = EditorTileset
+        End If
+        If frmMainGame.optFAnim.Value Then
+            .FAnim = tileNumber
+            Map.LayerTileset(X, Y, 6) = EditorTileset
+        End If
+        If frmMainGame.optFringe2.Value Then
+            .Fringe2 = tileNumber
+            Map.LayerTileset(X, Y, 7) = EditorTileset
+        End If
+        If frmMainGame.optF2Anim.Value Then
+            .F2Anim = tileNumber
+            Map.LayerTileset(X, Y, 8) = EditorTileset
+        End If
+    End With
+End Sub

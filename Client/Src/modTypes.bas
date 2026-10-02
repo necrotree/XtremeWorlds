@@ -146,6 +146,7 @@ Type MapRec
   Npc(1 To MAX_MAP_NPCS) As Long
   Respawn As Byte
   Tileset As Byte
+  LayerTileset(0 To MAX_MAPX, 0 To MAX_MAPY, 0 To 8) As Byte
 End Type
 
 Type ClassRec

@@ -38,27 +38,6 @@ Private Function CaptureError() As Long
 
 End Function
 
-Private Function FileExists(ByVal FilePath As String) As Boolean
-
-    Dim Attr As Long
-
-    On Error GoTo Missing
-
-    If LenB(FilePath) = 0 Then Exit Function
-
-    Attr = GetAttr(FilePath)
-
-    If (Attr And vbDirectory) <> 0 Then Exit Function
-
-    FileExists = True
-    Exit Function
-
-Missing:
-
-    FileExists = False
-
-End Function
-
 Public Sub SwitchMusic(ByVal Music As Long)
     
     If Music = 0 Then
@@ -137,7 +116,7 @@ Public Function OpenStream(ByVal FileName As String, Optional ByVal Looping As B
         Exit Function
     End If
 
-    If FileExists(FileName) = False Then
+    If modDatabase.FileExist(FileName, True) = False Then
         mLastError = BASS_ERROR_FILEOPEN
         Exit Function
     End If
@@ -174,7 +153,7 @@ Public Function LoadMusic(ByVal FileName As String, Optional ByVal Looping As Bo
         Exit Function
     End If
 
-    If FileExists(FileName) = False Then
+    If modDatabase.FileExist(FileName, True) = False Then
         mLastError = BASS_ERROR_FILEOPEN
         Exit Function
     End If

@@ -1334,6 +1334,24 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
             N = N + 1
             Call ClearMapNpc(X, MapNum)
         Next X
+        Dim tileLayer As Long, hasTileSets As Boolean
+        hasTileSets = False
+        If N <= UBound(Parse) Then hasTileSets = (Parse(N) = "TILESETS1")
+        If hasTileSets Then
+            N = N + 1
+            If UBound(Parse) < N + (MAX_MAPX + 1) * (MAX_MAPY + 1) * 9 - 1 Then Exit Sub
+        End If
+        For y = 0 To MAX_MAPY
+            For X = 0 To MAX_MAPX
+                For tileLayer = 0 To 8
+                    Map(MapNum).LayerTileset(X, y, tileLayer) = 0
+                    If hasTileSets Then
+                        Map(MapNum).LayerTileset(X, y, tileLayer) = Val(Parse(N))
+                        N = N + 1
+                    End If
+                Next tileLayer
+            Next X
+        Next y
         Call SendMapNpcsToMap(MapNum)
         Call SpawnMapNpcs(MapNum)
 

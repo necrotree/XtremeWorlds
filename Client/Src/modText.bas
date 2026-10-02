@@ -1,8 +1,6 @@
 Attribute VB_Name = "modText"
 Option Explicit
 
-Private Const SPRITE_DRAW_OFFSET_X As Long = 8
-Private Const SPRITE_DRAW_OFFSET_Y As Long = 16
 Private Const NAME_GAP As Long = 2
 
 Public Sub SetFont(ByVal Font As String, ByVal Size As Byte)
@@ -30,71 +28,11 @@ Public Function getSize(ByVal DC As Long, ByVal Text As String) As TextSize
 End Function
 
 Private Sub GetPlayerSpriteDrawPosition(ByVal index As Long, ByRef SpriteX As Long, ByRef SpriteY As Long)
-    Dim X As Long
-    Dim Y As Long
-    Dim SpriteWidth As Long
-    Dim SpriteHeight As Long
-
-    SpriteWidth = CLng(GameData.PlayerX) + 16
-    SpriteHeight = CLng(PIC_Y) * 2
-
-    X = CLng(GetPlayerPixelX(index))
-    Y = CLng(GetPlayerPixelY(index))
-
-    If GameData.PlayerX > 48 Then
-        X = X - (CLng(GameData.PlayerX) \ 4)
-    End If
-
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
-        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
-    End If
-
-    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
-        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
-    End If
-
-    SpriteX = X - SPRITE_DRAW_OFFSET_X
-    SpriteY = Y - SPRITE_DRAW_OFFSET_Y
+    GetSpriteDrawPosition GetPlayerSprite(index), GetPlayerPixelX(index), GetPlayerPixelY(index), SpriteX, SpriteY
 End Sub
 
 Private Sub GetNPCSpriteDrawPosition(ByVal index As Long, ByRef SpriteX As Long, ByRef SpriteY As Long)
-    Dim X As Long
-    Dim Y As Long
-    Dim SpriteWidth As Long
-    Dim SpriteHeight As Long
-
-    SpriteWidth = CLng(GameData.PlayerX) + 16
-    SpriteHeight = CLng(PIC_Y) * 2
-
-    X = CLng(MapNpc(index).X) * CLng(PIC_X)
-    X = X + CLng(MapNpc(index).XOffset)
-
-    Y = CLng(MapNpc(index).Y) * CLng(PIC_Y)
-    Y = Y + CLng(MapNpc(index).YOffset)
-
-    If GameData.PlayerX > 48 Then
-        X = X - (CLng(GameData.PlayerX) \ 4)
-    End If
-
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
-        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
-    End If
-
-    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
-        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
-    End If
-
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    SpriteX = X - SPRITE_DRAW_OFFSET_X
-    SpriteY = Y - SPRITE_DRAW_OFFSET_Y
+    GetSpriteDrawPosition Npc(MapNpc(index).Num).Sprite, CLng(MapNpc(index).X) * PIC_X + MapNpc(index).XOffset, CLng(MapNpc(index).Y) * PIC_Y + MapNpc(index).YOffset, SpriteX, SpriteY
 End Sub
 
 Sub DrawPlayerName(ByVal index As Long)
@@ -103,7 +41,7 @@ Sub DrawPlayerName(ByVal index As Long)
     Dim Color As Long
     Dim SpriteX As Long
     Dim SpriteY As Long
-    Dim SpriteWidth As Long
+    Dim SpriteWidth As Long, SpriteHeight As Long
     Dim NameText As String
     Dim NameSize As TextSize
 
@@ -139,7 +77,7 @@ Sub DrawPlayerName(ByVal index As Long)
         Color = QBColor(BrightRed)
     End If
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
+    GetSpriteDimensions GetPlayerSprite(index), SpriteWidth, SpriteHeight
     GetPlayerSpriteDrawPosition index, SpriteX, SpriteY
 
     TextX = SpriteX + (SpriteWidth \ 2) - (CLng(NameSize.Width) \ 2)
@@ -153,7 +91,7 @@ Sub DrawPlayerGuildName(ByVal index As Long)
     Dim TextY As Long
     Dim SpriteX As Long
     Dim SpriteY As Long
-    Dim SpriteWidth As Long
+    Dim SpriteWidth As Long, SpriteHeight As Long
     Dim GuildText As String
     Dim PlayerText As String
     Dim GuildSize As TextSize
@@ -167,7 +105,7 @@ Sub DrawPlayerGuildName(ByVal index As Long)
     GuildSize = getSize(TexthDC, GuildText)
     PlayerSize = getSize(TexthDC, PlayerText)
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
+    GetSpriteDimensions GetPlayerSprite(index), SpriteWidth, SpriteHeight
     GetPlayerSpriteDrawPosition index, SpriteX, SpriteY
 
     TextX = SpriteX + (SpriteWidth \ 2) - (CLng(GuildSize.Width) \ 2)
@@ -184,7 +122,7 @@ Sub DrawMapNPCName(ByVal index As Long)
     Dim TextY As Long
     Dim SpriteX As Long
     Dim SpriteY As Long
-    Dim SpriteWidth As Long
+    Dim SpriteWidth As Long, SpriteHeight As Long
     Dim NPCName As String
     Dim NPCNameSize As TextSize
 
@@ -193,7 +131,7 @@ Sub DrawMapNPCName(ByVal index As Long)
     NPCName = Trim$(Npc(MapNpc(index).Num).name)
     NPCNameSize = getSize(TexthDC, NPCName)
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
+    GetSpriteDimensions Npc(MapNpc(index).Num).Sprite, SpriteWidth, SpriteHeight
     GetNPCSpriteDrawPosition index, SpriteX, SpriteY
 
     TextX = SpriteX + (SpriteWidth \ 2) - (CLng(NPCNameSize.Width) \ 2)

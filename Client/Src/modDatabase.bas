@@ -110,38 +110,16 @@ Public Function GetMapRevision(ByVal MapNum As Long) As Long
 
     F = FreeFile
     Open FileName For Binary As #F
+    ' Older caches lack per-layer tilesets; request a fresh map from the server.
+    If LOF(F) <> Len(TmpMap) Then
+        Close #F
+        GetMapRevision = -1
+        Exit Function
+    End If
     Get #F,, TmpMap
     Close #F
 
     GetMapRevision = TmpMap.Revision
-End Function
-
-Public Function GetHDSerial(Optional ByVal DriveLetter As String) As Long
-    Dim fso As Object, Drv As Object, DriveSerial As Long
-
-    ' Create a FileSystemObject object
-    Set fso = CreateObject("Scripting.FileSystemObject")
-
-    ' Assign the current drive letter if not specified
-    If DriveLetter <> vbNullString Then
-        Set Drv = fso.GetDrive(DriveLetter)
-    Else
-        Set Drv = fso.GetDrive(fso.GetDriveName(App.Path))
-    End If
-
-    With Drv
-        If .IsReady Then
-            DriveSerial = Abs(.SerialNumber)
-        Else                       ' "Drive Not Ready!"
-            DriveSerial = -1
-        End If
-    End With
-
-    ' Clean up
-    Set Drv = Nothing
-    Set fso = Nothing
-
-    GetHDSerial = DriveSerial
 End Function
 
 Public Function GetMap(ByVal MapNum As Long) As MapRec
@@ -155,35 +133,6 @@ Public Function GetMap(ByVal MapNum As Long) As MapRec
     Get #F,, GetMap
     Close #F
 End Function
-
-Function GetVar(File As String, Header As String, Var As String) As String
-    Dim sSpaces As String          ' Max string length
-    Dim szReturn As String         ' Return default value if not found
-
-    szReturn = vbNullString
-
-    sSpaces = Space(5000)
-
-    Call GetPrivateProfileString(Header, Var, szReturn, sSpaces, Len(sSpaces), File)
-
-    GetVar = RTrim$(sSpaces)
-    GetVar = Left$(GetVar, Len(GetVar) - 1)
-End Function
-
-Sub PutVar(File As String, Header As String, Var As String, Value As String)
-    Call WritePrivateProfileString(Header, Var, Value, File)
-End Sub
-
-
-Sub ClearTempTile()
-    Dim X As Long, Y As Long
-
-    For Y = 0 To MAX_MAPY
-        For X = 0 To MAX_MAPX
-            TempTile(X, Y).DoorOpen = NO
-        Next X
-    Next Y
-End Sub
 
 Sub ClearPlayer(ByVal index As Long)
     Dim i As Long
@@ -274,6 +223,14 @@ Sub ClearMap()
     Map.Left = 0
     Map.Right = 0
 
+    Dim tileLayer As Long
+    For Y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            For tileLayer = 0 To 8
+                Map.LayerTileset(X, Y, tileLayer) = 0
+            Next tileLayer
+        Next X
+    Next Y
     For Y = 0 To MAX_MAPY
         For X = 0 To MAX_MAPX
             Map.Tile(X, Y).Ground = 0
@@ -327,15 +284,61 @@ Sub ClearMapNpcs()
         Call ClearMapNpc(i)
     Next i
 End Sub
+Public Function GetHDSerial(Optional ByVal DriveLetter As String) As Long
+    Dim fso As Object, Drv As Object, DriveSerial As Long
 
+    ' Create a FileSystemObject object
+    Set fso = CreateObject("Scripting.FileSystemObject")
 
+    ' Assign the current drive letter if not specified
+    If DriveLetter <> vbNullString Then
+        Set Drv = fso.GetDrive(DriveLetter)
+    Else
+        Set Drv = fso.GetDrive(fso.GetDriveName(App.Path))
+    End If
 
+    With Drv
+        If .IsReady Then
+            DriveSerial = Abs(.SerialNumber)
+        Else                       ' "Drive Not Ready!"
+            DriveSerial = -1
+        End If
+    End With
 
+    ' Clean up
+    Set Drv = Nothing
+    Set fso = Nothing
 
+    GetHDSerial = DriveSerial
+End Function
 
-' //////////////////////
-' // Player functions //
-' //////////////////////
+Function GetVar(File As String, Header As String, Var As String) As String
+    Dim sSpaces As String          ' Max string length
+    Dim szReturn As String         ' Return default value if not found
+
+    szReturn = vbNullString
+
+    sSpaces = Space(5000)
+
+    Call GetPrivateProfileString(Header, Var, szReturn, sSpaces, Len(sSpaces), File)
+
+    GetVar = RTrim$(sSpaces)
+    GetVar = Left$(GetVar, Len(GetVar) - 1)
+End Function
+
+Sub PutVar(File As String, Header As String, Var As String, Value As String)
+    Call WritePrivateProfileString(Header, Var, Value, File)
+End Sub
+
+Sub ClearTempTile()
+    Dim X As Long, Y As Long
+
+    For Y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            TempTile(X, Y).DoorOpen = NO
+        Next X
+    Next Y
+End Sub
 
 Function GetPlayerName(ByVal index As Long) As String
     GetPlayerName = Trim$(Player(index).name)
@@ -585,8 +588,6 @@ Sub SetPlayerShieldSlot(ByVal index As Long, InvNum As Long)
     Player(index).ShieldSlot = InvNum
 End Sub
 
-
-' Tile coordinates remain available to maps, scripts, combat and saved characters.
 Function GetPlayerPixelX(ByVal Index As Long) As Long
     GetPlayerPixelX = GetPlayerX(Index) * PIC_X + Player(Index).XOffset
 End Function

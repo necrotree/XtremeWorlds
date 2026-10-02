@@ -66,18 +66,17 @@ Private Sub DrawTargetMarker()
             If TargetNum < 1 Or TargetNum > HighIndex Then GoTo InvalidTarget
             If Not IsPlaying(TargetNum) Or Player(TargetNum).Map <> TargetMarkerMap Then GoTo InvalidTarget
             targetX = GetPlayerPixelX(TargetNum)
-            If GameData.PlayerX > 48 Then targetX = targetX - GameData.PlayerX / 4
             targetY = GetPlayerPixelY(TargetNum)
         Case 2
             If TargetNum < 1 Or TargetNum > MAX_MAP_NPCS Then GoTo InvalidTarget
             If MapNpc(TargetNum).Num <= 0 Then GoTo InvalidTarget
             targetX = MapNpc(TargetNum).X * PIC_X + MapNpc(TargetNum).XOffset
-            targetY = MapNpc(TargetNum).Y * PIC_Y + MapNpc(TargetNum).YOffset - 4
+            targetY = MapNpc(TargetNum).Y * PIC_Y + MapNpc(TargetNum).YOffset
         Case Else
             GoTo InvalidTarget
     End Select
-    targetX = targetX + 8
-    targetY = targetY + PIC_Y
+    ' Center the 32x32 marker on the shared sprite foot anchor.
+    targetY = GetSpriteFeetY(targetY) - PIC_Y
     DD_BackBuffer.BltFast targetX, targetY, TargetSurface, source, True
     Exit Sub
 
@@ -130,36 +129,7 @@ Private Function OverlayPlayerVisible(ByVal index As Long) As Boolean
 End Function
 
 Private Sub GetOverlayPlayerSpritePosition(ByVal index As Long, ByRef SpriteX As Long, ByRef SpriteY As Long)
-    Dim X As Long
-    Dim Y As Long
-    Dim SpriteWidth As Long
-    Dim SpriteHeight As Long
-
-    SpriteWidth = CLng(GameData.PlayerX) + 16
-    SpriteHeight = CLng(PIC_Y) * 2
-
-    X = CLng(GetPlayerPixelX(index))
-    Y = CLng(GetPlayerPixelY(index))
-
-    If GameData.PlayerX > 48 Then
-        X = X - (CLng(GameData.PlayerX) \ 4)
-    End If
-
-    ' Match BltPlayer's clamping exactly.
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
-        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
-    End If
-
-    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
-        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
-    End If
-
-    ' BltPlayer draws the final sprite at X - 8, Y - 16.
-    SpriteX = X - 8
-    SpriteY = Y - 16
+    GetSpriteDrawPosition GetPlayerSprite(index), GetPlayerPixelX(index), GetPlayerPixelY(index), SpriteX, SpriteY
 End Sub
 
 Private Sub OverlayLayout(ByVal index As Long, ByVal hasBubble As Boolean, ByRef bars As RECT, ByRef bubble As RECT)
@@ -171,8 +141,7 @@ Private Sub OverlayLayout(ByVal index As Long, ByVal hasBubble As Boolean, ByRef
     Dim barTop As Long
     Dim bubbleTop As Long
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
-    SpriteHeight = CLng(PIC_Y) * 2
+    GetSpriteDimensions GetPlayerSprite(index), SpriteWidth, SpriteHeight
 
     ' Use the exact final position used by BltPlayer.
     GetOverlayPlayerSpritePosition index, SpriteX, SpriteY

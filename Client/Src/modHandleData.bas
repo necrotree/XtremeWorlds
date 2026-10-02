@@ -571,6 +571,24 @@ Public Sub HandleData(ByVal Data As String)
                 n = n + 1
             Next X
 
+        Dim tileLayer As Long, hasTileSets As Boolean
+        hasTileSets = False
+        If n <= UBound(Parse) Then hasTileSets = (Parse(n) = "TILESETS1")
+        If hasTileSets Then
+            n = n + 1
+            If UBound(Parse) < n + (MAX_MAPX + 1) * (MAX_MAPY + 1) * 9 - 1 Then Exit Sub
+        End If
+        For Y = 0 To MAX_MAPY
+            For X = 0 To MAX_MAPX
+                For tileLayer = 0 To 8
+                    SaveMap.LayerTileset(X, Y, tileLayer) = 0
+                    If hasTileSets Then
+                        SaveMap.LayerTileset(X, Y, tileLayer) = Val(Parse(n))
+                        n = n + 1
+                    End If
+                Next tileLayer
+            Next X
+        Next Y
             ' Save the map
             Call SaveLocalMap(Val(Parse(1)))
 

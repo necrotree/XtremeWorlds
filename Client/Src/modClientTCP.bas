@@ -298,6 +298,16 @@ Public Sub SendMap()
         Next X
     End With
 
+    Dim layer As Long
+    Packet = Packet & "TILESETS1" & SEP_CHAR
+    For Y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            For layer = 0 To 8
+                Packet = Packet & Map.LayerTileset(X, Y, layer) & SEP_CHAR
+            Next layer
+        Next X
+    Next Y
+
     Packet = Packet & END_CHAR
 
     X = Int(Len(Packet) / 2)

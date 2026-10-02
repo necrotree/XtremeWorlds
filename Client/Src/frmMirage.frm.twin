@@ -40,22 +40,13 @@ Class frmMainGame
         Dim Y As Long
         Dim X As Long
     
+        If frmMainGame.optLayers.Value Then
+            EditorFillLayer
+            Exit Sub
+        End If
         For Y = 0 To MAX_MAPY
             For X = 0 To MAX_MAPX
-                If frmMainGame.optLayers.Value = True Then
-                    With Map.Tile(X, Y)
-                        If frmMainGame.optGround.Value = True Then .Ground = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optMask.Value = True Then .Mask = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optAnim.Value = True Then .Anim = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optMask2.Value = True Then .Mask2 = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optM2Anim.Value = True Then .M2Anim = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optFringe.Value = True Then .Fringe = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optFAnim.Value = True Then .FAnim = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optFringe2.Value = True Then .Fringe2 = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optF2Anim.Value = True Then .F2Anim = EditorTileY * 7 + EditorTileX
-                    End With
-                    BltMap
-                ElseIf frmMainGame.optAttribs.Value = True Then
+                If frmMainGame.optAttribs.Value = True Then
                     With Map.Tile(X, Y)
                         If frmMainGame.optBlocked.Value = True Then
                             .Type = TILE_TYPE_BLOCKED
@@ -943,7 +934,10 @@ Class frmMainGame
     Public Sub LayoutGamePanels()
         Dim sidebar As Single, adminLeft As Single, requiredWidth As Single
         sidebar = 956
-        scrlTileset.Value = Map.Tileset
+        If InEditor Then
+            scrlTileset.Max = TilesetCount
+            If scrlTileset.Value <> EditorTileset Then scrlTileset.Value = EditorTileset
+        End If
         picMapEditor.Left = Me.ScaleX(sidebar, vbPixels, Me.ScaleMode)
         picMapEditor.Top = Me.ScaleY(39, vbPixels, Me.ScaleMode)
         adminLeft = sidebar
@@ -1227,7 +1221,23 @@ Class frmMainGame
     End Sub
     
     Private Sub scrlTileset_Change()
-        Map.Tileset = scrlTileset.Value
+        Dim candidate As Long, direction As Long
+        If Not InEditor Then Exit Sub
+        candidate = scrlTileset.Value
+        direction = Sgn(candidate - EditorTileset)
+        If direction = 0 Then Exit Sub
+        Do While DD_TileSurf(candidate) Is Nothing
+            candidate = candidate + direction
+            If candidate < 1 Or candidate > TilesetCount Then
+                scrlTileset.Value = EditorTileset
+                Exit Sub
+            End If
+        Loop
+        If candidate <> scrlTileset.Value Then
+            scrlTileset.Value = candidate
+            Exit Sub
+        End If
+        EditorTileset = scrlTileset.Value
         EditorInit
     End Sub
 

@@ -277,6 +277,20 @@ Public Sub ReadMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
     value.Npc(i0) = file.ReadLong()
     Next i0
     value.Respawn = file.ReadByte()
+    Dim tileLayer As Long
+    Dim hasTileSets As Boolean
+    hasTileSets = (file.Remaining > 0)
+    If hasTileSets Then
+        If file.ReadLong() <> 1 Then Err.Raise 5, "Map tilesets", "Unknown tileset format"
+    End If
+    For i1 = 0 To MAX_MAPY
+        For i0 = 0 To MAX_MAPX
+            For tileLayer = 0 To 8
+                value.LayerTileset(i0, i1, tileLayer) = 0
+                If hasTileSets Then value.LayerTileset(i0, i1, tileLayer) = file.ReadByte()
+            Next tileLayer
+        Next i0
+    Next i1
 End Sub
 
 Public Sub WriteMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
@@ -304,6 +318,15 @@ Public Sub WriteMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
     file.WriteLong value.Npc(i0)
     Next i0
     file.WriteByte value.Respawn
+    Dim tileLayer As Long
+    file.WriteLong 1
+    For i1 = 0 To MAX_MAPY
+        For i0 = 0 To MAX_MAPX
+            For tileLayer = 0 To 8
+                file.WriteByte value.LayerTileset(i0, i1, tileLayer)
+            Next tileLayer
+        Next i0
+    Next i1
 End Sub
 
 Public Sub ResetMapRec(ByRef value As MapRec)
@@ -331,6 +354,14 @@ Public Sub ResetMapRec(ByRef value As MapRec)
     Next i0
     value.Respawn = 0
     value.Tileset = 1
+    Dim tileLayer As Long
+    For i1 = 0 To MAX_MAPY
+        For i0 = 0 To MAX_MAPX
+            For tileLayer = 0 To 8
+                value.LayerTileset(i0, i1, tileLayer) = 0
+            Next tileLayer
+        Next i0
+    Next i1
 End Sub
 
 Public Sub ReadClassRec(ByVal file As clsDataFile, ByRef value As ClassRec)

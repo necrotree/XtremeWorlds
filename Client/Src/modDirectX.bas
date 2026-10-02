@@ -1,7 +1,10 @@
 Attribute VB_Name = "modDirectX"
 Option Explicit
 
-Private Const TILESET_COLUMNS As Long = 12
+Private SpriteFrameWidths() As Long
+Private SpriteFrameHeights() As Long
+Private SpriteFrameTops() As Long
+Public SpriteFrameCount As Long
 
 Public Sub InitDirectX()
     DestroyDirectX
@@ -25,14 +28,19 @@ End Function
 Public Sub InitSurfaces()
     Dim Prefix As String
     Dim i As Long
+    TilesetCount = 0
     Prefix = App.Path & GFX_PATH
     Set DD_BackBuffer = NewSurface((MAX_MAPX + 1) * PIC_X, (MAX_MAPY + 1) * PIC_Y)
     Set DD_LowerBuffer = NewSurface(DD_BackBuffer.Width, DD_BackBuffer.Height)
     Set DD_MiddleBuffer = NewSurface(DD_BackBuffer.Width, DD_BackBuffer.Height)
     Set DD_UpperBuffer = NewSurface(DD_BackBuffer.Width, DD_BackBuffer.Height)
     Set DD_SpriteSurf = LoadSurface(Prefix & "sprites" & GFX_EXT)
-    For i = 1 To 6
-        Set DD_TileSurf(i) = LoadSurface(Prefix & "tiles" & i & GFX_EXT)
+    InitSpriteFrames Prefix & "sprites.ini"
+    For i = 1 To 255
+        If Len(Dir$(Prefix & "tiles" & i & GFX_EXT)) > 0 Then
+            Set DD_TileSurf(i) = LoadSurface(Prefix & "tiles" & i & GFX_EXT)
+            TilesetCount = i
+        End If
     Next
     Set DD_ItemSurf = LoadSurface(Prefix & "items" & GFX_EXT)
     DD_ItemSurf.ColorKey = RGB(255, 255, 255)
@@ -46,7 +54,8 @@ Public Sub DestroyDirectX()
     
     DestroySpriteOverlays
     Set DD_SpriteSurf = Nothing
-    For i = 1 To 6
+    SpriteFrameCount = 0
+    For i = 1 To 255
         Set DD_TileSurf(i) = Nothing
     Next
     Set DD_ItemSurf = Nothing
@@ -128,15 +137,12 @@ Public Sub BltMap()
             End With
 
             ' Ground
-            rec.Left = (Ground Mod TILESET_COLUMNS) * PIC_X
-            rec.Top = (Ground \ TILESET_COLUMNS) * PIC_Y
-            rec.Right = rec.Left + PIC_X
-            rec.Bottom = rec.Top + PIC_Y
+            GetMapTileRect X, Y, 0, Ground, rec
 
             DD_LowerBuffer.BltFast _
                 X * PIC_X, _
                 Y * PIC_Y, _
-                DD_TileSurf(Map.Tileset), _
+                MapTileSurface(X, Y, 0), _
                 rec, _
                 False
 
@@ -144,15 +150,12 @@ Public Sub BltMap()
             If (MapAnim = 0) Or (Anim2 <= 0) Then
 
                 If Anim1 > 0 And TempTile(X, Y).DoorOpen = NO Then
-                    rec.Left = (Anim1 Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (Anim1 \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 1, Anim1, rec
 
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 1), _
                         rec, _
                         True
                 End If
@@ -160,15 +163,12 @@ Public Sub BltMap()
             Else
 
                 If Anim2 > 0 Then
-                    rec.Left = (Anim2 Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (Anim2 \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 2, Anim2, rec
 
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 2), _
                         rec, _
                         True
                 End If
@@ -179,15 +179,12 @@ Public Sub BltMap()
             If (MapAnim = 0) Or (M2Anim <= 0) Then
 
                 If Mask2 > 0 Then
-                    rec.Left = (Mask2 Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (Mask2 \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 3, Mask2, rec
 
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 3), _
                         rec, _
                         True
                 End If
@@ -195,15 +192,12 @@ Public Sub BltMap()
             Else
 
                 If M2Anim > 0 Then
-                    rec.Left = (M2Anim Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (M2Anim \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 4, M2Anim, rec
 
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 4), _
                         rec, _
                         True
                 End If
@@ -214,15 +208,12 @@ Public Sub BltMap()
             If (MapAnim = 0) Or (FAnim <= 0) Then
 
                 If Fringe > 0 Then
-                    rec.Left = (Fringe Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (Fringe \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 5, Fringe, rec
 
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 5), _
                         rec, _
                         True
                 End If
@@ -230,15 +221,12 @@ Public Sub BltMap()
             Else
 
                 If FAnim > 0 Then
-                    rec.Left = (FAnim Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (FAnim \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 6, FAnim, rec
 
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 6), _
                         rec, _
                         True
                 End If
@@ -249,15 +237,12 @@ Public Sub BltMap()
             If (MapAnim = 0) Or (F2Anim <= 0) Then
 
                 If Fringe2 > 0 Then
-                    rec.Left = (Fringe2 Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (Fringe2 \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 7, Fringe2, rec
 
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 7), _
                         rec, _
                         True
                 End If
@@ -265,15 +250,12 @@ Public Sub BltMap()
             Else
 
                 If F2Anim > 0 Then
-                    rec.Left = (F2Anim Mod TILESET_COLUMNS) * PIC_X
-                    rec.Top = (F2Anim \ TILESET_COLUMNS) * PIC_Y
-                    rec.Right = rec.Left + PIC_X
-                    rec.Bottom = rec.Top + PIC_Y
+                    GetMapTileRect X, Y, 8, F2Anim, rec
 
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        MapTileSurface(X, Y, 8), _
                         rec, _
                         True
                 End If
@@ -307,11 +289,9 @@ End Sub
 Public Sub BltPlayer(ByVal index As Long)
     Dim X As Long
     Dim Y As Long
-    Dim SpriteWidth As Long
-    Dim SpriteHeight As Long
 
     If Player(index).Attacking = 0 Then
-        Player(index).Anim = ((Player(index).XOffset + Player(index).YOffset) \ 8) Mod 3
+        Player(index).Anim = Abs(((Player(index).XOffset + Player(index).YOffset) \ 8) Mod 3)
     Else
         If Player(index).AttackTimer + 500 > GetTickCount Then
             Player(index).Anim = 2
@@ -325,65 +305,121 @@ Public Sub BltPlayer(ByVal index As Long)
         End If
     End With
 
-    SpriteWidth = GameData.PlayerX + 16
-    SpriteHeight = PIC_Y * 2
-
-    With rec
-        .Top = GetPlayerSprite(index) * GameData.PlayerY
-        .Bottom = .Top + SpriteHeight
-
-        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * SpriteWidth
-        .Right = .Left + SpriteWidth
-    End With
-
-    X = GetPlayerPixelX(index)
-    Y = GetPlayerPixelY(index)
-
-    If GameData.PlayerX > 48 Then
-        X = X - (GameData.PlayerX / 4)
-    End If
-
-    ' Keep entire sprite inside game buffer
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    If X + SpriteWidth > DD_MiddleBuffer.Width Then
-        X = DD_MiddleBuffer.Width - SpriteWidth
-    End If
-
-    If Y + SpriteHeight > DD_MiddleBuffer.Height Then
-        Y = DD_MiddleBuffer.Height - SpriteHeight
-    End If
-
-    DD_MiddleBuffer.BltFast X - 8, Y - 16, DD_SpriteSurf, rec, True
+    If Not GetSpriteFrameRect(GetPlayerSprite(index), GetPlayerDir(index), Player(index).Anim, rec) Then Exit Sub
+    GetSpriteDrawPosition GetPlayerSprite(index), GetPlayerPixelX(index), GetPlayerPixelY(index), X, Y
+    DD_MiddleBuffer.BltFast X, Y, DD_SpriteSurf, rec, True
 End Sub
 
+' Full frames are drawn once in Y order; there is no separate top pass.
 Public Sub BltPlayerTop(ByVal index As Long)
-    Dim X As Long
-    Dim Y As Long
-    Dim source As RECT
-
-    With source
-        .Top = (GetPlayerSprite(index) * GameData.PlayerY) - GameData.PlayerY
-        .Bottom = .Top + (GameData.PlayerY - 32)
-
-        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * GameData.PlayerX
-        .Right = .Left + GameData.PlayerX
-    End With
-
-    X = GetPlayerPixelX(index)
-
-    If GameData.PlayerX > 32 Then
-        X = X - (GameData.PlayerX / 4)
-    End If
-
-    Y = GetPlayerPixelY(index)
-    Y = Y - (GameData.PlayerY - 32)
-
-    ' Let BltFast clip it
-    DD_MiddleBuffer.BltFast X, Y, DD_SpriteSurf, source, True
 End Sub
 
+' Sprite rows contain twelve frames (four directions, three animation frames).
+' Width defaults to 48, height to 64 (the bundled sheet has right padding).
+' Optional sprites.ini
+' overrides [Sprites] Width/Height and [Sprite0], [Sprite1], ... Width/Height.
+
+Private Sub InitSpriteFrames(ByVal FileName As String)
+    Dim DefaultWidth As Long, DefaultHeight As Long, Width As Long, Height As Long
+    Dim Top As Long, Section As String
+    DefaultWidth = 48
+    DefaultHeight = 64
+    Width = Val(GetVar(FileName, "Sprites", "Width"))
+    Height = Val(GetVar(FileName, "Sprites", "Height"))
+    If Width > 0 Then DefaultWidth = Width
+    If Height > 0 Then DefaultHeight = Height
+    If DefaultWidth < 1 Or DefaultWidth * 12 > DD_SpriteSurf.Width Or DefaultHeight < 1 Then Err.Raise 5, "Sprites", "Invalid default sprite dimensions."
+    ReDim SpriteFrameWidths(0 To DD_SpriteSurf.Height - 1)
+    ReDim SpriteFrameHeights(0 To DD_SpriteSurf.Height - 1)
+    ReDim SpriteFrameTops(0 To DD_SpriteSurf.Height - 1)
+    SpriteFrameCount = 0
+    Do While Top < DD_SpriteSurf.Height
+        Section = "Sprite" & CStr(SpriteFrameCount)
+        Width = Val(GetVar(FileName, Section, "Width"))
+        Height = Val(GetVar(FileName, Section, "Height"))
+        If Width = 0 Then Width = DefaultWidth
+        If Height = 0 Then Height = DefaultHeight
+        If Width < 1 Or Width * 12 > DD_SpriteSurf.Width Or Height < 1 Or Top + Height > DD_SpriteSurf.Height Then Err.Raise 5, "Sprites", "Invalid frame dimensions for " & Section
+        SpriteFrameWidths(SpriteFrameCount) = Width
+        SpriteFrameHeights(SpriteFrameCount) = Height
+        SpriteFrameTops(SpriteFrameCount) = Top
+        Top = Top + Height
+        SpriteFrameCount = SpriteFrameCount + 1
+    Loop
+End Sub
+
+Public Function GetSpriteFrameRect(ByVal Sprite As Long, ByVal Direction As Long, ByVal Frame As Long, ByRef Source As RECT) As Boolean
+    If DD_SpriteSurf Is Nothing Then Exit Function
+    If Sprite < 0 Or Sprite >= SpriteFrameCount Then Exit Function
+    If Direction < 0 Or Direction > 3 Or Frame < 0 Or Frame > 2 Then Exit Function
+    Source.Left = (Direction * 3 + Frame) * SpriteFrameWidths(Sprite)
+    Source.Top = SpriteFrameTops(Sprite)
+    Source.Right = Source.Left + SpriteFrameWidths(Sprite)
+    Source.Bottom = Source.Top + SpriteFrameHeights(Sprite)
+    GetSpriteFrameRect = True
+End Function
+
+Public Sub GetSpriteDimensions(ByVal Sprite As Long, ByRef Width As Long, ByRef Height As Long)
+    Width = PIC_X: Height = PIC_Y
+    If Sprite < 0 Or Sprite >= SpriteFrameCount Then Exit Sub
+    Width = SpriteFrameWidths(Sprite)
+    Height = SpriteFrameHeights(Sprite)
+End Sub
+
+Public Sub GetSpriteDrawPosition(ByVal Sprite As Long, ByVal PixelX As Long, ByVal PixelY As Long, ByRef X As Long, ByRef Y As Long)
+    Dim Width As Long, Height As Long
+    GetSpriteDimensions Sprite, Width, Height
+    X = PixelX - (Width - PIC_X) \ 2
+    ' A 64-pixel frame starts at PixelY + 16, one tile below the old -16.
+    ' All frame heights share the same feet anchor.
+    Y = GetSpriteFeetY(PixelY) - Height
+    ' Clip at the buffer edges instead of moving the sprite away from its tile.
+End Sub
+
+Public Function GetSpriteFeetY(ByVal PixelY As Long) As Long
+    GetSpriteFeetY = PixelY + PIC_Y * 2 + PIC_Y \ 2
+End Function
+
+Public Sub BltYSortedSprites()
+    Dim Indices() As Long, Depths() As Long, IsNpc() As Boolean
+    Dim Count As Long, I As Long, J As Long, Index As Long, Depth As Long, NpcEntry As Boolean
+    ReDim Indices(1 To MAX_MAP_NPCS + HighIndex)
+    ReDim Depths(1 To MAX_MAP_NPCS + HighIndex)
+    ReDim IsNpc(1 To MAX_MAP_NPCS + HighIndex)
+    For I = 1 To MAX_MAP_NPCS
+        If MapNpc(I).Num > 0 Then
+            Count = Count + 1
+            Indices(Count) = I
+            Depths(Count) = GetSpriteFeetY(CLng(MapNpc(I).Y) * PIC_Y + MapNpc(I).YOffset)
+            IsNpc(Count) = True
+        End If
+    Next I
+    For I = 1 To HighIndex
+        If IsPlaying(I) And GetPlayerMap(I) = GetPlayerMap(MyIndex) Then
+            Count = Count + 1
+            Indices(Count) = I
+            Depths(Count) = GetSpriteFeetY(GetPlayerPixelY(I))
+        End If
+    Next I
+    ' Stable insertion sort keeps equal-depth sprites from flickering.
+    For I = 2 To Count
+        Index = Indices(I): Depth = Depths(I): NpcEntry = IsNpc(I)
+        J = I - 1
+        Do While J >= 1
+            If Depths(J) <= Depth Then Exit Do
+            Indices(J + 1) = Indices(J): Depths(J + 1) = Depths(J): IsNpc(J + 1) = IsNpc(J)
+            J = J - 1
+        Loop
+        Indices(J + 1) = Index: Depths(J + 1) = Depth: IsNpc(J + 1) = NpcEntry
+    Next I
+    For I = 1 To Count
+        If IsNpc(I) Then
+            BltNPC Indices(I)
+        Else
+            BltPlayer Indices(I)
+        End If
+    Next I
+End Sub
 Public Sub SpellEditorBltAnim(ByVal Frame As Byte)
     Call BitBlt(frmSpellEditor.picAnim.hDC, 0, 0, PIC_X, PIC_Y, frmSpellEditor.picSpells.hDC, Frame * PIC_X, frmSpellEditor.scrlAnim.Value * PIC_Y, SRCCOPY)
 End Sub
@@ -416,8 +452,6 @@ End Sub
 Public Sub BltNPC(ByVal index As Long)
     Dim X As Long
     Dim Y As Long
-    Dim SpriteWidth As Long
-    Dim SpriteHeight As Long
     Dim AnimFrame As Long
     Dim Direction As Long
     Dim SpriteNum As Long
@@ -434,51 +468,72 @@ Public Sub BltNPC(ByVal index As Long)
 
     MapNpc(index).Anim = AnimFrame
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
-    SpriteHeight = CLng(PIC_Y) * 2
-
     SpriteNum = CLng(Npc(MapNpc(index).Num).Sprite)
     Direction = CLng(MapNpc(index).Dir)
-
-    With rec
-        .Top = SpriteNum * CLng(GameData.PlayerY)
-        .Bottom = .Top + SpriteHeight
-
-        .Left = ((Direction * 3) + AnimFrame) * SpriteWidth
-        .Right = .Left + SpriteWidth
-    End With
-
-    X = CLng(MapNpc(index).X) * CLng(PIC_X)
-    X = X + CLng(MapNpc(index).XOffset)
-
-    Y = CLng(MapNpc(index).Y) * CLng(PIC_Y)
-    Y = Y + CLng(MapNpc(index).YOffset)
-
-    If GameData.PlayerX > 48 Then
-        X = X - (CLng(GameData.PlayerX) \ 4)
-    End If
-
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
-        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
-    End If
-
-    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
-        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
-    End If
-
-    If X < 0 Then X = 0
-    If Y < 0 Then Y = 0
-
-    DD_MiddleBuffer.BltFast X - 8, Y - 16, DD_SpriteSurf, rec, True
+    If Not GetSpriteFrameRect(SpriteNum, Direction, AnimFrame, rec) Then Exit Sub
+    GetSpriteDrawPosition SpriteNum, CLng(MapNpc(index).X) * PIC_X + MapNpc(index).XOffset, CLng(MapNpc(index).Y) * PIC_Y + MapNpc(index).YOffset, X, Y
+    DD_MiddleBuffer.BltFast X, Y, DD_SpriteSurf, rec, True
 End Sub
-
 ' Item pictures are zero-based, ordered left to right across six columns.
 Public Sub GetItemPictureRect(ByVal Picture As Long, ByRef Source As RECT)
     Source.Left = (Picture Mod 6) * PIC_X
     Source.Top = (Picture \ 6) * PIC_Y
     Source.Right = Source.Left + PIC_X
     Source.Bottom = Source.Top + PIC_Y
+End Sub
+Private Function MapTileSurface(ByVal X As Long, ByVal Y As Long, ByVal Layer As Long) As clsDX11Surface
+    Dim tileset As Long
+    tileset = Map.LayerTileset(X, Y, Layer)
+    If tileset = 0 Then tileset = Map.Tileset
+    If tileset < 1 Or tileset > 255 Then tileset = 1
+    If DD_TileSurf(tileset) Is Nothing Then tileset = 1
+    Set MapTileSurface = DD_TileSurf(tileset)
+End Function
+
+Public Function TilesetColumns(ByVal Tileset As Long) As Long
+    ' Tile IDs use the source sheet's row width, even when the picker only
+    ' displays part of a wide sheet.
+    TilesetColumns = 1
+    If Tileset < 1 Or Tileset > UBound(DD_TileSurf) Then Exit Function
+    If DD_TileSurf(Tileset) Is Nothing Then Exit Function
+    TilesetColumns = DD_TileSurf(Tileset).Width \ PIC_X
+    If TilesetColumns < 1 Then TilesetColumns = 1
+End Function
+
+Private Sub GetMapTileRect(ByVal X As Long, ByVal Y As Long, ByVal Layer As Long, ByVal TileNumber As Long, ByRef Source As RECT)
+    Dim Surface As clsDX11Surface, Columns As Long
+    Set Surface = MapTileSurface(X, Y, Layer)
+    Columns = Surface.Width \ PIC_X
+    If Columns < 1 Then Columns = 1
+    Source.Left = (TileNumber Mod Columns) * PIC_X
+    Source.Top = (TileNumber \ Columns) * PIC_Y
+    Source.Right = Source.Left + PIC_X
+    Source.Bottom = Source.Top + PIC_Y
+End Sub
+
+' Warp attributes occupy one map cell, independent of sprite dimensions.
+Public Sub BltEditorWarpTiles()
+    Dim X As Long, Y As Long, bounds As RECT, color As Long
+    color = RGB(64, 128, 255)
+    For Y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            If Map.Tile(X, Y).Type = TILE_TYPE_WARP Then
+                bounds.Left = X * PIC_X
+                bounds.Top = Y * PIC_Y
+                bounds.Right = bounds.Left + PIC_X
+                bounds.Bottom = bounds.Top + 1
+                DD_BackBuffer.BltColorFill bounds, color
+                bounds.Top = (Y + 1) * PIC_Y - 1
+                bounds.Bottom = bounds.Top + 1
+                DD_BackBuffer.BltColorFill bounds, color
+                bounds.Top = Y * PIC_Y
+                bounds.Bottom = bounds.Top + PIC_Y
+                bounds.Right = bounds.Left + 1
+                DD_BackBuffer.BltColorFill bounds, color
+                bounds.Left = (X + 1) * PIC_X - 1
+                bounds.Right = bounds.Left + 1
+                DD_BackBuffer.BltColorFill bounds, color
+            End If
+        Next X
+    Next Y
 End Sub

@@ -152,6 +152,8 @@ Public Sub GameLoop()
     Dim X As Long
     Dim Y As Long
     Dim i As Long
+    Dim damageX As Long, damageY As Long, spriteWidth As Long, spriteHeight As Long
+    Dim damageSize As TextSize
     Dim rec_back As RECT
     Dim WalkTimer As Long
 
@@ -205,23 +207,7 @@ Public Sub GameLoop()
                     End If
                 Next i
 
-                ' Blit out the npcs
-                For i = 1 To MAX_MAP_NPCS
-                    Call BltNPC(i)
-                Next i
-
-                ' Blit out players
-                For i = 1 To HighIndex
-                    If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                        Call BltPlayer(i)
-                    End If
-                Next i
-
-                For i = 1 To HighIndex
-                    If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                        Call BltPlayerTop(i)
-                    End If
-                Next i
+                Call BltYSortedSprites
 
                 Call BltProjectiles
 
@@ -241,6 +227,7 @@ Public Sub GameLoop()
                 Call DD_BackBuffer.BltFast(0, 0, DD_UpperBuffer, rec, True)
 
                 BltSpriteOverlays
+                If InEditor Then BltEditorWarpTiles
 
                 ' Lock the backbuffer so we can draw text and names
                 TexthDC = DD_BackBuffer.GetDC
@@ -280,7 +267,10 @@ Public Sub GameLoop()
                 If NPCWho > 0 Then
                     If MapNpc(NPCWho).Num > 0 Then
                         If GetTickCount < NPCDmgTime + 2000 Then
-                            Call DrawText(TexthDC, (Player(MyIndex).X) * PIC_X + (Int(Len(NPCDmgDamage)) / 2) * 3 + Player(MyIndex).XOffset, (Player(MyIndex).Y) * PIC_Y - 30 + Player(MyIndex).YOffset - II, NPCDmgDamage, QBColor(BrightRed))
+                            GetSpriteDrawPosition GetPlayerSprite(MyIndex), GetPlayerPixelX(MyIndex), GetPlayerPixelY(MyIndex), damageX, damageY
+                            GetSpriteDimensions GetPlayerSprite(MyIndex), spriteWidth, spriteHeight
+                            damageSize = getSize(TexthDC, NPCDmgDamage)
+                            Call DrawText(TexthDC, damageX + spriteWidth \ 2 - CLng(damageSize.Width) \ 2, damageY - CLng(damageSize.Height) - 2 - II, NPCDmgDamage, QBColor(BrightRed))
                         End If
                         II = II + 1
                     End If
@@ -290,7 +280,10 @@ Public Sub GameLoop()
                 If NPCWho > 0 Then
                     If MapNpc(NPCWho).Num > 0 Then
                         If GetTickCount < DmgTime + 2000 Then
-                            Call DrawText(TexthDC, (MapNpc(NPCWho).X) * PIC_X + (Int(Len(DmgDamage)) / 2) * 3 + MapNpc(NPCWho).XOffset, (MapNpc(NPCWho).Y) * PIC_Y - 57 + MapNpc(NPCWho).YOffset - iii, DmgDamage, QBColor(White))
+                            GetSpriteDrawPosition Npc(MapNpc(NPCWho).Num).Sprite, CLng(MapNpc(NPCWho).X) * PIC_X + MapNpc(NPCWho).XOffset, CLng(MapNpc(NPCWho).Y) * PIC_Y + MapNpc(NPCWho).YOffset, damageX, damageY
+                            GetSpriteDimensions Npc(MapNpc(NPCWho).Num).Sprite, spriteWidth, spriteHeight
+                            damageSize = getSize(TexthDC, DmgDamage)
+                            Call DrawText(TexthDC, damageX + spriteWidth \ 2 - CLng(damageSize.Width) \ 2, damageY - CLng(damageSize.Height) - 2 - iii, DmgDamage, QBColor(White))
                         End If
                         iii = iii + 1
                     End If
@@ -1219,12 +1212,7 @@ Public Sub SpriteChangeBltSprite()
 ' * 06/01/2006  BigRed   Changed BitBlt to DX7
 ' ****************************************************************
 
-    With rec
-        .Top = frmSetSprite.scrlSprite.Value * PIC_Y
-        .Bottom = .Top + PIC_Y
-        .Left = 3 * PIC_X
-        .Right = .Left + PIC_X
-    End With
+    If Not GetSpriteFrameRect(frmSetSprite.scrlSprite.Value, DIR_DOWN, 0, rec) Then Exit Sub
 
     With rec_pos
         .Top = 0

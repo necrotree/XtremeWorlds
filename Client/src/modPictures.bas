@@ -30,16 +30,9 @@ Public Function MenuSpritePicture(ByVal Sprite As Long) As IPictureDisp
     Dim errorNumber As Long, errorText As String
     Dim frameWidth As Long, frameHeight As Long
     If DD_SpriteSurf Is Nothing Then Exit Function
-    If Sprite < 0 Or GameData.PlayerY < 1 Or GameData.PlayerX < 0 Then Exit Function
-    frameWidth = GameData.PlayerX + 16
-    frameHeight = PIC_Y * 2
-    If frameWidth < 1 Or frameWidth > DD_SpriteSurf.Width Then Exit Function
-    If Sprite > (DD_SpriteSurf.Height - frameHeight) \ frameHeight Then Exit Function
-    If (DIR_DOWN * 3 + 1) * frameWidth > DD_SpriteSurf.Width Then Exit Function
-    source.Top = Sprite * frameHeight
-    source.Bottom = source.Top + frameHeight
-    source.Left = (DIR_DOWN * 3) * frameWidth
-    source.Right = source.Left + frameWidth
+    If Not GetSpriteFrameRect(Sprite, DIR_DOWN, 0, source) Then Exit Function
+    frameWidth = source.Right - source.Left
+    frameHeight = source.Bottom - source.Top
     On Error GoTo Failed
     screenDC = WinDevLib.GetDC(0)
     If screenDC = 0 Then Err.Raise 5, , "Cannot create sprite preview DC."

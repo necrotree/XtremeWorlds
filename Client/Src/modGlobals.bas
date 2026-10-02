@@ -38,7 +38,9 @@ Public vbQuote As String
 
 ' Direct3D 11 textures and map layers
 Public DD_SpriteSurf As clsDX11Surface
-Public DD_TileSurf(1 To 6) As clsDX11Surface
+Public DD_TileSurf(1 To 255) As clsDX11Surface
+Public EditorTileset As Long
+Public TilesetCount As Long
 Public DD_ItemSurf As clsDX11Surface
 Public DD_SpellSurf As clsDX11Surface
 Public DD_ArrowSurf As clsDX11Surface
@@ -140,6 +142,7 @@ Public EditorIndex As Long
 Public InSignEditor As Boolean
 Public InArrowEditor As Boolean
 Public InClassEditor As Boolean
+Public ClassEditorOpen As Boolean
 
 ' Game fps
 Public GameFPS As Long

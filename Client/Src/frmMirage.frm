@@ -3213,22 +3213,13 @@ Private Sub cmdFill_Click()
     Dim Y As Long
     Dim X As Long
 
+    If frmMainGame.optLayers.Value Then
+        EditorFillLayer
+        Exit Sub
+    End If
     For Y = 0 To MAX_MAPY
         For X = 0 To MAX_MAPX
-            If frmMainGame.optLayers.Value = True Then
-                With Map.Tile(X, Y)
-                    If frmMainGame.optGround.Value = True Then .Ground = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optMask.Value = True Then .Mask = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optAnim.Value = True Then .Anim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optMask2.Value = True Then .Mask2 = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optM2Anim.Value = True Then .M2Anim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFringe.Value = True Then .Fringe = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFAnim.Value = True Then .FAnim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFringe2.Value = True Then .Fringe2 = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optF2Anim.Value = True Then .F2Anim = EditorTileY * 7 + EditorTileX
-                End With
-                BltMap
-            ElseIf frmMainGame.optAttribs.Value = True Then
+            If frmMainGame.optAttribs.Value = True Then
                 With Map.Tile(X, Y)
                     If frmMainGame.optBlocked.Value = True Then .Type = TILE_TYPE_BLOCKED
                     If frmMainGame.optWarp.Value = True Then .Type = TILE_TYPE_WARP
