@@ -1123,10 +1123,15 @@ Function CanMove() As Boolean
     TY = Int(Y / PIC_Y)
     ' Test blocking when the pixel origin crosses into another tile.
     If TX <> GetPlayerX(MyIndex) Or TY <> GetPlayerY(MyIndex) Then
-        If Map.Tile(TX, TY).Type = TILE_TYPE_BLOCKED And Map.Tile(TX, TY).Data1 = 1 Then Exit Function
-        If Map.Tile(TX, TY).Type = TILE_TYPE_KEY Or Map.Tile(TX, TY).Type = TILE_TYPE_DOOR Then
-            If TempTile(TX, TY).DoorOpen = NO Then Exit Function
+        If IsTileBlocked(TX, TY) Then
+            Exit Function
         End If
+        With Map.Tile(TX, TY)
+            If .Type = TILE_TYPE_BLOCKED Then
+                ' A Block tile with no flags is a solid block (including older maps).
+                If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then Exit Function
+            End If
+        End With
         For i = 1 To HighIndex
             If i <> MyIndex And IsPlaying(i) Then
                 If GetPlayerMap(i) = GetPlayerMap(MyIndex) And GetPlayerX(i) = TX And GetPlayerY(i) = TY Then Exit Function
@@ -1400,3 +1405,21 @@ Public Sub vbDABLDraw16(surface As clsDX11Surface, srcRect As RECT, X As Long, Y
     If Source.Right <= Source.Left Or Source.Bottom <= Source.Top Then Exit Sub
     DD_BackBuffer.Blt Destination, surface, Source, True, alphaval
 End Sub
+
+' Check every tile touched by the 32-by-32 player footprint, on every pixel step.
+Private Function IsTileBlocked(ByVal PixelX As Long, ByVal PixelY As Long) As Boolean
+    Dim TileX As Long, TileY As Long
+    For TileY = PixelY \ PIC_Y To (PixelY + PIC_Y - 1) \ PIC_Y
+        For TileX = PixelX \ PIC_X To (PixelX + PIC_X - 1) \ PIC_X
+            With Map.Tile(TileX, TileY)
+                If .Type = TILE_TYPE_BLOCKED Then
+                    If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then
+                        IsTileBlocked = True
+                        Exit Function
+                    End If
+                End If
+            End With
+        Next TileX
+    Next TileY
+End Function
+
