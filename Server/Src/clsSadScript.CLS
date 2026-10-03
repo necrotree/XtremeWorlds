@@ -279,18 +279,16 @@ Public Sub ExecuteScriptStatement(ByVal sModule As String, ByVal sCode As String
     On Error GoTo ScriptError
 
     Set scriptModule = SControl.Modules(sModule)
-    scriptModule.ExecuteStatement sCode
+
+    ' Do not write ".ExecuteStatement" here.  Because this class also exposed
+    ' an ExecuteStatement member, twinBASIC can bind the late-bound COM call
+    ' back to clsSadScript and then complain that sModule is missing.
+    ' CallByName forces IDispatch to invoke the ScriptControl Module method.
+    CallByName scriptModule, "ExecuteStatement", VbMethod, sCode
     Exit Sub
 
 ScriptError:
-    Err.Raise Err.Number, "MyScript.ExecuteStatement", Err.Description
-End Sub
-
-' Keep the original public name for compatibility with older server code.
-' The actual ScriptControl call lives in ExecuteScriptStatement so twinBASIC
-' cannot confuse this wrapper with the COM module's ExecuteStatement method.
-Public Sub ExecuteStatement(ByVal sModule As String, ByVal sCode As String)
-    ExecuteScriptStatement sModule, sCode
+    Err.Raise Err.Number, "MyScript.ExecuteScriptStatement", Err.Description
 End Sub
 
 
