@@ -510,8 +510,7 @@ End Sub
 Private Sub Form_Load()
     ShutOn = False
     ServerLog = True
-    Me.Caption = GAME_NAME & " :: Server"
-    Me.txtIP.Text = GameServer.LocalAddress
+    Call UpdateCaption
     ShowServerPage 0
 End Sub
 
@@ -575,6 +574,7 @@ End Sub
 Private Sub tmrNativeSockets_Timer()
     If Not GameServer Is Nothing Then GameServer.Poll
     Call UpdateProjectiles
+    Call UpdateServerLoad
 End Sub
 
 Private Sub mnuScriptEditor_Click()

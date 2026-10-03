@@ -275,8 +275,8 @@ Private Function ProjectileBlocked(ByVal mapNumber As Long, ByVal X As Long, ByV
     If X < 0 Or Y < 0 Or X >= (MAX_MAPX + 1) * PIC_X Or Y >= (MAX_MAPY + 1) * PIC_Y Then Exit Function
     tx = X \ PIC_X: ty = Y \ PIC_Y
     With Map(mapNumber).Tile(tx, ty)
-        If .Type = TILE_TYPE_BLOCKED Then Exit Function
-        If .Type = TILE_TYPE_KEY Or .Type = TILE_TYPE_DOOR Then
+        If HasTileType(Map(mapNumber).Tile(tx, ty), TILE_TYPE_BLOCKED) Then Exit Function
+        If HasTileType(Map(mapNumber).Tile(tx, ty), TILE_TYPE_KEY) Or HasTileType(Map(mapNumber).Tile(tx, ty), TILE_TYPE_DOOR) Then
             If TempTile(mapNumber).DoorOpen(tx, ty) = NO Then Exit Function
         End If
     End With

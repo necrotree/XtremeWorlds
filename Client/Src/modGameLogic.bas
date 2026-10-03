@@ -314,6 +314,19 @@ Public Sub GameLoop()
                                 If .Type = TILE_TYPE_MSG Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 8, "Msg", QBColor(White))
                                 If .Type = TILE_TYPE_SPRITE Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 8, "Sprt", QBColor(BrightBlue))
                                 If .Type = TILE_TYPE_NPCSPAWN Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 8, "Npc", QBColor(Yellow))
+                                If .Type2 = TILE_TYPE_BLOCKED Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "B", QBColor(BrightRed))
+                                If .Type2 = TILE_TYPE_HEAL Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "H", QBColor(BrightGreen))
+                                If .Type2 = TILE_TYPE_KILL Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "D", QBColor(BrightRed))
+                                If .Type2 = TILE_TYPE_WARP Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "W", QBColor(BrightBlue))
+                                If .Type2 = TILE_TYPE_ITEM Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "I", QBColor(White))
+                                If .Type2 = TILE_TYPE_NPCAVOID Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "N", QBColor(White))
+                                If .Type2 = TILE_TYPE_KEY Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "K", QBColor(White))
+                                If .Type2 = TILE_TYPE_KEYOPEN Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "O", QBColor(White))
+                                If .Type2 = TILE_TYPE_DOOR Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "Door", QBColor(Pink))
+                                If .Type2 = TILE_TYPE_SIGN Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "S", QBColor(Yellow))
+                                If .Type2 = TILE_TYPE_MSG Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "Msg", QBColor(White))
+                                If .Type2 = TILE_TYPE_SPRITE Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "Sprt", QBColor(BrightBlue))
+                                If .Type2 = TILE_TYPE_NPCSPAWN Then Call DrawText(TexthDC, X * PIC_X + 8, Y * PIC_Y + 20, "Npc", QBColor(Yellow))
                             End With
                         Next X
                     Next Y
@@ -622,8 +635,8 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
 
         ' Sign
         Dim SignPacket As String
-        If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)).Type = TILE_TYPE_SIGN Then
-            SignNum = Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)).Data1
+        If HasTileType(Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)), TILE_TYPE_SIGN) Then
+            SignNum = TileAttributeData(Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)), TILE_TYPE_SIGN, 1)
             SignPacket = "requestsign" & SEP_CHAR & SignNum & END_CHAR
             Call SendData(SignPacket)
         End If
@@ -1119,19 +1132,12 @@ Function CanMove() As Boolean
         End If
         Exit Function
     End If
+    If IsTileBlocked(X, Y) Then Exit Function
     TX = Int(X / PIC_X)
     TY = Int(Y / PIC_Y)
     ' Test blocking when the pixel origin crosses into another tile.
     If TX <> GetPlayerX(MyIndex) Or TY <> GetPlayerY(MyIndex) Then
-        If IsTileBlocked(TX, TY) Then
-            Exit Function
-        End If
-        With Map.Tile(TX, TY)
-            If .Type = TILE_TYPE_BLOCKED Then
-                ' A Block tile with no flags is a solid block (including older maps).
-                If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then Exit Function
-            End If
-        End With
+
         For i = 1 To HighIndex
             If i <> MyIndex And IsPlaying(i) Then
                 If GetPlayerMap(i) = GetPlayerMap(MyIndex) And GetPlayerX(i) = TX And GetPlayerY(i) = TY Then Exit Function
@@ -1146,6 +1152,7 @@ End Function
 
 Sub CheckMovement()
     Dim X As Long, Y As Long, OldX As Long, OldY As Long
+    Dim OldPixelX As Long, OldPixelY As Long, TileX As Long, TileY As Long
     Player(MyIndex).Moving = 0
     If GettingMap Or Not IsTryingToMove Then Exit Sub
     If Not CanMove Then Exit Sub
@@ -1155,6 +1162,8 @@ Sub CheckMovement()
     OldY = GetPlayerY(MyIndex)
     X = GetPlayerPixelX(MyIndex)
     Y = GetPlayerPixelY(MyIndex)
+    OldPixelX = X
+    OldPixelY = Y
     Select Case GetPlayerDir(MyIndex)
         Case DIR_UP: Y = Y - 1
         Case DIR_DOWN: Y = Y + 1
@@ -1163,9 +1172,13 @@ Sub CheckMovement()
     End Select
     Call SetPlayerPixels(MyIndex, X, Y)
     Call SendPlayerMove
-    If OldX <> GetPlayerX(MyIndex) Or OldY <> GetPlayerY(MyIndex) Then
-        If Map.Tile(GetPlayerX(MyIndex), GetPlayerY(MyIndex)).Type = TILE_TYPE_WARP Then GettingMap = True
-    End If
+    For TileY = Y \ PIC_Y To (Y + PIC_Y - 1) \ PIC_Y
+        For TileX = X \ PIC_X To (X + PIC_X - 1) \ PIC_X
+            If TileX < OldPixelX \ PIC_X Or TileX > (OldPixelX + PIC_X - 1) \ PIC_X Or TileY < OldPixelY \ PIC_Y Or TileY > (OldPixelY + PIC_Y - 1) \ PIC_Y Then
+                If HasTileType(Map.Tile(TileX, TileY), TILE_TYPE_WARP) Then GettingMap = True
+            End If
+        Next TileX
+    Next TileY
 End Sub
 
 Function FindPlayer(ByVal name As String) As Long
@@ -1411,15 +1424,40 @@ Private Function IsTileBlocked(ByVal PixelX As Long, ByVal PixelY As Long) As Bo
     Dim TileX As Long, TileY As Long
     For TileY = PixelY \ PIC_Y To (PixelY + PIC_Y - 1) \ PIC_Y
         For TileX = PixelX \ PIC_X To (PixelX + PIC_X - 1) \ PIC_X
-            With Map.Tile(TileX, TileY)
-                If .Type = TILE_TYPE_BLOCKED Then
-                    If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then
-                        IsTileBlocked = True
-                        Exit Function
-                    End If
-                End If
-            End With
+            If TileBlocksPlayer(Map.Tile(TileX, TileY)) Then
+                IsTileBlocked = True
+                Exit Function
+            End If
         Next TileX
     Next TileY
 End Function
 
+
+Public Function HasTileType(ByRef tile As TileRec, ByVal attributeType As Long) As Boolean
+    HasTileType = tile.Type = attributeType Or tile.Type2 = attributeType
+End Function
+
+Public Function TileAttributeData(ByRef tile As TileRec, ByVal attributeType As Long, ByVal number As Long) As Long
+    If tile.Type = attributeType Then
+        Select Case number
+            Case 1: TileAttributeData = tile.Data1
+            Case 2: TileAttributeData = tile.Data2
+            Case 3: TileAttributeData = tile.Data3
+        End Select
+    ElseIf tile.Type2 = attributeType Then
+        Select Case number
+            Case 1: TileAttributeData = tile.Data21
+            Case 2: TileAttributeData = tile.Data22
+            Case 3: TileAttributeData = tile.Data23
+        End Select
+    End If
+End Function
+
+Public Function TileBlocksPlayer(ByRef tile As TileRec) As Boolean
+    If tile.Type = TILE_TYPE_BLOCKED Then
+        If tile.Data1 <> 0 Or (tile.Data1 = 0 And tile.Data2 = 0 And tile.Data3 = 0) Then TileBlocksPlayer = True
+    End If
+    If tile.Type2 = TILE_TYPE_BLOCKED Then
+        If tile.Data21 <> 0 Or (tile.Data21 = 0 And tile.Data22 = 0 And tile.Data23 = 0) Then TileBlocksPlayer = True
+    End If
+End Function

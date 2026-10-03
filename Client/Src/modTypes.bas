@@ -126,6 +126,11 @@ Type TileRec
   Data1 As Integer
   Data2 As Integer
   Data3 As Integer
+  LayerTileset(0 To 8) As Byte
+  Type2 As Byte
+  Data21 As Integer
+  Data22 As Integer
+  Data23 As Integer
 End Type
 
 Type MapRec

@@ -2,10 +2,52 @@ Attribute VB_Name = "modServerTCP"
 Option Explicit
 Public GameServer As clsServer
 
+Private Declare Function GetCurrentProcess Lib "kernel32" () As LongPtr
+Private Declare Function GetProcessTimes Lib "kernel32" (ByVal hProcess As LongPtr, ByRef CreationTime As Currency, ByRef ExitTime As Currency, ByRef KernelTime As Currency, ByRef UserTime As Currency) As Long
+Private CaptionSampleTime As Double
+Private CaptionCPUTime As Currency
+Private CaptionSampleReady As Boolean
+Private ServerLoadPercent As Long
+
 Sub UpdateCaption()
-    frmServer.Caption = GAME_NAME & " :: Server"
-    frmServer.txtPort.Text = Str$(GameServer.LocalPort)
-    frmServer.txtOnline.Text = TotalOnlinePlayers
+    Dim Address As String
+    Dim Online As Long
+    Dim Filled As Long
+    Address = "0.0.0.0"
+    If Not GameServer Is Nothing Then
+        Address = GameServer.LocalAddress
+        frmServer.txtPort.Text = CStr(GameServer.LocalPort)
+    End If
+    Online = TotalOnlinePlayers
+    Filled = (ServerLoadPercent + 5) \ 10
+    frmServer.Caption = GAME_NAME & " :: Server | IP: " & Address & " | Players: " & CStr(Online) & " | Load: [" & String$(Filled, "|") & String$(10 - Filled, ".") & "] " & CStr(ServerLoadPercent) & "%"
+    frmServer.txtIP.Text = Address
+    frmServer.txtOnline.Text = CStr(Online)
+End Sub
+
+Public Sub UpdateServerLoad()
+    Dim SampleTime As Double
+    Dim Elapsed As Double
+    Dim CreationTime As Currency, ExitTime As Currency
+    Dim KernelTime As Currency, UserTime As Currency
+    Dim CPUTime As Currency
+    SampleTime = Timer
+    Elapsed = SampleTime - CaptionSampleTime
+    If Elapsed < 0 Then Elapsed = Elapsed + 86400#
+    If CaptionSampleReady And Elapsed < 1# Then Exit Sub
+    If GetProcessTimes(GetCurrentProcess(), CreationTime, ExitTime, KernelTime, UserTime) = 0 Then Exit Sub
+    ' FILETIME uses 100 ns units; Currency scales these to milliseconds.
+    ' 100% means one CPU core is fully occupied by this server process.
+    CPUTime = KernelTime + UserTime
+    If CaptionSampleReady And Elapsed > 0 Then
+        ServerLoadPercent = CLng((CPUTime - CaptionCPUTime) / (Elapsed * 10#))
+        If ServerLoadPercent < 0 Then ServerLoadPercent = 0
+        If ServerLoadPercent > 100 Then ServerLoadPercent = 100
+    End If
+    CaptionCPUTime = CPUTime
+    CaptionSampleTime = SampleTime
+    CaptionSampleReady = True
+    Call UpdateCaption
 End Sub
 
 Function IsConnected(ByVal Index As Long) As Boolean
@@ -460,6 +502,24 @@ Sub SendMap(ByVal Index As Long, ByVal MapNum As Long)
     For X = 1 To MAX_MAP_NPCS
         Packet = Packet & Map(MapNum).Npc(X) & SEP_CHAR
     Next X
+
+    Packet = Packet & "MAPEX1" & SEP_CHAR
+    For y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            With Map(MapNum).Tile(X, y)
+                Packet = Packet & .LayerTileset(0) & SEP_CHAR
+                Packet = Packet & .LayerTileset(1) & SEP_CHAR
+                Packet = Packet & .LayerTileset(2) & SEP_CHAR
+                Packet = Packet & .LayerTileset(3) & SEP_CHAR
+                Packet = Packet & .LayerTileset(4) & SEP_CHAR
+                Packet = Packet & .LayerTileset(5) & SEP_CHAR
+                Packet = Packet & .LayerTileset(6) & SEP_CHAR
+                Packet = Packet & .LayerTileset(7) & SEP_CHAR
+                Packet = Packet & .LayerTileset(8) & SEP_CHAR
+                Packet = Packet & .Type2 & SEP_CHAR & .Data21 & SEP_CHAR & .Data22 & SEP_CHAR & .Data23 & SEP_CHAR
+            End With
+        Next X
+    Next y
 
     Packet = Packet & END_CHAR
 

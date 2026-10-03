@@ -37,48 +37,8 @@ Class frmMainGame
     Public clsFormSkin As New clsFormSkin
     
     Private Sub cmdFill_Click()
-        Dim Y As Long
-        Dim X As Long
-    
-        For Y = 0 To MAX_MAPY
-            For X = 0 To MAX_MAPX
-                If frmMainGame.optLayers.Value = True Then
-                    With Map.Tile(X, Y)
-                        If frmMainGame.optGround.Value = True Then .Ground = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optMask.Value = True Then .Mask = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optAnim.Value = True Then .Anim = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optMask2.Value = True Then .Mask2 = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optM2Anim.Value = True Then .M2Anim = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optFringe.Value = True Then .Fringe = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optFAnim.Value = True Then .FAnim = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optFringe2.Value = True Then .Fringe2 = EditorTileY * 7 + EditorTileX
-                        If frmMainGame.optF2Anim.Value = True Then .F2Anim = EditorTileY * 7 + EditorTileX
-                    End With
-                    BltMap
-                ElseIf frmMainGame.optAttribs.Value = True Then
-                    With Map.Tile(X, Y)
-                        If frmMainGame.optBlocked.Value = True Then
-                            .Type = TILE_TYPE_BLOCKED
-                            .Data1 = EditorBlockPlayer
-                            If EditorBlockPlayer = 0 And EditorBlockNPC = 0 And EditorBlockFlight = 0 Then .Data1 = 1
-                            .Data2 = EditorBlockNPC
-                            .Data3 = EditorBlockFlight
-                        End If
-                        If frmMainGame.optWarp.Value = True Then .Type = TILE_TYPE_WARP
-                        If frmMainGame.optKill.Value = True Then .Type = TILE_TYPE_KILL
-                        If frmMainGame.optItem.Value = True Then .Type = TILE_TYPE_ITEM
-                        If frmMainGame.optHeal.Value = True Then .Type = TILE_TYPE_HEAL
-                        If frmMainGame.optNpcAvoid.Value = True Then .Type = TILE_TYPE_NPCAVOID
-                        If frmMainGame.optKey.Value = True Then .Type = TILE_TYPE_KEY
-                        If frmMainGame.optKeyOpen.Value = True Then .Type = TILE_TYPE_KEYOPEN
-                        If frmMainGame.optDoor.Value = True Then .Type = TILE_TYPE_DOOR
-                        If frmMainGame.optSign.Value = True Then .Type = TILE_TYPE_SIGN
-                        If frmMainGame.optSprite.Value = True Then .Type = TILE_TYPE_SPRITE
-                    End With
-                End If
-            Next X
-        Next Y
-    End Sub
+    Call EditorFillSelection
+End Sub
     
     Private Sub cmdClear_Click()
         If frmMainGame.optLayers.Value = True Then
@@ -805,6 +765,7 @@ Class frmMainGame
     End Sub
 
     Private Sub cmdEditorAttribs_Click()
+        EditorAttributeLayer = 1
         Picture6.Visible = False
         Picture5.Visible = True
         optLayers.Value = False
@@ -943,7 +904,7 @@ Class frmMainGame
     Public Sub LayoutGamePanels()
         Dim sidebar As Single, adminLeft As Single, requiredWidth As Single
         sidebar = 956
-        scrlTileset.Value = Map.Tileset
+        If EditorTileset >= 1 Then scrlTileset.Value = EditorTileset
         picMapEditor.Left = Me.ScaleX(sidebar, vbPixels, Me.ScaleMode)
         picMapEditor.Top = Me.ScaleY(39, vbPixels, Me.ScaleMode)
         adminLeft = sidebar
@@ -1227,8 +1188,15 @@ Class frmMainGame
     End Sub
     
     Private Sub scrlTileset_Change()
-        Map.Tileset = scrlTileset.Value
-        EditorInit
+        Call EditorChangeTileset(scrlTileset.Value)
+    End Sub
+
+    Private Sub cmdEditorAttribs2_Click()
+        Picture6.Visible = False
+        Picture5.Visible = True
+        optLayers.Value = False
+        optAttribs.Value = True
+        EditorAttributeLayer = 2
     End Sub
 
 End Class

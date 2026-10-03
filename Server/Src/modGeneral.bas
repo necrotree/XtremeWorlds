@@ -249,7 +249,7 @@ Sub GameAI()
             If TickCount > TempTile(y).DoorTimer + 5000 Then
                 For y1 = 0 To MAX_MAPY
                     For x1 = 0 To MAX_MAPX
-                        If Map(y).Tile(x1, y1).Type = TILE_TYPE_KEY Or TILE_TYPE_DOOR And TempTile(y).DoorOpen(x1, y1) = YES Then
+                        If (HasTileType(Map(y).Tile(x1, y1), TILE_TYPE_KEY) Or HasTileType(Map(y).Tile(x1, y1), TILE_TYPE_DOOR)) And TempTile(y).DoorOpen(x1, y1) = YES Then
                             TempTile(y).DoorOpen(x1, y1) = NO
                             Call SendDataToMap(y, "MAPKEY" & SEP_CHAR & x1 & SEP_CHAR & y1 & SEP_CHAR & 0 & END_CHAR)
                         End If

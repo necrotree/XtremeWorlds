@@ -298,6 +298,24 @@ Public Sub SendMap()
         Next X
     End With
 
+    Packet = Packet & "MAPEX1" & SEP_CHAR
+    For y = 0 To MAX_MAPY
+        For X = 0 To MAX_MAPX
+            With Map.Tile(X, Y)
+                Packet = Packet & .LayerTileset(0) & SEP_CHAR
+                Packet = Packet & .LayerTileset(1) & SEP_CHAR
+                Packet = Packet & .LayerTileset(2) & SEP_CHAR
+                Packet = Packet & .LayerTileset(3) & SEP_CHAR
+                Packet = Packet & .LayerTileset(4) & SEP_CHAR
+                Packet = Packet & .LayerTileset(5) & SEP_CHAR
+                Packet = Packet & .LayerTileset(6) & SEP_CHAR
+                Packet = Packet & .LayerTileset(7) & SEP_CHAR
+                Packet = Packet & .LayerTileset(8) & SEP_CHAR
+                Packet = Packet & .Type2 & SEP_CHAR & .Data21 & SEP_CHAR & .Data22 & SEP_CHAR & .Data23 & SEP_CHAR
+            End With
+        Next X
+    Next y
+
     Packet = Packet & END_CHAR
 
     X = Int(Len(Packet) / 2)

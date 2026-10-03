@@ -129,6 +129,7 @@ End Sub
 
 Public Sub ReadTileRec(ByVal file As clsDataFile, ByRef value As TileRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
+    ResetTileRec value
     value.Ground = file.ReadInteger()
     value.Mask = file.ReadInteger()
     value.Anim = file.ReadInteger()
@@ -176,6 +177,13 @@ Public Sub ResetTileRec(ByRef value As TileRec)
     value.Data1 = 0
     value.Data2 = 0
     value.Data3 = 0
+    For i0 = 0 To 8
+        value.LayerTileset(i0) = 0
+    Next i0
+    value.Type2 = 0
+    value.Data21 = 0
+    value.Data22 = 0
+    value.Data23 = 0
 End Sub
 
 Public Sub ReadOldMapRec(ByVal file As clsDataFile, ByRef value As OldMapRec)
@@ -277,6 +285,21 @@ Public Sub ReadMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
     value.Npc(i0) = file.ReadLong()
     Next i0
     value.Respawn = file.ReadByte()
+    ' Older maps end here; their tiles inherit the map tileset.
+    If file.Remaining > 0 Then
+        If file.ReadLong() <> &H3158574D Then Err.Raise 5, "ReadMapRec", "Unknown map extension"
+        For i1 = 0 To MAX_MAPY
+            For i0 = 0 To MAX_MAPX
+                For count = 0 To 8
+                    value.Tile(i0, i1).LayerTileset(count) = file.ReadByte()
+                Next count
+                value.Tile(i0, i1).Type2 = file.ReadByte()
+                value.Tile(i0, i1).Data21 = file.ReadInteger()
+                value.Tile(i0, i1).Data22 = file.ReadInteger()
+                value.Tile(i0, i1).Data23 = file.ReadInteger()
+            Next i0
+        Next i1
+    End If
 End Sub
 
 Public Sub WriteMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
@@ -304,6 +327,18 @@ Public Sub WriteMapRec(ByVal file As clsDataFile, ByRef value As MapRec)
     file.WriteLong value.Npc(i0)
     Next i0
     file.WriteByte value.Respawn
+    file.WriteLong &H3158574D
+    For i1 = 0 To MAX_MAPY
+        For i0 = 0 To MAX_MAPX
+            For count = 0 To 8
+                file.WriteByte value.Tile(i0, i1).LayerTileset(count)
+            Next count
+            file.WriteByte value.Tile(i0, i1).Type2
+            file.WriteInteger value.Tile(i0, i1).Data21
+            file.WriteInteger value.Tile(i0, i1).Data22
+            file.WriteInteger value.Tile(i0, i1).Data23
+        Next i0
+    Next i1
 End Sub
 
 Public Sub ResetMapRec(ByRef value As MapRec)

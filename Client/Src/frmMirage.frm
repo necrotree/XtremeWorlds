@@ -53,6 +53,22 @@ Begin VB.Form frmMainGame
       Top             =   585
       Visible         =   0
       Width           =   3855
+      Begin VB.HScrollBar scrlTileset
+         Height          =   255
+         Left            =   120
+         Min             =   1
+         Max             =   6
+         Value           =   1
+         Top             =   6840
+         Width           =   1695
+      End
+      Begin VB.CommandButton cmdEditorAttribs2
+         Caption         =   "Attributes 2"
+         Height          =   375
+         Left            =   120
+         Top             =   7200
+         Width           =   1695
+      End
       Begin VB.CommandButton cmdSend 
          Caption         =   "Send"
          BeginProperty Font 
@@ -3210,41 +3226,7 @@ Dim SpellMemorized As Long
 Public clsFormSkin As New clsFormSkin
 
 Private Sub cmdFill_Click()
-    Dim Y As Long
-    Dim X As Long
-
-    For Y = 0 To MAX_MAPY
-        For X = 0 To MAX_MAPX
-            If frmMainGame.optLayers.Value = True Then
-                With Map.Tile(X, Y)
-                    If frmMainGame.optGround.Value = True Then .Ground = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optMask.Value = True Then .Mask = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optAnim.Value = True Then .Anim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optMask2.Value = True Then .Mask2 = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optM2Anim.Value = True Then .M2Anim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFringe.Value = True Then .Fringe = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFAnim.Value = True Then .FAnim = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optFringe2.Value = True Then .Fringe2 = EditorTileY * 7 + EditorTileX
-                    If frmMainGame.optF2Anim.Value = True Then .F2Anim = EditorTileY * 7 + EditorTileX
-                End With
-                BltMap
-            ElseIf frmMainGame.optAttribs.Value = True Then
-                With Map.Tile(X, Y)
-                    If frmMainGame.optBlocked.Value = True Then .Type = TILE_TYPE_BLOCKED
-                    If frmMainGame.optWarp.Value = True Then .Type = TILE_TYPE_WARP
-                    If frmMainGame.optKill.Value = True Then .Type = TILE_TYPE_KILL
-                    If frmMainGame.optItem.Value = True Then .Type = TILE_TYPE_ITEM
-                    If frmMainGame.optHeal.Value = True Then .Type = TILE_TYPE_HEAL
-                    If frmMainGame.optNpcAvoid.Value = True Then .Type = TILE_TYPE_NPCAVOID
-                    If frmMainGame.optKey.Value = True Then .Type = TILE_TYPE_KEY
-                    If frmMainGame.optKeyOpen.Value = True Then .Type = TILE_TYPE_KEYOPEN
-                    If frmMainGame.optDoor.Value = True Then .Type = TILE_TYPE_DOOR
-                    If frmMainGame.optSign.Value = True Then .Type = TILE_TYPE_SIGN
-                    If frmMainGame.optSprite.Value = True Then .Type = TILE_TYPE_SPRITE
-                End With
-            End If
-        Next X
-    Next Y
+    Call EditorFillSelection
 End Sub
 
 Private Sub cmdClear_Click()
@@ -3934,6 +3916,7 @@ Private Sub SSTab1_Click(PreviousTab As Integer)
         optLayers.Value = True
         optAttribs.Value = False
     ElseIf SSTab1.Caption = "Attribs" Then
+        EditorAttributeLayer = 1
         optLayers.Value = False
         optAttribs.Value = True
     End If
@@ -4289,3 +4272,16 @@ End Sub
         Slot = (lstSpells.ListIndex \ 8 - 1) * 8
         If Slot >= 0 Then lstSpells.ListIndex = Slot
     End Sub
+
+    Private Sub cmdEditorAttribs2_Click()
+        SSTab1.Tab = 1
+        Picture6.Visible = False
+        Picture5.Visible = True
+        optLayers.Value = False
+        optAttribs.Value = True
+        EditorAttributeLayer = 2
+    End Sub
+
+Private Sub scrlTileset_Change()
+    Call EditorChangeTileset(scrlTileset.Value)
+End Sub

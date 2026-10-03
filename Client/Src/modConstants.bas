@@ -39,7 +39,7 @@ Public Const LOG_PATH As String = "\logs\"
 
 ' Map Path and variables
 Public Const MAP_PATH As String = "\maps\"
-Public Const MAP_EXT As String = ".map"
+Public Const MAP_EXT As String = ".map2"
 
 ' Gfx Path and variables
 Public Const GFX_PATH As String = "\gfx\"

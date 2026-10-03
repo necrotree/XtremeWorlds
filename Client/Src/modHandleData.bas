@@ -561,6 +561,20 @@ Public Sub HandleData(ByVal Data As String)
                     SaveMap.Tile(X, Y).Data1 = Val(Parse(n + 10))
                     SaveMap.Tile(X, Y).Data2 = Val(Parse(n + 11))
                     SaveMap.Tile(X, Y).Data3 = Val(Parse(n + 12))
+
+                    SaveMap.Tile(X, Y).Type2 = 0
+                    SaveMap.Tile(X, Y).Data21 = 0
+                    SaveMap.Tile(X, Y).Data22 = 0
+                    SaveMap.Tile(X, Y).Data23 = 0
+                    SaveMap.Tile(X, Y).LayerTileset(0) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(1) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(2) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(3) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(4) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(5) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(6) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(7) = 0
+                    SaveMap.Tile(X, Y).LayerTileset(8) = 0
                     
                     n = n + 13
                 Next X
@@ -570,6 +584,32 @@ Public Sub HandleData(ByVal Data As String)
                 SaveMap.Npc(X) = Val(Parse(n))
                 n = n + 1
             Next X
+
+
+        If UBound(Parse) >= n Then
+            If Parse(n) = "MAPEX1" Then
+                n = n + 1
+                If UBound(Parse) < n + (MAX_MAPX + 1) * (MAX_MAPY + 1) * 13 - 1 Then Exit Sub
+                For y = 0 To MAX_MAPY
+                    For X = 0 To MAX_MAPX
+                        SaveMap.Tile(X, Y).LayerTileset(0) = Val(Parse(n + 0))
+                        SaveMap.Tile(X, Y).LayerTileset(1) = Val(Parse(n + 1))
+                        SaveMap.Tile(X, Y).LayerTileset(2) = Val(Parse(n + 2))
+                        SaveMap.Tile(X, Y).LayerTileset(3) = Val(Parse(n + 3))
+                        SaveMap.Tile(X, Y).LayerTileset(4) = Val(Parse(n + 4))
+                        SaveMap.Tile(X, Y).LayerTileset(5) = Val(Parse(n + 5))
+                        SaveMap.Tile(X, Y).LayerTileset(6) = Val(Parse(n + 6))
+                        SaveMap.Tile(X, Y).LayerTileset(7) = Val(Parse(n + 7))
+                        SaveMap.Tile(X, Y).LayerTileset(8) = Val(Parse(n + 8))
+                        SaveMap.Tile(X, Y).Type2 = Val(Parse(n + 9))
+                        SaveMap.Tile(X, Y).Data21 = Val(Parse(n + 10))
+                        SaveMap.Tile(X, Y).Data22 = Val(Parse(n + 11))
+                        SaveMap.Tile(X, Y).Data23 = Val(Parse(n + 12))
+                        n = n + 13
+                    Next X
+                Next y
+            End If
+        End If
 
             ' Save the map
             Call SaveLocalMap(Val(Parse(1)))

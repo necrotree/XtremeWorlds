@@ -457,12 +457,12 @@ Sub SpawnMapItems(ByVal MapNum As Long)
     For y = 0 To MAX_MAPY
         For X = 0 To MAX_MAPX
             ' Check if the tile type is an item or a saved tile incase someone drops something
-            If (Map(MapNum).Tile(X, y).Type = TILE_TYPE_ITEM) Then
+            If (HasTileType(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM)) Then
                 ' Check to see if its a currency and if they set the value to 0 set it to 1 automatically
-                If Item(Map(MapNum).Tile(X, y).Data1).Type = ITEM_TYPE_CURRENCY And Map(MapNum).Tile(X, y).Data2 <= 0 Then
-                    Call SpawnItem(Map(MapNum).Tile(X, y).Data1, 1, MapNum, X, y)
+                If Item(TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 1)).Type = ITEM_TYPE_CURRENCY And TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 2) <= 0 Then
+                    Call SpawnItem(TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 1), 1, MapNum, X, y)
                 Else
-                    Call SpawnItem(Map(MapNum).Tile(X, y).Data1, Map(MapNum).Tile(X, y).Data2, MapNum, X, y)
+                    Call SpawnItem(TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 1), TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 2), MapNum, X, y)
                 End If
             End If
         Next X
@@ -650,12 +650,12 @@ Sub SpawnNpc(ByVal MapNpcNum As Long, ByVal MapNum As Long)
         ' Check if theres a spawn tile for the specific npc
         For X = 0 To MAX_MAPX
             For y = 0 To MAX_MAPY
-                If Map(MapNum).Tile(X, y).Type = TILE_TYPE_NPCSPAWN Then
-                    If Map(MapNum).Tile(X, y).Data1 = MapNpcNum Then
+                If HasTileType(Map(MapNum).Tile(X, y), TILE_TYPE_NPCSPAWN) Then
+                    If TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_NPCSPAWN, 1) = MapNpcNum Then
                         MapNpc(MapNum, MapNpcNum).X = X
                         MapNpc(MapNum, MapNpcNum).y = y
-                        MapNpc(MapNum, MapNpcNum).Dir = Map(MapNum).Tile(X, y).Data2
-                        MapNpc(MapNum, MapNpcNum).Moveable = Map(MapNum).Tile(X, y).Data3
+                        MapNpc(MapNum, MapNpcNum).Dir = TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_NPCSPAWN, 2)
+                        MapNpc(MapNum, MapNpcNum).Moveable = TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_NPCSPAWN, 3)
                         Spawned = True
                         Exit For
                     End If
@@ -663,7 +663,7 @@ Sub SpawnNpc(ByVal MapNpcNum As Long, ByVal MapNum As Long)
             Next y
         Next X
 
-' If Map(MapNum).Tile(x, y).Type <> TILE_TYPE_NPCSPAWN Then
+' If Not HasTileType(Map(MapNum).Tile(x, y), TILE_TYPE_NPCSPAWN) Then
 ' MapNpc(MapNum, MapNpcNum).Moveable = 0
 ' End If
 
@@ -675,7 +675,7 @@ Sub SpawnNpc(ByVal MapNpcNum As Long, ByVal MapNum As Long)
                 y = Int(Rnd * MAX_MAPY)
 
                 ' Check if the tile is walkable
-                If Map(MapNum).Tile(X, y).Type = TILE_TYPE_WALKABLE Then
+                If Map(MapNum).Tile(X, y).Type = TILE_TYPE_WALKABLE And Map(MapNum).Tile(X, y).Type2 = TILE_TYPE_WALKABLE Then
                     MapNpc(MapNum, MapNpcNum).X = X
                     MapNpc(MapNum, MapNpcNum).y = y
                     Spawned = True
@@ -688,7 +688,7 @@ Sub SpawnNpc(ByVal MapNpcNum As Long, ByVal MapNum As Long)
         If Not Spawned Then
             For y = 0 To MAX_MAPY
                 For X = 0 To MAX_MAPX
-                    If Map(MapNum).Tile(X, y).Type = TILE_TYPE_WALKABLE Then
+                    If Map(MapNum).Tile(X, y).Type = TILE_TYPE_WALKABLE And Map(MapNum).Tile(X, y).Type2 = TILE_TYPE_WALKABLE Then
                         MapNpc(MapNum, MapNpcNum).X = X
                         MapNpc(MapNum, MapNpcNum).y = y
                         Spawned = True
@@ -1433,6 +1433,7 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     MyScript.ExecuteScriptStatement "\scripts\Main.as", "LeaveMap " & Index
     
     ' Save old map to send erase player data to
+    Player(Index).WarpTick = 0
     OldMap = GetPlayerMap(Index)
     Call SendLeaveMap(Index, OldMap)
     Call SetPlayerMap(Index, MapNum)
@@ -1474,6 +1475,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
     Dim Moved As Byte
     Dim MapMsg1 As String
     Dim MsgType As Byte
+    Dim OldPixelX As Long, OldPixelY As Long
     Dim SpriteNum As Long
 
     ' Check for subscript out of range
@@ -1486,6 +1488,8 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
     X = GetPlayerPixelX(Index)
     y = GetPlayerPixelY(Index)
     
+    OldPixelX = X
+    OldPixelY = y
     Select Case Dir
         Case DIR_UP: y = y - 1
         Case DIR_DOWN: y = y + 1
@@ -1529,25 +1533,22 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
     Call SetPlayerPixels(Index, X, y)
     Packet = "PLAYERMOVE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerX(Index) & SEP_CHAR & GetPlayerY(Index) & SEP_CHAR & Dir & SEP_CHAR & Movement & SEP_CHAR & Player(Index).XOffset & SEP_CHAR & Player(Index).YOffset & END_CHAR
     Call SendDataToMapBut(Index, MapNum, Packet)
+    Call CheckPlayerContactTiles(Index, MapNum, OldPixelX, OldPixelY, X, y)
+    If GetPlayerMap(Index) <> MapNum Or GetPlayerPixelX(Index) <> X Or GetPlayerPixelY(Index) <> y Then Exit Sub
     ' Tile effects fire once on entry, not on every pixel within the same tile.
     If Moved = NO Then Exit Sub
 
-    ' Check to see if the tile is a warp tile, and if so warp them
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_WARP Then
-        Player(Index).WarpTick = GetTickCount + 200
-        Moved = YES
-    End If
 
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_NUDGE Then
+    If HasTileType(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_NUDGE) Then
         Moved = YES
-        Call PlayerMove(Index, Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1, 0)
+        Call PlayerMove(Index, TileAttributeData(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_NUDGE, 1), 0)
         Exit Sub
     End If
 
     ' Check to see if there is a message tile
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_MSG Then
-        MapMsg1 = Trim$(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1)
-        MsgType = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data2
+    If HasTileType(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_MSG) Then
+        MapMsg1 = Trim$(TileAttributeData(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_MSG, 1))
+        MsgType = TileAttributeData(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_MSG, 2)
 
         If MsgType = 0 Then
             Call PlayerMsg(Index, Trim$(MapMsg1), White)
@@ -1557,11 +1558,11 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
     End If
 
     ' Check for key trigger open
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_KEYOPEN Then
-        X = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1
-        y = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data2
+    If HasTileType(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_KEYOPEN) Then
+        X = TileAttributeData(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_KEYOPEN, 1)
+        y = TileAttributeData(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_KEYOPEN, 2)
 
-        If Map(GetPlayerMap(Index)).Tile(X, y).Type = TILE_TYPE_KEY And TempTile(GetPlayerMap(Index)).DoorOpen(X, y) = NO Then
+        If HasTileType(Map(GetPlayerMap(Index)).Tile(X, y), TILE_TYPE_KEY) And TempTile(GetPlayerMap(Index)).DoorOpen(X, y) = NO Then
             TempTile(GetPlayerMap(Index)).DoorOpen(X, y) = YES
             TempTile(GetPlayerMap(Index)).DoorTimer = GetTickCount
 
@@ -1578,7 +1579,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
 
     ' check if doors on players left
     If X > 0 Then
-        If Map(GetPlayerMap(Index)).Tile(X - 1, y).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(X - 1, y) = NO Then
+        If HasTileType(Map(GetPlayerMap(Index)).Tile(X - 1, y), TILE_TYPE_DOOR) And TempTile(GetPlayerMap(Index)).DoorOpen(X - 1, y) = NO Then
             TempTile(GetPlayerMap(Index)).DoorOpen(X - 1, y) = YES
             TempTile(GetPlayerMap(Index)).DoorTimer = GetTickCount
 
@@ -1589,7 +1590,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
 
     ' check if doors on players right
     If X < 15 Then
-        If Map(GetPlayerMap(Index)).Tile(X + 1, y).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(X + 1, y) = NO Then
+        If HasTileType(Map(GetPlayerMap(Index)).Tile(X + 1, y), TILE_TYPE_DOOR) And TempTile(GetPlayerMap(Index)).DoorOpen(X + 1, y) = NO Then
             TempTile(GetPlayerMap(Index)).DoorOpen(X + 1, y) = YES
             TempTile(GetPlayerMap(Index)).DoorTimer = GetTickCount
 
@@ -1600,7 +1601,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
 
     ' check if doors above player
     If y > 0 Then
-        If Map(GetPlayerMap(Index)).Tile(X, y - 1).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(X, y - 1) = NO Then
+        If HasTileType(Map(GetPlayerMap(Index)).Tile(X, y - 1), TILE_TYPE_DOOR) And TempTile(GetPlayerMap(Index)).DoorOpen(X, y - 1) = NO Then
             TempTile(GetPlayerMap(Index)).DoorOpen(X, y - 1) = YES
             TempTile(GetPlayerMap(Index)).DoorTimer = GetTickCount
 
@@ -1611,7 +1612,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
 
     ' check of doors below player
     If y < 11 Then
-        If Map(GetPlayerMap(Index)).Tile(X, y + 1).Type = TILE_TYPE_DOOR And TempTile(GetPlayerMap(Index)).DoorOpen(X, y + 1) = NO Then
+        If HasTileType(Map(GetPlayerMap(Index)).Tile(X, y + 1), TILE_TYPE_DOOR) And TempTile(GetPlayerMap(Index)).DoorOpen(X, y + 1) = NO Then
             TempTile(GetPlayerMap(Index)).DoorOpen(X, y + 1) = YES
             TempTile(GetPlayerMap(Index)).DoorTimer = GetTickCount
 
@@ -1620,53 +1621,12 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
         End If
     End If
 
-    ' Check to see if they should be healed!
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_HEAL Then
-        Call SetPlayerHP(Index, GetPlayerMaxHP(Index))
-        Call SendHP(Index)
-        Call PlayerMsg(Index, "You feel odd as a strange glow eminated from you and your a lifted into the air. Bright orbs of light travel around you. You are miraculously healed!", BrightGreen)
-    End If
-
-    ' Check for kill tile, and if so kill them
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_KILL Then
-        If GetPlayerArmorSlot(Index) = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data2 Or GetPlayerWeaponSlot(Index) = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data2 Or GetPlayerHelmetSlot(Index) = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data2 Or GetPlayerShieldSlot(Index) = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data2 Then
-        ' Do Nothing
-        Else
-            ' Check to see if the sucker is going to die!
-            If GetPlayerHP(Index) > Trim$(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1) Then
-                Call SetPlayerHP(Index, GetPlayerHP(Index) - Trim$(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1))
-                Call SendHP(Index)
-                Call PlayerMsg(Index, "You've taken " & Trim$(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1) & " damage!", BrightRed)
-            ElseIf GetPlayerHP(Index) <= Trim$(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1) Then
-                Call PlayerMsg(Index, "You've taken " & Trim$(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1) & " damage, which has killed you!", BrightRed)
-                Call GlobalMsg("The player " & GetPlayerName(Index) & " has died!", BrightRed)
-
-                ' Warp player away
-                If Map(GetPlayerMap(Index)).BootMap > 0 And Map(GetPlayerMap(Index)).BootX > 0 And Map(GetPlayerMap(Index)).BootY > 0 Then
-                    Call PlayerWarp(Index, Map(GetPlayerMap(Index)).BootMap, Map(GetPlayerMap(Index)).BootX, Map(GetPlayerMap(Index)).BootY)
-                    Moved = YES
-                Else
-                    Call PlayerWarp(Index, Class(GetPlayerClass(Index)).Map, Class(GetPlayerClass(Index)).X, Class(GetPlayerClass(Index)).Y)
-                    Moved = YES
-                End If
-
-                ' Restore vitals
-                Call SetPlayerHP(Index, GetPlayerMaxHP(Index))
-                Call SetPlayerMP(Index, GetPlayerMaxMP(Index))
-                Call SetPlayerSP(Index, GetPlayerMaxSP(Index))
-                Call SendHP(Index)
-                Call SendMP(Index)
-                Call SendSP(Index)
-            End If
-        End If
-    End If
-
     ' ///////////////////////
     ' //check 4 sprite tile//
     ' ///////////////////////
     ' Check for sprite tile and then change the sprite
-    If Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Type = TILE_TYPE_SPRITE Then
-        SpriteNum = Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)).Data1
+    If HasTileType(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_SPRITE) Then
+        SpriteNum = TileAttributeData(Map(GetPlayerMap(Index)).Tile(GetPlayerX(Index), GetPlayerY(Index)), TILE_TYPE_SPRITE, 1)
         Call SetPlayerSprite(Index, SpriteNum)
         Call SendPlayerData(Index)
     End If
@@ -1705,6 +1665,10 @@ Function CanNpcMove(ByVal MapNum As Long, ByVal MapNpcNum As Long, ByVal Dir) As
         Case DIR_UP
             ' Check to make sure not outside of boundries
             If y > 0 Then
+                If Not TileAllowsNpc(Map(MapNum).Tile(X, y - 1)) Then
+                    CanNpcMove = False
+                    Exit Function
+                End If
                 N = Map(MapNum).Tile(X, y - 1).Type
 
                 ' Check to make sure that the tile is walkable
@@ -1742,6 +1706,10 @@ Function CanNpcMove(ByVal MapNum As Long, ByVal MapNpcNum As Long, ByVal Dir) As
         Case DIR_DOWN
             ' Check to make sure not outside of boundries
             If y < MAX_MAPY Then
+                If Not TileAllowsNpc(Map(MapNum).Tile(X, y + 1)) Then
+                    CanNpcMove = False
+                    Exit Function
+                End If
                 N = Map(MapNum).Tile(X, y + 1).Type
 
                 ' Check to make sure that the tile is walkable
@@ -1779,6 +1747,10 @@ Function CanNpcMove(ByVal MapNum As Long, ByVal MapNpcNum As Long, ByVal Dir) As
         Case DIR_LEFT
             ' Check to make sure not outside of boundries
             If X > 0 Then
+                If Not TileAllowsNpc(Map(MapNum).Tile(X - 1, y)) Then
+                    CanNpcMove = False
+                    Exit Function
+                End If
                 N = Map(MapNum).Tile(X - 1, y).Type
 
                 ' Check to make sure that the tile is walkable
@@ -1816,6 +1788,10 @@ Function CanNpcMove(ByVal MapNum As Long, ByVal MapNpcNum As Long, ByVal Dir) As
         Case DIR_RIGHT
             ' Check to make sure not outside of boundries
             If X < MAX_MAPX Then
+                If Not TileAllowsNpc(Map(MapNum).Tile(X + 1, y)) Then
+                    CanNpcMove = False
+                    Exit Function
+                End If
                 N = Map(MapNum).Tile(X + 1, y).Type
 
                 ' Check to make sure that the tile is walkable
@@ -2575,6 +2551,9 @@ Sub ClearPlayer(ByVal Index As Long)
     Player(Index).GettingMap = 0
     Player(Index).HDSerial = vbNullString
     Player(Index).WarpTick = 0
+    Player(Index).WarpMap = 0
+    Player(Index).WarpX = 0
+    Player(Index).WarpY = 0
 End Sub
 
 Sub ClearChar(ByVal Index As Long, ByVal CharNum As Long)
@@ -3106,9 +3085,7 @@ Public Sub CheckWarp()
     For I = 0 To HighIndex
         If IsConnected(I) Then
             If Player(I).WarpTick < GetTickCount And Player(I).WarpTick > 0 Then
-                Call PlayerWarp(I, Map(GetPlayerMap(I)).Tile(GetPlayerX(I), _
-                        GetPlayerY(I)).Data1, Map(GetPlayerMap(I)).Tile(GetPlayerX(I), GetPlayerY(I)).Data2, _
-                        Map(GetPlayerMap(I)).Tile(GetPlayerX(I), GetPlayerY(I)).Data3)
+                Call PlayerWarp(I, Player(I).WarpMap, Player(I).WarpX, Player(I).WarpY)
 
                 ' Reset WarpTick so it doesnt constantly warp them
                 Player(I).WarpTick = 0
@@ -3135,13 +3112,8 @@ End Sub
 Function CanEnterPlayerTile(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal Y As Long) As Boolean
     Dim I As Long
     If X < 0 Or Y < 0 Or X > MAX_MAPX Or Y > MAX_MAPY Then Exit Function
-    With Map(MapNum).Tile(X, Y)
-        If .Type = TILE_TYPE_BLOCKED Then
-            ' A Block tile with no flags is a solid block (including older maps).
-            If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then Exit Function
-        End If
-    End With
-    If Map(MapNum).Tile(X, Y).Type = TILE_TYPE_KEY Or Map(MapNum).Tile(X, Y).Type = TILE_TYPE_DOOR Then
+    If TileBlocksPlayer(Map(MapNum).Tile(X, Y)) Then Exit Function
+    If HasTileType(Map(MapNum).Tile(X, Y), TILE_TYPE_KEY) Or HasTileType(Map(MapNum).Tile(X, Y), TILE_TYPE_DOOR) Then
         If TempTile(MapNum).DoorOpen(X, Y) = NO Then Exit Function
     End If
     For I = 1 To HighIndex
@@ -3160,14 +3132,116 @@ Private Function IsTileBlocked(ByVal MapNum As Long, ByVal PixelX As Long, ByVal
     Dim TileX As Long, TileY As Long
     For TileY = PixelY \ PIC_Y To (PixelY + PIC_Y - 1) \ PIC_Y
         For TileX = PixelX \ PIC_X To (PixelX + PIC_X - 1) \ PIC_X
-            With Map(MapNum).Tile(TileX, TileY)
-                If .Type = TILE_TYPE_BLOCKED Then
-                    If .Data1 <> 0 Or (.Data1 = 0 And .Data2 = 0 And .Data3 = 0) Then
-                        IsTileBlocked = True
-                        Exit Function
-                    End If
-                End If
-            End With
+            If TileBlocksPlayer(Map(MapNum).Tile(TileX, TileY)) Then
+                IsTileBlocked = True
+                Exit Function
+            End If
         Next TileX
     Next TileY
+End Function
+
+
+' Warp, damage and heal tiles cover the full 32-by-32 cell, once per entry.
+Private Sub CheckPlayerContactTiles(ByVal Index As Long, ByVal MapNum As Long, ByVal OldPixelX As Long, ByVal OldPixelY As Long, ByVal PixelX As Long, ByVal PixelY As Long)
+    Dim TileX As Long, TileY As Long
+    For TileY = PixelY \ PIC_Y To (PixelY + PIC_Y - 1) \ PIC_Y
+        For TileX = PixelX \ PIC_X To (PixelX + PIC_X - 1) \ PIC_X
+            If TileX < OldPixelX \ PIC_X Or TileX > (OldPixelX + PIC_X - 1) \ PIC_X Or TileY < OldPixelY \ PIC_Y Or TileY > (OldPixelY + PIC_Y - 1) \ PIC_Y Then
+                Call ApplyPlayerContactTile(Index, MapNum, TileX, TileY)
+                If GetPlayerMap(Index) <> MapNum Or GetPlayerPixelX(Index) <> PixelX Or GetPlayerPixelY(Index) <> PixelY Then Exit Sub
+            End If
+        Next TileX
+    Next TileY
+End Sub
+
+Private Sub ApplyPlayerContactTile(ByVal Index As Long, ByVal MapNum As Long, ByVal TileX As Long, ByVal TileY As Long)
+    If HasTileType(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_WARP) And Player(Index).WarpTick = 0 Then
+        Player(Index).WarpMap = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_WARP, 1)
+        Player(Index).WarpX = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_WARP, 2)
+        Player(Index).WarpY = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_WARP, 3)
+        If Player(Index).WarpMap > 0 And Player(Index).WarpMap <= MAX_MAPS_SET And Player(Index).WarpX >= 0 And Player(Index).WarpX <= MAX_MAPX And Player(Index).WarpY >= 0 And Player(Index).WarpY <= MAX_MAPY Then
+            Player(Index).WarpTick = GetTickCount + 200
+        End If
+    End If
+
+    ' Check to see if they should be healed!
+    If HasTileType(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_HEAL) Then
+        Call SetPlayerHP(Index, GetPlayerMaxHP(Index))
+        Call SendHP(Index)
+        Call PlayerMsg(Index, "You feel odd as a strange glow eminated from you and your a lifted into the air. Bright orbs of light travel around you. You are miraculously healed!", BrightGreen)
+    End If
+
+    ' Check for kill tile, and if so kill them
+    If HasTileType(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL) Then
+        If GetPlayerArmorSlot(Index) = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 2) Or GetPlayerWeaponSlot(Index) = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 2) Or GetPlayerHelmetSlot(Index) = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 2) Or GetPlayerShieldSlot(Index) = TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 2) Then
+        ' Do Nothing
+        Else
+            ' Check to see if the sucker is going to die!
+            If GetPlayerHP(Index) > Trim$(TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 1)) Then
+                Call SetPlayerHP(Index, GetPlayerHP(Index) - Trim$(TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 1)))
+                Call SendHP(Index)
+                Call PlayerMsg(Index, "You've taken " & Trim$(TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 1)) & " damage!", BrightRed)
+            ElseIf GetPlayerHP(Index) <= Trim$(TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 1)) Then
+                Call PlayerMsg(Index, "You've taken " & Trim$(TileAttributeData(Map(MapNum).Tile(TileX, TileY), TILE_TYPE_KILL, 1)) & " damage, which has killed you!", BrightRed)
+                Call GlobalMsg("The player " & GetPlayerName(Index) & " has died!", BrightRed)
+
+                ' Warp player away
+                If Map(GetPlayerMap(Index)).BootMap > 0 And Map(GetPlayerMap(Index)).BootX > 0 And Map(GetPlayerMap(Index)).BootY > 0 Then
+                    Call PlayerWarp(Index, Map(GetPlayerMap(Index)).BootMap, Map(GetPlayerMap(Index)).BootX, Map(GetPlayerMap(Index)).BootY)
+                Else
+                    Call PlayerWarp(Index, Class(GetPlayerClass(Index)).Map, Class(GetPlayerClass(Index)).X, Class(GetPlayerClass(Index)).Y)
+                End If
+
+                ' Restore vitals
+                Call SetPlayerHP(Index, GetPlayerMaxHP(Index))
+                Call SetPlayerMP(Index, GetPlayerMaxMP(Index))
+                Call SetPlayerSP(Index, GetPlayerMaxSP(Index))
+                Call SendHP(Index)
+                Call SendMP(Index)
+                Call SendSP(Index)
+            End If
+        End If
+    End If
+
+End Sub
+
+Public Function HasTileType(ByRef tile As TileRec, ByVal attributeType As Long) As Boolean
+    HasTileType = tile.Type = attributeType Or tile.Type2 = attributeType
+End Function
+
+Public Function TileAttributeData(ByRef tile As TileRec, ByVal attributeType As Long, ByVal number As Long) As Long
+    If tile.Type = attributeType Then
+        Select Case number
+            Case 1: TileAttributeData = tile.Data1
+            Case 2: TileAttributeData = tile.Data2
+            Case 3: TileAttributeData = tile.Data3
+        End Select
+    ElseIf tile.Type2 = attributeType Then
+        Select Case number
+            Case 1: TileAttributeData = tile.Data21
+            Case 2: TileAttributeData = tile.Data22
+            Case 3: TileAttributeData = tile.Data23
+        End Select
+    End If
+End Function
+
+Public Function TileBlocksPlayer(ByRef tile As TileRec) As Boolean
+    If tile.Type = TILE_TYPE_BLOCKED Then
+        If tile.Data1 <> 0 Or (tile.Data1 = 0 And tile.Data2 = 0 And tile.Data3 = 0) Then TileBlocksPlayer = True
+    End If
+    If tile.Type2 = TILE_TYPE_BLOCKED Then
+        If tile.Data21 <> 0 Or (tile.Data21 = 0 And tile.Data22 = 0 And tile.Data23 = 0) Then TileBlocksPlayer = True
+    End If
+End Function
+Private Function TileAllowsNpc(ByRef tile As TileRec) As Boolean
+    TileAllowsNpc = NpcAttributeWalkable(tile.Type, tile.Data2) And NpcAttributeWalkable(tile.Type2, tile.Data22)
+End Function
+
+Private Function NpcAttributeWalkable(ByVal attributeType As Long, ByVal blockNpc As Long) As Boolean
+    Select Case attributeType
+        Case TILE_TYPE_WALKABLE, TILE_TYPE_ITEM, TILE_TYPE_NPCSPAWN
+            NpcAttributeWalkable = True
+        Case TILE_TYPE_BLOCKED
+            NpcAttributeWalkable = blockNpc = 0
+    End Select
 End Function

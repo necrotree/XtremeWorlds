@@ -125,6 +125,9 @@ Failed:
         WriteLong count
         WriteLong 1
     End Sub
+    Public Property Get Remaining() As Long
+        Remaining = used - cursor
+    End Property
     Public Sub RequireEnd()
         If cursor <> used Then Err.Raise 5, "clsDataFile", "Unexpected record size at byte " & cursor & ": " & origin
     End Sub

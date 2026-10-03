@@ -97,6 +97,9 @@ Type AccountRec
   GettingMap As Byte
   HDSerial As String
   WarpTick As Long
+  WarpMap As Long
+  WarpX As Long
+  WarpY As Long
 End Type
 
 Type TileRec
@@ -113,6 +116,11 @@ Type TileRec
   Data1 As Integer
   Data2 As Integer
   Data3 As Integer
+  LayerTileset(0 To 8) As Byte
+  Type2 As Byte
+  Data21 As Integer
+  Data22 As Integer
+  Data23 As Integer
 End Type
 
 Type OldMapRec

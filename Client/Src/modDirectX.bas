@@ -136,7 +136,7 @@ Public Sub BltMap()
             DD_LowerBuffer.BltFast _
                 X * PIC_X, _
                 Y * PIC_Y, _
-                DD_TileSurf(Map.Tileset), _
+                DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 0)), _
                 rec, _
                 False
 
@@ -152,7 +152,7 @@ Public Sub BltMap()
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 1)), _
                         rec, _
                         True
                 End If
@@ -168,7 +168,7 @@ Public Sub BltMap()
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 2)), _
                         rec, _
                         True
                 End If
@@ -187,7 +187,7 @@ Public Sub BltMap()
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 3)), _
                         rec, _
                         True
                 End If
@@ -203,7 +203,7 @@ Public Sub BltMap()
                     DD_LowerBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 4)), _
                         rec, _
                         True
                 End If
@@ -222,7 +222,7 @@ Public Sub BltMap()
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 5)), _
                         rec, _
                         True
                 End If
@@ -238,7 +238,7 @@ Public Sub BltMap()
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 6)), _
                         rec, _
                         True
                 End If
@@ -257,7 +257,7 @@ Public Sub BltMap()
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 7)), _
                         rec, _
                         True
                 End If
@@ -273,7 +273,7 @@ Public Sub BltMap()
                     DD_UpperBuffer.BltFast _
                         X * PIC_X, _
                         Y * PIC_Y, _
-                        DD_TileSurf(Map.Tileset), _
+                        DD_TileSurf(TileLayerTileset(Map.Tile(X, Y), 8)), _
                         rec, _
                         True
                 End If
@@ -482,3 +482,8 @@ Public Sub GetItemPictureRect(ByVal Picture As Long, ByRef Source As RECT)
     Source.Right = Source.Left + PIC_X
     Source.Bottom = Source.Top + PIC_Y
 End Sub
+Public Function TileLayerTileset(ByRef tile As TileRec, ByVal layer As Long) As Long
+    TileLayerTileset = tile.LayerTileset(layer)
+    If TileLayerTileset < 1 Or TileLayerTileset > 6 Then TileLayerTileset = Map.Tileset
+    If TileLayerTileset < 1 Or TileLayerTileset > 6 Then TileLayerTileset = 1
+End Function

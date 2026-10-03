@@ -264,7 +264,7 @@ End Sub
 Sub ClearMap()
     Dim i As Long
     Dim X As Long
-    Dim Y As Long
+    Dim Y As Long, Layer As Long
 
     Map.Name = vbNullString
     Map.Revision = 0
@@ -289,6 +289,13 @@ Sub ClearMap()
             Map.Tile(X, Y).Data1 = 0
             Map.Tile(X, Y).Data2 = 0
             Map.Tile(X, Y).Data3 = 0
+            Map.Tile(X, Y).Type2 = 0
+            Map.Tile(X, Y).Data21 = 0
+            Map.Tile(X, Y).Data22 = 0
+            Map.Tile(X, Y).Data23 = 0
+            For Layer = 0 To 8
+                Map.Tile(X, Y).LayerTileset(Layer) = 0
+            Next Layer
         Next X
     Next Y
 End Sub

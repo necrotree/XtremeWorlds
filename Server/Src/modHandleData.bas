@@ -677,9 +677,9 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                     End Select
 
                     ' Check if a key exists
-                    If Map(GetPlayerMap(Index)).Tile(X, y).Type = TILE_TYPE_KEY Then
+                    If HasTileType(Map(GetPlayerMap(Index)).Tile(X, y), TILE_TYPE_KEY) Then
                         ' Check if the key they are using matches the map key
-                        If GetPlayerInvItemNum(Index, InvNum) = Map(GetPlayerMap(Index)).Tile(X, y).Data1 Then
+                        If GetPlayerInvItemNum(Index, InvNum) = TileAttributeData(Map(GetPlayerMap(Index)).Tile(X, y), TILE_TYPE_KEY, 1) Then
                             TempTile(GetPlayerMap(Index)).DoorOpen(X, y) = YES
                             TempTile(GetPlayerMap(Index)).DoorTimer = GetTickCount
 
@@ -688,7 +688,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                             MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_KEY & ", " & ItemNum
 
                             ' Check if we are supposed to take away the item
-                            If Map(GetPlayerMap(Index)).Tile(X, y).Data2 = 1 Then
+                            If TileAttributeData(Map(GetPlayerMap(Index)).Tile(X, y), TILE_TYPE_KEY, 2) = 1 Then
                                 Call TakeItem(Index, GetPlayerInvItemNum(Index, InvNum), 0)
                                 Call PlayerMsg(Index, "The key disolves.", Yellow)
                             End If
@@ -1325,6 +1325,20 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                 Map(MapNum).Tile(X, y).Data2 = Val(Parse(N + 11))
                 Map(MapNum).Tile(X, y).Data3 = Val(Parse(N + 12))
 
+                    Map(MapNum).Tile(X, y).Type2 = 0
+                    Map(MapNum).Tile(X, y).Data21 = 0
+                    Map(MapNum).Tile(X, y).Data22 = 0
+                    Map(MapNum).Tile(X, y).Data23 = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(0) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(1) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(2) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(3) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(4) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(5) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(6) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(7) = 0
+                    Map(MapNum).Tile(X, y).LayerTileset(8) = 0
+
                 N = N + 13
             Next X
         Next y
@@ -1334,6 +1348,32 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
             N = N + 1
             Call ClearMapNpc(X, MapNum)
         Next X
+
+        If UBound(Parse) >= n Then
+            If Parse(n) = "MAPEX1" Then
+                n = n + 1
+                If UBound(Parse) < n + (MAX_MAPX + 1) * (MAX_MAPY + 1) * 13 - 1 Then Exit Sub
+                For y = 0 To MAX_MAPY
+                    For X = 0 To MAX_MAPX
+                        Map(MapNum).Tile(X, y).LayerTileset(0) = Val(Parse(n + 0))
+                        Map(MapNum).Tile(X, y).LayerTileset(1) = Val(Parse(n + 1))
+                        Map(MapNum).Tile(X, y).LayerTileset(2) = Val(Parse(n + 2))
+                        Map(MapNum).Tile(X, y).LayerTileset(3) = Val(Parse(n + 3))
+                        Map(MapNum).Tile(X, y).LayerTileset(4) = Val(Parse(n + 4))
+                        Map(MapNum).Tile(X, y).LayerTileset(5) = Val(Parse(n + 5))
+                        Map(MapNum).Tile(X, y).LayerTileset(6) = Val(Parse(n + 6))
+                        Map(MapNum).Tile(X, y).LayerTileset(7) = Val(Parse(n + 7))
+                        Map(MapNum).Tile(X, y).LayerTileset(8) = Val(Parse(n + 8))
+                        Map(MapNum).Tile(X, y).Type2 = Val(Parse(n + 9))
+                        Map(MapNum).Tile(X, y).Data21 = Val(Parse(n + 10))
+                        Map(MapNum).Tile(X, y).Data22 = Val(Parse(n + 11))
+                        Map(MapNum).Tile(X, y).Data23 = Val(Parse(n + 12))
+                        n = n + 13
+                    Next X
+                Next y
+            End If
+        End If
+
         Call SendMapNpcsToMap(MapNum)
         Call SpawnMapNpcs(MapNum)
 
