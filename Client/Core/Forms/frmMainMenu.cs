@@ -131,10 +131,10 @@ namespace XtremeWorlds.Client.Forms
             picNewAcctCancel = MakeSkinButton("Back");
 
             lstChars = new LegacyListBox() { Style = "XtremeWorldsTransparentList" };
-            imgCharacter0 = new ImageView();
-            imgCharacter1 = new ImageView();
-            imgCharacter2 = new ImageView();
-            imgSelectedCharacter = new ImageView();
+            imgCharacter0 = new ImageView() { Size = new Size(48, 64) };
+            imgCharacter1 = new ImageView() { Size = new Size(48, 64) };
+            imgCharacter2 = new ImageView() { Size = new Size(48, 64) };
+            imgSelectedCharacter = new ImageView() { Size = new Size(48, 64) };
             lblCharacter0 = MakeSkinLabel(string.Empty);
             lblCharacter1 = MakeSkinLabel(string.Empty);
             lblCharacter2 = MakeSkinLabel(string.Empty);
@@ -290,10 +290,8 @@ namespace XtremeWorlds.Client.Forms
             page.Rows.Add(new TableRow(new TableCell(Center(mainPanel), true)));
             var grow2 = new TableRow(new TableCell(null, true)) { ScaleHeight = true };
             page.Rows.Add(grow2);
-            // Keep the Website / Exit artwork and the real Eto buttons aligned,
-            // but let the whole bottom panel sit 4 pixels lower like the twinBASIC menu.
+            // Keep Website / Exit flush with the bottom edge of the client area.
             page.Rows.Add(new TableRow(new TableCell(Center(bottomPanel), true)));
-            page.Rows.Add(new TableRow(new TableCell(Spacer(1, 0), true)));
             return page;
         }
 
@@ -326,16 +324,29 @@ namespace XtremeWorlds.Client.Forms
             picDelChar.Size = new Size(100, 22);
             picNewChar.Size = new Size(100, 22);
             picCharsCancel.Size = new Size(100, 22);
-            lstChars.Size = new Size(210, 82);
 
-            // lstChars is a real Eto ListBox.  The WPF skin makes it transparent so
-            // the three twinBASIC character slots remain visible beneath it.
-            var body = Vertical(Spacer(1, 39), Horizontal(Spacer(28), lstChars), Spacer(1, 14), Horizontal(Spacer(28), picUseChar, Spacer(10), picDelChar), Spacer(1, 3), Horizontal(Spacer(28), picNewChar, Spacer(10), picCharsCancel));
+            imgCharacter0.Size = new Size(48, 64);
+            imgCharacter1.Size = new Size(48, 64);
+            imgCharacter2.Size = new Size(48, 64);
+
+            var body = new PixelLayout { Size = new Size(266, 199) };
+
+            // Center each 48x64 facing-down sprite in the three black slots.
+            body.Add(imgCharacter0, 38, 41);
+            body.Add(imgCharacter1, 108, 41);
+            body.Add(imgCharacter2, 178, 41);
+
+            body.Add(picUseChar, 28, 135);
+            body.Add(picDelChar, 138, 135);
+            body.Add(picNewChar, 28, 160);
+            body.Add(picCharsCancel, 138, 160);
+
             return CenterPage(SkinPanel("XtremeWorldsCharactersPanel", 266, 199, body));
         }
 
         private Control BuildNewCharacterPage()
         {
+            imgNewCharSprite.Size = new Size(48, 64);
             txtNewCharName.Size = new Size(114, 20);
             picMale.Size = new Size(74, 24);
             picFemale.Size = new Size(82, 24);
@@ -344,7 +355,18 @@ namespace XtremeWorlds.Client.Forms
             picPreviousClass.Size = new Size(24, 24);
             picNextClass.Size = new Size(24, 24);
 
-            var body = Vertical(Spacer(1, 45), Horizontal(Spacer(149), txtNewCharName), Spacer(1, 17), Horizontal(Spacer(100), picMale, Spacer(12), picFemale), Spacer(1, 23), Horizontal(Spacer(37), picPreviousClass, Spacer(18), picNextClass), Spacer(1, 17), Center(Horizontal(picNewCharAddChar, Spacer(11), picNewCharCancel)));
+            var body = new PixelLayout { Size = new Size(297, 199) };
+
+            // 48x64 facing-down class sprite in the black preview square.
+            body.Add(imgNewCharSprite, 35, 38);
+            body.Add(txtNewCharName, 149, 45);
+            body.Add(picMale, 100, 82);
+            body.Add(picFemale, 186, 82);
+            body.Add(picPreviousClass, 31, 114);
+            body.Add(picNextClass, 63, 114);
+            body.Add(picNewCharAddChar, 44, 153);
+            body.Add(picNewCharCancel, 156, 153);
+
             return CenterPage(SkinPanel("XtremeWorldsNewCharacterPanel", 297, 199, body));
         }
 
@@ -640,6 +662,8 @@ namespace XtremeWorlds.Client.Forms
             lblDEF.Caption = info.DEF.ToString();
             lblSPEED.Caption = info.Speed.ToString();
             lblMAGI.Caption = info.MAGI.ToString();
+            imgNewCharSprite.Image = PlayerSpriteLoader.Load(
+                _client.CurrentSex == 1 ? info.MaleSprite : info.FemaleSprite);
             _client.RefreshNewCharacterPreview(index, _client.CurrentSex);
         }
 
@@ -670,6 +694,11 @@ namespace XtremeWorlds.Client.Forms
                     }
             }
             label.Caption = string.IsNullOrWhiteSpace(name) ? "Empty" : name;
+
+            var preview = slot == 0 ? imgCharacter0 : slot == 1 ? imgCharacter1 : imgCharacter2;
+            preview.Image = string.IsNullOrWhiteSpace(name)
+                ? null
+                : PlayerSpriteLoader.Load(sprite);
         }
 
         public void SelectCharacterSlot(int slot)
