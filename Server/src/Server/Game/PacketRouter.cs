@@ -339,12 +339,6 @@ namespace Server
                 return;
             _network.SendText(id, PacketCodec.Compose("worldstate",
                 System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = player })));
-            if (map is null || map.Tiles.Count == 0)
-            {
-                string message = $"Map {mapId} has no map data in the server database.";
-                _log?.Invoke($"[{id}] {message}");
-                _network.SendText(id, PacketCodec.Compose("maperror", mapId, message));
-            }
         }
 
         private async Task SendCharactersAsync(int id, string login)

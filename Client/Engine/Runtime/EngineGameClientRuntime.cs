@@ -271,6 +271,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 break;
             case "Unjail":
                 SendPacket("UNJAILPLAYER", Arg(arguments, 0));
+                break;
             case "Kick":
                 SendPacket("KICKPLAYER", Arg(arguments, 0));
                 break;
