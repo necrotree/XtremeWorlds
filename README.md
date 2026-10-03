@@ -1,336 +1,112 @@
 # XtremeWorlds
 
-**XtremeWorlds** is a free 2D MMORPG maker inspired by the classic PlayerWorlds-style development experience.
+XtremeWorlds is a free 2D MMORPG maker based on the classic PlayerWorlds development experience. It includes a Windows game client, a multiplayer server, and editors for building your own world.
 
-This repository contains both the **game client** and **game server**, allowing you to run your own local PlayerWorld and begin building your own MMORPG.
+The project includes **twinBASIC projects** alongside legacy **Visual Basic 6 projects** and exported source files. Some project metadata still uses the Playerworlds Lite name.
 
-We recommend TwinBasic for your IDE in Visual Basic 6.
-https://twinbasic.com/
+## Project layout
 
-## Getting Started
+```text
+XtremeWorlds/
+|-- Client/
+|   |-- Client.twinproj    twinBASIC client project
+|   |-- Client.vbp         Legacy VB6 client project
+|   |-- Src/               Exported modules, classes, and forms
+|   |-- Gfx/               Game and interface graphics
+|   |-- music/             Music assets
+|   |-- data/              Client configuration and game data
+|   |-- options.ini        Server address and menu settings
+|   `-- bass.dll           Native audio library
+|-- Server/
+|   |-- Server.twinproj    twinBASIC server project
+|   |-- Server.vbp         Legacy VB6 server project
+|   |-- Src/               Exported server source
+|   |-- scripts/           Server scripts, including Main.as
+|   |-- data/              Accounts and world data
+|   `-- logs/              Server logs
+|-- build/                 Development and project synchronization scripts
+|-- README.md
+`-- LICENSE
+```
 
-### 1. Clone the repository
+Runtime files are resolved relative to the executable's directory. Keep each application with its corresponding data, scripts, assets, and libraries.
 
-```bash
+## Getting started
+
+### 1. Get the source
+
+```powershell
 git clone https://github.com/necrotree/XtremeWorlds.git
 cd XtremeWorlds
 ```
 
-The project is organized into two main parts:
+The paths below are relative to the folder containing this README.
 
-```text
-XtremeWorlds/
-├── Client/
-├── Server/
-├── LICENSE
-└── README.md
+### 2. Build the applications
+
+On Windows, open `Server/Server.twinproj` and `Client/Client.twinproj` in twinBASIC. Build the applications and place their outputs in the respective `Server/` and `Client/` runtime folders. If `Server.exe` and `Client.exe` are already available, you can use them to try the local setup.
+
+The `.vbp` files are the legacy VB6 entry points. Their references include older COM controls and libraries, such as RichTextBox, Internet Transfer, and Common Dialog controls; the client also references DAO, DirectX 7, and a Playerworlds movement plugin. These dependencies must be available for the legacy projects to load and compile. Check each `.vbp` for its exact references.
+
+### 3. Configure a local connection
+
+The client reads its server address from [`Client/options.ini`](Client/options.ini):
+
+```ini
+[Options]
+IP=127.0.0.1
+MenuMusic=music1.ogg
+Website=https://xtremeworlds.com
 ```
 
-* **Client** — The application players use to connect to your world.
-* **Server** — The application that hosts your world and handles players, maps, NPCs, and game logic.
+Use `127.0.0.1` when both applications run on the same computer. For another computer on your network, set `IP` to the server's address. The client main menu also provides a server address setting.
 
----
+The supplied [`Server/scripts/Main.as`](Server/scripts/Main.as) sets `GAME_PORT` to **7234** and passes it to `SetServerPort`. The client initializes its port to **7234** when creating `Client/data/Data.dat`; an existing file retains its saved port. Changing `IP` in `options.ini` does not change that port. Keep the client and server port settings aligned.
 
-## 2. Start the Server
+### 4. Start the server, then the client
 
-Open the `Server` directory and locate the server project/executable.
+From the project folder, when the executables are available:
 
-Start the server first.
-
-The server needs to be running before the client can connect to PlayerWorlds.
-
-Keep the server window open while testing the game.
-
-> **Tip:** If you are developing the game, start the server before starting the client so you can see connection and server-side errors while testing.
-
----
-
-## 3. Start the Client
-
-After the server is running, open the `Client` directory and start the client project/executable.
-
-The client should connect to your local server using the configured server address and port.
-
-For local development, the server address will normally be:
-
-```text
-127.0.0.1
+```powershell
+Start-Process -FilePath .\Server\Server.exe -WorkingDirectory .\Server
+Start-Process -FilePath .\Client\Client.exe -WorkingDirectory .\Client
 ```
 
-or:
+Wait for the server to finish loading before connecting with the client. Keep the server running throughout your session. Create an account or log in, select a character, and verify that you can enter the world, move, and chat.
 
-```text
-localhost
-```
+## Building your world
 
-If the client does not connect, check the client/server configuration for the expected IP address and port.
+Start with a small playable area and test each addition:
 
----
+1. Create a map with a spawn point and a few connected areas.
+2. Add NPCs and test their behavior.
+3. Add items, equipment, shops, and spells using the available editors.
+4. Test combat and character progression.
+5. Expand into quests, guilds, and additional maps as your world develops.
 
-# Creating your World
+Back up `Server/data/` and `Server/scripts/` before changing world content or game rules. Preserve client assets and configuration alongside those backups when distributing a matching client.
 
-Once the client and server are running, you can begin treating the project as your own world.
+## Development
 
-A typical development workflow is:
+The client handles rendering, interface controls, input, audio, and presentation. The server manages connected players, world state, game rules, and persistent data. Validate important multiplayer actions on the server.
 
-```text
-Start Server
-     ↓
-Start Client
-     ↓
-Connect to your World
-     ↓
-Create/Edit your game content
-     ↓
-Restart and test
-     ↓
-Repeat
-```
+Source exports are in `Client/Src/` and `Server/Src/`, including `.bas`, `.cls`, `.frm`, `.twin`, and `.tbform` files. **The twinBASIC project files also contain embedded source and forms.** Editing an exported file alone may not update the project you build. Keep the project contents and source exports synchronized, and verify that your build includes the intended changes.
 
-## Recommended Development Order
+The `build/` folder contains scripts used for specific development changes and project synchronization. Review a script's inputs and target files before running it; these scripts are not a general build command.
 
-If you're new to PlayerWorlds development, start small.
+For changes to networking or saved data formats, update both applications together and test with a matching client/server pair.
 
-### 1. Get the basic world running
+## Troubleshooting
 
-First make sure you can:
-
-* Start the server
-* Start the client
-* Connect to the server
-* Create/login with a player
-* Enter the game world
-* Move around successfully
-
-Don't start modifying gameplay until this works.
-
-### 2. Build your first map
-
-Create a small test map before attempting to build an entire MMORPG.
-
-For example:
-
-```text
-Town
-├── Spawn
-├── Inn
-├── Shop
-├── NPC area
-└── Exit to Route 1
-```
-
-Keep your first map simple. It makes debugging much easier.
-
-### 3. Add NPCs
-
-After your map works, start adding NPCs such as:
-
-* Shopkeepers
-* Quest NPCs
-* Trainers
-* Guards
-* Story characters
-* Enemies
-
-Test each NPC individually before adding large numbers of them.
-
-### 4. Add items and equipment
-
-Once the world and NPCs work, begin creating:
-
-* Weapons
-* Armor
-* Consumables
-* Quest items
-* Currency
-* Other usable items
-
-### 5. Build your gameplay
-
-After the basic world is working, you can expand into:
-
-* Combat
-* Quests
-* Shops
-* Experience and levels
-* Player progression
-* Guilds
-* PvP
-* Economy
-* Events
-* Multiple maps
-* Custom game systems
-
----
-
-# Client and Server Development
-
-It is important to understand that the client and server have different responsibilities.
-
-## Client
-
-The client is responsible for things the player sees and interacts with, such as:
-
-* Graphics
-* Maps displayed to the player
-* User interface
-* Input
-* Menus
-* Player movement presentation
-* Chat presentation
-* Visual effects
-
-## Server
-
-The server is responsible for the authoritative game state, including things such as:
-
-* Connected players
-* Player data
-* NPCs
-* Game rules
-* World state
-* Combat/gameplay logic
-* Player movement validation
-* Saving/loading data
-
-When developing multiplayer features, avoid assuming that the client can be trusted. The server should be responsible for important game-state decisions.
-
----
-
-# Local Development
-
-For development on one computer, use a local server.
-
-A typical setup is:
-
-```text
-┌─────────────────────┐
-│       Client        │
-│                     │
-│   Your PlayerWorld  │
-└──────────┬──────────┘
-           │
-           │ Local connection
-           │
-           ▼
-┌─────────────────────┐
-│       Server        │
-│                     │
-│   Your Game World   │
-└─────────────────────┘
-```
-
-Start the **Server first**, then start the **Client**.
-
-When you're ready to let other players connect, configure the server for network access and make sure the appropriate port is reachable.
-
----
-
-# Troubleshooting
-
-### Client cannot connect
-
-Check:
-
-1. Is the server running?
-2. Is the client using the correct IP address?
-3. Is the client using the correct port?
-4. Is the server listening on that port?
-5. Is a firewall blocking the connection?
-6. Are the client and server using compatible versions?
-
-For a local server, try:
-
-```text
-127.0.0.1
-```
-
-or:
-
-```text
-localhost
-```
-
-### Server starts but the client disconnects
-
-Check the server console for errors first.
-
-The server log is usually more useful than the client when diagnosing connection problems.
-
-### Changes aren't appearing
-
-Make sure you're editing the files/data actually used by the running server or client.
-
-After changing server-side data, restart the server if the change isn't hot-loaded.
-
----
-
-# Development Tips
-
-### Make backups
-
-Before making large changes, back up your world and data.
-
-### Test with a small world
-
-Build a tiny test area before creating your entire game.
-
-### Keep client and server changes separate
-
-When troubleshooting, determine whether the problem is:
-
-```text
-Client → visual/input problem
-Server → gameplay/data/network problem
-```
-
-This makes problems much easier to locate.
-
-### Build incrementally
-
-A good first milestone is:
-
-```text
-Login
-  ↓
-Spawn
-  ↓
-Move
-  ↓
-Chat
-  ↓
-NPC
-  ↓
-Item
-  ↓
-Combat
-  ↓
-Quest
-```
-
-Get each system working before moving to the next one.
-
----
-
-# Development
-
-The goal of XtremeWorlds is to give you a starting point for creating your own 2D MMORPG.
-
-You can use the project as a foundation for creating a world with your own:
-
-* Maps
-* Characters
-* NPCs
-* Items
-* Quests
-* Monsters
-* Classes
-* Gameplay systems
-* Story
-* Community
-
-Start with a small playable area, get the client/server loop working, and expand your PlayerWorld from there.
+| Problem | Checks |
+| --- | --- |
+| Client cannot connect | Confirm the server has finished loading, the IP in `Client/options.ini` is correct, and both sides use the same port. For connections from another computer, check the server's firewall and network access. |
+| Client disconnects after connecting | Check the server window and `Server/logs/`; verify that the client and server use compatible builds and data formats. |
+| Missing graphics, music, or scripts | Keep the executable in its runtime folder with its assets. Confirm that `Client/bass.dll`, the graphics and music folders, and `Server/scripts/Main.as` are present. |
+| Source changes do not appear | Check that the twinBASIC project's embedded source was updated, rebuild, and confirm you launched the new executable. |
+| World changes do not appear | Confirm you edited the data used by the running application. The server reads world data under its own `data/` folder. Reload or restart as required by the changed content. |
+| Legacy VB6 project fails to load | Check the references and controls listed in the `.vbp` file and resolve missing dependencies in the IDE. |
 
 ## License
 
-XtremeWorlds is released under the **BSD 2-Clause License**. See [`LICENSE`](LICENSE) for the full license text.
+XtremeWorlds is released under the **BSD 2-Clause License**. See [`LICENSE`](LICENSE) for the full terms.
