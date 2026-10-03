@@ -56,6 +56,11 @@ public sealed class LuaScriptEngine : IDisposable
                     script.DoString(File.ReadAllText(path), codeFriendlyName: path);
 
                 _script = script;
+
+                var serverSet = script.Globals.Get("ServerSet");
+                if (serverSet.Type is DataType.Function or DataType.ClrFunction)
+                    script.Call(serverSet);
+
                 _log($"Lua scripts loaded: {string.Join(", ", files.Select(Path.GetFileName))}");
                 return true;
             }
@@ -116,15 +121,17 @@ public sealed class LuaScriptEngine : IDisposable
         script.Globals["SetServerPort"] = (Action<int>)(value => _settings.Port = Math.Max(1, value));
         script.Globals["SetMaxPlayers"] = (Action<int>)(value => _settings.MaxPlayers = Math.Max(1, value));
 
-        // These limits still live in legacy/static game data. Keep the API names
-        // available so legacy Main.lua ports load cleanly while those systems move.
-        foreach (var name in new[]
-        {
-            "SetMaxMaps", "SetMaxItems", "SetMaxShops", "SetMaxSpells", "SetMaxSigns",
-            "SetMaxNPCs", "SetMaxGuilds", "SetMaxGuildMembers", "SetMaxQuests",
-            "SetMaxArrows", "SetMaxClasses"
-        })
-            script.Globals[name] = (Action<int>)(_ => { });
+        script.Globals["SetMaxMaps"] = (Action<int>)(value => _settings.MaxMaps = Math.Max(0, value));
+        script.Globals["SetMaxItems"] = (Action<int>)(value => _settings.MaxItems = Math.Max(0, value));
+        script.Globals["SetMaxShops"] = (Action<int>)(value => _settings.MaxShops = Math.Max(0, value));
+        script.Globals["SetMaxSpells"] = (Action<int>)(value => _settings.MaxSpells = Math.Max(0, value));
+        script.Globals["SetMaxSigns"] = (Action<int>)(value => _settings.MaxSigns = Math.Max(0, value));
+        script.Globals["SetMaxNPCs"] = (Action<int>)(value => _settings.MaxNpcs = Math.Max(0, value));
+        script.Globals["SetMaxGuilds"] = (Action<int>)(value => _settings.MaxGuilds = Math.Max(0, value));
+        script.Globals["SetMaxGuildMembers"] = (Action<int>)(value => _settings.MaxGuildMembers = Math.Max(0, value));
+        script.Globals["SetMaxQuests"] = (Action<int>)(value => _settings.MaxQuests = Math.Max(0, value));
+        script.Globals["SetMaxArrows"] = (Action<int>)(value => _settings.MaxArrows = Math.Max(0, value));
+        script.Globals["SetMaxClasses"] = (Action<int>)(value => _settings.MaxClasses = Math.Max(0, value));
 
         script.Globals["SetStartPosition"] = (Action<int, int, int>)((_, _, _) => { });
         script.Globals["SetDebugScripting"] = (Action<int>)(_ => { });
