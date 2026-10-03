@@ -1,5 +1,5 @@
 '**************************************************************************
-'* This is a sample Main.as script for Playerworlds. You may modify this  *
+'* This is a sample Main.as script for XtremeWorlds. You may modify this  *
 '* to suit the needs of your server.                      *
 '**************************************************************************
 
@@ -7,11 +7,11 @@
 '* Edit the values below. *
 '**************************
 Public Const GAME_NAME = "XtremeWorlds" ' Name of game
-Public Const WEB_SITE = "https://xtremeworlds.com/" ' Website
+Public Const WEB_SITE = "https://www.xtremeworlds.com/" ' Website
 
 Public Const GAME_PORT = 7234 ' Run off What Port?
-Public Const MAX_PLAYERS = 50 ' Max Players
-Public Const MAX_MAPS = 50 ' Max Maps
+Public Const MAX_PLAYERS = 100 ' Max Players
+Public Const MAX_MAPS = 500 ' Max Maps
 Public Const MAX_ITEMS = 255 ' Max Items
 Public Const MAX_SHOPS = 255 ' Max Shops
 Public Const MAX_SPELLS = 255 ' Max Spells
