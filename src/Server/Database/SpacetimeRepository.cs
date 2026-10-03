@@ -83,7 +83,7 @@ namespace Server
         public async Task<List<CharacterRow>> GetCharactersAsync(string login)
         {
             var result = new List<CharacterRow>();
-            using (var doc = await _client.SqlAsync($"SELECT slot, name, json FROM character WHERE account_login = {Q(login)} ORDER BY slot"))
+            using (var doc = await _client.SqlAsync($"SELECT slot, name, json FROM character WHERE account_login = {Q(login)}"))
             {
                 foreach (var row in Rows(doc))
                     result.Add(new CharacterRow()
@@ -93,7 +93,7 @@ namespace Server
                         Character = JsonSerializer.Deserialize<PlayerCharacter>(row[2].GetString() ?? string.Empty)
                     });
             }
-            return result;
+            return result.OrderBy(character => character.Slot).ToList();
         }
 
         public async Task DeleteCharacterAsync(string login, int slot)
@@ -112,7 +112,7 @@ namespace Server
         public async Task<Dictionary<int, T>> LoadContentAsync<T>(string kind)
         {
             var output = new Dictionary<int, T>();
-            using (var doc = await _client.SqlAsync($"SELECT numeric_id, json FROM content WHERE kind = {Q(kind.ToLowerInvariant())} ORDER BY numeric_id"))
+            using (var doc = await _client.SqlAsync($"SELECT numeric_id, json FROM content WHERE kind = {Q(kind.ToLowerInvariant())}"))
             {
                 foreach (var row in Rows(doc))
                 {
