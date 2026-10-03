@@ -266,9 +266,14 @@ Unavailable:
             GameMsgBox "The server has not supplied a website address yet.", vbInformation, GAME_NAME
             Exit Sub
         End If
-        If LCase$(Left$(address, 7)) = "http://" Then address = Mid$(address, 8)
-        If Left$(address, 2) = "//" Then address = Mid$(address, 3)
-        If LCase$(Left$(address, 8)) <> "https://" Then address = "https://" & address
+        ' Preserve an explicit http:// or https:// URL from the server.
+        ' The previous code stripped http:// and forced https://, which broke
+        ' sites that intentionally use HTTP or redirect differently.
+        If Left$(address, 2) = "//" Then
+            address = "https:" & address
+        ElseIf LCase$(Left$(address, 7)) <> "http://" And LCase$(Left$(address, 8)) <> "https://" Then
+            address = "https://" & address
+        End If
         ShellExecute Me.hWnd, "open", address, vbNullString, vbNullString, 1
     End Sub
 
