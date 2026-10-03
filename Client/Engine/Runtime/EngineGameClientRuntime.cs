@@ -65,7 +65,15 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         CurrentSex = 1;
         _network.DataReceived += OnNetworkData;
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
-        _network.Disconnected += (_, _) => Request("Disconnected");
+        _network.Disconnected += (_, _) =>
+        {
+            Request("Disconnected");
+
+            if (_disposed)
+                return;
+
+            Ui(ReturnToLogin);
+        };
 
         // Telepathy queues received messages until Tick() runs. Pump continuously
         // while the menu is active so a response to Register cannot sit queued
@@ -481,6 +489,24 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         {
             // newcharclasses has sprite fields as well; classesdata usually does not.
             return index + 9 < packet.Count ? 10 : 8;
+        }
+    }
+
+    private void ReturnToLogin()
+    {
+        if (_disposed || Application.Instance is null)
+            return;
+
+        // A kick, ban, server shutdown, or other forced disconnect must tear
+        // down the FNA game window and restore the Eto login screen.
+        _graphics.Stop();
+        _networkTimer.Start();
+
+        if (Application.Instance.MainForm is frmMainMenu menu)
+        {
+            menu.Visible = true;
+            menu.ShowLogin();
+            menu.BringToFront();
         }
     }
 
