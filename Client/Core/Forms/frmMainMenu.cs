@@ -583,7 +583,8 @@ namespace XtremeWorlds.Client.Forms
                 _client.CurrentSex = 1;
             if (picFemale.Checked)
                 _client.CurrentSex = 0;
-            _client.RefreshNewCharacterPreview(_client.CurrentClass, _client.CurrentSex);
+
+            RefreshSelectedClass();
         }
 
         private void HandleLoginNameKeyDown(object sender, KeyEventArgs e)
@@ -649,6 +650,12 @@ namespace XtremeWorlds.Client.Forms
             _client.CurrentClass = Math.Max(0, Math.Min(_client.CurrentClass, Math.Max(0, _client.Classes.Count - 1)));
             ShowPage(_classPage);
             RefreshSelectedClass();
+        }
+
+        public void RefreshCharacterClasses()
+        {
+            if (_pageHost.Content == _classPage || _pageHost.Content == _newCharacterPage)
+                RefreshSelectedClass();
         }
 
         private void RefreshSelectedClass()
