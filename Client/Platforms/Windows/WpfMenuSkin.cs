@@ -21,13 +21,13 @@ internal static class WpfMenuSkin
             {
                 if (form.ControlObject is SW.Window window)
                 {
-                    window.Background = ImageBrush("frmMainMenu/imgBackground.png", SWM.Stretch.UniformToFill);
+                    window.Background = ImageBrush("frmMainMenu/menu.png", SWM.Stretch.UniformToFill);
                 }
             });
         });
 
-        RegisterPanel("MainButtons", "frmMainMenu/imgMainMenu.png");
-        RegisterPanel("BottomButtons", "frmMainMenu/imgBottomButtons.png", 10);
+        RegisterPanel("MainButtons", "frmMainMenu/main.png");
+        RegisterPanel("BottomButtons", "frmMainMenu/exit.png", 10);
 
         Style.Add<Panel>("PageHost", panel =>
         {
@@ -37,12 +37,12 @@ internal static class WpfMenuSkin
                     native.ClipToBounds = true;
             });
         });
-        RegisterPanel("LoginPanel", "frmMainMenu/imgLogin.png");
-        RegisterPanel("RegisterPanel", "frmMainMenu/imgRegister.png");
-        RegisterPanel("CharactersPanel", "frmMainMenu/imgCharacters.png");
-        RegisterPanel("NewCharacterPanel", "frmMainMenu/imgNewChar.png");
-        RegisterPanel("ClassPanel", "frmMainMenu/imgClassSelection.png");
-        RegisterPanel("ClassButtons", "frmMainMenu/imgClassButtons.png");
+        RegisterPanel("LoginPanel", "frmMainMenu/login.png");
+        RegisterPanel("RegisterPanel", "frmMainMenu/register.png");
+        RegisterPanel("CharactersPanel", "frmMainMenu/characters.png");
+        RegisterPanel("NewCharacterPanel", "frmMainMenu/newchar.png");
+        RegisterPanel("ClassPanel", "frmMainMenu/classselection.png");
+        RegisterPanel("ClassButtons", "frmMainMenu/classbuttons.png");
 
         Style.Add<Dialog>("AlertWindow", dialog =>
         {
@@ -50,15 +50,15 @@ internal static class WpfMenuSkin
             {
                 if (dialog.ControlObject is SW.Window window)
                 {
-                    window.Background = ImageBrush("frmGamePrompt/imgAlert.png", SWM.Stretch.Fill);
+                    window.Background = ImageBrush("frmAlert/alert.png", SWM.Stretch.Fill);
                     window.BorderThickness = new SW.Thickness(0);
                 }
             });
         });
 
-        RegisterImageButton("AlertOkButton", "frmGamePrompt/imgOk.png");
-        RegisterImageButton("AlertYesButton", "frmGamePrompt/imgYes.png");
-        RegisterImageButton("AlertNoButton", "frmGamePrompt/imgNo.png");
+        RegisterImageButton("AlertOkButton", "frmAlert/ok.png");
+        RegisterImageButton("AlertYesButton", "frmAlert/yes.png");
+        RegisterImageButton("AlertNoButton", "frmAlert/no.png");
 
         Style.Add<TextArea>("AlertMessage", area =>
         {

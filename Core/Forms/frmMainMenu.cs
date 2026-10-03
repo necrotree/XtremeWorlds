@@ -105,14 +105,14 @@ namespace XtremeWorlds.Client.Forms
 
             imgBackground = MakeImage("frmMainMenu/imgBackground.png");
             imgLogo = MakeImage("frmMainMenu/imgLogo.png");
-            imgBottomButtons = MakeImage("frmMainMenu/imgBottomButtons.png");
-            imgMainMenu = MakeImage("frmMainMenu/imgMainMenu.png");
-            imgLogin = MakeImage("frmMainMenu/imgLogin.png");
-            imgRegister = MakeImage("frmMainMenu/imgRegister.png");
-            imgCharacters = MakeImage("frmMainMenu/imgCharacters.png");
-            imgNewChar = MakeImage("frmMainMenu/imgNewChar.png");
-            imgClassSelection = MakeImage("frmMainMenu/imgClassSelection.png");
-            imgClassButtons = MakeImage("frmMainMenu/imgClassButtons.png");
+            imgBottomButtons = MakeImage("frmMainMenu/exit.png");
+            imgMainMenu = MakeImage("frmMainMenu/main.png");
+            imgLogin = MakeImage("frmMainMenu/login.png");
+            imgRegister = MakeImage("frmMainMenu/register.png");
+            imgCharacters = MakeImage("frmMainMenu/characters.png");
+            imgNewChar = MakeImage("frmMainMenu/newchar.png");
+            imgClassSelection = MakeImage("frmMainMenu/classselection.png");
+            imgClassButtons = MakeImage("frmMainMenu/classbuttons.png");
 
             picLogin = MakeSkinButton("Login");
             picRegister = MakeSkinButton("Register");
