@@ -237,3 +237,5 @@ $RECYCLE.BIN/
 *.exe
 /Client/Client
 /Server/Server
+/.vs
+/Engine/.dotnet
