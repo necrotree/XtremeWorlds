@@ -61,6 +61,7 @@ End Sub
 Public Sub CloseSideMenu()
     ' Close Mirage Menus
     With frmMainGame
+        .picGuildPanel.Visible = False
         .picWho.Visible = False
         .picPlayerList.Visible = False
         .lstPlayers.Visible = False

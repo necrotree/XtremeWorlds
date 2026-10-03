@@ -2,20 +2,23 @@ Class clsImageMenu
     Option Explicit
     Private mGroup As String
     Private mImage As String
+    Private mOwner As Object
 
-    Public Sub Initialize(ByVal GroupName As String, ByVal ImageName As String)
-        mGroup = "game-menu:" & GroupName & ":"
+    Public Sub Initialize(ByVal GroupName As String, ByVal ImageName As String, Optional ByVal owner As Object = Nothing, Optional ByVal tagPrefix As String = "game-menu:")
+        If owner Is Nothing Then Set owner = frmMainGame
+        Set mOwner = owner
+        mGroup = tagPrefix & GroupName & ":"
         mImage = ImageName
     End Sub
 
     Public Property Get Visible() As Boolean
-        Return frmMainGame.Controls(mImage).Visible
+        Return mOwner.Controls(mImage).Visible
     End Property
     Public Property Let Visible(ByVal value As Boolean)
         Dim control As Object
-        frmMainGame.Controls(mImage).Visible = value
-        If value Then frmMainGame.Controls(mImage).ZOrder 0
-        For Each control In frmMainGame.Controls
+        mOwner.Controls(mImage).Visible = value
+        If value Then mOwner.Controls(mImage).ZOrder 0
+        For Each control In mOwner.Controls
             If Left$(CStr(control.Tag), Len(mGroup)) = mGroup Then
                 control.Visible = value And (CStr(control.Tag) = mGroup & "show")
                 If control.Visible And control.Name <> mImage Then control.ZOrder 0
@@ -23,29 +26,29 @@ Class clsImageMenu
         Next
     End Property
     Public Property Get Left() As Single
-        Return frmMainGame.Controls(mImage).Left
+        Return mOwner.Controls(mImage).Left
     End Property
     Public Property Let Left(ByVal value As Single)
         ShiftControls value - Me.Left, 0
     End Property
     Public Property Get Top() As Single
-        Return frmMainGame.Controls(mImage).Top
+        Return mOwner.Controls(mImage).Top
     End Property
     Public Property Let Top(ByVal value As Single)
         ShiftControls 0, value - Me.Top
     End Property
     Public Property Get Width() As Single
-        Return frmMainGame.Controls(mImage).Width
+        Return mOwner.Controls(mImage).Width
     End Property
     Public Property Get Height() As Single
-        Return frmMainGame.Controls(mImage).Height
+        Return mOwner.Controls(mImage).Height
     End Property
     Public Sub ZOrder(Optional ByVal position As Integer = 0)
         If Me.Visible Then Me.Visible = True
     End Sub
     Private Sub ShiftControls(ByVal dx As Single, ByVal dy As Single)
         Dim control As Object
-        For Each control In frmMainGame.Controls
+        For Each control In mOwner.Controls
             If Left$(CStr(control.Tag), Len(mGroup)) = mGroup Then
                 If TypeName(control) = "Line" Then
                     control.X1 = control.X1 + dx: control.X2 = control.X2 + dx

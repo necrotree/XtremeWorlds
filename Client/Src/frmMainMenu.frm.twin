@@ -11,6 +11,7 @@ Class frmMainMenu
     Option Explicit
     Private mCharacterSprites(0 To 2) As Long
     Private mWebsitePolls As Long
+    Private mMenus As Collection
     
     Private Sub Form_Load()
         Dim FileName As String
@@ -249,9 +250,7 @@ Unavailable:
     
 
     Public Sub HideMenuPanels()
-        imgMainMenu.Visible = False
-        picLogin.Visible = False
-        picRegister.Visible = False
+        SetMenuVisible "mnuHome", False
         SetMenuVisible "mnuClassSelection", False
         SetMenuVisible "mnuLogin", False
         SetMenuVisible "mnuNewAccount", False
@@ -350,12 +349,17 @@ Unavailable:
     ' All menu visuals are Image controls on the form.
     Public Sub ShowMenuHome()
         HideMenuPanels
-        imgMainMenu.Visible = True
-        picLogin.Visible = True
-        picRegister.Visible = True
+        SetMenuVisible "mnuHome", True
     End Sub
 
     Private Sub InitializeMenuImages()
+        Set mMenus = New Collection
+        AddImageMenu "mnuHome", "imgMainMenu"
+        AddImageMenu "mnuLogin", "imgLogin"
+        AddImageMenu "mnuNewAccount", "imgRegister"
+        AddImageMenu "mnuChars", "imgCharacters"
+        AddImageMenu "mnuNewCharacter", "imgNewChar"
+        AddImageMenu "mnuClassSelection", "imgClassSelection"
         imgBackground.ZOrder 1
         imgMainMenu.ZOrder 1
         imgBackground.ZOrder 1
@@ -439,24 +443,17 @@ Private Sub picRegisterLogin_Click()
 
     ' Image controls are not containers. Tags group the flat Image, Label,
     ' and input controls so every menu changes visibility as one unit.
+    Private Sub AddImageMenu(ByVal menuName As String, ByVal imageName As String)
+        Dim menu As clsImageMenu
+        Set menu = New clsImageMenu
+        menu.Initialize menuName, imageName, Me, "menu:"
+        mMenus.Add menu, menuName
+    End Sub
+
     Public Sub SetMenuVisible(ByVal menuName As String, ByVal showMenu As Boolean)
-        Dim control As Object, prefix As String, imageName As String
-        prefix = "menu:" & menuName & ":"
-        Select Case menuName
-            Case "mnuLogin": imageName = "imgLogin"
-            Case "mnuNewAccount": imageName = "imgRegister"
-            Case "mnuChars": imageName = "imgCharacters"
-            Case "mnuNewCharacter": imageName = "imgNewChar"
-            Case "mnuClassSelection": imageName = "imgClassSelection"
-            Case Else: Exit Sub
-        End Select
-        If showMenu Then Me.Controls(imageName).ZOrder 0
-        For Each control In Me.Controls
-            If Left$(CStr(control.Tag), Len(prefix)) = prefix Then
-                control.Visible = showMenu And (CStr(control.Tag) = prefix & "show")
-                If control.Visible And control.Name <> imageName Then control.ZOrder 0
-            End If
-        Next
+        Dim menu As clsImageMenu
+        Set menu = mMenus.Item(menuName)
+        menu.Visible = showMenu
     End Sub
 
     Private Sub lblMale_Click()

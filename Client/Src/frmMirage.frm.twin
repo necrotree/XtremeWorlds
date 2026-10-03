@@ -17,6 +17,7 @@ Class frmMainGame
     Public picPlayerSpells As clsImageMenu
     Public picKeepNotes As clsImageMenu
     Public picSign As clsImageMenu
+    Public picGuildPanel As clsImageMenu
     Private InventoryPage As Long
     Private InventoryClickedSlot As Long
     Private InventoryBackground As clsDX11Surface
@@ -934,8 +935,11 @@ End Sub
         ShellExecute Me.hWnd, "open", address, vbNullString, vbNullString, 1
     End Sub
 
-    Private Sub picGuild_Click()
-        AddText "Your guild is " & GetPlayerGuild(MyIndex) & ".", HelpColor
+    Private Sub picGuild2_Click()
+        Dim wasVisible As Boolean
+        wasVisible = picGuildPanel.Visible
+        CloseSideMenu
+        picGuildPanel.Visible = Not wasVisible
     End Sub
     Private Sub imgInventory_DblClick()
         If InventoryClickedSlot > 0 Then SendUseItem InventoryClickedSlot
@@ -1129,6 +1133,8 @@ End Sub
         picPlayerSpells.Initialize "picPlayerSpells", "imgSkills"
         Set picKeepNotes = New clsImageMenu
         picKeepNotes.Initialize "picKeepNotes", "imgNotes"
+        Set picGuildPanel = New clsImageMenu
+        picGuildPanel.Initialize "picGuildPanel", "imgGuildPanel"
         Set picSign = New clsImageMenu
         picSign.Initialize "picSign", "imgSign"
     End Sub
