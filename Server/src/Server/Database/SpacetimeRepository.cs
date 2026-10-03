@@ -80,6 +80,15 @@ namespace Server
             await _client.CallReducerAsync("upsert_character", new object[] { key, login, slot, character.Name, json });
         }
 
+        public async Task CreateCharacterAsync(string login, int slot, PlayerCharacter character)
+        {
+            string key = $"{login.ToLowerInvariant()}:{slot}";
+            await _client.CallReducerAsync("create_character", new object[]
+            {
+                key, login, slot, character.Name, JsonSerializer.Serialize(character)
+            });
+        }
+
         public async Task<List<CharacterRow>> GetCharactersAsync(string login)
         {
             var result = new List<CharacterRow>();

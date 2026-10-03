@@ -103,7 +103,7 @@ namespace XtremeWorlds.Client.Forms
             MinimumSize = new Size(760, 560);
             Resizable = true;
 
-            imgBackground = MakeImage("frmMainMenu/imgBackground.png");
+            imgBackground = MakeImage("frmMainMenu/background.png");
             imgLogo = MakeImage("frmMainMenu/imgLogo.png");
             imgBottomButtons = MakeImage("frmMainMenu/exit.png");
             imgMainMenu = MakeImage("frmMainMenu/main.png");
@@ -404,9 +404,9 @@ namespace XtremeWorlds.Client.Forms
             var buttonPanel = SkinPanel("ClassButtons", 217, 25, buttons);
 
             var visual = SkinPanel("ClassPanel", 774, 211, choices);
-            var content = new TableLayout() { Spacing = new Size(0, 15) };
-            content.Rows.Add(new TableRow(new TableCell(visual, true)));
-            content.Rows.Add(new TableRow(new TableCell(null, true), new TableCell(buttonPanel, false), new TableCell(null, true)));
+            var content = new PixelLayout { Size = new Size(910, 251) };
+            content.Add(visual, 68, 0);
+            content.Add(buttonPanel, 346, 226);
             return CenterPage(content);
         }
 

@@ -430,3 +430,4 @@ FodyWeavers.xsd
 /Engine/.dotnet
 /Server/data
 /Client/data
+/.build

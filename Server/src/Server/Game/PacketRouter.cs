@@ -175,7 +175,20 @@ namespace Server
                 return;
             }
             var character = new PlayerCharacter() { Name = name, Sex = sex, ClassId = classId, Level = 1 };
-            await _db.SaveCharacterAsync(session.Login, slot, character);
+            try
+            {
+                await _db.CreateCharacterAsync(session.Login, slot, character);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("CHARACTER_NAME_TAKEN", StringComparison.Ordinal))
+            {
+                _network.SendText(id, PacketCodec.Compose("alertmsg", "That character name is already taken. Please choose another name."));
+                return;
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("CHARACTER_SLOT_OCCUPIED", StringComparison.Ordinal))
+            {
+                _network.SendText(id, PacketCodec.Compose("alertmsg", "That character slot is already occupied. Please choose an empty slot."));
+                return;
+            }
             await SendCharactersAsync(id, session.Login);
         }
 

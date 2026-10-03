@@ -384,9 +384,9 @@ Namespace XtremeWorlds.Client.Forms
             Dim buttonPanel = SkinPanel("ClassButtons", 217, 25, buttons)
 
             Dim visual = SkinPanel("ClassPanel", 774, 211, choices)
-            Dim content As New TableLayout With {.Spacing = New Size(0, 15)}
-            content.Rows.Add(New TableRow(New TableCell(visual, True)))
-            content.Rows.Add(New TableRow(New TableCell(Nothing, True), New TableCell(buttonPanel, False), New TableCell(Nothing, True)))
+            Dim content As New PixelLayout With {.Size = New Size(910, 251)}
+            content.Add(visual, 68, 0)
+            content.Add(buttonPanel, 346, 226)
             Return CenterPage(content)
         End Function
 

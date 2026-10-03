@@ -5,6 +5,8 @@ using System.IO;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using XtremeWorlds.Client.Engine.Runtime;
 
 namespace XtremeWorlds.Client.Engine.Graphics;
 
@@ -24,18 +26,36 @@ public sealed class FnaGraphicsService : IDisposable
     private readonly ConcurrentQueue<FnaSpriteCommand> _commands = new();
     private Thread? _thread;
     private FnaClientGame? _game;
+    private volatile bool _stopRequested;
+    public event EventHandler? Closed;
+    public event EventHandler<Exception>? Failed;
 
     public bool IsRunning => _thread is { IsAlive: true };
 
-    public void Start(int width = 1024, int height = 768)
+    public void Start(int width = 950, int height = 700, ModGameLogic? logic = null)
     {
         if (IsRunning) return;
+        _stopRequested = false;
         _thread = new Thread(() =>
         {
-            using var game = new FnaClientGame(_commands, width, height);
-            _game = game;
-            game.Run();
-            _game = null;
+            var failed = false;
+            try
+            {
+                using var game = new FnaClientGame(_commands, width, height, logic, () => _stopRequested);
+                _game = game;
+                game.Run();
+            }
+            catch (Exception error)
+            {
+                failed = true;
+                Failed?.Invoke(this, error);
+            }
+            finally
+            {
+                logic?.GameDestroy();
+                _game = null;
+                if (!failed && !_stopRequested) Closed?.Invoke(this, EventArgs.Empty);
+            }
         })
         {
             IsBackground = true,
@@ -48,10 +68,10 @@ public sealed class FnaGraphicsService : IDisposable
 
     public void Stop()
     {
-        _game?.RequestExit();
-        if (_thread is { IsAlive: true })
-            _thread.Join(TimeSpan.FromSeconds(2));
-        _thread = null;
+        _stopRequested = true;
+        if (_thread is { IsAlive: true } && Thread.CurrentThread != _thread)
+            _thread.Join();
+        if (_thread is not { IsAlive: true }) _thread = null;
     }
 
     public void Dispose() => Stop();
@@ -64,9 +84,16 @@ public sealed class FnaGraphicsService : IDisposable
         private readonly Dictionary<string, Texture2D> _textures = new(StringComparer.OrdinalIgnoreCase);
         private SpriteBatch? _spriteBatch;
         private volatile bool _exitRequested;
+        private readonly ModGameLogic? _logic;
+        private readonly Func<bool> _shouldStop;
+        private readonly int _width, _height;
 
-        public FnaClientGame(ConcurrentQueue<FnaSpriteCommand> incoming, int width, int height)
+        public FnaClientGame(ConcurrentQueue<FnaSpriteCommand> incoming, int width, int height, ModGameLogic? logic, Func<bool> shouldStop)
         {
+            _logic = logic;
+            _shouldStop = shouldStop;
+            _width = width;
+            _height = height;
             _incoming = incoming;
             _graphics = new GraphicsDeviceManager(this)
             {
@@ -74,12 +101,20 @@ public sealed class FnaGraphicsService : IDisposable
                 PreferredBackBufferHeight = height,
                 SynchronizeWithVerticalRetrace = true
             };
-            IsFixedTimeStep = false;
-            Window.Title = "XtremeWorlds - FNA";
+            // Original GameLoop caps frames with Tick + 15; FNA handles pacing.
+            IsFixedTimeStep = true;
+            TargetElapsedTime = TimeSpan.FromMilliseconds(15);
+            Window.Title = "XtremeWorlds";
             IsMouseVisible = true;
         }
 
         public void RequestExit() => _exitRequested = true;
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            _logic?.GameInit();
+        }
 
         protected override void LoadContent()
         {
@@ -89,15 +124,26 @@ public sealed class FnaGraphicsService : IDisposable
 
         protected override void Update(GameTime gameTime)
         {
-            if (_exitRequested)
+            if (_exitRequested || _shouldStop())
             {
                 Exit();
                 return;
             }
 
-            _frame.Clear();
-            while (_incoming.TryDequeue(out var command))
+            _logic?.GameLoop(gameTime.TotalGameTime, IsActive);
+            if (_logic is { InGame: false })
+            {
+                Exit();
+                return;
+            }
+            if (_incoming.TryDequeue(out var command))
+            {
+                _frame.Clear();
                 _frame.Add(command);
+                while (_incoming.TryDequeue(out command)) _frame.Add(command);
+            }
+
+            if (IsActive && Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
             base.Update(gameTime);
         }
@@ -109,6 +155,9 @@ public sealed class FnaGraphicsService : IDisposable
                 return;
 
             _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.AlphaBlend, SamplerState.PointClamp, null, null);
+            var background = GetTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "frmMainGame", "game.jpg"));
+            if (background is not null)
+                _spriteBatch.Draw(background, new Rectangle(0, 0, _width, _height), null, Color.White, 0f, Vector2.Zero, SpriteEffects.None, 0f);
             foreach (var command in _frame)
             {
                 var texture = GetTexture(command.TexturePath);
@@ -116,6 +165,7 @@ public sealed class FnaGraphicsService : IDisposable
                 _spriteBatch.Draw(texture, command.Destination, command.Source, command.Tint, 0f, Vector2.Zero, SpriteEffects.None, command.LayerDepth);
             }
             _spriteBatch.End();
+            _logic?.PresentGameFrame(gameTime.TotalGameTime);
             base.Draw(gameTime);
         }
 

@@ -80,6 +80,16 @@ public static partial class Module
     public static void DeleteAccount(ReducerContext ctx, string login) => ctx.Db.Account.Login.Delete(login);
 
     [SpacetimeDB.Reducer]
+    public static void CreateCharacter(ReducerContext ctx, string key, string accountLogin, int slot, string name, string json)
+    {
+        if (ctx.Db.Character.Key.Find(key) is not null)
+            throw new Exception("CHARACTER_SLOT_OCCUPIED");
+        if (ctx.Db.Character.Name.Find(name) is not null)
+            throw new Exception("CHARACTER_NAME_TAKEN");
+        ctx.Db.Character.Insert(new Character { Key = key, AccountLogin = accountLogin, Slot = slot, Name = name, Json = json });
+    }
+
+    [SpacetimeDB.Reducer]
     public static void UpsertCharacter(ReducerContext ctx, string key, string accountLogin, int slot, string name, string json)
     {
         var row = new Character { Key = key, AccountLogin = accountLogin, Slot = slot, Name = name, Json = json };

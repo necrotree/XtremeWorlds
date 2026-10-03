@@ -21,13 +21,29 @@ internal static class WpfMenuSkin
             {
                 if (form.ControlObject is SW.Window window)
                 {
-                    window.Background = ImageBrush("frmMainMenu/menu.png", SWM.Stretch.UniformToFill);
+                    window.Background = ImageBrush("frmMainMenu/background.png", SWM.Stretch.UniformToFill);
+                    ScaleScene(window, 950, 700);
+                    FitWindow(form, window);
+                    window.ContentRendered += (_, _) => FitWindow(form, window);
                 }
             });
         });
 
-        RegisterPanel("MainButtons", "frmMainMenu/main.png");
-        RegisterPanel("BottomButtons", "frmMainMenu/exit.png", 10);
+        Style.Add<Form>("GameWindow", form => ApplyWhenLoaded(form, () =>
+        {
+            if (form.ControlObject is SW.Window window)
+            {
+                window.Background = SWM.Brushes.Black;
+                if (form.Content?.ControlObject is SWC.Panel panel)
+                    panel.Background = ImageBrush("frmMainGame/frmMainGame.jpg", SWM.Stretch.Fill);
+                ScaleScene(window, 950, 700);
+                FitWindow(form, window);
+                window.ContentRendered += (_, _) => FitWindow(form, window);
+            }
+        }));
+
+        RegisterPanel("MainButtons", "frmMainMenu/imgMainMenu.png");
+        RegisterPanel("BottomButtons", "frmMainMenu/imgBottomButtons.png", 10);
 
         Style.Add<Panel>("PageHost", panel =>
         {
@@ -194,6 +210,35 @@ internal static class WpfMenuSkin
                 }
             });
         });
+    }
+
+    private static void ScaleScene(SW.Window window, double width, double height)
+    {
+        if (window.Content is not SW.FrameworkElement content || content is SWC.Viewbox) return;
+        window.Content = null;
+        content.Width = width;
+        content.Height = height;
+        content.ClipToBounds = true;
+        window.Content = new SWC.Viewbox { Stretch = SWM.Stretch.Uniform, Child = content };
+    }
+
+    private static void FitWindow(Form form, SW.Window window)
+    {
+        // Eto screen coordinates and WPF window dimensions are both logical units.
+        // Leave room for the taskbar and window frame at high display scaling.
+        var area = form.Screen.WorkingArea;
+        var availableWidth = Math.Max(1, area.Width - 24);
+        var availableHeight = Math.Max(1, area.Height - 24);
+        var width = double.IsNaN(window.Width) ? 966 : window.Width;
+        var height = double.IsNaN(window.Height) ? 739 : window.Height;
+        var scale = Math.Min(1, Math.Min(availableWidth / width, availableHeight / height));
+        window.MinWidth = Math.Min(window.MinWidth, availableWidth);
+        window.MinHeight = Math.Min(window.MinHeight, availableHeight);
+        window.Width = width * scale;
+        window.Height = height * scale;
+        window.WindowStartupLocation = SW.WindowStartupLocation.Manual;
+        window.Left = area.X + (area.Width - window.Width) / 2;
+        window.Top = area.Y + (area.Height - window.Height) / 2;
     }
 
     private static void RegisterImageButton(string style, string resource)

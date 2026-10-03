@@ -23,7 +23,9 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private readonly UITimer _networkTimer = new() { Interval = 0.02 };
     private readonly FnaAudioService _audio = new();
     private readonly FnaGraphicsService _graphics = new();
+    private readonly ModGameLogic _gameLogic;
     private readonly List<GameClassInfo> _classes = new();
+    private readonly System.Collections.Concurrent.ConcurrentQueue<string> _gamePackets = new();
     private string _serverHost = "127.0.0.1";
     private int _serverPort = 7234;
     private bool _disposed;
@@ -34,6 +36,16 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     public EngineGameClientRuntime()
     {
+        _gameLogic = new ModGameLogic(PumpNetwork, () => _network.IsConnected,
+            stage => Request(stage));
+        _graphics.Closed += (_, _) => Ui(() => { if (!_disposed) GameDestroy(); });
+        _graphics.Failed += (_, error) => Ui(() =>
+        {
+            if (_disposed) return;
+            _networkTimer.Start();
+            if (Application.Instance?.MainForm is { } menu) menu.Visible = true;
+            GameDialogs.Alert(Application.Instance?.MainForm, error.Message, "Game initialization failed");
+        });
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
         _network.DataReceived += OnNetworkData;
@@ -54,9 +66,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // after a send returns, on the same UI thread as connection/menu actions.
         _networkTimer.Elapsed += (_, _) =>
         {
-            _network.Tick();
-            // This runtime consumes packets through DataReceived, not TryDequeue.
-            while (_network.TryDequeue(out _)) { }
+            PumpNetwork();
             if (_loginPending && DateTime.UtcNow >= _loginDeadline)
             {
                 FailLoginConnection("The game server is not responding. Please try again in a few minutes.");
@@ -238,7 +248,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         switch (actionName)
         {
             case "Form_Load":
-                _graphics.Start(1024, 768);
+                ShowMainGame();
                 break;
             case "SendChat":
                 SendPacket("saymsg", Arg(arguments, 0));
@@ -333,6 +343,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     private void SendPacket(string command, params object?[] values)
     {
+        if (_graphics.IsRunning)
+        {
+            _gamePackets.Enqueue(PacketCodec.Build(command, values));
+            return;
+        }
         if (!EnsureConnected()) return;
         _network.SendText(PacketCodec.Build(command, values));
         _network.Tick();
@@ -348,18 +363,14 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         switch (command)
         {
             case "alertmsg":
-                if (string.Equals(Field(fields, 1), "Your account has been created!", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (_accountCreationPending)
-                    {
-                        _accountCreationPending = false;
-                        MenuState(XtremeWorlds.Client.Logic.MenuState.Login);
-                    }
-                    break;
-                }
                 if (_accountCreationPending)
                 {
                     _accountCreationPending = false;
+                    if (string.Equals(Field(fields, 1), "Your account has been created!", StringComparison.OrdinalIgnoreCase))
+                    {
+                        MenuState(XtremeWorlds.Client.Logic.MenuState.Login);
+                        break;
+                    }
                 }
                 if (_loginPending) FinishLogin(Field(fields, 1));
                 Ui(() => GameDialogs.Alert(Application.Instance?.MainForm, Field(fields, 1), "Alert"));
@@ -444,8 +455,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _classes[classId] = new GameClassInfo
         {
             Name = Field(fields, 2),
-            MaleSprite = IntField(fields, 3),
-            FemaleSprite = IntField(fields, 4),
             STR = IntField(fields, 5),
             DEF = IntField(fields, 6),
             Speed = IntField(fields, 7),
@@ -495,11 +504,20 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     private void ShowMainGame()
     {
-        if (Application.Instance is null) return;
-        var menu = Application.Instance.MainForm;
-        var game = new frmMainGame(this);
-        if (menu is not null) menu.Visible = false;
-        game.Show();
+        if (_disposed || _graphics.IsRunning || Application.Instance is null) return;
+        // GameInit used to show frmMainGame and then enter GameLoop. FNA now
+        // supplies that window and calls the translated loop from Update.
+        _networkTimer.Stop();
+        if (Application.Instance.MainForm is { } menu) menu.Visible = false;
+        _graphics.Start(950, 700, _gameLogic);
+    }
+
+    private void PumpNetwork()
+    {
+        _network.Tick();
+        while (_network.TryDequeue(out _)) { }
+        while (_gamePackets.TryDequeue(out var packet))
+            if (_network.IsConnected) _network.SendText(packet);
     }
 
     private void PromptServerIp()
