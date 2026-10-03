@@ -26,6 +26,7 @@ Class frmMainMenu
             PutVar App.Path & "\options.ini", "Options", "Website", WEBSITE
         End If
         InitializeMenuImages
+        MoveLogoUp
         ShowMenuHome
     End Sub
     
@@ -359,6 +360,19 @@ Unavailable:
         imgCharacters.ZOrder 1
         imgNewChar.ZOrder 1
         imgClassSelection.ZOrder 1
+    End Sub
+
+    Private Sub MoveLogoUp()
+        ' Move the XtremeWorlds logo up slightly (120 twips, about 8 pixels).
+        ' The designer control has used both names in older menu revisions,
+        ' so support either name without breaking projects that only have one.
+        On Error Resume Next
+        Me.Controls("imgLogo").Top = Me.Controls("imgLogo").Top - 120
+        If Err.Number <> 0 Then
+            Err.Clear
+            Me.Controls("picLogo").Top = Me.Controls("picLogo").Top - 120
+        End If
+        On Error GoTo 0
     End Sub
 
     Private Sub picRegister_Click()
