@@ -58,30 +58,30 @@ namespace XtremeWorlds.Client.Forms
 
             Frame1 = new LegacyFrame();
             Frame1.Caption = "Player Names";
-            Frame1.Size = new Size(220, 42);
+            Frame1.Size = new Size(220, 44);
             layout_SSTab1.Add(Frame1, 12, 26);
             var layout_Frame1 = new PixelLayout();
             Frame1.Content = layout_Frame1;
             optPlayerOff = new LegacyRadioButton();
             optPlayerOff.Caption = "Off";
             optPlayerOff.Size = new Size(57, 17);
-            layout_Frame1.Add(optPlayerOff, 160, 16);
+            layout_Frame1.Add(optPlayerOff, 160, 4);
 
             optPlayerOn = new LegacyRadioButton(optPlayerOff);
             optPlayerOn.Caption = "On";
             optPlayerOn.Value = true;
             optPlayerOn.Size = new Size(57, 17);
-            layout_Frame1.Add(optPlayerOn, 12, 16);
+            layout_Frame1.Add(optPlayerOn, 12, 4);
 
             optPlayerMouse = new LegacyRadioButton(optPlayerOff);
             optPlayerMouse.Caption = "Mouse Over";
             optPlayerMouse.Size = new Size(81, 17);
-            layout_Frame1.Add(optPlayerMouse, 65, 16);
+            layout_Frame1.Add(optPlayerMouse, 65, 4);
 
 
             Frame2 = new LegacyFrame();
             Frame2.Caption = "NPC Names";
-            Frame2.Size = new Size(220, 42);
+            Frame2.Size = new Size(220, 44);
             layout_SSTab1.Add(Frame2, 12, 72);
             var layout_Frame2 = new PixelLayout();
             Frame2.Content = layout_Frame2;
@@ -89,40 +89,40 @@ namespace XtremeWorlds.Client.Forms
             optNPCOn.Caption = "On";
             optNPCOn.Value = true;
             optNPCOn.Size = new Size(57, 17);
-            layout_Frame2.Add(optNPCOn, 12, 16);
+            layout_Frame2.Add(optNPCOn, 12, 4);
 
             optNPCMouse = new LegacyRadioButton(optNPCOn);
             optNPCMouse.Caption = "Mouse Over";
             optNPCMouse.Size = new Size(81, 17);
-            layout_Frame2.Add(optNPCMouse, 65, 16);
+            layout_Frame2.Add(optNPCMouse, 65, 4);
 
             optNPCOff = new LegacyRadioButton(optNPCOn);
             optNPCOff.Caption = "Off";
             optNPCOff.Size = new Size(57, 17);
-            layout_Frame2.Add(optNPCOff, 160, 16);
+            layout_Frame2.Add(optNPCOff, 160, 4);
 
 
             Frame3 = new LegacyFrame();
             Frame3.Caption = "Music";
-            Frame3.Size = new Size(220, 42);
+            Frame3.Size = new Size(220, 44);
             layout_SSTab1.Add(Frame3, 12, 118);
             var layout_Frame3 = new PixelLayout();
             Frame3.Content = layout_Frame3;
             optMusicOn = new LegacyRadioButton();
             optMusicOn.Caption = "On";
             optMusicOn.Size = new Size(57, 17);
-            layout_Frame3.Add(optMusicOn, 12, 16);
+            layout_Frame3.Add(optMusicOn, 12, 4);
 
             optMusicOff = new LegacyRadioButton(optMusicOn);
             optMusicOff.Caption = "Off";
             optMusicOff.Value = true;
             optMusicOff.Size = new Size(57, 17);
-            layout_Frame3.Add(optMusicOff, 92, 16);
+            layout_Frame3.Add(optMusicOff, 92, 4);
 
 
             Frame4 = new LegacyFrame();
             Frame4.Caption = "Sound";
-            Frame4.Size = new Size(220, 42);
+            Frame4.Size = new Size(220, 44);
             layout_SSTab1.Add(Frame4, 12, 164);
             var layout_Frame4 = new PixelLayout();
             Frame4.Content = layout_Frame4;
@@ -130,17 +130,17 @@ namespace XtremeWorlds.Client.Forms
             optSoundOn.Caption = "On";
             optSoundOn.Value = true;
             optSoundOn.Size = new Size(57, 17);
-            layout_Frame4.Add(optSoundOn, 12, 16);
+            layout_Frame4.Add(optSoundOn, 12, 4);
 
             optSoundOff = new LegacyRadioButton(optSoundOn);
             optSoundOff.Caption = "Off";
             optSoundOff.Size = new Size(57, 17);
-            layout_Frame4.Add(optSoundOff, 92, 16);
+            layout_Frame4.Add(optSoundOff, 92, 4);
 
 
             Frame5 = new LegacyFrame();
             Frame5.Caption = "WASD";
-            Frame5.Size = new Size(220, 42);
+            Frame5.Size = new Size(220, 44);
             layout_SSTab1.Add(Frame5, 12, 210);
             var layout_Frame5 = new PixelLayout();
             Frame5.Content = layout_Frame5;
@@ -148,12 +148,12 @@ namespace XtremeWorlds.Client.Forms
             optWASDOn.Caption = "On";
             optWASDOn.Value = true;
             optWASDOn.Size = new Size(57, 17);
-            layout_Frame5.Add(optWASDOn, 12, 16);
+            layout_Frame5.Add(optWASDOn, 12, 4);
 
             optWASDOff = new LegacyRadioButton(optWASDOn);
             optWASDOff.Caption = "Off";
             optWASDOff.Size = new Size(57, 17);
-            layout_Frame5.Add(optWASDOff, 92, 16);
+            layout_Frame5.Add(optWASDOff, 92, 4);
 
 
             cmdHotkeys = new LegacyButton();
@@ -163,7 +163,7 @@ namespace XtremeWorlds.Client.Forms
 
             Frame6 = new LegacyFrame();
             Frame6.Caption = "Vitals";
-            Frame6.Size = new Size(220, 42);
+            Frame6.Size = new Size(220, 44);
             layout_SSTab1.Add(Frame6, 12, 256);
             var layout_Frame6 = new PixelLayout();
             Frame6.Content = layout_Frame6;
@@ -171,12 +171,12 @@ namespace XtremeWorlds.Client.Forms
             optVitalsOn.Caption = "On";
             optVitalsOn.Value = true;
             optVitalsOn.Size = new Size(57, 17);
-            layout_Frame6.Add(optVitalsOn, 12, 16);
+            layout_Frame6.Add(optVitalsOn, 12, 4);
 
             optVitalsOff = new LegacyRadioButton(optVitalsOn);
             optVitalsOff.Caption = "Off";
             optVitalsOff.Size = new Size(57, 17);
-            layout_Frame6.Add(optVitalsOff, 92, 16);
+            layout_Frame6.Add(optVitalsOff, 92, 4);
 
 
 
