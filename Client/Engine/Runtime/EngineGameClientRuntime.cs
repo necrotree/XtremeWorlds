@@ -340,8 +340,13 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private void SendPacket(string command, params object?[] values)
     {
         if (!EnsureConnected()) return;
+
+        // Do not call Tick() from inside SendPacket. Telepathy invokes
+        // OnNetworkData while Tick() is draining its receive queue, and a
+        // receive handler that sends another packet would recursively re-enter
+        // Tick -> OnNetworkData -> SendPacket until the stack overflows.
+        // The menu UITimer / game loop already pumps the network continuously.
         _network.SendText(PacketCodec.Build(command, values));
-        _network.Tick();
     }
 
     private void OnNetworkData(object? sender, NetworkDataEventArgs e)
