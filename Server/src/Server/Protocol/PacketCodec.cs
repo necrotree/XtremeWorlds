@@ -9,15 +9,19 @@ namespace Server
     {
         public const char Separator = '\0';
         public const char Terminator = '\u0001';
+        public const char LegacyTerminator = (char)237;
 
         public static string Decode(ReadOnlySpan<byte> bytes)
         {
-            return Encoding.UTF8.GetString(bytes).TrimEnd(Terminator);
+            return Encoding.UTF8.GetString(bytes)
+                .TrimEnd(Terminator, LegacyTerminator);
         }
 
         public static string[] SplitPacket(string data)
         {
-            return data.TrimEnd(Terminator).Split(Separator);
+            return data
+                .TrimEnd(Terminator, LegacyTerminator)
+                .Split(Separator);
         }
 
         public static string Compose(string command, params object[] args)
