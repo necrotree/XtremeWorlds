@@ -2,54 +2,98 @@
 @inject Client.Blazor.Services.BrowserGameSession Session
 
 <PageTitle>XtremeWorlds Client</PageTitle>
-<main>
+<main class="menu-scene">
     <img class="menu-logo" src="assets/frmMainMenu/logo.png" alt="XtremeWorlds" />
-    @if (page == "main")
+    <section class="menu-stage" aria-label="Account menu">
+    @if (page == "create")
     {
-        <nav class="menu-choices" aria-label="Main menu">
-            <button @onclick='() => page = "login"'>Login</button>
-            <button @onclick='() => page = "register"'>Register</button>
-            <a href="https://www.xtremeworlds.com" target="_blank" rel="noopener">Website</a>
+        <form class="art-panel creation-panel" @onsubmit="CreateCharacter" @onsubmit:preventDefault>
+            <img src="assets/frmMainMenu/newchar.png" alt="Character Creation" />
+            <input class="character-name" aria-label="Character name" @bind="characterName" maxlength="20" required />
+            <button type="button" class="hotspot male" aria-label="Male" aria-pressed="@(sex == 0)" @onclick="() => sex = 0"></button>
+            <button type="button" class="hotspot female" aria-label="Female" aria-pressed="@(sex == 1)" @onclick="() => sex = 1"></button>
+            <button type="submit" class="hotspot create-character" aria-label="Create character"></button>
+            <button type="button" class="hotspot creation-back" aria-label="Back to characters" @onclick='() => page = "characters"'></button>
+        </form>
+        <div class="class-picker" aria-label="Character class">
+            <img src="assets/frmMainMenu/classselection.png" alt="Fighter, Wizard, Celestial, Guardian, Assassin" />
+            @for (var i = 0; i < 5; i++)
+            {
+                var choice = i;
+                <button class="class-choice" style="left: @(choice * 20)%" aria-label="@classNames[choice]" aria-pressed="@(selectedClass == choice)" @onclick="() => selectedClass = choice"></button>
+            }
+        </div>
+    }
+    else if (Session.Characters.Length > 0)
+    {
+        <div class="art-panel characters-panel">
+            <img src="assets/frmMainMenu/characters.png" alt="Characters" />
+            @for (var i = 0; i < Math.Min(3, Session.Characters.Length); i++)
+            {
+                var slot = i;
+                <button class="character-slot" style="left: @(12 + slot * 26.5)%" aria-pressed="@(selectedSlot == slot)" @onclick="() => selectedSlot = slot">@(string.IsNullOrWhiteSpace(Session.Characters[slot]) ? "Empty" : Session.Characters[slot])</button>
+            }
+            <button class="hotspot character-accept" aria-label="Enter world" disabled="@(!HasCharacter)" @onclick="() => Session.SelectCharacter(selectedSlot)"></button>
+            <button class="hotspot character-delete" aria-label="Delete character" disabled="@(!HasCharacter)" @onclick="() => confirmDelete = true"></button>
+            <button class="hotspot character-create" aria-label="Create character" disabled="@(Session.Characters.All(n => !string.IsNullOrWhiteSpace(n)))" @onclick="BeginCreate"></button>
+            <button class="hotspot character-back" aria-label="Back" @onclick="Back"></button>
+        </div>
+        @if (confirmDelete)
+        {
+            <div class="confirmation" role="alert">
+                Delete @Session.Characters[selectedSlot]?
+                <button @onclick="DeleteCharacter">Delete</button><button @onclick="() => confirmDelete = false">Cancel</button>
+            </div>
+        }
+    }
+    else if (page == "main")
+    {
+        <nav class="art-panel main-panel" aria-label="Main menu">
+            <img src="assets/frmMainMenu/main.png" alt="" />
+            <button class="hotspot main-login" aria-label="Login" @onclick='() => page = "login"'></button>
+            <button class="hotspot main-register" aria-label="Register" @onclick='() => page = "register"'></button>
         </nav>
     }
-    else if (Session.Characters.Length == 0)
+    else
     {
-    <h1>@(page == "register" ? "Create account" : "Login")</h1>
-    <form @onsubmit="Login" @onsubmit:preventDefault>
-        <label for="username">Username</label>
-        <input id="username" @bind="username" autocomplete="username" maxlength="64" required />
-        <label for="password">Password</label>
-        <input id="password" @bind="password" type="password" autocomplete="@(page == "register" ? "new-password" : "current-password")" maxlength="128" required />
-        @if (page == "register")
-        {
-            <label for="verify">Confirm password</label>
-            <input id="verify" @bind="verify" type="password" autocomplete="new-password" maxlength="128" required />
-        }
-        <div>
-            <button type="submit">@(page == "register" ? "Create account" : "Sign in")</button>
-            <button type="button" @onclick="Back">Back</button>
-            <button type="button" @onclick="Session.Disconnect" disabled="@(!Session.Connected)">Disconnect</button>
-        </div>
-    </form>
+        <form class="art-panel @(page == "register" ? "register-panel" : "login-panel")" @onsubmit="Login" @onsubmit:preventDefault>
+            <img src="assets/frmMainMenu/@(page == "register" ? "register.png" : "login.png")" alt="@(page == "register" ? "Register" : "Login")" />
+            <input class="username" aria-label="Username" @bind="username" autocomplete="username" maxlength="64" required />
+            <input class="password" aria-label="Password" @bind="password" type="password" autocomplete="@(page == "register" ? "new-password" : "current-password")" maxlength="128" required />
+            @if (page == "register")
+            {
+                <input class="verify" aria-label="Verify password" @bind="verify" type="password" autocomplete="new-password" maxlength="128" required />
+                <div class="register-actions"><button type="submit">Create account</button><button type="button" @onclick="Back">Back</button></div>
+            }
+            else
+            {
+                <button type="submit" class="hotspot login-accept" aria-label="Sign in"></button>
+                <button type="button" class="hotspot login-back" aria-label="Back" @onclick="Back"></button>
+            }
+        </form>
     }
-    <p role="status" aria-live="polite">@Session.Status</p>
-    <p role="alert">@validation</p>
-    @if (Session.Characters.Length > 0)
-    {
-        <h2>Characters</h2>
-        @for (var i = 0; i < Session.Characters.Length; i++)
-        {
-            var slot = i;
-            var name = Session.Characters[slot];
-            <button disabled="@(string.IsNullOrWhiteSpace(name))" @onclick="() => Session.SelectCharacter(slot)">
-                @(string.IsNullOrWhiteSpace(name) ? "Empty slot" : name)
-            </button>
-        }
-        <button @onclick="Back">Back to main menu</button>
-    }
+    </section>
+    <div class="menu-status"><p role="status" aria-live="polite">@Session.Status</p><p role="alert">@validation</p></div>
+    <a class="website" href="https://www.xtremeworlds.com" target="_blank" rel="noopener">Website</a>
 </main>
-
 @code {
+    private readonly string[] classNames = ["Fighter", "Wizard", "Celestial", "Guardian", "Assassin"];
+    private int selectedSlot, selectedClass, sex;
+    private string characterName = "";
+    private bool confirmDelete;
+    private bool HasCharacter => selectedSlot >= 0 && selectedSlot < Session.Characters.Length && !string.IsNullOrWhiteSpace(Session.Characters[selectedSlot]);
+    private void BeginCreate()
+    {
+        selectedSlot = Array.FindIndex(Session.Characters, string.IsNullOrWhiteSpace);
+        if (selectedSlot < 0) return;
+        characterName = validation = "";
+        page = "create";
+    }
+    private void CreateCharacter()
+    {
+        if (Session.CreateCharacter(characterName, sex, selectedClass + 1, selectedSlot)) page = "characters";
+    }
+    private void DeleteCharacter() { Session.DeleteCharacter(selectedSlot); confirmDelete = false; }
     private string username = "";
     private string password = "";
     private string verify = "";
@@ -62,7 +106,7 @@
         if (firstRender) polling = PollAsync();
     }
     private void Login() => Authenticate(page == "register");
-    private void Back() { password = verify = validation = ""; page = "main"; Session.Disconnect(); }
+    private void Back() { confirmDelete = false; selectedSlot = 0; password = verify = validation = ""; page = "main"; Session.Disconnect(); }
     private void Authenticate(bool register)
     {
         validation = "";

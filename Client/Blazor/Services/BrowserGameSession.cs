@@ -102,6 +102,25 @@ public sealed class BrowserGameSession(IConfiguration configuration, BrowserFnaR
         if (!Connected && Status == "Waiting for the game server…") Status = "The game server disconnected.";
     }
 
+    public bool CreateCharacter(string name, int sex, int classId, int slot)
+    {
+        name = name.Trim();
+        if (!Connected || slot < 0 || slot >= Characters.Length || !string.IsNullOrWhiteSpace(Characters[slot])) return false;
+        if (name.Length < 3 || name.Length > 20 || name.Any(c => !char.IsLetterOrDigit(c) && c != '_' && c != ' '))
+        {
+            Status = "Use a character name with 3–20 letters, numbers, spaces or underscores.";
+            return false;
+        }
+        network.SendText(PacketCodec.Build("addchar", name, sex, classId, slot + 1));
+        Status = "Creating character...";
+        return true;
+    }
+    public void DeleteCharacter(int slot)
+    {
+        if (!Connected || slot < 0 || slot >= Characters.Length || string.IsNullOrWhiteSpace(Characters[slot])) return;
+        network.SendText(PacketCodec.Build("delchar", slot + 1));
+        Status = "Deleting character...";
+    }
     public void SelectCharacter(int slot)
     {
         if (!Connected || slot < 0 || slot >= Characters.Length || string.IsNullOrWhiteSpace(Characters[slot])) return;
