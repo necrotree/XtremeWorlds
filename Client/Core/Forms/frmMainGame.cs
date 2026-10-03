@@ -113,6 +113,10 @@ namespace XtremeWorlds.Client.Forms
         public readonly LegacyButton cmdSetSprite;
         public readonly LegacyFrame fralvl1;
         public readonly LegacyButton cmdKick;
+        public readonly LegacyButton cmdMute;
+        public readonly LegacyButton cmdUnmute;
+        public readonly LegacyButton cmdJail;
+        public readonly LegacyButton cmdUnjail;
         public readonly LegacyFrame fralvl3;
         public readonly LegacyButton cmdNpcEditor;
         public readonly LegacyButton cmdItemEditor;
@@ -728,7 +732,7 @@ namespace XtremeWorlds.Client.Forms
             fralvl2.Caption = "Mappers";
             fralvl2.Visible = false;
             fralvl2.Size = new Size(97, 178);
-            rootLayout.Add(fralvl2, 949, 183);
+            rootLayout.Add(fralvl2, 949, 263);
             var layout_fralvl2 = new PixelLayout();
             fralvl2.Content = layout_fralvl2;
             cmdSignEdit = new LegacyButton();
@@ -789,7 +793,7 @@ namespace XtremeWorlds.Client.Forms
             fralvl1 = new LegacyFrame();
             fralvl1.Caption = "Monitors";
             fralvl1.Visible = false;
-            fralvl1.Size = new Size(97, 37);
+            fralvl1.Size = new Size(97, 117);
             rootLayout.Add(fralvl1, 949, 144);
             var layout_fralvl1 = new PixelLayout();
             fralvl1.Content = layout_fralvl1;
@@ -798,13 +802,37 @@ namespace XtremeWorlds.Client.Forms
             cmdKick.ToolTip = "Kick a player";
             cmdKick.Size = new Size(81, 17);
             layout_fralvl1.Add(cmdKick, 8, 16);
+            cmdMute = new LegacyButton();
+            cmdMute.Caption = "Mute";
+            cmdMute.ToolTip = "Mute the named player";
+            cmdMute.Size = new Size(81, 19);
+            layout_fralvl1.Add(cmdMute, 8, 36);
+
+            cmdUnmute = new LegacyButton();
+            cmdUnmute.Caption = "Unmute";
+            cmdUnmute.ToolTip = "Unmute the named player";
+            cmdUnmute.Size = new Size(81, 19);
+            layout_fralvl1.Add(cmdUnmute, 8, 56);
+
+            cmdJail = new LegacyButton();
+            cmdJail.Caption = "Jail";
+            cmdJail.ToolTip = "Jail the named player";
+            cmdJail.Size = new Size(81, 19);
+            layout_fralvl1.Add(cmdJail, 8, 76);
+
+            cmdUnjail = new LegacyButton();
+            cmdUnjail.Caption = "Unjail";
+            cmdUnjail.ToolTip = "Unjail the named player";
+            cmdUnjail.Size = new Size(81, 19);
+            layout_fralvl1.Add(cmdUnjail, 8, 96);
+
 
 
             fralvl3 = new LegacyFrame();
             fralvl3.Caption = "Developers";
             fralvl3.Visible = false;
             fralvl3.Size = new Size(97, 154);
-            rootLayout.Add(fralvl3, 949, 360);
+            rootLayout.Add(fralvl3, 949, 440);
             var layout_fralvl3 = new PixelLayout();
             fralvl3.Content = layout_fralvl3;
             cmdNpcEditor = new LegacyButton();
@@ -860,7 +888,7 @@ namespace XtremeWorlds.Client.Forms
             fralvl4.Caption = "Server Owner";
             fralvl4.Visible = false;
             fralvl4.Size = new Size(97, 85);
-            rootLayout.Add(fralvl4, 949, 511);
+            rootLayout.Add(fralvl4, 949, 591);
             var layout_fralvl4 = new PixelLayout();
             fralvl4.Content = layout_fralvl4;
             AccessLevel = new LegacyLabel();
@@ -1481,6 +1509,10 @@ namespace XtremeWorlds.Client.Forms
             cmdShopEditor.Click += (sender, e) => _client.MainGameAction("ShopEditor");
             cmdSpellEditor.Click += (sender, e) => _client.MainGameAction("SpellEditor");
             cmdKick.Click += (sender, e) => _client.MainGameAction("Kick", txtPlayerName.Text);
+            cmdMute.Click += (sender, e) => _client.MainGameAction("Mute", txtPlayerName.Text);
+            cmdUnmute.Click += (sender, e) => _client.MainGameAction("Unmute", txtPlayerName.Text);
+            cmdJail.Click += (sender, e) => _client.MainGameAction("Jail", txtPlayerName.Text);
+            cmdUnjail.Click += (sender, e) => _client.MainGameAction("Unjail", txtPlayerName.Text);
             cmdLOC.Click += (sender, e) => _client.MainGameAction("Location", txtPlayerName.Text);
             cmdMapeditor.Click += (sender, e) => _client.MainGameAction("MapEditor");
             cmdMapreport.Click += (sender, e) => _client.MainGameAction("MapReport");

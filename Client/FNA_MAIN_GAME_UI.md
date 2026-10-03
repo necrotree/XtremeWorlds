@@ -13,8 +13,11 @@ World `FnaSpriteCommand` destinations are map-local and are offset into that vie
 
 ## Initial world data
 
-Selecting a character sends `ingame`, followed by `worldstate` containing a JSON
-snapshot of the stored map and selected player. The active Client/Engine renderer
+Selecting a character sends `ingame`. The client then requests `needmap`; the server
+loads only the session character's current map and replies with `worldstate` containing
+a JSON snapshot of the stored map and selected player. `requestnewmap` also refreshes
+the current snapshot. Missing or empty maps produce a `maperror` chat message and server
+log entry identifying the map ID. The active Client/Engine renderer
 draws ground, mask, second mask, player, fringe, second fringe, and the player name
 inside the map viewport. Maps use 16 columns by 12 rows of 32px tiles, with zero-based
 tile indices; sprite frames use the same 48x64 layout as the menu character preview.

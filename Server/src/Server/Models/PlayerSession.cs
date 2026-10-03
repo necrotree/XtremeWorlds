@@ -11,5 +11,7 @@ namespace Server
         public PlayerCharacter? Character { get; set; }
         public bool IsLoggedIn { get; set; }
         public bool IsPlaying { get; set; }
+        public volatile bool IsMuted;
+        public volatile bool IsJailed;
     }
 }

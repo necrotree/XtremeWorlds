@@ -25,3 +25,4 @@ var missing = JsonSerializer.Deserialize<FnaWorldScene>(JsonSerializer.Serialize
 if (missing.Map is not null || missing.Player.Name != "Player")
     throw new Exception("Missing maps must preserve the player and remain explicit.");
 Console.WriteLine("World scene protocol checks passed.");
+await MapRetrievalTest.Run();

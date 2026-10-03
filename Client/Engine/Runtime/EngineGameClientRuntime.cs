@@ -239,8 +239,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "GameDestroy":
                 GameDestroy();
                 break;
+            case "SendChatChannel":
+                SendChat(Arg(arguments, 1));
+                break;
             case "SendChat":
-                SendPacket("saymsg", Arg(arguments, 0));
+                SendChat(Arg(arguments, 0));
                 break;
             case "UseInventoryItem":
                 SendPacket("USEITEM", IntArg(arguments, 0) + 1);
@@ -257,6 +260,17 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "StopMusic":
                 _audio.StopMusic();
                 break;
+            case "Mute":
+                SendPacket("MUTEPLAYER", Arg(arguments, 0));
+                break;
+            case "Unmute":
+                SendPacket("UNMUTEPLAYER", Arg(arguments, 0));
+                break;
+            case "Jail":
+                SendPacket("JAILPLAYER", Arg(arguments, 0));
+                break;
+            case "Unjail":
+                SendPacket("UNJAILPLAYER", Arg(arguments, 0));
             case "Kick":
                 SendPacket("KICKPLAYER", Arg(arguments, 0));
                 break;
@@ -337,6 +351,20 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         return connected;
     }
 
+    private void SendChat(string text)
+    {
+        string trimmed = text.Trim();
+        int separator = trimmed.IndexOf(' ');
+        string command = (separator < 0 ? trimmed : trimmed[..separator]).ToLowerInvariant();
+        if (command is "/mute" or "/unmute" or "/jail" or "/unjail")
+        {
+            string player = separator < 0 ? string.Empty : trimmed[(separator + 1)..].Trim();
+            SendPacket(command[1..] + "player", player);
+            return;
+        }
+        SendPacket("saymsg", text);
+    }
+
     private void SendPacket(string command, params object?[] values)
     {
         if (!EnsureConnected()) return;
@@ -380,9 +408,13 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 var scene = System.Text.Json.JsonSerializer.Deserialize<FnaWorldScene>(Field(fields, 1));
                 if (scene is not null) _graphics.SetWorldScene(scene);
                 break;
+            case "maperror":
+                _graphics.AddChatMessage("System", Field(fields, 2));
+                break;
             case "ingame":
                 _graphics.SetWorldScene(new FnaWorldScene());
                 Ui(ShowMainGame);
+                SendPacket("needmap");
                 break;
             default:
                 Request("PacketReceived", fields.ToArray());

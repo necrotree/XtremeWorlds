@@ -117,6 +117,14 @@ namespace Server
             await _client.CallReducerAsync("upsert_content", new object[] { key, kind.ToLowerInvariant(), id, name, json, revision });
         }
 
+        public async Task<T?> GetContentAsync<T>(string kind, int id) where T : class
+        {
+            using var doc = await _client.SqlAsync($"SELECT json FROM content WHERE kind = {Q(kind.ToLowerInvariant())} AND numeric_id = {id.ToString(System.Globalization.CultureInfo.InvariantCulture)} LIMIT 1");
+            var row = FirstRow(doc);
+            return row is null ? null : JsonSerializer.Deserialize<T>(row.Value[0].GetString() ?? string.Empty,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
         public async Task<Dictionary<int, T>> LoadContentAsync<T>(string kind)
         {
             var output = new Dictionary<int, T>();

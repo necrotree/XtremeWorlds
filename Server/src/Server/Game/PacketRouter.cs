@@ -33,10 +33,22 @@ namespace Server
             if (p.Length == 0)
                 return;
             string command = (p[0] ?? string.Empty).Trim().ToLowerInvariant();
+            if (_sessions.TryGetValue(connectionId, out var session) &&
+                ModerationPolicy.Rejection(session, command) is string rejection)
+            {
+                _network.SendText(connectionId, PacketCodec.Compose("playermsg", rejection, 15));
+                return;
+            }
             try
             {
                 switch (command)
                 {
+                    case "muteplayer":
+                    case "unmuteplayer":
+                    case "jailplayer":
+                    case "unjailplayer":
+                        ModeratePlayer(connectionId, command, p);
+                        break;
                     case "getclasses":
                         {
                             await SendClassesAsync(connectionId);
@@ -68,6 +80,10 @@ namespace Server
                             break;
                         }
 
+                    case "needmap":
+                    case "requestnewmap":
+                        await SendCurrentMapAsync(connectionId);
+                        break;
                     default:
                         {
                             await _legacy.HandleAsync(connectionId, command, p);
@@ -81,6 +97,46 @@ namespace Server
                 string clientMessage = ex is System.Net.Http.HttpRequestException ? "Database service is unavailable. Please try again after SpacetimeDB is started." : "Server error handling packet.";
                 _network.SendText(connectionId, PacketCodec.Compose("alertmsg", clientMessage));
             }
+        }
+
+        private void ModeratePlayer(int id, string command, string[] fields)
+        {
+            void Reply(string message) => _network.SendText(id, PacketCodec.Compose("playermsg", message, 15));
+            if (!_sessions.TryGetValue(id, out var actor) || !actor.IsPlaying || actor.Character is null || actor.Character.Access < 1)
+            {
+                Reply("Only admins may moderate players.");
+                return;
+            }
+            string name = fields.Length > 1 ? fields[1].Trim() : string.Empty;
+            if (name.Length == 0)
+            {
+                Reply($"Usage: /{command.Replace("player", "")} <player name>");
+                return;
+            }
+            var target = _sessions.Values.FirstOrDefault(s => s.IsPlaying && s.Character is not null &&
+                string.Equals(s.Character.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (target is null)
+            {
+                Reply($"Player '{name}' is not online.");
+                return;
+            }
+            if (target.ConnectionId == id || target.Character!.Access >= actor.Character.Access)
+            {
+                Reply("You may only moderate players with lower access than yours.");
+                return;
+            }
+            string action;
+            switch (command)
+            {
+                case "muteplayer": target.IsMuted = true; action = "muted"; break;
+                case "unmuteplayer": target.IsMuted = false; action = "unmuted"; break;
+                case "jailplayer": target.IsJailed = true; action = "jailed"; break;
+                default: target.IsJailed = false; action = "released from jail"; break;
+            }
+            string message = $"{target.Character.Name} has been {action} by {actor.Character.Name}.";
+            Reply(message);
+            _network.SendText(target.ConnectionId, PacketCodec.Compose("playermsg", message, 15));
+            _log?.Invoke(message);
         }
 
         public void Tick()
@@ -226,8 +282,6 @@ namespace Server
             session.CharacterSlot = slot;
             session.Character = selected.Character;
             session.IsPlaying = true;
-            var maps = await _db.LoadContentAsync<MapDefinition>("map");
-            maps.TryGetValue(selected.Character.Map, out var map);
             var player = selected.Character;
             if (player.Sprite <= 0)
             {
@@ -236,9 +290,28 @@ namespace Server
                     player.Sprite = player.Sex == 1 ? definition.MaleSprite : definition.FemaleSprite;
             }
             _network.SendText(id, PacketCodec.Compose("ingame"));
-            _network.SendText(id, PacketCodec.Compose("worldstate",
-                System.Text.Json.JsonSerializer.Serialize(new { Map = map, Player = player })));
             _network.SendText(id, PacketCodec.Compose("playerdata", selected.Character.Name, selected.Character.Level, selected.Character.Map, selected.Character.X, selected.Character.Y, selected.Character.Direction));
+        }
+
+        private async Task SendCurrentMapAsync(int id)
+        {
+            if (!_sessions.TryGetValue(id, out var session) || !session.IsLoggedIn || !session.IsPlaying || session.Character is null)
+                return;
+            // The session determines the map; clients cannot request unrelated maps.
+            var player = session.Character;
+            int mapId = player.Map;
+            var map = await _db.GetContentAsync<MapDefinition>("map", mapId);
+            if (!_sessions.TryGetValue(id, out var current) || !ReferenceEquals(current, session)
+                || !session.IsPlaying || !ReferenceEquals(session.Character, player) || player.Map != mapId)
+                return;
+            _network.SendText(id, PacketCodec.Compose("worldstate",
+                System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = player })));
+            if (map is null || map.Tiles.Count == 0)
+            {
+                string message = $"Map {mapId} has no map data in the server database.";
+                _log?.Invoke($"[{id}] {message}");
+                _network.SendText(id, PacketCodec.Compose("maperror", mapId, message));
+            }
         }
 
         private async Task SendCharactersAsync(int id, string login)

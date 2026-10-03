@@ -145,7 +145,20 @@ public sealed class EtoServerForm : Form
         kick.Click += (_, _) => { var p = Selected(); if (p is not null) _host?.KickPlayer(p.ConnectionId); };
         var ban = new ButtonMenuItem { Text = "Ban" };
         ban.Click += async (_, _) => { var p = Selected(); if (p is not null && _host is not null) await _host.BanPlayerAsync(p.ConnectionId); };
-        _players.ContextMenu = new ContextMenu { Items = { access, kick, ban } };
+        var menu = new ContextMenu { Items = { access, kick, ban } };
+        foreach (var (label, mute, enabled) in new[] { ("Mute", true, true), ("Unmute", true, false), ("Jail", false, true), ("Release", false, false) })
+        {
+            var item = new ButtonMenuItem { Text = label };
+            item.Click += (_, _) =>
+            {
+                var player = Selected();
+                if (player is null || _host is null) return;
+                if (mute) _host.SetPlayerMuted(player.ConnectionId, enabled);
+                else _host.SetPlayerJailed(player.ConnectionId, enabled);
+            };
+            menu.Items.Add(item);
+        }
+        _players.ContextMenu = menu;
     }
 
     private async Task RefreshPublicIpAsync()

@@ -161,6 +161,26 @@ public sealed class ServerHost : IDisposable
         Log($"Server warning sent to {DescribePlayer(connectionId)}: {message}");
     }
 
+    public void SetPlayerMuted(int connectionId, bool muted)
+    {
+        if (!_sessions.TryGetValue(connectionId, out var session) || !session.IsPlaying) return;
+        session.IsMuted = muted;
+        string action = muted ? "muted" : "unmuted";
+        _network.SendText(connectionId, PacketCodec.Compose("playermsg", $"You have been {action} by the Server.", 15));
+        Log($"{DescribePlayer(connectionId)} has been {action} by the Server.");
+        SessionsChanged?.Invoke();
+    }
+
+    public void SetPlayerJailed(int connectionId, bool jailed)
+    {
+        if (!_sessions.TryGetValue(connectionId, out var session) || !session.IsPlaying) return;
+        session.IsJailed = jailed;
+        string action = jailed ? "jailed" : "released from jail";
+        _network.SendText(connectionId, PacketCodec.Compose("playermsg", $"You have been {action} by the Server.", 15));
+        Log($"{DescribePlayer(connectionId)} has been {action} by the Server.");
+        SessionsChanged?.Invoke();
+    }
+
     public void KickPlayer(int connectionId)
     {
         if (!_sessions.ContainsKey(connectionId)) return;

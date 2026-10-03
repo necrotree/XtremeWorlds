@@ -330,6 +330,18 @@ public sealed class ServerForm : Window
         ban.Click += async (_, _) => await BanSelectedPlayerAsync();
 
         menu.Items.Add(access);
+        foreach (var (label, mute, enabled) in new[] { ("Mute", true, true), ("Unmute", true, false), ("Jail", false, true), ("Release", false, false) })
+        {
+            var item = new MenuItem { Header = label };
+            item.Click += (_, _) =>
+            {
+                var player = SelectedPlayer();
+                if (player is null || _host is null) return;
+                if (mute) _host.SetPlayerMuted(player.ConnectionId, enabled);
+                else _host.SetPlayerJailed(player.ConnectionId, enabled);
+            };
+            menu.Items.Add(item);
+        }
         menu.Items.Add(kick);
         menu.Items.Add(ban);
         _playersList.ContextMenu = menu;
