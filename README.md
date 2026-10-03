@@ -7,7 +7,7 @@ These are sibling folders; the order describes the layout, not a circular depend
 | --- | --- |
 | Client | Blazor browser client, Windows host, game assets, menu image references, form definitions and client scripts |
 | Core | Shared client forms, controllers and embedded UI assets |
-| Server | Game server, platform hosts, configuration, scripts, SpacetimeDb module and legacy source archives |
+| Server | Game server, platform hosts, configuration, scripts, SpacetimeDb module |
 | Engine | Networking, FNA graphics and audio |
 
 Build from this directory with the .NET 10 SDK:
