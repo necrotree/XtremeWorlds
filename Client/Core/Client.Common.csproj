@@ -7,18 +7,19 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Assets\frmGamePrompt\**" />
+    <EmbeddedResource Remove="Assets\frmGamePrompt\**" />
+    <None Remove="Assets\frmGamePrompt\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
     <PackageReference Include="Eto.Forms" Version="2.12.0" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Assets\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\Core\Assets\frmAlert\**\*.*">
-      <Link>Assets\frmAlert\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Folder Include="Assets\frmGamePrompt\" />
+    <Folder Include="Assets\frmDrop\" />
+    <Folder Include="Assets\frmMainGame\" />
+    <Folder Include="Assets\frmSendGetData\" />
+    <Folder Include="Assets\frmSignEditor\" />
+    <Folder Include="Assets\frmTrade\" />
   </ItemGroup>
 </Project>
