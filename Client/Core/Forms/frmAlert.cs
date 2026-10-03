@@ -40,7 +40,7 @@ namespace XtremeWorlds.Client.Forms
 
             Title = string.IsNullOrWhiteSpace(title) ? "XtremeWorlds" : title;
             Style = "AlertWindow";
-            ClientSize = new Size(262, 128);
+            ClientSize = new Size(392, 190);
             Resizable = false;
             Maximizable = false;
             Minimizable = false;
@@ -54,7 +54,7 @@ namespace XtremeWorlds.Client.Forms
             imgAlert = new ImageView
             {
                 Image = LoadAlertImage("imgAlert"),
-                Size = new Size(262, 128)
+                Size = new Size(392, 190)
             };
             _layout.Add(imgAlert, 0, 0);
 
@@ -62,9 +62,9 @@ namespace XtremeWorlds.Client.Forms
             {
                 Caption = Title,
                 Style = "XtremeWorldsSkinLabel",
-                Size = new Size(230, 20)
+                Size = new Size(340, 24)
             };
-            _layout.Add(lblTitle, 16, 14);
+            _layout.Add(lblTitle, 22, 7);
 
             txtMessage = new LegacyTextArea
             {
@@ -72,35 +72,35 @@ namespace XtremeWorlds.Client.Forms
                 Locked = true,
                 Wrap = true,
                 Style = "AlertMessage",
-                Size = new Size(230, 44)
+                Size = new Size(342, 72)
             };
-            _layout.Add(txtMessage, 16, 40);
+            _layout.Add(txtMessage, 25, 55);
 
             txtInput = new LegacyTextBox
             {
                 Text = string.Empty,
                 Visible = false,
                 Style = "AlertInput",
-                Size = new Size(230, 24)
+                Size = new Size(342, 24)
             };
-            _layout.Add(txtInput, 16, 76);
+            _layout.Add(txtInput, 25, 103);
 
             // Original TwinBASIC positions/sizes.
-            imgOk = MakeImageButton("imgOk", new Size(104, 23), (_, _) => Close(DialogResult.Ok));
-            imgYes = MakeImageButton("imgYes", new Size(105, 23), (_, _) => Close(DialogResult.Yes));
-            imgNo = MakeImageButton("imgNo", new Size(109, 28), (_, _) => Close(DialogResult.No));
+            imgOk = MakeImageButton("imgOk", new Size(147, 29), (_, _) => Close(DialogResult.Ok));
+            imgYes = MakeImageButton("imgYes", new Size(147, 29), (_, _) => Close(DialogResult.Yes));
+            imgNo = MakeImageButton("imgNo", new Size(147, 29), (_, _) => Close(DialogResult.No));
 
-            _layout.Add(imgOk, 79, 96);
-            _layout.Add(imgYes, 20, 96);
-            _layout.Add(imgNo, 133, 93);
+            _layout.Add(imgOk, 123, 143);
+            _layout.Add(imgYes, 43, 143);
+            _layout.Add(imgNo, 202, 143);
 
             _fallbackOk = MakeFallbackButton("OK", new Size(104, 23), (_, _) => Close(DialogResult.Ok));
             _fallbackYes = MakeFallbackButton("Yes", new Size(105, 23), (_, _) => Close(DialogResult.Yes));
             _fallbackNo = MakeFallbackButton("No", new Size(109, 28), (_, _) => Close(DialogResult.No));
 
-            _layout.Add(_fallbackOk, 79, 96);
-            _layout.Add(_fallbackYes, 20, 96);
-            _layout.Add(_fallbackNo, 133, 93);
+            _layout.Add(_fallbackOk, 123, 143);
+            _layout.Add(_fallbackYes, 43, 143);
+            _layout.Add(_fallbackNo, 202, 143);
 
             bool okMode = buttons == AlertButtons.Ok;
             imgOk.Visible = okMode && imgOk.Image is not null;
