@@ -4,8 +4,6 @@ VisualStudioVersion = 18.10.12224.181 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Common", "Core\Client.Common.csproj", "{7842CE10-97C2-1290-3D6B-1CF68567C9A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Eto.Core", "Core\Client.Eto.Core.csproj", "{5711EB75-F95B-0159-26A6-BDB503388C81}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Windows", "Platforms\Windows\Client.Windows.csproj", "{6ED13147-5C6E-4C9A-8A90-7236A3E94311}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Linux", "Platforms\Linux\Client.Linux.csproj", "{2ADE6CF1-5908-0CEA-38EF-02F21FD26FC6}"
@@ -30,14 +28,6 @@ Global
 		{7842CE10-97C2-1290-3D6B-1CF68567C9A9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7842CE10-97C2-1290-3D6B-1CF68567C9A9}.Release|x64.ActiveCfg = Release|Any CPU
 		{7842CE10-97C2-1290-3D6B-1CF68567C9A9}.Release|x64.Build.0 = Release|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|x64.Build.0 = Debug|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|x64.ActiveCfg = Release|Any CPU
-		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|x64.Build.0 = Release|Any CPU
 		{6ED13147-5C6E-4C9A-8A90-7236A3E94311}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{6ED13147-5C6E-4C9A-8A90-7236A3E94311}.Debug|Any CPU.Build.0 = Debug|x64
 		{6ED13147-5C6E-4C9A-8A90-7236A3E94311}.Debug|x64.ActiveCfg = Debug|x64
