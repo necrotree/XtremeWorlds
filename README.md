@@ -10,7 +10,7 @@ These are sibling folders; the order describes the layout, not a circular depend
 | Server | Game server, platform hosts, configuration, scripts, SpacetimeDb module |
 | Engine | Networking, FNA graphics and audio |
 
-Build from this directory with the .NET 10 SDK:
+Build from this directory with the .NET 10 SDK: https://dotnet.microsoft.com/en-us/download/dotnet/10.0
 
 ```powershell
 dotnet build XtremeWorlds.sln
@@ -29,3 +29,6 @@ Run the Windows client and game server:
 dotnet run --project Client\Platforms\Windows\Client.Windows.csproj
 dotnet run --project Server\src\Server\Server.csproj
 ```
+
+Install SpacetimeDB CLI:
+https://spacetimedb.com/install
