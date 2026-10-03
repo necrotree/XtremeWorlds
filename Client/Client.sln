@@ -2,6 +2,8 @@
 # Visual Studio Version 18
 VisualStudioVersion = 18.10.12224.181 stable
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Client.Common", "Core\Client.Common.vbproj", "{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Eto.Core", "Core\Client.Eto.Core.csproj", "{5711EB75-F95B-0159-26A6-BDB503388C81}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Windows", "Platforms\Windows\Client.Windows.csproj", "{6ED13147-5C6E-4C9A-8A90-7236A3E94311}"
@@ -20,6 +22,14 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Debug|x64.Build.0 = Debug|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Release|x64.ActiveCfg = Release|Any CPU
+		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Release|x64.Build.0 = Release|Any CPU
 		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|x64.ActiveCfg = Debug|Any CPU
