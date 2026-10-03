@@ -85,6 +85,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: All characters packet ::
         ' :::::::::::::::::::::::::::
         Case "allchars"
+            Call EnsureGameGraphics
             n = 1
 
             frmMainMenu.HideMenuPanels
@@ -130,6 +131,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: New character classes data packet ::
         ' :::::::::::::::::::::::::::::::::::::::
         Case "newcharclasses"
+            Call EnsureGameGraphics
             n = 1
 
             ' Max classes

@@ -1,62 +1,91 @@
 Class clsImageMenu
     Option Explicit
-    Private mGroup As String
-    Private mImage As String
-    Private mOwner As Object
+    Private mBackground As Object
+    Private mControls As Collection
+    Private mShownControls As Collection
+    Private mHiddenControls As Collection
+    Private mVisibilityApplied As Boolean
 
     Public Sub Initialize(ByVal GroupName As String, ByVal ImageName As String, Optional ByVal owner As Object = Nothing, Optional ByVal tagPrefix As String = "game-menu:")
+        Dim control As Object
+        Dim groupTag As String
         If owner Is Nothing Then Set owner = frmMainGame
-        Set mOwner = owner
-        mGroup = tagPrefix & GroupName & ":"
-        mImage = ImageName
+        Set mBackground = owner.Controls(ImageName)
+        Set mControls = New Collection
+        Set mShownControls = New Collection
+        Set mHiddenControls = New Collection
+        mVisibilityApplied = False
+        groupTag = tagPrefix & GroupName & ":"
+        ' Menu membership is fixed by the designer. Resolve it once instead of
+        ' scanning every control and parsing tags on each navigation click.
+        For Each control In owner.Controls
+            If Left$(CStr(control.Tag), Len(groupTag)) = groupTag Then
+                mControls.Add control
+                If CStr(control.Tag) = groupTag & "show" Then
+                    mShownControls.Add control
+                Else
+                    mHiddenControls.Add control
+                End If
+            End If
+        Next
     End Sub
 
     Public Property Get Visible() As Boolean
-        Return mOwner.Controls(mImage).Visible
+        Return mBackground.Visible
     End Property
     Public Property Let Visible(ByVal value As Boolean)
         Dim control As Object
-        mOwner.Controls(mImage).Visible = value
-        If value Then mOwner.Controls(mImage).ZOrder 0
-        For Each control In mOwner.Controls
-            If Left$(CStr(control.Tag), Len(mGroup)) = mGroup Then
-                control.Visible = value And (CStr(control.Tag) = mGroup & "show")
-                If control.Visible And control.Name <> mImage Then control.ZOrder 0
-            End If
-        Next
+        ' Still apply the first hide, so designer-visible child controls are
+        ' normalized even when the background starts hidden.
+        If Not value And mVisibilityApplied And Not mBackground.Visible Then Exit Property
+        mBackground.Visible = value
+        If value Then mBackground.ZOrder 0
+        If value Then
+            For Each control In mHiddenControls
+                If control.Visible Then control.Visible = False
+            Next
+            For Each control In mShownControls
+                If Not control.Visible Then control.Visible = True
+                If Not (control Is mBackground) Then control.ZOrder 0
+            Next
+        Else
+            For Each control In mControls
+                If control.Visible Then control.Visible = False
+            Next
+        End If
+        mVisibilityApplied = True
     End Property
     Public Property Get Left() As Single
-        Return mOwner.Controls(mImage).Left
+        Return mBackground.Left
     End Property
     Public Property Let Left(ByVal value As Single)
         ShiftControls value - Me.Left, 0
     End Property
     Public Property Get Top() As Single
-        Return mOwner.Controls(mImage).Top
+        Return mBackground.Top
     End Property
     Public Property Let Top(ByVal value As Single)
         ShiftControls 0, value - Me.Top
     End Property
     Public Property Get Width() As Single
-        Return mOwner.Controls(mImage).Width
+        Return mBackground.Width
     End Property
     Public Property Get Height() As Single
-        Return mOwner.Controls(mImage).Height
+        Return mBackground.Height
     End Property
     Public Sub ZOrder(Optional ByVal position As Integer = 0)
         If Me.Visible Then Me.Visible = True
     End Sub
     Private Sub ShiftControls(ByVal dx As Single, ByVal dy As Single)
         Dim control As Object
-        For Each control In mOwner.Controls
-            If Left$(CStr(control.Tag), Len(mGroup)) = mGroup Then
-                If TypeName(control) = "Line" Then
-                    control.X1 = control.X1 + dx: control.X2 = control.X2 + dx
-                    control.Y1 = control.Y1 + dy: control.Y2 = control.Y2 + dy
-                Else
-                    control.Left = control.Left + dx
-                    control.Top = control.Top + dy
-                End If
+        If dx = 0 And dy = 0 Then Exit Sub
+        For Each control In mControls
+            If TypeName(control) = "Line" Then
+                control.X1 = control.X1 + dx: control.X2 = control.X2 + dx
+                control.Y1 = control.Y1 + dy: control.Y2 = control.Y2 + dy
+            Else
+                control.Left = control.Left + dx
+                control.Top = control.Top + dy
             End If
         Next
     End Sub

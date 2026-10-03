@@ -2,11 +2,22 @@ Attribute VB_Name = "modDirectX"
 Option Explicit
 
 Private Const TILESET_COLUMNS As Long = 12
+Private GameGraphicsReady As Boolean
+
+Public Sub EnsureGameGraphics()
+    If GameGraphicsReady Then Exit Sub
+    ' Packet handlers call this too; repaint without SetStatus/DoEvents,
+    ' which could dispatch another packet during graphics initialization.
+    frmSendGetData.lblStatus.Caption = "Loading game graphics..."
+    frmSendGetData.lblStatus.Refresh
+    Call InitDirectX
+End Sub
 
 Public Sub InitDirectX()
     DestroyDirectX
     DX11Initialize frmMainGame.picScreen.hWnd
     InitSurfaces
+    GameGraphicsReady = True
 End Sub
 
 Private Function NewSurface(ByVal Width As Long, ByVal Height As Long) As clsDX11Surface
@@ -44,6 +55,7 @@ End Sub
 
 Public Sub DestroyDirectX()
     Dim i As Long
+    GameGraphicsReady = False
     
     ClearGuiImageCache
     DestroySpriteOverlays

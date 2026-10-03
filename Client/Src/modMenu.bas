@@ -127,6 +127,7 @@ Public Sub MenuState(ByVal State As Long)
             frmMainMenu.SetMenuVisible "mnuChars", False
             frmMainMenu.Visible = False
             If ConnectToServer = True Then
+                Call EnsureGameGraphics
                 Call GetGameName
                 Call GetGameSite
                 Call GetGameMaxes

@@ -23,7 +23,7 @@ Public Sub Main()
     Call SetStatus("Loading...")
     frmSendGetData.Visible = True
 
-    Call SetStatus("Caching GUI images")
+    Call SetStatus("Loading menus")
     Load frmMainMenu
     Load frmMainGame
 
@@ -50,10 +50,8 @@ Public Sub Main()
     Next i
     Call ClearTempTile
 
-    ' Initiate DirectX and Surfaces
-    Call SetStatus("Initializing Direct3D 11")
-    Call InitDirectX
-    ' InitDirectX creates all surfaces.
+    ' The main menu uses native Image controls. Load game graphics only when
+    ' character selection needs previews, rather than delaying menu startup.
 
     Call SetStatus("Loading Game Data")
     FileName = App.Path & DATA_PATH & "Data.dat"
