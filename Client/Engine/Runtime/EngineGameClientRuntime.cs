@@ -322,6 +322,13 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 HandleAllCharacters(fields);
                 break;
             case "newcharclasses":
+                if (fields.Count == 9)
+                {
+                    HandleClassDefinition(fields);
+                    break;
+                }
+                HandleClasses(fields);
+                break;
             case "classesdata":
                 HandleClasses(fields);
                 break;
@@ -363,6 +370,33 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             menu.lstChars.SelectedIndex = 0;
             menu.SelectCharacterSlot(0);
             menu.ShowCharacters();
+        });
+    }
+
+    private void HandleClassDefinition(IReadOnlyList<string> fields)
+    {
+        int classId = IntField(fields, 1);
+        if (classId < 0)
+            return;
+
+        while (_classes.Count <= classId)
+            _classes.Add(new GameClassInfo());
+
+        _classes[classId] = new GameClassInfo
+        {
+            Name = Field(fields, 2),
+            MaleSprite = IntField(fields, 3),
+            FemaleSprite = IntField(fields, 4),
+            STR = IntField(fields, 5),
+            DEF = IntField(fields, 6),
+            Speed = IntField(fields, 7),
+            MAGI = IntField(fields, 8)
+        };
+
+        Ui(() =>
+        {
+            if (Application.Instance?.MainForm is frmMainMenu menu)
+                menu.RefreshCharacterClasses();
         });
     }
 
