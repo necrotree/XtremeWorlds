@@ -8,7 +8,19 @@ namespace Server
     {
         public string GameName { get; set; } = "XtremeWorlds";
         public int Port { get; set; } = 7234;
-        public int MaxPlayers { get; set; } = 100;
+        public int MaxPlayers { get; set; } = 50;
+        public int MaxMaps { get; set; } = 50;
+        public int MaxItems { get; set; } = 255;
+        public int MaxShops { get; set; } = 255;
+        public int MaxSpells { get; set; } = 255;
+        public int MaxSigns { get; set; } = 255;
+        public int MaxNpcs { get; set; } = 255;
+        public int MaxGuilds { get; set; } = 255;
+        public int MaxGuildMembers { get; set; } = 255;
+        public int MaxQuests { get; set; } = 255;
+        public int MaxArrows { get; set; } = 100;
+        public int MaxClasses { get; set; } = 50;
+        public int MaxQuestPlayers { get; set; } = 255;
         public int MaxMessageSize { get; set; } = 1024 * 1024;
         public bool TcpNoDelay { get; set; } = true;
         public int TickRate { get; set; } = 60;
