@@ -10,13 +10,15 @@ Project("{66A26720-8FB5-11D2-AA7E-00C04F688DDE}") = "Database", "Database", "{15
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Client.Common", "Client\Core\Client.Common.vbproj", "{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Eto.Core", "Client\Core\Client.Eto.Core.csproj", "{5711EB75-F95B-0159-26A6-BDB503388C81}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Engine", "Client\Engine\Client.Engine.csproj", "{5ED5BC93-1E53-59EC-BCAF-BD69B3528C8B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Windows", "Client\Platforms\Windows\Client.Windows.csproj", "{C6B08055-BEA1-5257-AA82-508E520EAB35}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Client.Linux", "Client\Platforms\Linux\Client.Linux.vbproj", "{455FA108-C262-5E4C-A024-C5BD3F42A442}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Linux", "Client\Platforms\Linux\Client.Linux.csproj", "{455FA108-C262-5E4C-A024-C5BD3F42A442}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Client.macOS", "Client\Platforms\macOS\Client.macOS.vbproj", "{7E6B6516-ED46-5C1D-952E-9C00A304FFC4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.macOS", "Client\Platforms\macOS\Client.macOS.csproj", "{7E6B6516-ED46-5C1D-952E-9C00A304FFC4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Common", "Server\src\Server\Server.Common.csproj", "{1FF46AFA-DEA0-5CEB-9C3A-95DDB1B7EE3C}"
 EndProject
@@ -38,6 +40,18 @@ Global
 		Release|macOS = Release|macOS
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Windows.ActiveCfg = Debug|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Windows.Build.0 = Debug|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|Windows.ActiveCfg = Release|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|Windows.Build.0 = Release|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Linux.ActiveCfg = Debug|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|Linux.Build.0 = Debug|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|Linux.ActiveCfg = Release|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|Linux.Build.0 = Release|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|macOS.ActiveCfg = Debug|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Debug|macOS.Build.0 = Debug|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|macOS.ActiveCfg = Release|Any CPU
+		{5711EB75-F95B-0159-26A6-BDB503388C81}.Release|macOS.Build.0 = Release|Any CPU
 		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Debug|Windows.ActiveCfg = Debug|Any CPU
 		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Debug|Windows.Build.0 = Debug|Any CPU
 		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09}.Release|Windows.ActiveCfg = Release|Any CPU
@@ -134,6 +148,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CA664F7B-5B9A-5D61-BF33-D688E7F0FD09} = {D9D17DF6-F0C0-5270-BC2B-F11F7D14FA00}
+		{5711EB75-F95B-0159-26A6-BDB503388C81} = {D9D17DF6-F0C0-5270-BC2B-F11F7D14FA00}
 		{5ED5BC93-1E53-59EC-BCAF-BD69B3528C8B} = {D9D17DF6-F0C0-5270-BC2B-F11F7D14FA00}
 		{C6B08055-BEA1-5257-AA82-508E520EAB35} = {D9D17DF6-F0C0-5270-BC2B-F11F7D14FA00}
 		{455FA108-C262-5E4C-A024-C5BD3F42A442} = {D9D17DF6-F0C0-5270-BC2B-F11F7D14FA00}
