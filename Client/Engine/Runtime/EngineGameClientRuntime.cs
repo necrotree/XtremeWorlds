@@ -293,14 +293,14 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private void SendPacket(string command, params object?[] values)
     {
         if (!EnsureConnected()) return;
-        _network.SendText(XtremeWorldsPacketCodec.Build(command, values));
+        _network.SendText(PacketCodec.Build(command, values));
         _network.Tick();
     }
 
     private void OnNetworkData(object? sender, NetworkDataEventArgs e)
     {
         var text = Encoding.UTF8.GetString(e.Data);
-        var fields = XtremeWorldsPacketCodec.Parse(text);
+        var fields = PacketCodec.Parse(text);
         if (fields.Count == 0) return;
 
         var command = fields[0].Trim().ToLowerInvariant();

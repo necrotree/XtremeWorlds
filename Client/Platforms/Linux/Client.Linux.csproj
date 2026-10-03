@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
-    <ProjectReference Include="..\..\Core\Client.Common.vbproj" />
+    <ProjectReference Include="..\..\Core\Client.Common.csproj" />
     <ProjectReference Include="..\..\Core\Client.Eto.Core.csproj" />
     <ProjectReference Include="..\..\Engine\Client.Engine.csproj" />
     <PackageReference Include="Eto.Platform.Gtk" Version="2.12.0" />
