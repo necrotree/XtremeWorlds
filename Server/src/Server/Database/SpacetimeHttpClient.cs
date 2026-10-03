@@ -68,15 +68,17 @@ namespace Server
         public async Task CallReducerAsync(string name, object[] args, System.Threading.CancellationToken ct = default)
         {
             string url = $"{_baseUri}/v1/database/{_database}/call/{Uri.EscapeDataString(name)}";
-            string body = JsonSerializer.Serialize(args);
-            using (var content = new StringContent(body, Encoding.UTF8, "application/json"))
+            byte[] body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(args));
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = new ByteArrayContent(body);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            using (var response = await _http.SendAsync(request, ct))
             {
-                using (var response = await _http.PostAsync(url, content, ct))
-                {
-                    string result = await response.Content.ReadAsStringAsync(ct);
-                    if (!response.IsSuccessStatusCode)
-                        throw new InvalidOperationException($"SpacetimeDB reducer {name} failed ({(int)response.StatusCode}): {result}");
-                }
+                string result = await response.Content.ReadAsStringAsync(ct);
+                if (!response.IsSuccessStatusCode)
+                    throw new InvalidOperationException($"SpacetimeDB reducer {name} failed ({(int)response.StatusCode}): {result}");
             }
         }
 
