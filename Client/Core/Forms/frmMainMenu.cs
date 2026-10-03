@@ -650,6 +650,20 @@ namespace XtremeWorlds.Client.Forms
             ShowPage(_mainPage);
         }
 
+        public void ShowLogin()
+        {
+            ShowPage(_loginPage);
+            Visible = true;
+
+            if (_client.SaveLogin)
+            {
+                txtLoginName.Text = _client.Username;
+                txtLoginPassword.Text = _client.Password;
+            }
+
+            txtLoginName.Focus();
+        }
+
         public void ShowCharacters()
         {
             ShowPage(_charactersPage);
