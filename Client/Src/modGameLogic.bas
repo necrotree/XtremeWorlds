@@ -141,6 +141,66 @@ Sub GameInit()
 
 End Sub
 
+' Draw actors from back to front using their interpolated ground position.
+Public Sub BltSpritesByY()
+    Static SpriteIds() As Long
+    Static SpriteYs() As Long
+    Static Capacity As Long
+    Dim Required As Long
+    Dim Count As Long
+    Dim i As Long
+    Dim j As Long
+    Dim SpriteId As Long
+    Dim SpriteY As Long
+
+    Required = MAX_MAP_NPCS + HighIndex
+    If Required > Capacity Then
+        Capacity = Required
+        ReDim SpriteIds(1 To Capacity)
+        ReDim SpriteYs(1 To Capacity)
+    End If
+
+    ' Negative IDs identify NPCs. Stable ties preserve NPC/player index order.
+    For i = 1 To MAX_MAP_NPCS
+        If MapNpc(i).Num > 0 Then
+            Count = Count + 1
+            SpriteIds(Count) = -i
+            SpriteYs(Count) = CLng(MapNpc(i).Y) * PIC_Y + MapNpc(i).YOffset
+        End If
+    Next i
+    For i = 1 To HighIndex
+        If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
+            Count = Count + 1
+            SpriteIds(Count) = i
+            SpriteYs(Count) = GetPlayerPixelY(i)
+        End If
+    Next i
+
+    For i = 2 To Count
+        SpriteId = SpriteIds(i)
+        SpriteY = SpriteYs(i)
+        j = i - 1
+        Do While j > 0
+            If SpriteYs(j) <= SpriteY Then Exit Do
+            SpriteIds(j + 1) = SpriteIds(j)
+            SpriteYs(j + 1) = SpriteYs(j)
+            j = j - 1
+        Loop
+        SpriteIds(j + 1) = SpriteId
+        SpriteYs(j + 1) = SpriteY
+    Next i
+
+    For i = 1 To Count
+        SpriteId = SpriteIds(i)
+        If SpriteId < 0 Then
+            Call BltNPC(-SpriteId)
+        Else
+            Call BltPlayer(SpriteId)
+            Call BltPlayerTop(SpriteId)
+        End If
+    Next i
+End Sub
+
 Public Sub GameLoop()
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
@@ -207,23 +267,7 @@ Public Sub GameLoop()
                     End If
                 Next i
 
-                ' Blit out the npcs
-                For i = 1 To MAX_MAP_NPCS
-                    Call BltNPC(i)
-                Next i
-
-                ' Blit out players
-                For i = 1 To HighIndex
-                    If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                        Call BltPlayer(i)
-                    End If
-                Next i
-
-                For i = 1 To HighIndex
-                    If IsPlaying(i) And GetPlayerMap(i) = GetPlayerMap(MyIndex) Then
-                        Call BltPlayerTop(i)
-                    End If
-                Next i
+                Call BltSpritesByY
 
                 Call BltProjectiles
 
