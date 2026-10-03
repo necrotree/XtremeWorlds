@@ -285,7 +285,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         var connected = _network.ConnectAndWait(_serverHost, _serverPort, TimeSpan.FromSeconds(4));
         if (!connected)
         {
-            Ui(() => MessageBox.Show("Sorry, the server seems to be down. Please try again in a few minutes.", "XtremeWorlds", MessageBoxType.Warning));
+            Ui(() => frmAlert.ShowAlert(Application.Instance?.MainForm, "Sorry, the server seems to be down. Please try again in a few minutes.", "XtremeWorlds"));
         }
         return connected;
     }
@@ -307,7 +307,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         switch (command)
         {
             case "alertmsg":
-                Ui(() => MessageBox.Show(Field(fields, 1), "XtremeWorlds", MessageBoxType.Information));
+                Ui(() => frmAlert.ShowAlert(Application.Instance?.MainForm, Field(fields, 1), "XtremeWorlds"));
                 break;
             case "allchars":
                 HandleAllCharacters(fields);
