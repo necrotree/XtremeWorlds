@@ -439,7 +439,7 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     ' Save old map to send erase player data to
     OldMap = GetPlayerMap(Index)
     Call SendLeaveMap(Index, OldMap)
-    MyScript.ExecuteStatement "\scripts\Main.as", "LeaveMap " & Index
+    MyScript.ExecuteScriptStatement "\scripts\Main.as", "LeaveMap " & Index
     Call SetPlayerMap(Index, MapNum)
     Call SetPlayerX(Index, X)
     Call SetPlayerY(Index, y)
@@ -862,7 +862,7 @@ Sub PlayerMapDropItem(ByVal Index As Long, ByVal InvNum As Long, ByVal Ammount A
             ' Spawn the item before we set the num or we'll get a different free map item slot
             Call SpawnItemSlot(I, MapItem(GetPlayerMap(Index), I).Num, Ammount, MapItem(GetPlayerMap(Index), I).Dur, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index))
         
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnItemDrop " & Index & "," & MapItem(GetPlayerMap(Index), I).Num & "," & MapItem(GetPlayerMap(Index), I).Value & "," & MapItem(GetPlayerMap(Index), I).Dur & "," & InvNum
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnItemDrop " & Index & "," & MapItem(GetPlayerMap(Index), I).Num & "," & MapItem(GetPlayerMap(Index), I).Value & "," & MapItem(GetPlayerMap(Index), I).Dur & "," & InvNum
         
         Else
             Call PlayerMsg(Index, "To many items already on the ground.", BrightRed)
