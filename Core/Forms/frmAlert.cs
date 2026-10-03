@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
+using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
@@ -19,82 +20,78 @@ namespace XtremeWorlds.Client.Forms
     }
 
     /// <summary>
-    /// TwinBASIC-style alert dialog. The artwork is the original game skin,
-    /// while the message, input field and buttons remain real Eto controls.
+    /// Pixel-art alert dialog based on the original XtremeWorlds frmAlert skin.
+    /// The frame and buttons use the supplied game artwork at native resolution.
     /// </summary>
     public class frmAlert : Dialog<GameDialogResult>
     {
+        private const int AlertWidth = 262;
+        private const int AlertHeight = 128;
 
         private readonly PixelLayout _layout;
+        private readonly ImageView _background;
         private readonly TextArea _message;
         private readonly TextBox _input;
-        private readonly Button _ok;
-        private readonly Button _yes;
-        private readonly Button _no;
+        private readonly ImageView _ok;
+        private readonly ImageView _yes;
+        private readonly ImageView _no;
+
         private GameDialogResult _defaultResult = GameDialogResult.Ok;
         private GameDialogResult _escapeResult = GameDialogResult.Ok;
 
-        public string InputValue
-        {
-            get
-            {
-                return _input.Text ?? string.Empty;
-            }
-        }
+        public string InputValue => _input.Text ?? string.Empty;
 
         public frmAlert()
         {
             Title = "Alert";
-            Style = "AlertWindow";
-            ClientSize = new Size(262, 128);
+            ClientSize = new Size(AlertWidth, AlertHeight);
             Resizable = false;
             Maximizable = false;
             Minimizable = false;
             ShowInTaskbar = false;
             WindowStyle = WindowStyle.None;
+            BackgroundColor = Colors.Black;
 
             _layout = new PixelLayout();
             Content = _layout;
 
-            _message = new TextArea()
+            _background = new ImageView
+            {
+                Image = RequireImage("frmAlert/alert.png"),
+                Size = new Size(AlertWidth, AlertHeight)
+            };
+            _layout.Add(_background, 0, 0);
+
+            _message = new TextArea
             {
                 ReadOnly = true,
                 Wrap = true,
-                Style = "AlertMessage",
-                Size = new Size(226, 58)
+                Size = new Size(226, 58),
+                BackgroundColor = Colors.Transparent,
+                TextColor = Color.FromArgb(238, 224, 186),
+                Font = new Font(SystemFont.Default, 9f)
             };
             _layout.Add(_message, 18, 27);
 
-            _input = new TextBox()
+            _input = new TextBox
             {
                 Visible = false,
-                Style = "AlertInput",
-                Size = new Size(226, 22)
+                Size = new Size(226, 22),
+                BackgroundColor = Color.FromArgb(31, 20, 20),
+                TextColor = Color.FromArgb(238, 224, 186)
             };
-            _layout.Add(_input, 18, 70);
+            _layout.Add(_input, 18, 65);
 
-            _ok = CreateButton("AlertOkButton", new Size(104, 23), HandleOk);
-            _yes = CreateButton("AlertYesButton", new Size(105, 23), HandleYes);
-            _no = CreateButton("AlertNoButton", new Size(109, 28), HandleNo);
+            _ok = CreateImageButton("frmAlert/ok.png", new Size(104, 23), HandleOk);
+            _yes = CreateImageButton("frmAlert/yes.png", new Size(105, 23), HandleYes);
+            _no = CreateImageButton("frmAlert/no.png", new Size(109, 28), HandleNo);
 
-            _layout.Add(_ok, 79, 96);
-            _layout.Add(_yes, 20, 96);
-            _layout.Add(_no, 133, 93);
+            _layout.Add(_ok, 79, 94);
+            _layout.Add(_yes, 13, 94);
+            _layout.Add(_no, 140, 91);
 
             KeyDown += HandleKeyDown;
             Shown += HandleShown;
-        }
-
-        private Button CreateButton(string styleName, Size buttonSize, EventHandler<EventArgs> handler)
-        {
-            var button = new Button()
-            {
-                Text = string.Empty,
-                Style = styleName,
-                Size = buttonSize
-            };
-            button.Click += handler;
-            return button;
         }
 
         public void Configure(string message, GameDialogButtons buttons, string titleText = "Alert")
@@ -102,8 +99,10 @@ namespace XtremeWorlds.Client.Forms
             Title = string.IsNullOrWhiteSpace(titleText) ? "Alert" : titleText;
             _message.Text = message ?? string.Empty;
             _message.Size = new Size(226, 58);
+            _layout.Move(_message, 18, 27);
+
             _input.Visible = false;
-            ClientSize = new Size(262, 128);
+            ClientSize = new Size(AlertWidth, AlertHeight);
 
             _ok.Visible = buttons == GameDialogButtons.Ok;
             _yes.Visible = buttons == GameDialogButtons.YesNo;
@@ -113,55 +112,84 @@ namespace XtremeWorlds.Client.Forms
             {
                 _defaultResult = GameDialogResult.No;
                 _escapeResult = GameDialogResult.No;
+
+                _layout.Move(_yes, 13, 94);
+                _layout.Move(_no, 140, 91);
             }
             else
             {
                 _defaultResult = GameDialogResult.Ok;
                 _escapeResult = GameDialogResult.Ok;
+
+                _layout.Move(_ok, 79, 94);
             }
         }
 
         public void ConfigureInput(string message, string defaultValue, string titleText = "Alert")
         {
             Configure(message, GameDialogButtons.YesNo, titleText);
-            ClientSize = new Size(262, 152);
-            _message.Size = new Size(226, 34);
+
+            // Keep the supplied 262x128 skin at its exact native size.
+            // The input field fits inside the red message panel rather than
+            // stretching the artwork vertically.
+            _message.Size = new Size(226, 31);
+            _layout.Move(_message, 18, 26);
+
             _input.Text = defaultValue ?? string.Empty;
             _input.Visible = true;
-            _layout.Move(_input, 18, 66);
-            _layout.Move(_yes, 20, 119);
-            _layout.Move(_no, 133, 116);
+            _layout.Move(_input, 18, 60);
+
+            _layout.Move(_yes, 13, 94);
+            _layout.Move(_no, 140, 91);
+        }
+
+        private static Image RequireImage(string relativePath)
+        {
+            var image = AssetLoader.LoadImage(relativePath);
+            if (image is null)
+                throw new InvalidOperationException($"Unable to load frmAlert pixel-art asset '{relativePath}'.");
+
+            return image;
+        }
+
+        private static ImageView CreateImageButton(
+            string assetPath,
+            Size size,
+            EventHandler<MouseEventArgs> handler)
+        {
+            var image = new ImageView
+            {
+                Image = RequireImage(assetPath),
+                Size = size,
+                Cursor = Cursors.Pointer
+            };
+
+            image.MouseDown += handler;
+            return image;
         }
 
         private void HandleShown(object sender, EventArgs e)
         {
             if (_input.Visible)
-            {
                 _input.Focus();
-            }
-            else if (_defaultResult == GameDialogResult.No)
-            {
-                _no.Focus();
-            }
-            else
-            {
-                _ok.Focus();
-            }
         }
 
-        private void HandleOk(object sender, EventArgs e)
+        private void HandleOk(object sender, MouseEventArgs e)
         {
-            Close(GameDialogResult.Ok);
+            if (e.Buttons.HasFlag(MouseButtons.Primary))
+                Close(GameDialogResult.Ok);
         }
 
-        private void HandleYes(object sender, EventArgs e)
+        private void HandleYes(object sender, MouseEventArgs e)
         {
-            Close(GameDialogResult.Yes);
+            if (e.Buttons.HasFlag(MouseButtons.Primary))
+                Close(GameDialogResult.Yes);
         }
 
-        private void HandleNo(object sender, EventArgs e)
+        private void HandleNo(object sender, MouseEventArgs e)
         {
-            Close(GameDialogResult.No);
+            if (e.Buttons.HasFlag(MouseButtons.Primary))
+                Close(GameDialogResult.No);
         }
 
         private void HandleKeyDown(object sender, KeyEventArgs e)
@@ -169,17 +197,26 @@ namespace XtremeWorlds.Client.Forms
             switch (e.Key)
             {
                 case Keys.Enter:
-                    {
-                        Close(_defaultResult);
-                        e.Handled = true;
-                        break;
-                    }
+                    Close(_defaultResult);
+                    e.Handled = true;
+                    break;
+
                 case Keys.Escape:
+                    Close(_escapeResult);
+                    e.Handled = true;
+                    break;
+
+                case Keys.Left:
+                case Keys.Right:
+                case Keys.Tab:
+                    if (_yes.Visible && _no.Visible)
                     {
-                        Close(_escapeResult);
+                        _defaultResult = _defaultResult == GameDialogResult.Yes
+                            ? GameDialogResult.No
+                            : GameDialogResult.Yes;
                         e.Handled = true;
-                        break;
                     }
+                    break;
             }
         }
     }
