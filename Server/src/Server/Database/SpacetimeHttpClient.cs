@@ -69,8 +69,15 @@ namespace Server
         {
             string url = $"{_baseUri}/v1/database/{_database}/call/{Uri.EscapeDataString(name)}";
             string body = JsonSerializer.Serialize(args);
-            using (var content = new StringContent(body, Encoding.UTF8, "application/json"))
+
+            // SpacetimeDB 2.10 expects this reducer endpoint to receive an
+            // exact application/json content type. StringContent's media-type
+            // overload adds "; charset=utf-8", which the endpoint can reject
+            // with HTTP 415, so send UTF-8 bytes and set the media type directly.
+            using (var content = new ByteArrayContent(Encoding.UTF8.GetBytes(body)))
             {
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
                 using (var response = await _http.PostAsync(url, content, ct))
                 {
                     string result = await response.Content.ReadAsStringAsync(ct);
