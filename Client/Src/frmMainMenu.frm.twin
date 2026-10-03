@@ -22,7 +22,7 @@ Class frmMainMenu
         FileName = App.Path & DATA_PATH & "Data.dat"
         WEBSITE = Trim$(GetVar(App.Path & "\options.ini", "Options", "Website"))
         If Len(WEBSITE) = 0 Then
-            WEBSITE = "https://www.xtremeworlds.com"
+            WEBSITE = "https://xtremeworlds.com"
             PutVar App.Path & "\options.ini", "Options", "Website", WEBSITE
         End If
         InitializeMenuImages
