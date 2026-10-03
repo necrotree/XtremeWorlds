@@ -37,19 +37,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\appsettings.json"
-          Link="appsettings.json"
-          CopyToOutputDirectory="Always" />
-    <Content Include="Icon.ico"
-             CopyToOutputDirectory="Always"
-             CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="Always" />
+    <Content Include="Icon.ico" CopyToOutputDirectory="Always" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\SpacetimeDb\**\*"
-          Link="spacetimedb\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\..\SpacetimeDb\bin\**;..\..\SpacetimeDb\obj\**"
-          CopyToOutputDirectory="Always"
-          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\SpacetimeDb\**\*" Link="spacetimedb\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\..\SpacetimeDb\bin\**;..\..\SpacetimeDb\obj\**" CopyToOutputDirectory="Always" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="scripts\" />
   </ItemGroup>
 
 
