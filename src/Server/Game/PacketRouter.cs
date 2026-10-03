@@ -218,16 +218,57 @@ namespace Server
                 return;
             if (!_sessions.TryGetValue(id, out PlayerSession? session) || session is null || !session.IsLoggedIn)
                 return;
+
             int slot = int.Parse(p[1], CultureInfo.InvariantCulture);
             var chars = await _db.GetCharactersAsync(session.Login);
             var selected = chars.FirstOrDefault(c => c.Slot == slot);
             if (selected is null || selected.Character is null)
                 return;
+
             session.CharacterSlot = slot;
             session.Character = selected.Character;
             session.IsPlaying = true;
+
+            var player = selected.Character;
+            var maps = await _db.LoadContentAsync<MapDefinition>("map");
+            if (!maps.TryGetValue(player.Map, out var map) || map is null)
+            {
+                // Missing maps are still sent as a valid blank 16x12 map. This lets
+                // an administrator enter the world and open the map editor instead
+                // of being blocked because the content database has no map row yet.
+                map = CreateEmptyMap(player.Map);
+                _log?.Invoke($"[{id}] Map {player.Map} has no map data in the server database; sending an empty editable map.");
+            }
+
+            if (player.Sprite <= 0)
+            {
+                var classes = await _db.LoadContentAsync<ClassDefinition>("class");
+                if (classes.TryGetValue(player.ClassId, out var definition))
+                    player.Sprite = player.Sex == 1 ? definition.MaleSprite : definition.FemaleSprite;
+            }
+
             _network.SendText(id, PacketCodec.Compose("ingame"));
-            _network.SendText(id, PacketCodec.Compose("playerdata", selected.Character.Name, selected.Character.Level, selected.Character.Map, selected.Character.X, selected.Character.Y, selected.Character.Direction));
+            _network.SendText(id, PacketCodec.Compose("worldstate",
+                System.Text.Json.JsonSerializer.Serialize(new { Map = map, Player = player })));
+            _network.SendText(id, PacketCodec.Compose("playerdata",
+                player.Name, player.Level, player.Map, player.X, player.Y, player.Direction));
+        }
+
+        private static MapDefinition CreateEmptyMap(int mapId)
+        {
+            var map = new MapDefinition
+            {
+                Name = $"Map {mapId}",
+                Revision = 0,
+                Tileset = 0,
+                LayerTileset = new List<byte> { 0, 0, 0, 0, 0 }
+            };
+
+            int tileCount = (GameLimits.MaxMapX + 1) * (GameLimits.MaxMapY + 1);
+            for (int i = 0; i < tileCount; i++)
+                map.Tiles.Add(new TileDefinition());
+
+            return map;
         }
 
         private async Task SendCharactersAsync(int id, string login)
