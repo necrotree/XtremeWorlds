@@ -344,7 +344,7 @@ namespace XtremeWorlds.Client.Forms
             picPreviousClass.Size = new Size(24, 24);
             picNextClass.Size = new Size(24, 24);
 
-            var body = Vertical(Spacer(1, 45), Horizontal(Spacer(149), txtNewCharName), Spacer(1, 17), Horizontal(Spacer(100), picMale, Spacer(12), picFemale), Spacer(1, 23), Horizontal(Spacer(37), picPreviousClass, Spacer(18), picNextClass), Spacer(1, 17), Horizontal(Spacer(44), picNewCharAddChar, Spacer(11), picNewCharCancel));
+            var body = Vertical(Spacer(1, 45), Horizontal(Spacer(149), txtNewCharName), Spacer(1, 17), Horizontal(Spacer(100), picMale, Spacer(12), picFemale), Spacer(1, 23), Horizontal(Spacer(37), picPreviousClass, Spacer(18), picNextClass), Spacer(1, 17), Center(Horizontal(picNewCharAddChar, Spacer(11), picNewCharCancel)));
             return CenterPage(SkinPanel("XtremeWorldsNewCharacterPanel", 297, 199, body));
         }
 
