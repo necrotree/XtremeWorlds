@@ -11,7 +11,7 @@ Public Const WEB_SITE = "https://xtremeworlds.com/" ' Website
 
 Public Const GAME_PORT = 7234 ' Run off What Port?
 Public Const MAX_PLAYERS = 50 ' Max Players
-Public Const MAX_MAPS = 50 ' Max Maps
+Public Const MAX_MAPS = 500 ' Max Maps
 Public Const MAX_ITEMS = 255 ' Max Items
 Public Const MAX_SHOPS = 255 ' Max Shops
 Public Const MAX_SPELLS = 255 ' Max Spells
