@@ -209,13 +209,44 @@ namespace Server
         private async Task SendCharactersAsync(int id, string login)
         {
             var chars = await _db.GetCharactersAsync(login);
+            var classes = await _db.LoadContentAsync<ClassDefinition>("class");
             var args = new List<object>();
+
             for (int slot = 1; slot <= GameLimits.MaxCharacters; slot++)
             {
-                var c = chars.FirstOrDefault(x => x.Slot == slot);
-                args.Add((c?.Name) ?? "");
+                var row = chars.FirstOrDefault(x => x.Slot == slot);
+                var character = row?.Character;
+
+                if (character is null)
+                {
+                    args.Add(string.Empty);
+                    args.Add(string.Empty);
+                    args.Add(0);
+                    args.Add(0);
+                    continue;
+                }
+
+                string className = string.Empty;
+                int sprite = character.Sprite;
+
+                if (classes.TryGetValue(character.ClassId, out var classDefinition))
+                {
+                    className = classDefinition.Name;
+                    if (sprite <= 0)
+                    {
+                        sprite = character.Sex == 0
+                            ? classDefinition.MaleSprite
+                            : classDefinition.FemaleSprite;
+                    }
+                }
+
+                args.Add(character.Name);
+                args.Add(className);
+                args.Add(character.Level);
+                args.Add(sprite);
             }
-            _network.SendText(id, PacketCodec.Compose("chars", args.ToArray()));
+
+            _network.SendText(id, PacketCodec.Compose("allchars", args.ToArray()));
         }
 
         private async Task SendClassesAsync(int id)
