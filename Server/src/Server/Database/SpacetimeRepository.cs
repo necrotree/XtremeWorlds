@@ -80,6 +80,14 @@ namespace Server
             await _client.CallReducerAsync("upsert_character", new object[] { key, login, slot, character.Name, json });
         }
 
+        public async Task<bool> CharacterNameExistsAsync(string name)
+        {
+            using (var doc = await _client.SqlAsync($"SELECT name FROM character WHERE name = {Q(name)} LIMIT 1"))
+            {
+                return HasRows(doc);
+            }
+        }
+
         public async Task<List<CharacterRow>> GetCharactersAsync(string login)
         {
             var result = new List<CharacterRow>();
