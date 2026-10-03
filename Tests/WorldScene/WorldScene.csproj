@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Client/Engine/Graphics/FnaWorldScene.cs" Link="FnaWorldScene.cs" />
+    <Compile Include="../../Client/Engine/Networking/PacketCodec.cs" Link="PacketCodec.cs" />
+    <Compile Include="../../Server/src/Server/Models/GameModels.cs" Link="GameModels.cs" />
+    <Compile Include="../../Server/src/Server/Protocol/PacketCodec.cs" Link="ServerPacketCodec.cs" />
+  </ItemGroup>
+</Project>

@@ -226,7 +226,18 @@ namespace Server
             session.CharacterSlot = slot;
             session.Character = selected.Character;
             session.IsPlaying = true;
+            var maps = await _db.LoadContentAsync<MapDefinition>("map");
+            maps.TryGetValue(selected.Character.Map, out var map);
+            var player = selected.Character;
+            if (player.Sprite <= 0)
+            {
+                var classes = await _db.LoadContentAsync<ClassDefinition>("class");
+                if (classes.TryGetValue(player.ClassId, out var definition))
+                    player.Sprite = player.Sex == 1 ? definition.MaleSprite : definition.FemaleSprite;
+            }
             _network.SendText(id, PacketCodec.Compose("ingame"));
+            _network.SendText(id, PacketCodec.Compose("worldstate",
+                System.Text.Json.JsonSerializer.Serialize(new { Map = map, Player = player })));
             _network.SendText(id, PacketCodec.Compose("playerdata", selected.Character.Name, selected.Character.Level, selected.Character.Map, selected.Character.X, selected.Character.Y, selected.Character.Direction));
         }
 

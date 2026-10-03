@@ -13,6 +13,7 @@ namespace XtremeWorlds.Client.Engine.Networking;
 public static class PacketCodec
 {
     public const char Separator = '\0';
+    public const char Terminator = '\u0001';
     public const char LegacyEnd = (char)237;
 
     public static string Build(string command, params object?[] values)
@@ -32,8 +33,7 @@ public static class PacketCodec
     public static IReadOnlyList<string> Parse(string packet)
     {
         packet ??= string.Empty;
-        if (packet.Length > 0 && packet[^1] == LegacyEnd)
-            packet = packet[..^1];
+        packet = packet.TrimEnd(Terminator, LegacyEnd);
         return packet.Split(Separator, StringSplitOptions.None);
     }
 

@@ -11,6 +11,23 @@ The renderer uses the original twinBASIC main-game skin (`Core/Assets/frmMainGam
 
 World `FnaSpriteCommand` destinations are map-local and are offset into that viewport before drawing.
 
+## Initial world data
+
+Selecting a character sends `ingame`, followed by `worldstate` containing a JSON
+snapshot of the stored map and selected player. The active Client/Engine renderer
+draws ground, mask, second mask, player, fringe, second fringe, and the player name
+inside the map viewport. Maps use 16 columns by 12 rows of 32px tiles, with zero-based
+tile indices; sprite frames use the same 48x64 layout as the menu character preview.
+This snapshot provides the initial scene; live movement and animated map layers
+still require their gameplay packet handlers.
+
+Both client and server must be rebuilt for this packet. When the character's map
+is missing or contains no tiles, the viewport displays `NO MAP DATA RECEIVED FROM SERVER`.
+Populate that map in the server content database to render terrain.
+
+Protocol regression check: `dotnet run --project Tests/WorldScene/WorldScene.csproj`
+from the repository root.
+
 ## FNA-side menu controls
 
 The following original twinBASIC hit regions are handled directly by FNA:
