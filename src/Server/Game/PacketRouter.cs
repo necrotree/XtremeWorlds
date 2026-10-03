@@ -172,6 +172,30 @@ namespace Server
                 _network.SendText(id, PacketCodec.Compose("alertmsg", "Invalid character."));
                 return;
             }
+            var existingCharacters = await _db.GetCharactersAsync(session.Login);
+            var existingInSlot = existingCharacters.FirstOrDefault(c => c.Slot == slot);
+
+            // Treat a repeated addchar packet for the same character as success.
+            // This makes character creation idempotent and prevents a second
+            // click/queued packet from hitting SpacetimeDB's unique name index.
+            if (existingInSlot?.Character is not null)
+            {
+                if (string.Equals(existingInSlot.Character.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    await SendCharactersAsync(id, session.Login);
+                    return;
+                }
+
+                _network.SendText(id, PacketCodec.Compose("alertmsg", "That character slot is already in use."));
+                return;
+            }
+
+            if (await _db.CharacterNameExistsAsync(name))
+            {
+                _network.SendText(id, PacketCodec.Compose("alertmsg", "That character name is already in use."));
+                return;
+            }
+
             var character = new PlayerCharacter() { Name = name, Sex = sex, ClassId = classId, Level = 1 };
             await _db.SaveCharacterAsync(session.Login, slot, character);
             await SendCharactersAsync(id, session.Login);
