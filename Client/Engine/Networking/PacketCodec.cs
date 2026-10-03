@@ -10,7 +10,7 @@ namespace XtremeWorlds.Client.Engine.Networking;
 /// messages.  Telepathy supplies message framing; the legacy NUL separators are
 /// kept so the server-side packet handlers can be ported with minimal changes.
 /// </summary>
-public static class XtremeWorldsPacketCodec
+public static class PacketCodec
 {
     public const char Separator = '\0';
     public const char LegacyEnd = (char)237;
