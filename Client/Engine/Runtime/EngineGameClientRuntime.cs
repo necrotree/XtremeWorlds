@@ -363,7 +363,12 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "classesdata":
                 HandleClasses(fields);
                 break;
+            case "worldstate":
+                var scene = System.Text.Json.JsonSerializer.Deserialize<FnaWorldScene>(Field(fields, 1));
+                if (scene is not null) _graphics.SetWorldScene(scene);
+                break;
             case "ingame":
+                _graphics.SetWorldScene(new FnaWorldScene());
                 Ui(ShowMainGame);
                 break;
             default:

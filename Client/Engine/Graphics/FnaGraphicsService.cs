@@ -62,6 +62,8 @@ public enum FnaVital
 /// </summary>
 public sealed class FnaGraphicsService : IDisposable
 {
+    private readonly ConcurrentQueue<FnaWorldScene> _scenes = new();
+    public void SetWorldScene(FnaWorldScene scene) => _scenes.Enqueue(scene);
     public const int InterfaceWidth = 950;
     public const int InterfaceHeight = 700;
     private readonly ConcurrentQueue<FnaSpriteCommand> _commands = new();
@@ -94,6 +96,7 @@ public sealed class FnaGraphicsService : IDisposable
             try
             {
                 using var game = new FnaClientGame(
+                    _scenes,
                     _commands,
                     _worldCommands,
                     _worldTextCommands,
@@ -288,7 +291,11 @@ public sealed class FnaGraphicsService : IDisposable
         private MainGamePanel _activePanel;
         private string _chatInput = string.Empty;
 
+        private readonly ConcurrentQueue<FnaWorldScene> _scenes;
+        private FnaWorldScene? _scene;
+
         public FnaClientGame(
+            ConcurrentQueue<FnaWorldScene> scenes,
             ConcurrentQueue<FnaSpriteCommand> incoming,
             ConcurrentQueue<FnaWorldCommand> worldIncoming,
             ConcurrentQueue<FnaWorldTextCommand> worldTextIncoming,
@@ -298,6 +305,7 @@ public sealed class FnaGraphicsService : IDisposable
             Func<bool> shouldStop,
             Action<string, object[]> action)
         {
+            _scenes = scenes;
             _shouldStop = shouldStop;
             _action = action;
             _incoming = incoming;
@@ -385,6 +393,8 @@ public sealed class FnaGraphicsService : IDisposable
                 Exit();
                 return;
             }
+
+            while (_scenes.TryDequeue(out var scene)) _scene = scene;
 
             if (_incoming.TryDequeue(out var command))
             {
@@ -698,6 +708,7 @@ public sealed class FnaGraphicsService : IDisposable
             GraphicsDevice.ScissorRectangle = GetViewportScissor();
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, rasterizer, null, transform);
+            DrawScene();
             BltMap();
             BltMask();
             BltMapItems();
@@ -710,6 +721,54 @@ public sealed class FnaGraphicsService : IDisposable
             _spriteBatch.End();
 
             GraphicsDevice.ScissorRectangle = oldScissor;
+        }
+
+        private void DrawScene()
+        {
+            if (_spriteBatch is null || _scene is null) return;
+            var map = _scene.Map;
+            if (map is null || map.Tiles.Count == 0)
+                DrawTinyText("NO MAP DATA RECEIVED FROM SERVER", GameViewport.X + 16, GameViewport.Y + 16, Color.White, 1, GameViewport.Right - 4);
+            if (map is not null)
+            {
+                DrawSceneLayer(map, 0, tile => tile.Ground, true);
+                DrawSceneLayer(map, 1, tile => tile.Mask, false);
+                DrawSceneLayer(map, 2, tile => tile.Mask2, false);
+            }
+            var player = _scene.Player;
+            var sprites = GetTexture(Path.Combine(AppContext.BaseDirectory, "gfx", "sprites.png"));
+            if (!string.IsNullOrEmpty(player.Name) && sprites is not null)
+            {
+                // Same 48x64 rows and direction groups as PlayerSpriteLoader.
+                int direction = player.Direction switch { 0 => 1, 1 => 0, 2 => 2, 3 => 3, _ => 1 };
+                var source = new Rectangle(direction * 3 * 48, player.Sprite * 64, 48, 64);
+                if (source.Y >= 0 && source.Bottom <= sprites.Height && source.Right <= sprites.Width)
+                    _spriteBatch.Draw(sprites, new Rectangle(GameViewport.X + player.X * 32 - 8, GameViewport.Y + player.Y * 32 - 32, 48, 64), source, Color.White);
+            }
+            if (map is not null)
+            {
+                DrawSceneLayer(map, 3, tile => tile.Fringe, false);
+                DrawSceneLayer(map, 4, tile => tile.Fringe2, false);
+            }
+            if (!string.IsNullOrEmpty(player.Name))
+                DrawTinyText(player.Name, GameViewport.X + player.X * 32, GameViewport.Y + player.Y * 32 - 42, Color.White, 1, GameViewport.Right - 4);
+        }
+
+        private void DrawSceneLayer(FnaSceneMap map, int layer, Func<FnaSceneTile, int> select, bool ground)
+        {
+            int tileset = layer < map.LayerTileset.Count ? map.LayerTileset[layer] : map.Tileset;
+            var texture = GetTexture(Path.Combine(AppContext.BaseDirectory, "gfx", $"tiles{Math.Max(1, tileset)}.png"));
+            if (texture is null || _spriteBatch is null || texture.Width < 32) return;
+            int columns = texture.Width / 32;
+            // Original maps have 16 columns and 12 rows; tile numbers are zero based.
+            for (int i = 0; i < Math.Min(map.Tiles.Count, 16 * 12); i++)
+            {
+                int tile = select(map.Tiles[i]);
+                if (tile < 0 || (!ground && tile == 0)) continue;
+                var source = new Rectangle(tile % columns * 32, tile / columns * 32, 32, 32);
+                if (source.Bottom > texture.Height) continue;
+                _spriteBatch.Draw(texture, new Rectangle(GameViewport.X + i % 16 * 32, GameViewport.Y + i / 16 * 32, 32, 32), source, Color.White);
+            }
         }
 
         private void BltMap() => DrawWorldLayer(FnaWorldLayer.MapGround);
