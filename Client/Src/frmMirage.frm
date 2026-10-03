@@ -3212,7 +3212,6 @@ Attribute VB_Exposed = False
 Option Explicit
     Private InventoryPage As Long
     Private InventoryClickedSlot As Long
-    Private InventoryBackground As clsDX11Surface
     Private InventoryCanvas As clsDX11Surface
 
 
@@ -4097,11 +4096,12 @@ End Sub
 
     Public Sub DrawInventoryGrid()
         Dim Bounds As RECT, Source As RECT
+        Dim InventoryBackground As clsDX11Surface
         Dim Cell As Long, Slot As Long, ItemNum As Long, X As Long, Y As Long
         If DD_ItemSurf Is Nothing Then Exit Sub
-        If InventoryBackground Is Nothing Then
-            Set InventoryBackground = New clsDX11Surface
-            InventoryBackground.LoadFromFile App.Path & "\Gfx\Gui\Inventory.jpg"
+        Set InventoryBackground = InventoryBackgroundPicture()
+        If InventoryBackground Is Nothing Then Exit Sub
+        If InventoryCanvas Is Nothing Then
             Set InventoryCanvas = New clsDX11Surface
             InventoryCanvas.Create 265, 354
         End If

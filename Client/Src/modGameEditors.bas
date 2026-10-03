@@ -749,14 +749,15 @@ End Sub
 
 Public Sub BltPlayerGear()
     Dim Slots(3) As Long, i As Long, Num As Long
-    Dim Background As New clsDX11Surface, Canvas As New clsDX11Surface
+    Dim Background As clsDX11Surface, Canvas As New clsDX11Surface
     Dim Source As RECT, Bounds As RECT
     If DD_ItemSurf Is Nothing Then Exit Sub
     Slots(0) = GetPlayerShieldSlot(MyIndex)
     Slots(1) = GetPlayerArmorSlot(MyIndex)
     Slots(2) = GetPlayerWeaponSlot(MyIndex)
     Slots(3) = GetPlayerHelmetSlot(MyIndex)
-    Background.LoadFromFile App.Path & "\Gfx\Gui\Character.jpg"
+    Set Background = CharacterBackgroundPicture()
+    If Background Is Nothing Then Exit Sub
     Canvas.Create 32, 32
     Bounds.Right = 32
     Bounds.Bottom = 32

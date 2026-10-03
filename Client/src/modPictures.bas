@@ -1,6 +1,9 @@
 Attribute VB_Name = "modPictures"
 Option Explicit
 
+Private GuiInventoryBackground As clsDX11Surface
+Private GuiCharacterBackground As clsDX11Surface
+
 ' Image controls have no hDC. Render into an owned bitmap, then hand its
 ' IPictureDisp to the Image control; no hidden PictureBox is required.
 Private Type MenuPictureGuid
@@ -21,6 +24,28 @@ Private Type MenuPictureDescriptor
 End Type
 
 Private Declare PtrSafe Function MenuCreatePicture Lib "oleaut32.dll" Alias "OleCreatePictureIndirect" (ByRef Description As MenuPictureDescriptor, ByRef InterfaceID As MenuPictureGuid, ByVal OwnsBitmap As Long, ByRef Picture As IPictureDisp) As Long
+
+' Decode and upload GUI backgrounds once, while the loading screen is visible.
+Public Sub CacheGuiImages()
+    Set GuiInventoryBackground = New clsDX11Surface
+    GuiInventoryBackground.LoadFromFile App.Path & "\Gfx\Gui\Inventory.jpg"
+    Set GuiCharacterBackground = New clsDX11Surface
+    GuiCharacterBackground.LoadFromFile App.Path & "\Gfx\Gui\Character.jpg"
+End Sub
+
+Public Sub ClearGuiImageCache()
+    Set GuiInventoryBackground = Nothing
+    Set GuiCharacterBackground = Nothing
+End Sub
+
+Public Function InventoryBackgroundPicture() As clsDX11Surface
+    Set InventoryBackgroundPicture = GuiInventoryBackground
+End Function
+
+Public Function CharacterBackgroundPicture() As clsDX11Surface
+    Set CharacterBackgroundPicture = GuiCharacterBackground
+End Function
+
 
 Public Function MenuSpritePicture(ByVal Sprite As Long) As IPictureDisp
     Dim screenDC As LongPtr, memoryDC As LongPtr, bitmap As LongPtr, previous As LongPtr

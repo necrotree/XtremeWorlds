@@ -39,11 +39,13 @@ Public Sub InitSurfaces()
     Set DD_SpellSurf = LoadSurface(Prefix & "spells" & GFX_EXT)
     Set DD_ArrowSurf = LoadSurface(Prefix & "arrows" & GFX_EXT)
     InitSpriteOverlays
+    CacheGuiImages
 End Sub
 
 Public Sub DestroyDirectX()
     Dim i As Long
     
+    ClearGuiImageCache
     DestroySpriteOverlays
     Set DD_SpriteSurf = Nothing
     For i = 1 To 6

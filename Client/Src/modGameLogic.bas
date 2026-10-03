@@ -23,6 +23,10 @@ Public Sub Main()
     Call SetStatus("Loading...")
     frmSendGetData.Visible = True
 
+    Call SetStatus("Caching GUI images")
+    Load frmMainMenu
+    Load frmMainGame
+
     FileName = App.Path & DATA_PATH & "Data.dat"
 
     ' Make sure we set that we aren't in the game
