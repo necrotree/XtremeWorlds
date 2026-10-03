@@ -480,6 +480,9 @@ namespace XtremeWorlds.Client.Forms
                 txtNewAcctName.Focus();
                 return;
             }
+            // NewAccount uses the runtime's stored password. Store the
+            // registration fields before sending the packet.
+            _client.SaveLoginCredentials(username, password);
             _client.MenuState(MenuState.NewAccount, username);
         }
 
