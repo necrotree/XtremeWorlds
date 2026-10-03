@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <Nullable>Disable</Nullable>
+    <ImplicitUsings>Disable</ImplicitUsings>
+  </PropertyGroup>
+</Project>

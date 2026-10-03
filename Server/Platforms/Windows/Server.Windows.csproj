@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>Server</RootNamespace>
+    <AssemblyName>Server.Windows</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <LangVersion>latest</LangVersion>
+    <ApplicationIcon>..\..\src\Server\Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="..\..\src\Server\Server.Common.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\Server\Program.cs" Link="Program.cs" />
+    <Compile Include="..\..\src\Server\ServerForm.cs" Link="ServerForm.cs" />
+    <Compile Include="..\..\src\Server\ScriptEditorForm.cs" Link="ScriptEditorForm.cs" />
+    <Compile Include="..\..\src\Server\WpfServerSkin.cs" Link="WpfServerSkin.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="Always" />
+    <Content Include="..\..\src\Server\Icon.ico" Link="Icon.ico" CopyToOutputDirectory="Always" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\SpacetimeDb\**\*"
+          Link="spacetimedb\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\..\SpacetimeDb\bin\**;..\..\SpacetimeDb\obj\**"
+          CopyToOutputDirectory="Always"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

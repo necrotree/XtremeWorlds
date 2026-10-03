@@ -1,0 +1,70 @@
+@page "/"
+@implements IAsyncDisposable
+@inject Client.Blazor.Services.BrowserGameSession Session
+
+<PageTitle>XtremeWorlds Client</PageTitle>
+<main>
+    <p class="eyebrow">XTREMEWORLDS · BROWSER CLIENT</p>
+    <h1>Your next adventure starts here.</h1>
+    <p>Sign in to your game server or create an account.</p>
+    <form @onsubmit="Login" @onsubmit:preventDefault>
+        <label for="username">Username</label>
+        <input id="username" @bind="username" autocomplete="username" maxlength="64" required />
+        <label for="password">Password</label>
+        <input id="password" @bind="password" type="password" autocomplete="current-password" maxlength="128" required />
+        <div>
+            <button type="submit">Sign in</button>
+            <button type="button" @onclick="Register">Create account</button>
+            <button type="button" @onclick="Session.Disconnect" disabled="@(!Session.Connected)">Disconnect</button>
+        </div>
+    </form>
+    <p role="status" aria-live="polite">@Session.Status</p>
+    @if (Session.Characters.Length > 0)
+    {
+        <h2>Characters</h2>
+        @for (var i = 0; i < Session.Characters.Length; i++)
+        {
+            var slot = i;
+            var name = Session.Characters[slot];
+            <button disabled="@(string.IsNullOrWhiteSpace(name))" @onclick="() => Session.SelectCharacter(slot)">
+                @(string.IsNullOrWhiteSpace(name) ? "Empty slot" : name)
+            </button>
+        }
+    }
+    <p class="note">The Windows client provides the full game renderer and editors.</p>
+</main>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private readonly CancellationTokenSource cancellation = new();
+    private Task? polling;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) polling = PollAsync();
+    }
+    private void Login() => Authenticate(false);
+    private void Register() => Authenticate(true);
+    private void Authenticate(bool register)
+    {
+        Session.Authenticate(username, password, register);
+        password = "";
+    }
+    private async Task PollAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellation.Token))
+                await InvokeAsync(() => { Session.Poll(); StateHasChanged(); });
+        }
+        catch (OperationCanceledException) { }
+    }
+    public async ValueTask DisposeAsync()
+    {
+        await cancellation.CancelAsync();
+        if (polling is not null) await polling;
+        Session.Disconnect();
+        cancellation.Dispose();
+    }
+}

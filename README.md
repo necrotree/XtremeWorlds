@@ -1,351 +1,50 @@
 # XtremeWorlds
 
-**XtremeWorlds** is a free 2D MMORPG maker inspired by the classic PlayerWorlds-style development experience.
+The project layout is ordered as **Client → Core → Server → Engine**, with **SpacetimeDb inside Server**.
+These are sibling folders; the order describes the layout, not a circular dependency chain.
 
-This repository contains both the **game client** and **game server**, allowing you to run your own local PlayerWorld and begin building your own MMORPG.
+| Folder | Contents |
+| --- | --- |
+| Client | Blazor browser client, Windows host, game assets, menu image references, form definitions and client scripts |
+| Core | Shared client forms, controllers and embedded UI assets |
+| Server | Game server, platform hosts, configuration, scripts, SpacetimeDb module and legacy source archives |
+| Engine | Networking, FNA graphics and audio |
 
-We recommend TwinBasic for your IDE in Visual Basic 6.
-https://twinbasic.com/
+Build from this directory with the .NET 10 SDK:
 
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/necrotree/XtremeWorlds.git
-cd XtremeWorlds
+```powershell
+dotnet build XtremeWorlds.sln
 ```
 
-The project is organized into two main parts:
+Run the browser client:
 
-```text
-XtremeWorlds/
-├── Client/
-├── Server/
-├── LICENSE
-└── README.md
+```powershell
+dotnet run --project Client/Blazor/Client.Blazor.csproj
 ```
 
-* **Client** — The application players use to connect to your world.
-* **Server** — The application that hosts your world and handles players, maps, NPCs, and game logic.
+Open the localhost URL printed by the app. Set `GameServer:Host` and `GameServer:Port`
+in `Client/Blazor/appsettings.json` to the game server's address as seen by the Blazor host.
+The browser uses interactive server rendering; each browser session owns its own TCP
+connection to the game server. Login, registration, server alerts and character selection
+use the existing Engine transport and game protocol. Full world rendering and editors
+remain available in the Windows client.
 
----
+Run the Windows client and game server:
 
-## 2. Start the Server
-
-Open the `Server` directory and locate the server project/executable.
-
-Start the server first.
-
-The server needs to be running before the client can connect to PlayerWorlds.
-
-Keep the server window open while testing the game.
-
-> **Tip:** If you are developing the game, start the server before starting the client so you can see connection and server-side errors while testing.
-
----
-
-## 3. Start the Client
-
-After the server is running, open the `Client` directory and start the client project/executable.
-
-The client should connect to your local server using the configured server address and port.
-
-For local development, the server address will normally be:
-
-```text
-127.0.0.1
+```powershell
+dotnet run --project Client/Platforms/Windows/Client.Windows.csproj
+dotnet run --project Server/src/Server/Server.csproj
 ```
 
-or:
-
-```text
-localhost
-```
-
-If the client does not connect, check the client/server configuration for the expected IP address and port.
-
----
-
-# Creating your World
-
-Once the client and server are running, you can begin treating the project as your own world.
-
-A typical development workflow is:
-
-```text
-Start Server
-     ↓
-Start Client
-     ↓
-Connect to your World
-     ↓
-Create/Edit your game content
-     ↓
-Restart and test
-     ↓
-Repeat
-```
-
-## Recommended Development Order
-
-If you're new to PlayerWorlds development, start small.
-
-### 1. Get the basic world running
-
-First make sure you can:
-
-* Start the server
-* Start the client
-* Connect to the server
-* Create/login with a player
-* Enter the game world
-* Move around successfully
-
-Don't start modifying gameplay until this works.
-
-### 2. Build your first map
-
-Create a small test map before attempting to build an entire MMORPG.
-
-For example:
-
-```text
-Town
-├── Spawn
-├── Inn
-├── Shop
-├── NPC area
-└── Exit to Route 1
-```
-
-Keep your first map simple. It makes debugging much easier.
-
-### 3. Add NPCs
-
-After your map works, start adding NPCs such as:
-
-* Shopkeepers
-* Quest NPCs
-* Trainers
-* Guards
-* Story characters
-* Enemies
-
-Test each NPC individually before adding large numbers of them.
-
-### 4. Add items and equipment
-
-Once the world and NPCs work, begin creating:
-
-* Weapons
-* Armor
-* Consumables
-* Quest items
-* Currency
-* Other usable items
-
-### 5. Build your gameplay
-
-After the basic world is working, you can expand into:
-
-* Combat
-* Quests
-* Shops
-* Experience and levels
-* Player progression
-* Guilds
-* PvP
-* Economy
-* Events
-* Multiple maps
-* Custom game systems
-
----
-
-# Client and Server Development
-
-It is important to understand that the client and server have different responsibilities.
-
-## Client
-
-The client is responsible for things the player sees and interacts with, such as:
-
-* Graphics
-* Maps displayed to the player
-* User interface
-* Input
-* Menus
-* Player movement presentation
-* Chat presentation
-* Visual effects
-
-## Server
-
-The server is responsible for the authoritative game state, including things such as:
-
-* Connected players
-* Player data
-* NPCs
-* Game rules
-* World state
-* Combat/gameplay logic
-* Player movement validation
-* Saving/loading data
-
-When developing multiplayer features, avoid assuming that the client can be trusted. The server should be responsible for important game-state decisions.
-
----
-
-# Local Development
-
-For development on one computer, use a local server.
-
-A typical setup is:
-
-```text
-┌─────────────────────┐
-│       Client        │
-│                     │
-│   Your PlayerWorld  │
-└──────────┬──────────┘
-           │
-           │ Local connection
-           │
-           ▼
-┌─────────────────────┐
-│       Server        │
-│                     │
-│   Your Game World   │
-└─────────────────────┘
-```
-
-Start the **Server first**, then start the **Client**.
-
-When you're ready to let other players connect, configure the server for network access and make sure the appropriate port is reachable.
-
----
-
-# Troubleshooting
-
-### Client cannot connect
-
-Check:
-
-1. Is the server running?
-2. Is the client using the correct IP address?
-3. Is the client using the correct port?
-4. Is the server listening on that port?
-5. Is a firewall blocking the connection?
-6. Are the client and server using compatible versions?
-
-For a local server, try:
-
-```text
-127.0.0.1
-```
-
-or:
-
-```text
-localhost
-```
-
-### Server starts but the client disconnects
-
-Check the server console for errors first.
-
-The server log is usually more useful than the client when diagnosing connection problems.
-
-### Changes aren't appearing
-
-Make sure you're editing the files/data actually used by the running server or client.
-
-After changing server-side data, restart the server if the change isn't hot-loaded.
-
----
-
-# Development Tips
-
-### Make backups
-
-Before making large changes, back up your world and data.
-
-### Test with a small world
-
-Build a tiny test area before creating your entire game.
-
-### Keep client and server changes separate
-
-When troubleshooting, determine whether the problem is:
-
-```text
-Client → visual/input problem
-Server → gameplay/data/network problem
-```
-
-This makes problems much easier to locate.
-
-### Build incrementally
-
-A good first milestone is:
-
-```text
-Login
-  ↓
-Spawn
-  ↓
-Move
-  ↓
-Chat
-  ↓
-NPC
-  ↓
-Item
-  ↓
-Combat
-  ↓
-Quest
-```
-
-Get each system working before moving to the next one.
-
----
-
-# Development
-
-The goal of XtremeWorlds is to give you a starting point for creating your own 2D MMORPG.
-
-You can use the project as a foundation for creating a world with your own:
-
-* Maps
-* Characters
-* NPCs
-* Items
-* Quests
-* Monsters
-* Classes
-* Gameplay systems
-* Story
-* Community
-
-Start with a small playable area, get the client/server loop working, and expand your PlayerWorld from there.
-
-## License
-
-XtremeWorlds is released under the **BSD 2-Clause License**. See [`LICENSE`](LICENSE) for the full license text.
-
-## Mixing map tilesets
-
-The map editor loads numbered `tiles1.png` through `tiles255.png` files from the client's graphics directory, skipping missing numbers. The left/right tileset controls select the brush; each painted tile layer keeps its own tileset reference. Fill uses the selected tile on the active layer, including tiles below the first row. Painting, Fill, and rendering calculate row width from each image's width in 32-pixel cells, so sheets can have different numbers of columns.
-
-Build and distribute both the updated client and server together. Existing server maps retain their original tileset and gain per-layer references when edited and saved. The updated server reads old map files; maps saved with per-layer references require the updated server. Keep a backup before upgrading. Clients refresh older local map caches from the server.
-
-To verify in the editor: fill with a second-row tile, paint tiles from two different tilesets on the same layer, switch the picker, then save and reconnect. Repeat on overlay and animation layers and after a server restart; the placed tiles should retain their selected tilesets.
-
-The `.twinproj` files include the updated sources. Reload both projects if they were already open, then rebuild both applications. Run `powershell -NoProfile -ExecutionPolicy Bypass -File tests/check-tilesets.ps1` for the Fill, mixed-sheet, dynamic-width, and map record regression checks. These checks execute the source routines with editor and file mocks; they do not replace an in-game rendering test.
-## Sprite sizes and depth
-
-Players and NPCs render together from back to front by their feet position, including movement offsets. Sprite frames are horizontally centered and drawn one 32-pixel tile lower than the original placement. Names, vitals, speech bubbles, and damage text follow the frame dimensions. Warp attributes remain 32x32 map cells; the editor outlines each warp cell in blue.
-
-Configure frame sizes in `Client/gfx/sprites.ini`: `[Sprites]` supplies the default `Width` and `Height`, while `[Sprite0]`, `[Sprite1]`, and subsequent sections override individual sprites. Each sprite occupies a row of twelve frames (four directions with three animation frames each). Rows stack vertically using their configured heights, and the image must fit all twelve frames at each configured width. The bundled defaults are 48x64.
+The canonical module is in `Server/SpacetimeDb`. Publish it using `Server/scripts/setup-spacetimedb.ps1` or its shell
+equivalent. Server builds copy the canonical module into the application output's
+`spacetimedb` directory, excluding `bin` and `obj`. Builds no longer recreate source
+copies under `Server/src/Server`.
+
+Older nested server source copies are preserved under `Server/LegacySource` for reference.
+The root solution and this README describe the current layout; archived solutions and
+historical migration notes may describe earlier paths.
+
+Validation: the root solution builds with zero errors (31 existing server warnings),
+and the browser home page responds with HTTP 200. Live account/database operations
+require a running game server and SpacetimeDB and have not been verified end to end.

@@ -1,0 +1,13 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101720; color: #e8edf3; }
+body { margin: 0; }
+main { max-width: 640px; margin: 8vh auto; padding: 32px; }
+h1 { font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.1; }
+.eyebrow { color: #95d5bf; letter-spacing: .15em; font-size: .8rem; }
+form { display: grid; gap: 12px; margin-top: 32px; }
+input { padding: 12px; border: 1px solid #536273; border-radius: 6px; background: #192532; color: inherit; font: inherit; }
+button { padding: 12px 18px; margin: 4px 4px 4px 0; border: 1px solid #95d5bf; border-radius: 6px; background: #263d3b; color: inherit; font: inherit; cursor: pointer; }
+button:disabled { opacity: .45; cursor: default; }
+button:hover:enabled { background: #375550; }
+input:focus-visible, button:focus-visible { outline: 2px solid #95d5bf; outline-offset: 3px; }
+.note { color: #a6b5c5; margin-top: 40px; }
+#blazor-error-ui { display: none; background: #542626; padding: 1rem; position: fixed; bottom: 0; width: 100%; }

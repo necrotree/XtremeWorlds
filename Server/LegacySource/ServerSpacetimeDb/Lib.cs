@@ -1,0 +1,97 @@
+using SpacetimeDB;
+
+public static partial class Module
+{
+    [SpacetimeDB.Table(Accessor = "Content", Name = "content")]
+    public partial struct Content
+    {
+        [SpacetimeDB.PrimaryKey] public string Key;
+        [SpacetimeDB.Index.BTree]
+        public string Kind;
+        public int NumericId;
+        public string DisplayName;
+        public string Json;
+        public int Revision;
+    }
+
+    [SpacetimeDB.Table(Accessor = "Account", Name = "account")]
+    public partial struct Account
+    {
+        [SpacetimeDB.PrimaryKey] public string Login;
+        public string PasswordHash;
+        public string PasswordSalt;
+        public string EncKey;
+    }
+
+    [SpacetimeDB.Table(Accessor = "Character", Name = "character")]
+    public partial struct Character
+    {
+        [SpacetimeDB.PrimaryKey] public string Key;
+        [SpacetimeDB.Index.BTree]
+        public string AccountLogin;
+        public int Slot;
+        [SpacetimeDB.Unique] public string Name;
+        public string Json;
+    }
+
+    [SpacetimeDB.Table(Accessor = "Ban", Name = "ban")]
+    public partial struct Ban
+    {
+        [SpacetimeDB.PrimaryKey] public string BanKey;
+        [SpacetimeDB.Index.BTree]
+        public string Ip;
+        public string CharacterName;
+        public string BannedBy;
+        [SpacetimeDB.Index.BTree]
+        public string HardwareId;
+    }
+
+    [SpacetimeDB.Table(Accessor = "ServerSetting", Name = "server_setting")]
+    public partial struct ServerSetting
+    {
+        [SpacetimeDB.PrimaryKey] public string Key;
+        public string Value;
+    }
+
+    [SpacetimeDB.Reducer]
+    public static void UpsertContent(ReducerContext ctx, string key, string kind, int numericId, string displayName, string json, int revision)
+    {
+        ctx.Db.Content.Key.Update(new Content { Key = key, Kind = kind, NumericId = numericId, DisplayName = displayName, Json = json, Revision = revision });
+    }
+
+    [SpacetimeDB.Reducer]
+    public static void DeleteContent(ReducerContext ctx, string key) => ctx.Db.Content.Key.Delete(key);
+
+    [SpacetimeDB.Reducer]
+    public static void UpsertAccount(ReducerContext ctx, string login, string passwordHash, string passwordSalt, string encKey)
+    {
+        ctx.Db.Account.Login.Update(new Account { Login = login, PasswordHash = passwordHash, PasswordSalt = passwordSalt, EncKey = encKey });
+    }
+
+    [SpacetimeDB.Reducer]
+    public static void DeleteAccount(ReducerContext ctx, string login) => ctx.Db.Account.Login.Delete(login);
+
+    [SpacetimeDB.Reducer]
+    public static void UpsertCharacter(ReducerContext ctx, string key, string accountLogin, int slot, string name, string json)
+    {
+        ctx.Db.Character.Key.Update(new Character { Key = key, AccountLogin = accountLogin, Slot = slot, Name = name, Json = json });
+    }
+
+    [SpacetimeDB.Reducer]
+    public static void DeleteCharacter(ReducerContext ctx, string key) => ctx.Db.Character.Key.Delete(key);
+
+    [SpacetimeDB.Reducer]
+    public static void UpsertBan(ReducerContext ctx, string banKey, string ip, string characterName, string bannedBy, string hardwareId)
+    {
+        ctx.Db.Ban.BanKey.Update(new Ban { BanKey = banKey, Ip = ip, CharacterName = characterName, BannedBy = bannedBy, HardwareId = hardwareId });
+    }
+
+    [SpacetimeDB.Reducer]
+    public static void DeleteBan(ReducerContext ctx, string banKey) => ctx.Db.Ban.BanKey.Delete(banKey);
+
+    [SpacetimeDB.Reducer]
+    public static void SetServerSetting(ReducerContext ctx, string key, string value)
+    {
+        ctx.Db.ServerSetting.Key.Update(new ServerSetting { Key = key, Value = value });
+    }
+}
