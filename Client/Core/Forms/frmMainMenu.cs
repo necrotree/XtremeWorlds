@@ -364,13 +364,23 @@ namespace XtremeWorlds.Client.Forms
 
             picClassContinue.Size = new Size(104, 25);
             picClassBack.Size = new Size(103, 25);
+
+            var visual = SkinPanel("XtremeWorldsClassPanel", 774, 211, choices);
             var buttons = Horizontal(picClassContinue, Spacer(10), picClassBack);
             var buttonPanel = SkinPanel("XtremeWorldsClassButtons", 217, 25, buttons);
 
-            var visual = SkinPanel("XtremeWorldsClassPanel", 774, 211, choices);
+            // Center the entire class selector relative to the window, then
+            // center Accept/Cancel directly beneath the class cards.
             var content = new TableLayout() { Spacing = new Size(0, 15) };
-            content.Rows.Add(new TableRow(new TableCell(visual, true)));
-            content.Rows.Add(new TableRow(new TableCell(null, true), new TableCell(buttonPanel, false), new TableCell(null, true)));
+            content.Rows.Add(new TableRow(
+                new TableCell(null, true),
+                new TableCell(visual, false),
+                new TableCell(null, true)));
+            content.Rows.Add(new TableRow(
+                new TableCell(null, true),
+                new TableCell(buttonPanel, false),
+                new TableCell(null, true)));
+
             return CenterPage(content);
         }
 
