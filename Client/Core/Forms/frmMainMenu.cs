@@ -441,18 +441,18 @@ namespace XtremeWorlds.Client.Forms
             string password = (txtLoginPassword.Text ?? string.Empty).Trim();
             if (username.Length == 0 && password.Length == 0)
             {
-                MessageBox.Show(this, "Please enter your login name and password!", "XtremeWorlds", MessageBoxType.Warning);
+                frmAlert.ShowAlert(this, "Please enter your login name and password!", "XtremeWorlds");
                 return;
             }
             if (username.Length == 0)
             {
-                MessageBox.Show(this, "Please enter your login name!", "XtremeWorlds", MessageBoxType.Warning);
+                frmAlert.ShowAlert(this, "Please enter your login name!", "XtremeWorlds");
                 txtLoginName.Focus();
                 return;
             }
             if (password.Length == 0)
             {
-                MessageBox.Show(this, "Please enter your password!", "XtremeWorlds", MessageBoxType.Warning);
+                frmAlert.ShowAlert(this, "Please enter your password!", "XtremeWorlds");
                 txtLoginPassword.Focus();
                 return;
             }
@@ -467,7 +467,7 @@ namespace XtremeWorlds.Client.Forms
             string verify = txtNewAcctVerify.Text ?? string.Empty;
             if ((password ?? "") != (verify ?? ""))
             {
-                MessageBox.Show(this, "Passwords do not match.", "XtremeWorlds", MessageBoxType.Warning);
+                frmAlert.ShowAlert(this, "Passwords do not match.", "XtremeWorlds");
                 txtNewAcctVerify.Focus();
                 return;
             }
@@ -475,7 +475,7 @@ namespace XtremeWorlds.Client.Forms
                 return;
             if (!IsPrintableAscii(username))
             {
-                MessageBox.Show(this, "You cannot use high ascii chars in your name, please re-enter.", "XtremeWorlds", MessageBoxType.Warning);
+                frmAlert.ShowAlert(this, "You cannot use high ascii chars in your name, please re-enter.", "XtremeWorlds");
                 txtNewAcctName.Text = string.Empty;
                 txtNewAcctName.Focus();
                 return;
@@ -499,7 +499,7 @@ namespace XtremeWorlds.Client.Forms
         {
             if (lstChars.SelectedIndex < 0)
                 return;
-            var result = MessageBox.Show(this, "Are you sure you wish to delete this character?", "XtremeWorlds", MessageBoxButtons.YesNo, MessageBoxType.Question, MessageBoxDefaultButton.No);
+            var result = frmAlert.ShowConfirm(this, "Are you sure you wish to delete this character?", "XtremeWorlds");
             if (result == DialogResult.Yes)
                 _client.MenuState(MenuState.DeleteCharacter, selectedIndex: lstChars.SelectedIndex);
         }
