@@ -4,6 +4,22 @@ using System.Net.Sockets;
 using System.Threading;
 using Telepathy;
 
+if (args.Length > 0 && args[0] == "--probe")
+{
+    var probe = new Client(1024 * 1024);
+    bool connected = false;
+    probe.OnConnected = () => { connected = true; Console.WriteLine("CONNECTED"); };
+    probe.OnDisconnected = () => Console.WriteLine("DISCONNECTED");
+    probe.OnData = data => Console.WriteLine("DATA bytes=" + data.Count);
+    probe.Connect("127.0.0.1", 7234);
+    var end = DateTime.UtcNow.AddSeconds(5);
+    while (DateTime.UtcNow < end) { probe.Tick(100); Thread.Sleep(10); }
+    Console.WriteLine("Live socket connected=" + probe.Connected);
+    probe.Disconnect();
+    if (!connected) throw new Exception("Local server connection failed.");
+    return;
+}
+
 Log.Info = _ => { };
 Log.Warning = _ => { };
 Log.Error = _ => { };

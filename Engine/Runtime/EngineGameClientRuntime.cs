@@ -28,6 +28,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private int _serverPort = 7234;
     private bool _disposed;
     private bool _loginPending;
+    private bool _loginConnectionEstablished;
+    private bool _accountCreationPending;
     private DateTime _loginDeadline;
 
     public EngineGameClientRuntime()
@@ -35,11 +37,18 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
         _network.DataReceived += OnNetworkData;
-        _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
+        _network.Connected += (_, _) =>
+        {
+            _loginConnectionEstablished = true;
+            Request("Connected", _serverHost, _serverPort);
+        };
         _network.Disconnected += (_, _) =>
         {
             Request("Disconnected");
-            if (_loginPending) FinishLogin("The game server disconnected. Please try again.");
+            if (_loginPending)
+                FailLoginConnection(_loginConnectionEstablished
+                    ? "The server accepted the connection, then disconnected. Check that you are running the matching Telepathy server. An older XtremeWorlds server uses an incompatible protocol; close it if it is also listening on port 7234."
+                    : $"Unable to connect to {_serverHost}:{_serverPort}. Check the server address and that the game server is listening on this port.");
         };
         // Telepathy queues callbacks until Tick is called. Keep receiving replies
         // after a send returns, on the same UI thread as connection/menu actions.
@@ -50,7 +59,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             while (_network.TryDequeue(out _)) { }
             if (_loginPending && DateTime.UtcNow >= _loginDeadline)
             {
-                FinishLogin("The server did not respond to login. Please try again.");
+                FailLoginConnection("The game server is not responding. Please try again in a few minutes.");
                 _network.Disconnect();
             }
         };
@@ -98,14 +107,16 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         {
             case XtremeWorlds.Client.Logic.MenuState.NewAccount:
                 if (!EnsureConnected()) return;
+                _accountCreationPending = true;
                 SendPacket("newaccount", text ?? Username, Password, string.Empty);
                 break;
 
             case XtremeWorlds.Client.Logic.MenuState.Login:
                 if (_loginPending) return;
                 _loginPending = true;
+                _loginConnectionEstablished = _network.IsConnected;
                 _loginDeadline = DateTime.UtcNow.AddSeconds(15);
-                //Request("LoginStatus", "Connecting to the game server…", true);
+                Request("LoginStatus", "Connecting to the game server…", true);
                 try
                 {
                     if (!_network.IsConnected)
@@ -121,16 +132,23 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                     if (_disposed || !_loginPending) return;
                     if (!_network.IsConnected)
                     {
-                        FinishLogin("Unable to connect to the game server. Check the server address and that the server is running.");
+                        FailLoginConnection();
                         _network.Disconnect();
                         return;
                     }
-                    //Request("LoginStatus", "Logging in…", true);
+                    Request("LoginStatus", "Logging in…", true);
                     SendPacket("login", Username, Password, 1, 0, 0, string.Empty);
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
-                    if (!_disposed) FinishLogin("Unable to send the login request. Please reconnect and try again.");
+                    if (!_disposed)
+                    {
+                        var message = _network.IsConnected
+                            ? $"Connected to the server, but could not continue login: {exception.Message}"
+                            : $"Unable to connect to {_serverHost}:{_serverPort}: {exception.Message}";
+                        FinishLogin(message);
+                        Ui(() => GameDialogs.Alert(Application.Instance?.MainForm, message, "Login error"));
+                    }
                 }
                 break;
 
@@ -163,7 +181,12 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         }
     }
 
-    public void Disconnect() => _network.Disconnect();
+    public void Disconnect()
+    {
+        _accountCreationPending = false;
+        FinishLogin(string.Empty);
+        _network.Disconnect();
+    }
 
     public void RefreshWebsite()
     {
@@ -325,6 +348,19 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         switch (command)
         {
             case "alertmsg":
+                if (string.Equals(Field(fields, 1), "Your account has been created!", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (_accountCreationPending)
+                    {
+                        _accountCreationPending = false;
+                        MenuState(XtremeWorlds.Client.Logic.MenuState.Login);
+                    }
+                    break;
+                }
+                if (_accountCreationPending)
+                {
+                    _accountCreationPending = false;
+                }
                 if (_loginPending) FinishLogin(Field(fields, 1));
                 Ui(() => GameDialogs.Alert(Application.Instance?.MainForm, Field(fields, 1), "Alert"));
                 break;
@@ -361,6 +397,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             if (Application.Instance?.MainForm is not frmMainMenu menu) return;
             menu.lstChars.Items.Clear();
             var hasCharacters = false;
+            var firstCharacter = -1;
             var namesOnly = string.Equals(Field(fields, 0), "chars", StringComparison.OrdinalIgnoreCase);
             var offset = 1;
             for (var slot = 0; slot < 3; slot++)
@@ -370,14 +407,14 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 var level = namesOnly ? 0 : IntField(fields, offset + 2);
                 var sprite = namesOnly ? 0 : IntField(fields, offset + 3);
                 hasCharacters |= !string.IsNullOrWhiteSpace(name);
+                if (firstCharacter < 0 && !string.IsNullOrWhiteSpace(name)) firstCharacter = slot;
                 menu.SetCharacterSlot(slot, name, sprite);
                 menu.lstChars.Items.Add(string.IsNullOrWhiteSpace(name)
                     ? "Free Character Slot"
                     : namesOnly ? name : $"{name} a level {level} {className}");
                 offset += namesOnly ? 1 : 4;
             }
-            menu.lstChars.SelectedIndex = 0;
-            menu.SelectCharacterSlot(0);
+            menu.SelectCharacterSlot(hasCharacters ? firstCharacter : 0);
             if (hasCharacters)
                 menu.ShowCharacters();
             else
@@ -385,10 +422,17 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         });
     }
 
+    private void FailLoginConnection(string message = "Unable to connect to the game server. Check the server address and port, then try again.")
+    {
+        if (!_loginPending) return;
+        FinishLogin(message);
+        Ui(() => GameDialogs.Alert(Application.Instance?.MainForm, message, "Connection interrupted"));
+    }
+
     private void FinishLogin(string message)
     {
         _loginPending = false;
-        //Request("LoginStatus", message, false);
+        Request("LoginStatus", message, false);
     }
 
     private void HandleClassDefinition(IReadOnlyList<string> fields)
@@ -400,6 +444,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _classes[classId] = new GameClassInfo
         {
             Name = Field(fields, 2),
+            MaleSprite = IntField(fields, 3),
+            FemaleSprite = IntField(fields, 4),
             STR = IntField(fields, 5),
             DEF = IntField(fields, 6),
             Speed = IntField(fields, 7),
@@ -408,7 +454,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         Ui(() =>
         {
             if (Application.Instance?.MainForm is frmMainMenu menu)
-                menu.ShowClassSelection();
+                menu.RefreshCharacterClasses();
         });
     }
 
@@ -437,7 +483,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         Ui(() =>
         {
             if (Application.Instance?.MainForm is frmMainMenu menu)
-                menu.ShowClassSelection();
+                menu.RefreshCharacterClasses();
         });
 
         static int commandStride(IReadOnlyList<string> packet, int index)

@@ -16,13 +16,14 @@ namespace XtremeWorlds.Client.Forms
 
         private readonly Panel _pageHost;
         private readonly IGameClientRuntime _client;
-        private readonly Label _loginStatus = new Label { TextAlignment = TextAlignment.Center, Wrap = WrapMode.Word, Size = new Size(320, 40) };
         private Control _mainPage;
         private Control _loginPage;
         private Control _registerPage;
         private Control _charactersPage;
         private Control _newCharacterPage;
         private Control _classPage;
+        private Control _currentPage;
+        private readonly string[] _characterNames = new string[3];
 
         public readonly LegacyListBox lstChars;
         public readonly LegacyButton picCharsCancel;
@@ -263,9 +264,25 @@ namespace XtremeWorlds.Client.Forms
             return s;
         }
 
-        private static Panel SkinPanel(string styleName, int width, int height, Control content)
+        private Panel SkinPanel(string styleName, int width, int height, Control content)
         {
-            return new Panel() { Style = styleName, Size = new Size(width, height), Content = content };
+            ImageView artwork = styleName switch
+            {
+                "MainButtons" => imgMainMenu,
+                "BottomButtons" => imgBottomButtons,
+                "LoginPanel" => imgLogin,
+                "RegisterPanel" => imgRegister,
+                "CharactersPanel" => imgCharacters,
+                "NewCharacterPanel" => imgNewChar,
+                "ClassPanel" => imgClassSelection,
+                "ClassButtons" => imgClassButtons,
+                _ => throw new ArgumentException("Unknown menu panel", nameof(styleName))
+            };
+            artwork.Size = content.Size = new Size(width, height);
+            var layers = new PixelLayout { Size = new Size(width, height) };
+            layers.Add(artwork, 0, 0);
+            layers.Add(content, 0, 0);
+            return new Panel { Size = new Size(width, height), Content = layers };
         }
 
         private Control BuildMainPage()
@@ -305,7 +322,7 @@ namespace XtremeWorlds.Client.Forms
             picLoginCancel.Size = new Size(100, 22);
 
             var body = Vertical(Spacer(1, 41), Horizontal(Spacer(104), txtLoginName), Spacer(1, 20), Horizontal(Spacer(104), txtLoginPassword), Spacer(1, 19), Horizontal(Spacer(28), picLoginConnect, Spacer(10), picLoginCancel));
-            return CenterPage(Vertical(Center(SkinPanel("LoginPanel", 266, 162, body)), Spacer(1, 8), _loginStatus));
+            return CenterPage(SkinPanel("LoginPanel", 266, 162, body));
         }
 
         private Control BuildRegisterPage()
@@ -328,9 +345,20 @@ namespace XtremeWorlds.Client.Forms
             picCharsCancel.Size = new Size(100, 22);
             lstChars.Size = new Size(210, 82);
 
-            // lstChars is a real Eto ListBox.  The WPF skin makes it transparent so
-            // the three twinBASIC character slots remain visible beneath it.
-            var body = Vertical(Spacer(1, 39), Horizontal(Spacer(28), lstChars), Spacer(1, 14), Horizontal(Spacer(28), picUseChar, Spacer(10), picDelChar), Spacer(1, 3), Horizontal(Spacer(28), picNewChar, Spacer(10), picCharsCancel));
+            imgCharacter0.Size = imgCharacter1.Size = imgCharacter2.Size = new Size(48, 64);
+            lblCharacter0.Size = lblCharacter1.Size = lblCharacter2.Size = new Size(60, 16);
+            lblCharacter0.TextAlignment = lblCharacter1.TextAlignment = lblCharacter2.TextAlignment = TextAlignment.Center;
+            var body = new PixelLayout { Size = new Size(266, 199) };
+            body.Add(imgCharacter0, 38, 41);
+            body.Add(imgCharacter1, 108, 41);
+            body.Add(imgCharacter2, 178, 41);
+            body.Add(lblCharacter0, 32, 113);
+            body.Add(lblCharacter1, 102, 113);
+            body.Add(lblCharacter2, 172, 113);
+            body.Add(picUseChar, 28, 135);
+            body.Add(picDelChar, 138, 135);
+            body.Add(picNewChar, 28, 160);
+            body.Add(picCharsCancel, 138, 160);
             return CenterPage(SkinPanel("CharactersPanel", 266, 199, body));
         }
 
@@ -344,7 +372,15 @@ namespace XtremeWorlds.Client.Forms
             picPreviousClass.Size = new Size(24, 24);
             picNextClass.Size = new Size(24, 24);
 
-            var body = Vertical(Spacer(1, 45), Horizontal(Spacer(149), txtNewCharName), Spacer(1, 17), Horizontal(Spacer(100), picMale, Spacer(12), picFemale), Spacer(1, 23), Horizontal(Spacer(37), picPreviousClass, Spacer(18), picNextClass), Spacer(1, 17), Horizontal(Spacer(44), picNewCharAddChar, Spacer(11), picNewCharCancel));
+            var body = new PixelLayout { Size = new Size(297, 199) };
+            body.Add(imgNewCharSprite, 35, 38);
+            body.Add(txtNewCharName, 149, 45);
+            body.Add(picMale, 100, 82);
+            body.Add(picFemale, 186, 82);
+            body.Add(picPreviousClass, 31, 114);
+            body.Add(picNextClass, 63, 114);
+            body.Add(picNewCharAddChar, 44, 153);
+            body.Add(picNewCharCancel, 156, 153);
             return CenterPage(SkinPanel("NewCharacterPanel", 297, 199, body));
         }
 
@@ -385,12 +421,17 @@ namespace XtremeWorlds.Client.Forms
             picWebsite.Click += (sender, e) => _client.OpenWebsite();
             picQuit.Click += (sender, e) => _client.GameDestroy();
 
-            picUseChar.Click += (sender, e) => _client.MenuState(MenuState.UseCharacter, selectedIndex: lstChars.SelectedIndex);
+            picUseChar.Click += (sender, e) =>
+            {
+                int slot = lstChars.SelectedIndex;
+                if (slot >= 0 && slot < _characterNames.Length && !string.IsNullOrWhiteSpace(_characterNames[slot]))
+                    _client.MenuState(MenuState.UseCharacter, selectedIndex: slot);
+            };
             picNewChar.Click += HandleNewCharacter;
             picCharsCancel.Click += HandleCharactersCancel;
             picDelChar.Click += HandleDeleteCharacter;
             picNewCharAddChar.Click += HandleAddCharacter;
-            picNewCharCancel.Click += (sender, e) => ShowClassSelection();
+            picNewCharCancel.Click += HandleCharactersCancel;
             picClassContinue.Click += HandleClassContinue;
             picClassBack.Click += HandleClassBack;
             picPreviousClass.Click += HandlePreviousClass;
@@ -439,23 +480,6 @@ namespace XtremeWorlds.Client.Forms
         {
             string username = (txtLoginName.Text ?? string.Empty).Trim();
             string password = txtLoginPassword.Text ?? string.Empty;
-            if (username.Length == 0 && password.Length == 0)
-            {
-                GameDialogs.Alert(this, "Please enter your login name and password!", "Alert");
-                return;
-            }
-            if (username.Length == 0)
-            {
-                GameDialogs.Alert(this, "Please enter your login name!", "Alert");
-                txtLoginName.Focus();
-                return;
-            }
-            if (password.Length == 0)
-            {
-                GameDialogs.Alert(this, "Please enter your password!", "Alert");
-                txtLoginPassword.Focus();
-                return;
-            }
             _client.SaveLoginCredentials(username, password);
             _client.MenuState(MenuState.Login);
         }
@@ -463,7 +487,6 @@ namespace XtremeWorlds.Client.Forms
         private void HandleClientAction(object sender, GameClientActionEventArgs e)
         {
             if (e.Name != "LoginStatus" || e.Arguments.Length < 2) return;
-            _loginStatus.Text = Convert.ToString(e.Arguments[0]);
             picLoginConnect.Enabled = !(bool)e.Arguments[1];
         }
 
@@ -501,8 +524,16 @@ namespace XtremeWorlds.Client.Forms
 
         public void StartCharacterCreation()
         {
-            _client.MenuState(MenuState.NewCharacter, selectedIndex: lstChars.SelectedIndex);
+            int slot = Array.FindIndex(_characterNames, name => string.IsNullOrWhiteSpace(name));
+            if (slot < 0)
+            {
+                GameDialogs.Alert(this, "All character slots are full.", "Alert");
+                return;
+            }
+            SelectCharacterSlot(slot);
+            txtNewCharName.Text = string.Empty;
             ShowClassSelection();
+            _client.MenuState(MenuState.NewCharacter, selectedIndex: slot);
         }
 
         private void HandleCharactersCancel(object sender, EventArgs e)
@@ -544,8 +575,7 @@ namespace XtremeWorlds.Client.Forms
 
         private void HandleClassBack(object sender, EventArgs e)
         {
-            _client.Disconnect();
-            ShowMenuHome();
+            HandleCharactersCancel(sender, e);
         }
 
         private void HandlePreviousClass(object sender, EventArgs e)
@@ -568,7 +598,7 @@ namespace XtremeWorlds.Client.Forms
                 _client.CurrentSex = 1;
             if (picFemale.Checked)
                 _client.CurrentSex = 0;
-            _client.RefreshNewCharacterPreview(_client.CurrentClass, _client.CurrentSex);
+            RefreshSelectedClass();
         }
 
         private void HandleLoginNameKeyDown(object sender, KeyEventArgs e)
@@ -636,6 +666,14 @@ namespace XtremeWorlds.Client.Forms
             RefreshSelectedClass();
         }
 
+        public void RefreshCharacterClasses()
+        {
+            // Class packets may arrive after Accept, Cancel, or a character-list reply.
+            // Refresh the data without navigating back to the class scene.
+            if (_currentPage == _classPage || _currentPage == _newCharacterPage)
+                RefreshSelectedClass();
+        }
+
         private void RefreshSelectedClass()
         {
             if (_client.Classes.Count == 0)
@@ -647,6 +685,7 @@ namespace XtremeWorlds.Client.Forms
             lblDEF.Caption = info.DEF.ToString();
             lblSPEED.Caption = info.Speed.ToString();
             lblMAGI.Caption = info.MAGI.ToString();
+            imgNewCharSprite.Image = PlayerSpriteLoader.Load(_client.CurrentSex == 1 ? info.MaleSprite : info.FemaleSprite);
             _client.RefreshNewCharacterPreview(index, _client.CurrentSex);
         }
 
@@ -677,6 +716,9 @@ namespace XtremeWorlds.Client.Forms
                     }
             }
             label.Caption = string.IsNullOrWhiteSpace(name) ? "Empty" : name;
+            _characterNames[slot] = name;
+            var preview = slot == 0 ? imgCharacter0 : slot == 1 ? imgCharacter1 : imgCharacter2;
+            preview.Image = string.IsNullOrWhiteSpace(name) ? null : PlayerSpriteLoader.Load(sprite);
         }
 
         public void SelectCharacterSlot(int slot)
@@ -684,6 +726,8 @@ namespace XtremeWorlds.Client.Forms
             if (slot < 0)
                 return;
             lstChars.SelectedIndex = slot;
+            picUseChar.Enabled = slot < _characterNames.Length && !string.IsNullOrWhiteSpace(_characterNames[slot]);
+            picDelChar.Enabled = picUseChar.Enabled;
         }
 
         private void HandleClassSelectionChanged(object sender, EventArgs e)
@@ -706,7 +750,10 @@ namespace XtremeWorlds.Client.Forms
         private void ShowPage(Control page)
         {
             if (page is not null)
+            {
+                _currentPage = page;
                 _pageHost.Content = page;
+            }
         }
 
         protected virtual void OnFormShown(object sender, EventArgs e)
