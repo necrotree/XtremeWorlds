@@ -17,6 +17,7 @@ namespace XtremeWorlds.Client.Forms
 
         private readonly Panel _pageHost;
         private readonly IGameClientRuntime _client;
+        private readonly string[] _characterNames = new string[3];
         private Control _mainPage;
         private Control _loginPage;
         private Control _registerPage;
@@ -413,7 +414,16 @@ namespace XtremeWorlds.Client.Forms
             picWebsite.Click += (sender, e) => _client.OpenWebsite();
             picQuit.Click += (sender, e) => _client.GameDestroy();
 
-            picUseChar.Click += (sender, e) => _client.MenuState(MenuState.UseCharacter, selectedIndex: lstChars.SelectedIndex);
+            picUseChar.Click += (sender, e) =>
+            {
+                int slot = lstChars.SelectedIndex;
+                if (slot >= 0 &&
+                    slot < _characterNames.Length &&
+                    !string.IsNullOrWhiteSpace(_characterNames[slot]))
+                {
+                    _client.MenuState(MenuState.UseCharacter, selectedIndex: slot);
+                }
+            };
             picNewChar.Click += HandleNewCharacter;
             picCharsCancel.Click += HandleCharactersCancel;
             picDelChar.Click += HandleDeleteCharacter;
@@ -701,6 +711,7 @@ namespace XtremeWorlds.Client.Forms
                     }
             }
             label.Caption = string.IsNullOrWhiteSpace(name) ? "Empty" : name;
+            _characterNames[slot] = name ?? string.Empty;
 
             var preview = slot == 0 ? imgCharacter0 : slot == 1 ? imgCharacter1 : imgCharacter2;
             preview.Image = string.IsNullOrWhiteSpace(name)
@@ -710,9 +721,13 @@ namespace XtremeWorlds.Client.Forms
 
         public void SelectCharacterSlot(int slot)
         {
-            if (slot < 0)
+            if (slot < 0 || slot >= _characterNames.Length)
                 return;
+
             lstChars.SelectedIndex = slot;
+            bool occupied = !string.IsNullOrWhiteSpace(_characterNames[slot]);
+            picUseChar.Enabled = occupied;
+            picDelChar.Enabled = occupied;
         }
 
         private void HandleClassSelectionChanged(object sender, EventArgs e)

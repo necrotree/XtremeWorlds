@@ -398,8 +398,21 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 offset += namesOnly ? 1 : 4;
             }
 
-            menu.lstChars.SelectedIndex = 0;
-            menu.SelectCharacterSlot(0);
+            int firstOccupied = -1;
+            for (var slot = 0; slot < 3; slot++)
+            {
+                var name = namesOnly
+                    ? Field(fields, 1 + slot)
+                    : Field(fields, 1 + slot * 4);
+
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    firstOccupied = slot;
+                    break;
+                }
+            }
+
+            menu.SelectCharacterSlot(firstOccupied >= 0 ? firstOccupied : 0);
             menu.ShowCharacters();
         });
     }
