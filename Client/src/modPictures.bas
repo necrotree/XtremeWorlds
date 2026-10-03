@@ -20,13 +20,13 @@ Private Type MenuPictureDescriptor
 #End If
 End Type
 
-Private Declare PtrSafe Function MenuCreatePicture Lib "oleaut32.dll" Alias "OleCreatePictureIndirect" (ByRef Description As MenuPictureDescriptor, ByRef InterfaceID As MenuPictureGuid, ByVal OwnsBitmap As Long, ByRef Picture As IPictureDisp) As Long
+Private Declare PtrSafe Function MenuCreatePicture Lib "oleaut32.dll" Alias "OleCreatePictureIndirect" (ByRef Description As MenuPictureDescriptor, ByRef InterfaceID As MenuPictureGuid, ByVal OwnsBitmap As Long, ByRef Picture As StdPicture) As Long
 
-Public Function MenuSpritePicture(ByVal Sprite As Long) As IPictureDisp
+Public Function MenuSpritePicture(ByVal Sprite As Long) As StdPicture
     Dim screenDC As LongPtr, memoryDC As LongPtr, bitmap As LongPtr, previous As LongPtr
     Dim source As WinDevLib.RECT, destination As WinDevLib.RECT
     Dim description As MenuPictureDescriptor, iid As MenuPictureGuid
-    Dim picture As IPictureDisp
+    Dim picture As StdPicture
     Dim errorNumber As Long, errorText As String
     Dim frameWidth As Long, frameHeight As Long
     If DD_SpriteSurf Is Nothing Then Exit Function
@@ -74,11 +74,11 @@ Failed:
     Err.Raise errorNumber, "MenuSpritePicture", errorText
 End Function
 
-Public Function MenuSurfacePicture(ByVal Surface As clsDX11Surface, Optional ByVal SelectionX As Long = -1, Optional ByVal SelectionY As Long = -1) As IPictureDisp
+Public Function MenuSurfacePicture(ByVal Surface As clsDX11Surface, Optional ByVal SelectionX As Long = -1, Optional ByVal SelectionY As Long = -1) As StdPicture
     Dim screenDC As LongPtr, memoryDC As LongPtr, bitmap As LongPtr, previous As LongPtr
     Dim source As WinDevLib.RECT, destination As WinDevLib.RECT
     Dim description As MenuPictureDescriptor, iid As MenuPictureGuid
-    Dim picture As IPictureDisp
+    Dim picture As StdPicture
     Dim errorNumber As Long, errorText As String
     Dim selection As WinDevLib.RECT, brush As LongPtr
     If Surface Is Nothing Then Exit Function
