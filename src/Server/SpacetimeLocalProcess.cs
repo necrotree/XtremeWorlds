@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -72,12 +73,6 @@ internal sealed class SpacetimeLocalProcess : IDisposable
                 if (!string.IsNullOrWhiteSpace(e.Data))
                     _log($"[SpacetimeDB] {e.Data}");
             };
-            _process.Exited += (_, _) =>
-            {
-                if (_startedByServer)
-                    _log($"SpacetimeDB process exited with code {_process?.ExitCode ?? -1}.");
-            };
-
             if (!_process.Start())
             {
                 _log("SpacetimeDB could not be started.");
@@ -100,13 +95,31 @@ internal sealed class SpacetimeLocalProcess : IDisposable
 
         while (DateTime.UtcNow < deadline && !cancellationToken.IsCancellationRequested)
         {
-            if (_process is { HasExited: true })
-                return false;
-
             if (await CanPingAsync(pingAsync, cancellationToken).ConfigureAwait(false))
             {
                 _log("SpacetimeDB is ready.");
                 return true;
+            }
+
+            if (_process is { HasExited: true })
+            {
+                int exitCode = _process.ExitCode;
+
+                // Another SpacetimeDB process may have won the startup race and
+                // acquired spacetime.pid between our initial ping and the CLI start.
+                // Give that process a brief grace period to finish binding the port.
+                if (await WaitForPingAsync(
+                        pingAsync,
+                        TimeSpan.FromSeconds(2),
+                        cancellationToken).ConfigureAwait(false))
+                {
+                    _startedByServer = false;
+                    _log("SpacetimeDB is ready (another local instance won the startup race).");
+                    return true;
+                }
+
+                _log($"SpacetimeDB process exited with code {exitCode} before the endpoint became ready.");
+                return false;
             }
 
             try
@@ -512,6 +525,8 @@ internal sealed class SpacetimeLocalProcess : IDisposable
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             CreateNoWindow = true,
             WorkingDirectory = workingDirectory
         };
@@ -751,6 +766,31 @@ internal sealed class SpacetimeLocalProcess : IDisposable
         }
 
         return null;
+    }
+
+    private static async Task<bool> WaitForPingAsync(
+        Func<CancellationToken, Task> pingAsync,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        DateTime deadline = DateTime.UtcNow.Add(timeout);
+
+        while (DateTime.UtcNow < deadline && !cancellationToken.IsCancellationRequested)
+        {
+            if (await CanPingAsync(pingAsync, cancellationToken).ConfigureAwait(false))
+                return true;
+
+            try
+            {
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     private static async Task<bool> CanPingAsync(
