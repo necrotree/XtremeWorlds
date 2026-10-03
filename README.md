@@ -16,12 +16,6 @@ Build from this directory with the .NET 10 SDK:
 dotnet build XtremeWorlds.sln
 ```
 
-Run the browser client:
-
-```powershell
-dotnet run --project Client/Blazor/Client.Blazor.csproj
-```
-
 Open the localhost URL printed by the app. Set `GameServer:Host` and `GameServer:Port`
 in `Client/Blazor/appsettings.json` to the game server's address as seen by the Blazor host.
 The browser uses interactive server rendering; each browser session owns its own TCP
