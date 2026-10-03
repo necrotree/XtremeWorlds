@@ -168,25 +168,25 @@ Class frmServer
     
         I = I + 1
         If I Mod 31536000 = 0 Then
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 6 & "," & I
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 4 & "," & I
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 6 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 4 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
             Exit Sub
         ElseIf I Mod 604800 = 0 Then
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 4 & "," & I
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 4 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
             Exit Sub
         ElseIf I Mod 86400 = 0 Then
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 3 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
             Exit Sub
         ElseIf I Mod 3600 = 0 Then
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 2 & "," & I
             Exit Sub
         ElseIf I Mod 60 = 0 Then
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnTime " & 1 & "," & I
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnTime " & 1 & "," & I
             Exit Sub
         End If
     
