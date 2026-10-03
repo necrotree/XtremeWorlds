@@ -615,7 +615,7 @@ Sub PlayerMapDropItem(ByVal Index As Long, ByVal InvNum As Long, ByVal Ammount A
             ' Spawn the item before we set the num or we'll get a different free map item slot
             Call SpawnItemSlot(I, MapItem(GetPlayerMap(Index), I).Num, Ammount, MapItem(GetPlayerMap(Index), I).Dur, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index))
         
-            MyScript.ExecuteStatement "\scripts\Main.as", "OnItemDrop " & Index & "," & MapItem(GetPlayerMap(Index), I).Num & "," & MapItem(GetPlayerMap(Index), I).Value & "," & MapItem(GetPlayerMap(Index), I).Dur & "," & InvNum
+            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnItemDrop " & Index & "," & MapItem(GetPlayerMap(Index), I).Num & "," & MapItem(GetPlayerMap(Index), I).Value & "," & MapItem(GetPlayerMap(Index), I).Dur & "," & InvNum
         
         Else
             Call PlayerMsg(Index, "To many items already on the ground.", BrightRed)
@@ -1120,7 +1120,7 @@ Sub AttackPlayer(ByVal Attacker As Long, ByVal Victim As Long, ByVal Damage As L
         End If
 
         ' Player is dead
-        MyScript.ExecuteStatement "\scripts\Main.as", "OnDeathByPlayer " & Victim & ", " & Attacker & ", " & GetPlayerMap(Attacker) & ", " & Map(GetPlayerMap(Attacker)).Moral
+        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnDeathByPlayer " & Victim & ", " & Attacker & ", " & GetPlayerMap(Attacker) & ", " & Map(GetPlayerMap(Attacker)).Moral
         
         ' Warp player away
         With Map(GetPlayerMap(Victim))
@@ -1205,7 +1205,7 @@ Sub NpcAttackPlayer(ByVal MapNpcNum As Long, ByVal Victim As Long, ByVal Damage 
     If Damage >= GetPlayerHP(Victim) Then
     
         'Call the DeathByNpc Sub
-        MyScript.ExecuteStatement "\scripts\Main.as", "OnDeathByNpc " & Victim & ", " & MapNpc(MapNum, MapNpcNum).Num & ", " & MapNum & ", " & MapNpcNum
+        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnDeathByNpc " & Victim & ", " & MapNpc(MapNum, MapNpcNum).Num & ", " & MapNum & ", " & MapNpcNum
 
         ' Drop all worn items by victim
         If GetPlayerWeaponSlot(Victim) > 0 Then
@@ -1300,7 +1300,7 @@ Sub AttackNpc(ByVal Attacker As Long, ByVal MapNpcNum As Long, ByVal Damage As L
             End If
         End If
         
-        MyScript.ExecuteStatement "\scripts\Main.as", "OnNpcDeath " & Attacker & ", " & NpcNum & ", " & MapNum & ", " & MapNpcNum
+        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnNpcDeath " & Attacker & ", " & NpcNum & ", " & MapNum & ", " & MapNpcNum
 
         ' Calculate exp to give attacker
         Exp = Npc(NpcNum).GiveEXP
@@ -1430,7 +1430,7 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     End If
     
     ' Call the Leave Map sub.
-    MyScript.ExecuteStatement "\scripts\Main.as", "LeaveMap " & Index
+    MyScript.ExecuteScriptStatement "\scripts\Main.as", "LeaveMap " & Index
     
     ' Save old map to send erase player data to
     OldMap = GetPlayerMap(Index)
@@ -1438,7 +1438,7 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     Call SetPlayerMap(Index, MapNum)
     Call SetPlayerX(Index, X)
     Call SetPlayerY(Index, y)
-    ' MyScript.ExecuteStatement "\scripts\Main.as", "OnScriptedTile " & Index
+    ' MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnScriptedTile " & Index
 
     ' Check if there is an shop on the map and say hello if so
     ShopNum = Map(GetPlayerMap(Index)).Shop
@@ -1449,7 +1449,7 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
     End If
     
     ' Call the Join Map Sub
-    MyScript.ExecuteStatement "\scripts\Main.as", "JoinMap " & Index
+    MyScript.ExecuteScriptStatement "\scripts\Main.as", "JoinMap " & Index
 
 
     ' Now we check if there were any players left on the map the player just left, and if not stop processing npcs
@@ -1672,7 +1672,7 @@ Sub PlayerMove(ByVal Index As Long, ByVal Dir As Long, ByVal Movement As Long)
     End If
 
     ' Scripted Tile Sub
-    MyScript.ExecuteStatement "\scripts\Main.as", "OnScriptedTile " & Index
+    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnScriptedTile " & Index
 
     ' They tried to hack
     If Moved = NO Then
@@ -1939,7 +1939,7 @@ Sub JoinGame(ByVal Index As Long)
     ' Send the flag so they know they can start doing stuff
     Call SendDataTo(Index, "INGAME" & END_CHAR)
 
-    MyScript.ExecuteStatement "\scripts\Main.as", "JoinGame " & Index
+    MyScript.ExecuteScriptStatement "\scripts\Main.as", "JoinGame " & Index
 End Sub
 
 Sub LeftGame(ByVal Index As Long)
@@ -1965,7 +1965,7 @@ Sub LeftGame(ByVal Index As Long)
         Call SavePlayer(Index)
 
         ' Send a global message that he/she left
-        MyScript.ExecuteStatement "\scripts\Main.as", "LeftGame " & Index
+        MyScript.ExecuteScriptStatement "\scripts\Main.as", "LeftGame " & Index
         Call TextAdd(frmServer.txtText, GetPlayerName(Index) & " has disconnected from " & GAME_NAME & ".", True)
         Call SendLeftGame(Index)
     End If
@@ -2089,7 +2089,7 @@ Sub CheckPlayerLevelUp(ByVal Index As Long)
 
     ' Check if attacker got a level up
     If GetPlayerExp(Index) >= GetPlayerNextLevel(Index) Then
-        MyScript.ExecuteStatement "\scripts\Main.as", "OnLevelUp " & Index
+        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnLevelUp " & Index
 ' Call SetPlayerLevel(Index, GetPlayerLevel(Index) + 1)
 
 ' If GetPlayerExp(Player) > GetPlayerNextLevel(Player) Then
