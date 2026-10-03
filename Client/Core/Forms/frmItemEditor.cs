@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmItemEditor : Form
+    public class frmItemEditor : EditForm
     {
 
         public readonly LegacyLabel Label1;
@@ -289,6 +289,8 @@ namespace XtremeWorlds.Client.Forms
             layout_fraWarp.Add(scrlMapY, 192, 64);
 
 
+            cmdOk.Click += (_, _) => { if (ApplyChanges()) Close(); };
+            cmdCancel.Click += (_, _) => CancelChanges();
             Shown += OnFormShown;
         }
 

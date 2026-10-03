@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.Logic;
@@ -6,7 +6,7 @@ using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmMainGame : Form
+    public class frmMainGame : EditForm
     {
 
         private readonly IGameClientRuntime _client;

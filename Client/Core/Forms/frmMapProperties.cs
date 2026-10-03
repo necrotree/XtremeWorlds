@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmMapProperties : Form
+    public class frmMapProperties : EditForm
     {
 
         public readonly LegacyLabel Label1;
@@ -266,6 +266,8 @@ namespace XtremeWorlds.Client.Forms
             optInside.Size = new Size(105, 18);
             rootLayout.Add(optInside, 160, 280);
 
+            cmdOk.Click += (_, _) => { if (ApplyChanges()) Close(); };
+            cmdCancel.Click += (_, _) => CancelChanges();
             Shown += OnFormShown;
         }
 

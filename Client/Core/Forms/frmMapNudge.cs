@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmMapNudge : Form
+    public class frmMapNudge : EditForm
     {
 
         public readonly LegacyFrame SSTab1;

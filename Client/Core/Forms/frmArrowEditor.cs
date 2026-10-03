@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmArrowEditor : Form
+    public class frmArrowEditor : EditForm
     {
 
         public readonly LegacyLabel lblName;
@@ -102,6 +102,8 @@ namespace XtremeWorlds.Client.Forms
             cmdCancel.Size = new Size(153, 33);
             rootLayout.Add(cmdCancel, 178, 189);
 
+            cmdOk.Click += (_, _) => { if (ApplyChanges()) Close(); };
+            cmdCancel.Click += (_, _) => CancelChanges();
             Shown += OnFormShown;
         }
 

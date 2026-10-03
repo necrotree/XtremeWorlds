@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using Microsoft.VisualBasic;
@@ -12,7 +12,7 @@ namespace XtremeWorlds.Client.Forms
     /// The twinBASIC PNGs are only the skin; all interactive elements remain
     /// Button/TextBox/PasswordBox/RadioButton/ListBox/ImageView controls.
     /// </summary>
-    public class frmMainMenu : Form
+    public class frmMainMenu : EditForm
     {
 
         private readonly Panel _pageHost;

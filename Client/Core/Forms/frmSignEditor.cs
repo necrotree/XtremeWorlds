@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmSignEditor : Form
+    public class frmSignEditor : EditForm
     {
 
         public readonly LegacyLabel Label1;
@@ -167,6 +167,8 @@ namespace XtremeWorlds.Client.Forms
             layout_picSign.Add(lblexit, 64, 104);
 
 
+            cmdOK.Click += (_, _) => { if (ApplyChanges()) Close(); };
+            cmdCancel.Click += (_, _) => CancelChanges();
             Shown += OnFormShown;
         }
 

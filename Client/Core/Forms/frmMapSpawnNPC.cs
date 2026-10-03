@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmMapSpawnNPC : Form
+    public class frmMapSpawnNPC : EditForm
     {
 
         public readonly LegacyListBox lstNPC;

@@ -27,6 +27,37 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private string _serverHost = "127.0.0.1";
     private int _serverPort = 7234;
     private bool _disposed;
+    private readonly HashSet<EditForm> _editForms = new();
+    public void ShowEditForm(EditForm form)
+    {
+        ArgumentNullException.ThrowIfNull(form);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        Ui(() =>
+        {
+            if (_disposed) return;
+            if (_editForms.Add(form))
+            {
+                form.PreviewRequested += OnEditorPreview;
+                form.Closed += OnEditorClosed;
+            }
+            if (!form.Visible) form.Show();
+            form.BringToFront();
+        });
+    }
+    private void OnEditorPreview(object? sender, EditorPreviewEventArgs preview)
+    {
+        if (_disposed || !_graphics.IsRunning) return;
+        _graphics.Submit(new FnaSpriteCommand(preview.TexturePath,
+            new Microsoft.Xna.Framework.Rectangle(preview.X, preview.Y, preview.Width, preview.Height),
+            null, Microsoft.Xna.Framework.Color.White));
+    }
+    private void OnEditorClosed(object? sender, EventArgs args)
+    {
+        if (sender is not EditForm form) return;
+        form.PreviewRequested -= OnEditorPreview;
+        form.Closed -= OnEditorClosed;
+        _editForms.Remove(form);
+    }
 
     public EngineGameClientRuntime()
     {
@@ -488,6 +519,16 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        Ui(() =>
+        {
+            foreach (var form in _editForms.ToArray())
+            {
+                form.PreviewRequested -= OnEditorPreview;
+                form.Closed -= OnEditorClosed;
+                form.Close();
+            }
+            _editForms.Clear();
+        });
         _networkTimer.Stop();
         _graphics.Dispose();
         _audio.Dispose();

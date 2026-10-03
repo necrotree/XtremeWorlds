@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmMapWarp : Form
+    public class frmMapWarp : EditForm
     {
 
         public readonly LegacyLabel lblY;

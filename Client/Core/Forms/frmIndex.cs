@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmIndex : Form
+    public class frmIndex : EditForm
     {
 
         public readonly LegacyListBox lstIndex;

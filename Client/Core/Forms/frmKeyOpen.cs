@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmKeyOpen : Form
+    public class frmKeyOpen : EditForm
     {
 
         public readonly LegacyLabel Label1;

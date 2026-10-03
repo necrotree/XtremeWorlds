@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmSpellEditor : Form
+    public class frmSpellEditor : EditForm
     {
 
         public readonly LegacyLabel Label1;
@@ -324,6 +324,8 @@ namespace XtremeWorlds.Client.Forms
             cmbArrow.Size = new Size(178, 22);
             rootLayout.Add(cmbArrow, 12, 489);
 
+            cmdOk.Click += (_, _) => { if (ApplyChanges()) Close(); };
+            cmdCancel.Click += (_, _) => CancelChanges();
             Shown += OnFormShown;
         }
 
