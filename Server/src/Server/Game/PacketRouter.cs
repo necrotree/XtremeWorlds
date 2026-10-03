@@ -80,6 +80,15 @@ namespace Server
                             break;
                         }
 
+                    case "playermove":
+                        await MoveAsync(connectionId, p);
+                        break;
+                    case "warpto":
+                    case "warptotile":
+                    case "warpmeto":
+                    case "warptome":
+                        await TeleportAsync(connectionId, command, p);
+                        break;
                     case "needmap":
                     case "requestnewmap":
                         await SendCurrentMapAsync(connectionId);
@@ -303,12 +312,85 @@ namespace Server
             }
 
             _network.SendText(id, PacketCodec.Compose("ingame"));
-            _network.SendText(id, PacketCodec.Compose("worldstate",
-                System.Text.Json.JsonSerializer.Serialize(new { Map = map, Player = player })));
+            SendWorldSnapshot(player.Map, map);
             _network.SendText(id, PacketCodec.Compose("playerdata",
                 selected.Character.Name, selected.Character.Level, selected.Character.Map, selected.Character.X, selected.Character.Y, selected.Character.Direction));
         }
 
+        private async Task MoveAsync(int id, string[] fields)
+        {
+            if (!_sessions.TryGetValue(id, out var session) || !session.IsPlaying || session.Character is not { } player
+                || fields.Length < 2 || !byte.TryParse(fields[1], out var direction) || direction > 3) return;
+            var mapId = player.Map;
+            var map = await _db.GetContentAsync<MapDefinition>("map", mapId) ?? CreateEmptyMap(mapId);
+            if (!session.IsPlaying || session.Character != player || player.Map != mapId) return;
+            double x = player.PixelX ?? player.X * 32;
+            double y = player.PixelY ?? player.Y * 32;
+            x += direction == 2 ? -4 : direction == 3 ? 4 : 0;
+            y += direction == 0 ? -4 : direction == 1 ? 4 : 0;
+            int tileX = (int)Math.Floor(x / 32.0), tileY = (int)Math.Floor(y / 32.0);
+            player.Direction = direction;
+            if (tileX >= 0 && tileX <= GameLimits.MaxMapX && tileY >= 0 && tileY <= GameLimits.MaxMapY)
+            {
+                var tile = map.Tiles.ElementAtOrDefault(tileY * (GameLimits.MaxMapX + 1) + tileX);
+                if (tile?.Type != 1)
+                {
+                    player.PixelX = x; player.PixelY = y;
+                    player.X = (byte)tileX; player.Y = (byte)tileY;
+                    if (tile?.Type == 2 && tile.Data1 > 0)
+                    {
+                        await SetPositionAsync(session, tile.Data1, tile.Data2, tile.Data3);
+                        return;
+                    }
+                }
+            }
+            SendWorldSnapshot(mapId, map);
+        }
+
+        private async Task TeleportAsync(int id, string command, string[] fields)
+        {
+            if (!_sessions.TryGetValue(id, out var actor) || !actor.IsPlaying || actor.Character is not { Access: >= 1 } player
+                || fields.Length < 2) return;
+            if (command == "warptotile")
+            {
+                if (actor.IsJailed || fields.Length != 3 || !int.TryParse(fields[1], out var tileX)
+                    || !int.TryParse(fields[2], out var tileY)) return;
+                await SetPositionAsync(actor, player.Map, tileX, tileY);
+                return;
+            }
+            if (command == "warpto")
+            {
+                if (!short.TryParse(fields[1], out var map) || map <= 0) return;
+                int x = player.X, y = player.Y;
+                if (fields.Length > 2 && !int.TryParse(fields[2], out x)) return;
+                if (fields.Length > 3 && !int.TryParse(fields[3], out y)) return;
+                await SetPositionAsync(actor, map, x, y);
+                return;
+            }
+            var target = _sessions.Values.FirstOrDefault(s => s.IsPlaying && s.Character != null
+                && string.Equals(s.Character.Name, fields[1], StringComparison.OrdinalIgnoreCase));
+            if (target?.Character is not { } destination) return;
+            if (command == "warpmeto") await SetPositionAsync(actor, destination.Map, destination.X, destination.Y);
+            else if (!target.IsJailed && destination.Access < player.Access)
+                await SetPositionAsync(target, player.Map, player.X, player.Y);
+        }
+
+        private async Task SetPositionAsync(PlayerSession session, short map, int x, int y)
+        {
+            if (map <= 0 || x < 0 || x > GameLimits.MaxMapX || y < 0 || y > GameLimits.MaxMapY
+                || session.Character is not { } player) return;
+            player.Map = map; player.X = (byte)x; player.Y = (byte)y;
+            player.PixelX = x * 32; player.PixelY = y * 32;
+            await SendCurrentMapAsync(session.ConnectionId);
+        }
+        private void SendWorldSnapshot(int mapId, MapDefinition map)
+        {
+            var viewers = _sessions.Values.Where(s => s.IsPlaying && s.Character?.Map == mapId).ToArray();
+            var players = viewers.Select(s => s.Character!).ToArray();
+            foreach (var viewer in viewers)
+                _network.SendText(viewer.ConnectionId, PacketCodec.Compose("worldstate",
+                    System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = viewer.Character, Players = players })));
+        }
         private static MapDefinition CreateEmptyMap(int mapId)
         {
             var map = new MapDefinition
@@ -333,12 +415,11 @@ namespace Server
             // The session determines the map; clients cannot request unrelated maps.
             var player = session.Character;
             int mapId = player.Map;
-            var map = await _db.GetContentAsync<MapDefinition>("map", mapId);
+            var map = await _db.GetContentAsync<MapDefinition>("map", mapId) ?? CreateEmptyMap(mapId);
             if (!_sessions.TryGetValue(id, out var current) || !ReferenceEquals(current, session)
                 || !session.IsPlaying || !ReferenceEquals(session.Character, player) || player.Map != mapId)
                 return;
-            _network.SendText(id, PacketCodec.Compose("worldstate",
-                System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = player })));
+            SendWorldSnapshot(mapId, map);
         }
 
         private async Task SendCharactersAsync(int id, string login)

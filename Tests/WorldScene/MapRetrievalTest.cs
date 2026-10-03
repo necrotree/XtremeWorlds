@@ -32,6 +32,39 @@ static class MapRetrievalTest
         await ReadRequest(request);
         await Respond(request, "[{\"rows\":[]}]");
         if (await missing is not null) throw new Exception("Absent map must return null.");
+        var player = new PlayerCharacter { Map = 8, X = 1, Y = 1, Access = 1 };
+        var sessions = new System.Collections.Concurrent.ConcurrentDictionary<int, PlayerSession>();
+        sessions[1] = new PlayerSession { ConnectionId = 1, IsPlaying = true, IsLoggedIn = true, Character = player };
+        var router = new PacketRouter(new ServerSettings(), new MirrorTcpHost(0, 65536, true), repository, sessions);
+        async Task Dispatch(string packet)
+        {
+            var handling = router.HandleAsync(1, packet);
+            var pending = await listener.AcceptTcpClientAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            await ReadRequest(pending);
+            await Respond(pending, "[{\"rows\":[]}]");
+            await handling;
+        }
+        await Dispatch(PacketCodec.Compose("playermove", 2));
+        if (player.PixelX != 28 || player.X != 0 || player.Y != 1)
+            throw new Exception("Pixel movement must floor the tile position when moving left.");
+        await Dispatch(PacketCodec.Compose("warpto", 9, 3, 4));
+        if (player.Map != 9 || player.X != 3 || player.Y != 4 || player.PixelX != 96 || player.PixelY != 128)
+            throw new Exception("Teleport must reset pixel and tile positions together.");
+        await Dispatch(PacketCodec.Compose("warptotile", 15, 11));
+        if (player.Map != 9 || player.X != 15 || player.Y != 11 || player.PixelX != 480 || player.PixelY != 352)
+            throw new Exception("Tile teleport must use the current map and reset pixel positions.");
+        await router.HandleAsync(1, PacketCodec.Compose("warptotile", 16, 12));
+        await router.HandleAsync(1, PacketCodec.Compose("warptotile", "invalid", 0));
+        player.Access = 0;
+        await router.HandleAsync(1, PacketCodec.Compose("warptotile", 0, 0));
+        player.Access = 1;
+        if (player.PixelX != 480 || player.PixelY != 352)
+            throw new Exception("Invalid and unauthorized tile teleports must be rejected.");
+        sessions[1].IsJailed = true;
+        await router.HandleAsync(1, PacketCodec.Compose("playermove", 3));
+        await router.HandleAsync(1, PacketCodec.Compose("warptotile", 0, 0));
+        if (player.PixelX != 480 || player.PixelY != 352) throw new Exception("Jailed players must not move or teleport.");
+        Console.WriteLine("Pixel movement, floor conversion, teleport and jail checks passed.");
         Console.WriteLine("Targeted map database retrieval checks passed.");
     }
 

@@ -52,6 +52,8 @@ namespace Server
         public byte X { get; set; }
         public byte Y { get; set; }
         public byte Direction { get; set; }
+        public double? PixelX { get; set; }
+        public double? PixelY { get; set; }
     }
 
     public class TileDefinition

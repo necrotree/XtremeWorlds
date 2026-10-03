@@ -290,9 +290,11 @@ public sealed class FnaGraphicsService : IDisposable
         private KeyboardState _previousKeyboard;
         private MainGamePanel _activePanel;
         private string _chatInput = string.Empty;
+        private double _nextMove;
 
         private readonly ConcurrentQueue<FnaWorldScene> _scenes;
         private FnaWorldScene? _scene;
+        private double _renderSeconds;
 
         public FnaClientGame(
             ConcurrentQueue<FnaWorldScene> scenes,
@@ -422,8 +424,17 @@ public sealed class FnaGraphicsService : IDisposable
 
             if (IsActive)
             {
+                _renderSeconds = gameTime.TotalGameTime.TotalSeconds;
                 HandleMouse();
                 HandleKeyboard();
+                var keys = Keyboard.GetState();
+                int direction = keys.IsKeyDown(Keys.Up) ? 0 : keys.IsKeyDown(Keys.Down) ? 1
+                    : keys.IsKeyDown(Keys.Left) ? 2 : keys.IsKeyDown(Keys.Right) ? 3 : -1;
+                if (_scene?.Map != null && direction >= 0 && gameTime.TotalGameTime.TotalSeconds >= _nextMove)
+                {
+                    _nextMove = gameTime.TotalGameTime.TotalSeconds + 0.03;
+                    _action("MovePlayer", new object[] { direction });
+                }
             }
 
             base.Update(gameTime);
@@ -434,6 +445,18 @@ public sealed class FnaGraphicsService : IDisposable
             var mouse = Mouse.GetState();
             var leftPressed = mouse.LeftButton == ButtonState.Pressed &&
                               _previousMouse.LeftButton == ButtonState.Released;
+            var rightPressed = mouse.RightButton == ButtonState.Pressed &&
+                               _previousMouse.RightButton == ButtonState.Released;
+            var keyboard = Keyboard.GetState();
+            if (rightPressed && (keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift)) &&
+                _scene?.Map is not null && TryScreenToLogical(mouse.X, mouse.Y, out var mapX, out var mapY) &&
+                GameViewport.Contains(mapX, mapY))
+            {
+                int tileX = (mapX - GameViewport.X) / 32;
+                int tileY = (mapY - GameViewport.Y) / 32;
+                if (tileX < 16 && tileY < 12)
+                    _action("WarpToTile", new object[] { tileX, tileY });
+            }
 
             if (leftPressed && TryScreenToLogical(mouse.X, mouse.Y, out var x, out var y))
             {
@@ -708,69 +731,143 @@ public sealed class FnaGraphicsService : IDisposable
             GraphicsDevice.ScissorRectangle = GetViewportScissor();
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, rasterizer, null, transform);
-            DrawScene();
+            var map = _scene?.Map;
+            if (map is not null) DrawSceneLayers(map, false);
             BltMap();
             BltMask();
+            DrawSceneItems();
             BltMapItems();
-            BltNpcs();
-            BltPlayers();
+            DrawActors();
             BltProjectiles();
+            DrawSceneSpells();
             BltAnimations();
+            if (map is not null) DrawSceneLayers(map, true);
             BltFringe();
+            DrawActorNames();
             BltNames();
             _spriteBatch.End();
 
             GraphicsDevice.ScissorRectangle = oldScissor;
         }
 
-        private void DrawScene()
+        private void DrawSceneLayers(FnaSceneMap map, bool upper)
         {
-            if (_spriteBatch is null || _scene is null) return;
-            var map = _scene.Map;
-            if (map is null || map.Tiles.Count == 0)
-                DrawTinyText("NO MAP DATA RECEIVED FROM SERVER", GameViewport.X + 16, GameViewport.Y + 16, Color.White, 1, GameViewport.Right - 4);
-            if (map is not null)
+            bool animated = ((int)(_renderSeconds / 0.25) & 1) != 0;
+            if (!upper)
             {
                 DrawSceneLayer(map, 0, tile => tile.Ground, true);
-                DrawSceneLayer(map, 1, tile => tile.Mask, false);
-                DrawSceneLayer(map, 2, tile => tile.Mask2, false);
+                DrawSceneLayer(map, 1, tile => animated && tile.Anim > 0 ? tile.Anim : tile.DoorOpen ? 0 : tile.Mask, false);
+                DrawSceneLayer(map, 2, tile => animated && tile.M2Anim > 0 ? tile.M2Anim : tile.Mask2, false);
             }
-            var player = _scene.Player;
-            var sprites = GetTexture(Path.Combine(AppContext.BaseDirectory, "gfx", "sprites.png"));
-            if (!string.IsNullOrEmpty(player.Name) && sprites is not null)
+            else
             {
-                // Same 48x64 rows and direction groups as PlayerSpriteLoader.
-                int direction = player.Direction switch { 0 => 1, 1 => 0, 2 => 2, 3 => 3, _ => 1 };
-                var source = new Rectangle(direction * 3 * 48, player.Sprite * 64, 48, 64);
-                if (source.Y >= 0 && source.Bottom <= sprites.Height && source.Right <= sprites.Width)
-                    _spriteBatch.Draw(sprites, new Rectangle(GameViewport.X + player.X * 32 - 8, GameViewport.Y + player.Y * 32 - 32, 48, 64), source, Color.White);
+                DrawSceneLayer(map, 3, tile => animated && tile.FAnim > 0 ? tile.FAnim : tile.Fringe, false);
+                DrawSceneLayer(map, 4, tile => animated && tile.F2Anim > 0 ? tile.F2Anim : tile.Fringe2, false);
             }
-            if (map is not null)
-            {
-                DrawSceneLayer(map, 3, tile => tile.Fringe, false);
-                DrawSceneLayer(map, 4, tile => tile.Fringe2, false);
-            }
-            if (!string.IsNullOrEmpty(player.Name))
-                DrawTinyText(player.Name, GameViewport.X + player.X * 32, GameViewport.Y + player.Y * 32 - 42, Color.White, 1, GameViewport.Right - 4);
         }
 
         private void DrawSceneLayer(FnaSceneMap map, int layer, Func<FnaSceneTile, int> select, bool ground)
         {
-            int tileset = layer < map.LayerTileset.Count ? map.LayerTileset[layer] : map.Tileset;
-            var texture = GetTexture(Path.Combine(AppContext.BaseDirectory, "gfx", $"tiles{Math.Max(1, tileset)}.png"));
-            if (texture is null || _spriteBatch is null || texture.Width < 32) return;
-            int columns = texture.Width / 32;
-            // Original maps have 16 columns and 12 rows; tile numbers are zero based.
+            int tileset = layer < map.LayerTileset.Count && map.LayerTileset[layer] > 0 ? map.LayerTileset[layer] : map.Tileset;
+            if (tileset <= 0) return;
+            var texture = GetWorldTexture($"tiles{tileset}.png", ground ? null : Color.Black);
             for (int i = 0; i < Math.Min(map.Tiles.Count, 16 * 12); i++)
             {
                 int tile = select(map.Tiles[i]);
                 if (tile < 0 || (!ground && tile == 0)) continue;
-                var source = new Rectangle(tile % columns * 32, tile / columns * 32, 32, 32);
-                if (source.Bottom > texture.Height) continue;
-                _spriteBatch.Draw(texture, new Rectangle(GameViewport.X + i % 16 * 32, GameViewport.Y + i / 16 * 32, 32, 32), source, Color.White);
+                DrawWorldSprite(texture, new Rectangle(i % 16 * 32, i / 16 * 32, 32, 32),
+                    new Rectangle(tile % 12 * 32, tile / 12 * 32, 32, 32), Color.White);
             }
         }
 
+        private void DrawSceneItems()
+        {
+            if (_scene is null) return;
+            var texture = GetWorldTexture("items.png", Color.White);
+            foreach (var item in _scene.Items)
+                if (item.Picture >= 0)
+                    DrawWorldSprite(texture, new Rectangle(item.X * 32, item.Y * 32, 32, 32),
+                        new Rectangle(item.Picture % 6 * 32, item.Picture / 6 * 32, 32, 32), Color.White);
+        }
+
+        private void DrawActors()
+        {
+            var draws = new List<(int Y, Action Draw)>();
+            if (_scene is not null)
+            {
+                var sprites = GetWorldTexture("sprites.png", Color.Black);
+                foreach (var actor in _scene.ActorsInDrawOrder())
+                {
+                    if (actor.Sprite < 0) continue;
+                    var current = actor;
+                    draws.Add((actor.DrawY, () => DrawWorldSprite(sprites,
+                        new Rectangle(current.DrawX - 8, current.DrawY - 32, 48, 64),
+                        new Rectangle((Math.Clamp(current.Direction, 0, 3) * 3 + current.AnimationFrame(_renderSeconds)) * 48,
+                            current.Sprite * 64, 48, 64), Color.White)));
+                }
+            }
+            foreach (var command in _worldFrame.Where(c => c.Layer is FnaWorldLayer.Npc or FnaWorldLayer.Player))
+            {
+                var current = command;
+                draws.Add((command.Destination.Bottom - 32, () => DrawWorldSprite(GetTexture(current.TexturePath),
+                    current.Destination, current.Source, current.Tint)));
+            }
+            foreach (var draw in draws.OrderBy(d => d.Y)) draw.Draw();
+        }
+
+        private void DrawActorNames()
+        {
+            if (_scene is null) return;
+            foreach (var actor in _scene.ActorsInDrawOrder())
+            {
+                if (string.IsNullOrEmpty(actor.Name)) continue;
+                int x = Math.Clamp(GameViewport.X + actor.DrawX + 16 - actor.Name.Length * 3,
+                    GameViewport.X, Math.Max(GameViewport.X, GameViewport.Right - actor.Name.Length * 6));
+                int y = Math.Max(GameViewport.Y, GameViewport.Y + actor.DrawY - 42);
+                DrawTinyText(actor.Name, x + 1, y + 1, Color.Black, 1, GameViewport.Right);
+                DrawTinyText(actor.Name, x, y, Color.White, 1, GameViewport.Right);
+            }
+        }
+
+        private void DrawSceneSpells()
+        {
+            if (_scene is null) return;
+            var texture = GetWorldTexture("spells.png", Color.Black);
+            foreach (var spell in _scene.Spells)
+            {
+                int frame = spell.Frame(_renderSeconds);
+                if (spell.Animation < 0 || frame < 0 || frame > 13) continue;
+                DrawWorldSprite(texture, new Rectangle(spell.X * 32, spell.Y * 32, 32, 32),
+                    new Rectangle(frame * 32, spell.Animation * 32, 32, 32), Color.White);
+            }
+        }
+
+        private void DrawWorldSprite(Texture2D? texture, Rectangle destination, Rectangle? source, Color tint)
+        {
+            if (texture is null || _spriteBatch is null) return;
+            if (source is Rectangle rect && (rect.X < 0 || rect.Y < 0 || rect.Right > texture.Width || rect.Bottom > texture.Height)) return;
+            destination.Offset(GameViewport.X, GameViewport.Y);
+            _spriteBatch.Draw(texture, destination, source, tint);
+        }
+
+        private Texture2D? GetWorldTexture(string filename, Color? colorKey)
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "gfx", filename);
+            if (!File.Exists(path)) return null;
+            if (colorKey is null) return GetTexture(path);
+            string cacheKey = path + "#" + colorKey.Value.PackedValue;
+            if (_textures.TryGetValue(cacheKey, out var cached)) return cached;
+            using var stream = File.OpenRead(path);
+            var texture = Texture2D.FromStream(GraphicsDevice, stream);
+            var pixels = new Color[texture.Width * texture.Height];
+            texture.GetData(pixels);
+            var key = colorKey.Value;
+            for (int i = 0; i < pixels.Length; i++)
+                if (pixels[i].R == key.R && pixels[i].G == key.G && pixels[i].B == key.B) pixels[i] = Color.Transparent;
+            texture.SetData(pixels);
+            _textures[cacheKey] = texture;
+            return texture;
+        }
         private void BltMap() => DrawWorldLayer(FnaWorldLayer.MapGround);
         private void BltMask() => DrawWorldLayer(FnaWorldLayer.MapMask);
         private void BltMapItems() => DrawWorldLayer(FnaWorldLayer.MapItem);

@@ -242,6 +242,9 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "SendChatChannel":
                 SendChat(Arg(arguments, 1));
                 break;
+            case "MovePlayer":
+                SendPacket("playermove", IntArg(arguments, 0));
+                break;
             case "SendChat":
                 SendChat(Arg(arguments, 0));
                 break;
@@ -286,6 +289,9 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 break;
             case "WarpTo":
                 SendPacket("WARPTO", Arg(arguments, 0));
+                break;
+            case "WarpToTile":
+                SendPacket("WARPTOTILE", Arg(arguments, 0), Arg(arguments, 1));
                 break;
             case "SetAccess":
                 SendPacket("SETACCESS", Arg(arguments, 0), Arg(arguments, 1));
@@ -361,6 +367,16 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         {
             string player = separator < 0 ? string.Empty : trimmed[(separator + 1)..].Trim();
             SendPacket(command[1..] + "player", player);
+            return;
+        }
+        if (command is "/warpmeto" or "/warptome")
+        {
+            SendPacket(command[1..], separator < 0 ? string.Empty : trimmed[(separator + 1)..].Trim());
+            return;
+        }
+        if (command == "/warpto")
+        {
+            SendPacket("warpto", trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).Cast<object?>().ToArray());
             return;
         }
         SendPacket("saymsg", text);
