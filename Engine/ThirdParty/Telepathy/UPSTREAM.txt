@@ -1,0 +1,3 @@
+https://github.com/MirrorNetworking/Telepathy
+Commit: ce0e3562047784902dd11b806eca6b25c736203a
+Local patch: acquire NetworkStream inside loop try/finally to tolerate disconnect during thread startup.

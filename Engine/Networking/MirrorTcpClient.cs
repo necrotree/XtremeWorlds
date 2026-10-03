@@ -44,11 +44,11 @@ public sealed class MirrorTcpClient : IDisposable
     public event EventHandler? Disconnected;
     public event EventHandler<NetworkDataEventArgs>? DataReceived;
 
-    public bool IsConnected => _connected;
+    public bool IsConnected => _connected && _client.Connected;
 
     public void Connect(string host, int port)
     {
-        if (_connected)
+        if (IsConnected || _client.Connecting)
             return;
         _client.Connect(host, port);
     }
@@ -67,7 +67,7 @@ public sealed class MirrorTcpClient : IDisposable
 
     public void Send(ReadOnlySpan<byte> data)
     {
-        if (!_connected || data.Length == 0)
+        if (!IsConnected || data.Length == 0)
             return;
         _client.Send(new ArraySegment<byte>(data.ToArray()));
     }
