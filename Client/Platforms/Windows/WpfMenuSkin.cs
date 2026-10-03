@@ -21,19 +21,19 @@ internal static class WpfMenuSkin
             {
                 if (form.ControlObject is SW.Window window)
                 {
-                    window.Background = ImageBrush("frmMainMenu/imgBackground.png", SWM.Stretch.UniformToFill);
+                    window.Background = ImageBrush("frmMainMenu/background.png", SWM.Stretch.UniformToFill);
                 }
             });
         });
 
-        RegisterPanel("XtremeWorldsMainButtons", "frmMainMenu/imgMainMenu.png");
-        RegisterPanel("XtremeWorldsBottomButtons", "frmMainMenu/imgBottomButtons.png");
-        RegisterPanel("XtremeWorldsLoginPanel", "frmMainMenu/imgLogin.png");
-        RegisterPanel("XtremeWorldsRegisterPanel", "frmMainMenu/imgRegister.png");
-        RegisterPanel("XtremeWorldsCharactersPanel", "frmMainMenu/imgCharacters.png");
-        RegisterPanel("XtremeWorldsNewCharacterPanel", "frmMainMenu/imgNewChar.png");
-        RegisterPanel("XtremeWorldsClassPanel", "frmMainMenu/imgClassSelection.png");
-        RegisterPanel("XtremeWorldsClassButtons", "frmMainMenu/imgClassButtons.png");
+        RegisterPanel("XtremeWorldsMainButtons", "frmMainMenu/main.png");
+        RegisterPanel("XtremeWorldsBottomButtons", "frmMainMenu/exit.png");
+        RegisterPanel("XtremeWorldsLoginPanel", "frmMainMenu/login.png");
+        RegisterPanel("XtremeWorldsRegisterPanel", "frmMainMenu/register.png");
+        RegisterPanel("XtremeWorldsCharactersPanel", "frmMainMenu/characters.png");
+        RegisterPanel("XtremeWorldsNewCharacterPanel", "frmMainMenu/newchar.png");
+        RegisterPanel("XtremeWorldsClassPanel", "frmMainMenu/classselection.png");
+        RegisterPanel("XtremeWorldsClassButtons", "frmMainMenu/classbuttons.png");
 
         Style.Add<Button>("XtremeWorldsSkinButton", button =>
         {
