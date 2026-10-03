@@ -11,94 +11,165 @@ namespace XtremeWorlds.Client.Forms
         YesNo
     }
 
+    /// <summary>
+    /// TwinBASIC-style alert dialog.
+    /// The original frmAlert background and OK/Yes/No artwork are used as the
+    /// visible controls; the ImageViews themselves are the click targets.
+    /// </summary>
     public class frmAlert : Dialog<DialogResult>
     {
+        private readonly PixelLayout _layout;
+        private readonly AlertButtons _buttons;
+
         public readonly LegacyLabel lblTitle;
         public readonly LegacyTextArea txtMessage;
-        public readonly LegacyButton btnOk;
-        public readonly LegacyButton btnYes;
-        public readonly LegacyButton btnNo;
+        public readonly ImageView imgOk;
+        public readonly ImageView imgYes;
+        public readonly ImageView imgNo;
+        public readonly ImageView imgAlert;
         public readonly LegacyTextBox txtInput;
+
+        // Fallback buttons are only shown when a converted image asset is missing.
+        private readonly LegacyButton _fallbackOk;
+        private readonly LegacyButton _fallbackYes;
+        private readonly LegacyButton _fallbackNo;
 
         public frmAlert(string message, string title = "XtremeWorlds", AlertButtons buttons = AlertButtons.Ok)
         {
-            Title = title;
-            ClientSize = new Size(330, 170);
+            _buttons = buttons;
+
+            Title = string.IsNullOrWhiteSpace(title) ? "XtremeWorlds" : title;
+            Style = "AlertWindow";
+            ClientSize = new Size(262, 128);
             Resizable = false;
+            Maximizable = false;
+            Minimizable = false;
+            ShowInTaskbar = false;
+            WindowStyle = WindowStyle.None;
+
+            _layout = new PixelLayout();
+            Content = _layout;
+
+            // TwinBASIC background image sits behind everything else.
+            imgAlert = new ImageView
+            {
+                Image = LoadAlertImage("imgAlert"),
+                Size = new Size(262, 128)
+            };
+            _layout.Add(imgAlert, 0, 0);
 
             lblTitle = new LegacyLabel
             {
-                Caption = title,
-                Style = "XtremeWorldsSkinLabel"
+                Caption = Title,
+                Style = "XtremeWorldsSkinLabel",
+                Size = new Size(230, 20)
             };
+            _layout.Add(lblTitle, 16, 14);
 
             txtMessage = new LegacyTextArea
             {
                 Text = message ?? string.Empty,
                 Locked = true,
                 Wrap = true,
-                Size = new Size(286, 72)
+                Style = "AlertMessage",
+                Size = new Size(230, 44)
             };
+            _layout.Add(txtMessage, 16, 40);
 
             txtInput = new LegacyTextBox
             {
+                Text = string.Empty,
                 Visible = false,
-                Size = new Size(286, 24)
+                Style = "AlertInput",
+                Size = new Size(230, 24)
             };
+            _layout.Add(txtInput, 16, 76);
 
-            btnOk = new LegacyButton
+            // Original TwinBASIC positions/sizes.
+            imgOk = MakeImageButton("imgOk", new Size(104, 23), (_, _) => Close(DialogResult.Ok));
+            imgYes = MakeImageButton("imgYes", new Size(105, 23), (_, _) => Close(DialogResult.Yes));
+            imgNo = MakeImageButton("imgNo", new Size(109, 28), (_, _) => Close(DialogResult.No));
+
+            _layout.Add(imgOk, 79, 96);
+            _layout.Add(imgYes, 20, 96);
+            _layout.Add(imgNo, 133, 93);
+
+            _fallbackOk = MakeFallbackButton("OK", new Size(104, 23), (_, _) => Close(DialogResult.Ok));
+            _fallbackYes = MakeFallbackButton("Yes", new Size(105, 23), (_, _) => Close(DialogResult.Yes));
+            _fallbackNo = MakeFallbackButton("No", new Size(109, 28), (_, _) => Close(DialogResult.No));
+
+            _layout.Add(_fallbackOk, 79, 96);
+            _layout.Add(_fallbackYes, 20, 96);
+            _layout.Add(_fallbackNo, 133, 93);
+
+            bool okMode = buttons == AlertButtons.Ok;
+            imgOk.Visible = okMode && imgOk.Image is not null;
+            imgYes.Visible = !okMode && imgYes.Image is not null;
+            imgNo.Visible = !okMode && imgNo.Image is not null;
+
+            _fallbackOk.Visible = okMode && imgOk.Image is null;
+            _fallbackYes.Visible = !okMode && imgYes.Image is null;
+            _fallbackNo.Visible = !okMode && imgNo.Image is null;
+
+            KeyDown += HandleKeyDown;
+            Shown += HandleShown;
+        }
+
+        private static Image? LoadAlertImage(string name)
+        {
+            return AssetLoader.LoadImage($"frmAlert/{name}.png")
+                ?? AssetLoader.LoadImage($"frmAlert/{name}.jpg")
+                ?? AssetLoader.LoadImage($"frmAlert/{name}.bmp");
+        }
+
+        private static ImageView MakeImageButton(string assetName, Size size, EventHandler<MouseEventArgs> handler)
+        {
+            var view = new ImageView
             {
-                Caption = "OK",
+                Image = LoadAlertImage(assetName),
+                Size = size
+            };
+            view.MouseDown += handler;
+            return view;
+        }
+
+        private static LegacyButton MakeFallbackButton(string caption, Size size, EventHandler<EventArgs> handler)
+        {
+            var button = new LegacyButton
+            {
+                Caption = caption,
                 Style = "XtremeWorldsSkinButton",
-                Size = new Size(92, 28),
-                Visible = buttons == AlertButtons.Ok
+                Size = size
             };
+            button.Click += handler;
+            return button;
+        }
 
-            btnYes = new LegacyButton
+        private void HandleShown(object? sender, EventArgs e)
+        {
+            if (_buttons == AlertButtons.YesNo)
             {
-                Caption = "Yes",
-                Style = "XtremeWorldsSkinButton",
-                Size = new Size(92, 28),
-                Visible = buttons == AlertButtons.YesNo
-            };
-
-            btnNo = new LegacyButton
+                if (_fallbackNo.Visible)
+                    _fallbackNo.Focus();
+            }
+            else if (_fallbackOk.Visible)
             {
-                Caption = "No",
-                Style = "XtremeWorldsSkinButton",
-                Size = new Size(92, 28),
-                Visible = buttons == AlertButtons.YesNo
-            };
+                _fallbackOk.Focus();
+            }
+        }
 
-            btnOk.Click += (_, _) => Close(DialogResult.Ok);
-            btnYes.Click += (_, _) => Close(DialogResult.Yes);
-            btnNo.Click += (_, _) => Close(DialogResult.No);
-
-            var buttonsRow = new StackLayout
+        private void HandleKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Keys.Enter)
             {
-                Orientation = Orientation.Horizontal,
-                Spacing = 10,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-                Items =
-                {
-                    btnYes,
-                    btnNo,
-                    btnOk
-                }
-            };
-
-            Content = new StackLayout
+                Close(_buttons == AlertButtons.YesNo ? DialogResult.No : DialogResult.Ok);
+                e.Handled = true;
+            }
+            else if (e.Key == Keys.Escape)
             {
-                Padding = new Padding(16),
-                Spacing = 10,
-                Items =
-                {
-                    lblTitle,
-                    txtMessage,
-                    txtInput,
-                    buttonsRow
-                }
-            };
+                Close(_buttons == AlertButtons.YesNo ? DialogResult.No : DialogResult.Cancel);
+                e.Handled = true;
+            }
         }
 
         public static void ShowAlert(Control? parent, string message, string title = "XtremeWorlds")
