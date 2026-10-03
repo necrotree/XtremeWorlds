@@ -63,7 +63,8 @@
             @if (page == "register")
             {
                 <input class="verify" aria-label="Verify password" @bind="verify" type="password" autocomplete="new-password" maxlength="128" required />
-                <div class="register-actions"><button type="submit">Create account</button><button type="button" @onclick="Back">Back</button></div>
+                <button type="submit" class="hotspot register-accept" aria-label="Create account"></button>
+                <button type="button" class="hotspot register-back" aria-label="Back" @onclick="Back"></button>
             }
             else
             {
