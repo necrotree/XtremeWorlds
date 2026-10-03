@@ -13,4 +13,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets\**\*.*" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Core\Assets\frmAlert\**\*.*">
+      <Link>Assets\frmAlert\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
