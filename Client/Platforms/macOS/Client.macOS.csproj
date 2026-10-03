@@ -12,6 +12,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
     <ProjectReference Include="..\..\Core\Client.Common.vbproj" />
+    <ProjectReference Include="..\..\Core\Client.Eto.Core.csproj" />
     <ProjectReference Include="..\..\Engine\Client.Engine.csproj" />
     <PackageReference Include="Eto.Platform.macOS" Version="2.12.0" />
   </ItemGroup>
