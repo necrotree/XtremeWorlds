@@ -17,7 +17,7 @@ namespace XtremeWorlds.Client.Logic
 
     public sealed class GameClassInfo
     {
-        public int MaleSprite { get; set; }
+        public int MaleSprite { get; set;  }
         public int FemaleSprite { get; set; }
         public string Name { get; set; } = string.Empty;
         public int STR { get; set; }

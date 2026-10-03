@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-macos14.0</TargetFramework>
+    <SupportedOSPlatformVersion>14.0</SupportedOSPlatformVersion>
+    <RootNamespace></RootNamespace>
+    <AssemblyName>XtremeWorlds.Client.macOS</AssemblyName>
+    <StartupObject>XtremeWorlds.Client.macOS.Program</StartupObject>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <ProjectReference Include="..\..\Core\Client.Common.vbproj" />
+    <ProjectReference Include="..\..\Engine\Client.Engine.csproj" />
+    <PackageReference Include="Eto.Platform.macOS" Version="2.12.0" />
+  </ItemGroup>
+</Project>

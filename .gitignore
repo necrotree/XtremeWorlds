@@ -431,3 +431,5 @@ FodyWeavers.xsd
 /Server/data
 /Client/data
 /.build
+/data
+/Client/Core/Assets

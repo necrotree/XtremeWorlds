@@ -1,0 +1,13 @@
+This package fixes the duplicate-source ambiguity errors.
+
+If building the Windows server directly, open:
+    src\Server\Server.csproj
+
+The project now disables recursive default Compile discovery and explicitly
+includes only the intended server source files.  A nested src\Server\src
+folder will not compile even if one is accidentally recreated.
+
+Before rebuilding an older extracted copy, you can run:
+    powershell -ExecutionPolicy Bypass -File scripts\clean-duplicate-server-source.ps1
+
+Then delete/reload the old Visual Studio solution cache if needed and rebuild.

@@ -15,34 +15,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Core.csproj" />
-    <ProjectReference Include="..\..\..\Engine\Client.Engine.csproj" />
+    <ProjectReference Include="..\..\Core\Client.Common.vbproj" />
+    <ProjectReference Include="..\..\Engine\Client.Engine.csproj" />
     <PackageReference Include="Eto.Platform.Wpf" Version="2.12.0" />
   </ItemGroup>
 
   <!-- Keep the Eto images embedded in Core, but also copy the actual files to
        the Windows output so the skin never depends on resource-name mangling. -->
   <ItemGroup>
-    <Content Include="..\..\..\Core\Assets\**\*.*">
+    <Content Include="..\..\Core\Assets\**\*.*">
       <Link>Assets\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
-
-  <!-- Legacy XtremeWorlds game graphics and music. Keep these as loose files
-       because FNA loads them at runtime from AppContext.BaseDirectory. -->
-  <ItemGroup>
-    <Content Include="..\..\Assets\gfx\**\*.*">
-      <Link>gfx\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="..\..\Assets\music\**\*.*">
-      <Link>music\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
 </Project>
-

@@ -23,6 +23,7 @@ public sealed class EtoServerForm : Form
     private readonly TextBox _online = EtoServerSkin.TextBox(true);
     private ServerHost? _host;
     private CancellationTokenSource? _cts;
+    private Task? _runTask;
     private List<PlayerSessionInfo> _sessions = new();
 
     public EtoServerForm(ServerSettings settings)
@@ -32,7 +33,7 @@ public sealed class EtoServerForm : Form
         ClientSize = new Size(780, 420);
         BackgroundColor = EtoServerSkin.Window;
         _port.Text = settings.Port.ToString();
-        _ip.Text = "0.0.0.0";
+        _ip.Text = "Detecting...";
         _online.Text = "0";
 
         Menu = BuildMenu();
@@ -47,7 +48,11 @@ public sealed class EtoServerForm : Form
         };
 
         InstallPlayerMenu();
-        Shown += async (_, _) => await StartAsync();
+        Shown += async (_, _) =>
+        {
+            await StartAsync();
+            await RefreshPublicIpAsync();
+        };
         Closed += (_, _) => Stop();
     }
 
@@ -60,7 +65,7 @@ public sealed class EtoServerForm : Form
 
         var database = new ButtonMenuItem { Text = "Database" };
         var scripts = new ButtonMenuItem { Text = "Script Editor..." };
-        scripts.Click += (_, _) => new EtoScriptEditorForm().Show(this);
+        scripts.Click += (_, _) => new EtoScriptEditorForm().Show();
         var classes = new ButtonMenuItem { Text = "Reload Classes" };
         classes.Click += (_, _) => AppendLog("All classes reloaded.");
         var reload = new ButtonMenuItem { Text = "Reload Scripts" };
@@ -122,21 +127,31 @@ public sealed class EtoServerForm : Form
 
     private void InstallPlayerMenu()
     {
-        var warn = new ButtonMenuItem { Text = "Warn" };
-        warn.Click += (_, _) => { var p = Selected(); if (p is not null) _host?.WarnPlayer(p.ConnectionId, "You have been warned by the Server!"); };
+        var access = new ButtonMenuItem { Text = "Access" };
+        for (byte n = 0; n <= 9; n++)
+        {
+            byte level = n;
+            var item = new ButtonMenuItem { Text = level.ToString() };
+            item.Click += async (_, _) =>
+            {
+                var p = Selected();
+                if (p is not null && _host is not null)
+                    await _host.SetPlayerAccessAsync(p.ConnectionId, level);
+            };
+            access.Items.Add(item);
+        }
+
         var kick = new ButtonMenuItem { Text = "Kick" };
         kick.Click += (_, _) => { var p = Selected(); if (p is not null) _host?.KickPlayer(p.ConnectionId); };
         var ban = new ButtonMenuItem { Text = "Ban" };
         ban.Click += async (_, _) => { var p = Selected(); if (p is not null && _host is not null) await _host.BanPlayerAsync(p.ConnectionId); };
-        var access = new ButtonMenuItem { Text = "Set Access" };
-        for (byte n = 0; n <= 4; n++)
-        {
-            byte level = n;
-            var item = new ButtonMenuItem { Text = $"Access {level}" };
-            item.Click += async (_, _) => { var p = Selected(); if (p is not null && _host is not null) await _host.SetPlayerAccessAsync(p.ConnectionId, level); };
-            access.Items.Add(item);
-        }
-        _players.ContextMenu = new ContextMenu { Items = { warn, kick, ban, new SeparatorMenuItem(), access } };
+        _players.ContextMenu = new ContextMenu { Items = { access, kick, ban } };
+    }
+
+    private async Task RefreshPublicIpAsync()
+    {
+        string address = await PublicIpResolver.ResolveAsync();
+        Application.Instance.AsyncInvoke(() => _ip.Text = address);
     }
 
     private PlayerSessionInfo? Selected() => _players.SelectedIndex >= 0 && _players.SelectedIndex < _sessions.Count ? _sessions[_players.SelectedIndex] : null;
@@ -149,7 +164,7 @@ public sealed class EtoServerForm : Form
         _host.PlayerCountChanged += n => Application.Instance.AsyncInvoke(() => _online.Text = n.ToString());
         _host.SessionsChanged += () => Application.Instance.AsyncInvoke(RefreshSessions);
         _host.BugReportReceived += b => Application.Instance.AsyncInvoke(() => AddBug(b));
-        _ = Task.Run(async () =>
+        _runTask = Task.Run(async () =>
         {
             try { await _host.RunAsync(_cts.Token).ConfigureAwait(false); }
             catch (OperationCanceledException) { }

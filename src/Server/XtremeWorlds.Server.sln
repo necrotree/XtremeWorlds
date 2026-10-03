@@ -1,0 +1,48 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.0.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Common", "src\Server\Server.Common.csproj", "{E8C97FD2-A0EA-4BE7-9BE2-111111111111}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.Windows", "Platforms\Windows\Server.Windows.csproj", "{E8C97FD2-A0EA-4BE7-9BE2-222222222222}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.GTK", "Platforms\GTK\Server.GTK.csproj", "{E8C97FD2-A0EA-4BE7-9BE2-333333333333}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server.macOS", "Platforms\macOS\Server.macOS.csproj", "{E8C97FD2-A0EA-4BE7-9BE2-444444444444}"
+EndProject
+Global
+ GlobalSection(SolutionConfigurationPlatforms) = preSolution
+  Debug|Windows = Debug|Windows
+  Release|Windows = Release|Windows
+  Debug|GTK = Debug|GTK
+  Release|GTK = Release|GTK
+  Debug|macOS = Debug|macOS
+  Release|macOS = Release|macOS
+ EndGlobalSection
+ GlobalSection(ProjectConfigurationPlatforms) = postSolution
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Debug|Windows.ActiveCfg = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Debug|Windows.Build.0 = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Release|Windows.ActiveCfg = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Release|Windows.Build.0 = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-222222222222}.Debug|Windows.ActiveCfg = Debug|x64
+  {E8C97FD2-A0EA-4BE7-9BE2-222222222222}.Debug|Windows.Build.0 = Debug|x64
+  {E8C97FD2-A0EA-4BE7-9BE2-222222222222}.Release|Windows.ActiveCfg = Release|x64
+  {E8C97FD2-A0EA-4BE7-9BE2-222222222222}.Release|Windows.Build.0 = Release|x64
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Debug|GTK.ActiveCfg = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Debug|GTK.Build.0 = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-333333333333}.Debug|GTK.ActiveCfg = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-333333333333}.Debug|GTK.Build.0 = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Release|GTK.ActiveCfg = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Release|GTK.Build.0 = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-333333333333}.Release|GTK.ActiveCfg = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-333333333333}.Release|GTK.Build.0 = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Debug|macOS.ActiveCfg = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Debug|macOS.Build.0 = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-444444444444}.Debug|macOS.ActiveCfg = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-444444444444}.Debug|macOS.Build.0 = Debug|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Release|macOS.ActiveCfg = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-111111111111}.Release|macOS.Build.0 = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-444444444444}.Release|macOS.ActiveCfg = Release|Any CPU
+  {E8C97FD2-A0EA-4BE7-9BE2-444444444444}.Release|macOS.Build.0 = Release|Any CPU
+ EndGlobalSection
+EndGlobal

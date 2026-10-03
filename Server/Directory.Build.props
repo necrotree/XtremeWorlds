@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+    <BuildProjectReferences>true</BuildProjectReferences>
+  </PropertyGroup>
+</Project>

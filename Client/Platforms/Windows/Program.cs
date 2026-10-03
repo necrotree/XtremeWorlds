@@ -24,7 +24,7 @@ internal static class Program
         // setting and can be changed at runtime with Themes.Light/Themes.Dark.
         app.Theme = Themes.System;
 
-        using var runtime = new EngineGameClientRuntime();
+        var runtime = new EngineGameClientRuntime();
         GameClientRuntime.Current = runtime;
         app.Run(new frmMainMenu(runtime));
     }

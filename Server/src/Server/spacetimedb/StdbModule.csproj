@@ -4,6 +4,10 @@
     <RuntimeIdentifier>wasi-wasm</RuntimeIdentifier>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- .NET 10 WASI/NativeAOT can surface MSB3277 for the framework's own
+         Microsoft.VisualBasic facade/runtime pair. They resolve to the same
+         framework assembly; keep that SDK diagnostic out of the warning list. -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(TargetFramework.StartsWith('net10.')) Or '$(EXPERIMENTAL_WASM_AOT)' == '1'">

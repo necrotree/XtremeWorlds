@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <DefaultItemExcludes>
+      $(DefaultItemExcludes);
+      $(MSBuildThisFileDirectory)src\**;
+      $(MSBuildThisFileDirectory)**\*.vb;
+      $(MSBuildThisFileDirectory)**\bin\**;
+      $(MSBuildThisFileDirectory)**\obj\**
+    </DefaultItemExcludes>
+  </PropertyGroup>
+</Project>
