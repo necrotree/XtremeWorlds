@@ -539,11 +539,11 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                             Exit Sub
                         End If
                         Call SetPlayerArmorSlot(Index, InvNum)
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_ARMOR & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_ARMOR & ", " & ItemNum
                         
                     Else
                         Call SetPlayerArmorSlot(Index, 0)
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_ARMOR & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_ARMOR & ", " & ItemNum
                     End If
                     Call SendWornEquipment(Index)
 
@@ -558,13 +558,13 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                             Exit Sub
                         End If
                         
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_WEAPON & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_WEAPON & ", " & ItemNum
                         Call SetPlayerWeaponSlot(Index, InvNum)
  
                         
                     Else
                         Call SetPlayerWeaponSlot(Index, 0)
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_WEAPON & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_WEAPON & ", " & ItemNum
                     End If
                     Call SendWornEquipment(Index)
 
@@ -579,23 +579,23 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                             Exit Sub
                         End If
                         
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_HELMET & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_HELMET & ", " & ItemNum
                         Call SetPlayerHelmetSlot(Index, InvNum)
 
                     Else
                         Call SetPlayerHelmetSlot(Index, 0)
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_HELMET & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_HELMET & ", " & ItemNum
                     End If
                     Call SendWornEquipment(Index)
 
                 Case ITEM_TYPE_SHIELD
                     If InvNum <> GetPlayerShieldSlot(Index) Then
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_SHIELD & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_SHIELD & ", " & ItemNum
                         Call SetPlayerShieldSlot(Index, InvNum)
 
                     Else
                         Call SetPlayerShieldSlot(Index, 0)
-                        MyScript.ExecuteStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_SHIELD & ", " & ItemNum
+                        MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUnEquipItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_SHIELD & ", " & ItemNum
 
                     End If
                     Call SendWornEquipment(Index)
@@ -603,43 +603,43 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                 Case ITEM_TYPE_POTIONADDHP
                     Call SetPlayerHP(Index, GetPlayerHP(Index) + Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONADDHP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONADDHP & ", " & ItemNum
                     Call SendHP(Index)
 
                 Case ITEM_TYPE_POTIONADDMP
                     Call SetPlayerMP(Index, GetPlayerMP(Index) + Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONADDMP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONADDMP & ", " & ItemNum
                     Call SendMP(Index)
 
                 Case ITEM_TYPE_POTIONADDSP
                     Call SetPlayerSP(Index, GetPlayerSP(Index) + Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONADDSP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONADDSP & ", " & ItemNum
                     Call SendSP(Index)
 
                 Case ITEM_TYPE_POTIONSUBHP
                     Call SetPlayerHP(Index, GetPlayerHP(Index) - Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBHP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBHP & ", " & ItemNum
                     Call SendHP(Index)
 
                 Case ITEM_TYPE_POTIONSUBMP
                     Call SetPlayerMP(Index, GetPlayerMP(Index) - Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBMP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBMP & ", " & ItemNum
                     Call SendMP(Index)
 
                 Case ITEM_TYPE_POTIONSUBSP
                     Call SetPlayerSP(Index, GetPlayerSP(Index) - Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBSP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBSP & ", " & ItemNum
                     Call SendSP(Index)
 
                 Case ITEM_TYPE_WARP
                     Call PlayerWarp(Index, Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1, Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data2, Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data3)
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
-                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_WARP & ", " & ItemNum
+                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_WARP & ", " & ItemNum
 
                 Case ITEM_TYPE_KEY
                     Select Case GetPlayerDir(Index)
@@ -685,7 +685,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
                             Call SendDataToMap(GetPlayerMap(Index), "MAPKEY" & SEP_CHAR & X & SEP_CHAR & y & SEP_CHAR & 1 & END_CHAR)
                             Call MapMsg(GetPlayerMap(Index), "A door has been unlocked.", White)
-                            MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_KEY & ", " & ItemNum
+                            MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_KEY & ", " & ItemNum
 
                             ' Check if we are supposed to take away the item
                             If Map(GetPlayerMap(Index)).Tile(X, y).Data2 = 1 Then
@@ -719,7 +719,7 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
                                         Call TakeItem(Index, GetPlayerInvItemNum(Index, InvNum), 0)
                                         Call PlayerMsg(Index, "You have already learned this spell!  The spells crumbles into dust.", BrightRed)
                                     End If
-                                    MyScript.ExecuteStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_SPELL & ", " & ItemNum
+                                    MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_SPELL & ", " & ItemNum
                                 Else
                                     Call PlayerMsg(Index, "You have learned all that you can learn!", BrightRed)
                                 End If
