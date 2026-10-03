@@ -3,6 +3,7 @@ using Client.Blazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<BrowserGameSession>();
+builder.Services.AddScoped<BrowserFnaRenderer>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

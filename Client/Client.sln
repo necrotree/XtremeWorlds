@@ -1,6 +1,7 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.10.12224.181 stable
+VisualStudioVersion = 18.10.12224.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Common", "Core\Client.Common.csproj", "{7842CE10-97C2-1290-3D6B-1CF68567C9A9}"
 EndProject
@@ -11,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.macOS", "Platforms\macOS\Client.macOS.csproj", "{10A795DB-31E8-0AAD-2CDA-F76C73B94E77}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Engine", "Engine\Client.Engine.csproj", "{C3D0B413-A57A-4E59-A938-33B251F92A77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Blazor", "Blazor\Client.Blazor.csproj", "{40427B2E-CBFB-CA39-40C7-0F8BD494E134}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +63,14 @@ Global
 		{C3D0B413-A57A-4E59-A938-33B251F92A77}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3D0B413-A57A-4E59-A938-33B251F92A77}.Release|x64.ActiveCfg = Release|Any CPU
 		{C3D0B413-A57A-4E59-A938-33B251F92A77}.Release|x64.Build.0 = Release|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Debug|x64.Build.0 = Debug|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Release|x64.ActiveCfg = Release|Any CPU
+		{40427B2E-CBFB-CA39-40C7-0F8BD494E134}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

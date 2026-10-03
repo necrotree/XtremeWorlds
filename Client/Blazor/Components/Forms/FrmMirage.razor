@@ -1,0 +1,62 @@
+@implements IAsyncDisposable
+@inject Client.Blazor.Services.BrowserGameSession Session
+@inject IJSRuntime JS
+
+<PageTitle>XtremeWorlds — frmMirage</PageTitle>
+<section class="mirage" aria-label="Game window">
+    <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus; type to chat and press Enter to send."></canvas>
+    <p role="status">@Session.Status</p>
+    <button @onclick="Session.Disconnect">Return to main menu</button>
+</section>
+
+@code {
+    private ElementReference canvas;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<FrmMirage>? reference;
+    private readonly CancellationTokenSource cancellation = new();
+    private Task? polling;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        module = await JS.InvokeAsync<IJSObjectReference>("import", "./game-stream.js");
+        reference = DotNetObjectReference.Create(this);
+        await module.InvokeVoidAsync("attach", canvas, reference);
+        polling = PollAsync();
+    }
+    [JSInvokable] public void Click(int x, int y) => Session.Renderer.Click(x, y);
+    [JSInvokable] public void Key(string key) => Session.Renderer.Key(key);
+    private async Task PollAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
+        byte[]? previous = null;
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellation.Token))
+                await InvokeAsync(async () =>
+                {
+                    Session.Poll();
+                    var frame = Session.Renderer.Frame;
+                    if (frame is not null && !ReferenceEquals(frame, previous))
+                    {
+                        previous = frame;
+                        await module!.InvokeVoidAsync("draw", canvas, frame);
+                    }
+                    StateHasChanged();
+                });
+        }
+        catch (OperationCanceledException) { }
+        catch (JSDisconnectedException) { }
+    }
+    public async ValueTask DisposeAsync()
+    {
+        await cancellation.CancelAsync();
+        if (polling is not null) await polling;
+        if (module is not null)
+        {
+            try { await module.InvokeVoidAsync("detach", canvas); await module.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+        reference?.Dispose();
+        cancellation.Dispose();
+    }
+}

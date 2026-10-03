@@ -1,0 +1,6 @@
+main { width: min(950px, 100%); min-height: 700px; box-sizing: border-box; margin: 0 auto; display: flex; flex-direction: column; align-items: center; background: url('/assets/frmMainMenu/background.png') center / cover; }
+.menu-logo { max-width: 90%; height: auto; margin-top: 40px; }
+.menu-choices { display: grid; gap: 20px; margin: auto; min-width: 220px; text-align: center; }
+.menu-choices a { color: inherit; }
+form { width: min(320px, 100%); }
+h1 { font-size: 2rem; }

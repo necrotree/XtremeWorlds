@@ -3,13 +3,16 @@ using XtremeWorlds.Client.Engine.Networking;
 
 namespace Client.Blazor.Services;
 
-// Each browser circuit owns a transport without initializing desktop graphics/audio.
-public sealed class BrowserGameSession(IConfiguration configuration) : IDisposable
+// Each circuit owns its transport and leases the host's native FNA renderer.
+public sealed class BrowserGameSession(IConfiguration configuration, BrowserFnaRenderer renderer) : IDisposable
 {
     private readonly MirrorTcpClient network = new();
     public string Status { get; private set; } = "Disconnected";
     public string[] Characters { get; private set; } = [];
     public bool Connected => network.IsConnected;
+    public bool InGame { get; private set; }
+    public BrowserFnaRenderer Renderer => renderer;
+    public event Action? Changed;
 
     public void Authenticate(string username, string password, bool register)
     {
@@ -42,6 +45,7 @@ public sealed class BrowserGameSession(IConfiguration configuration) : IDisposab
         while (network.TryDequeue(out var packet))
         {
             var fields = PacketCodec.Parse(Encoding.UTF8.GetString(packet));
+            if (fields.Count == 0) continue;
             switch (fields[0].ToLowerInvariant())
             {
                 case "alertmsg":
@@ -57,10 +61,44 @@ public sealed class BrowserGameSession(IConfiguration configuration) : IDisposab
                     Status = "Choose a character.";
                     break;
                 case "ingame":
-                    Status = "Character entered the world. Game rendering is currently available in the Windows client.";
+                    InGame = renderer.Start();
+                    Status = InGame ? "Starting the game renderer..." : renderer.Failure ?? "Unable to start the renderer.";
+                    if (!InGame) network.Disconnect();
+                    Changed?.Invoke();
+                    break;
+                case "playerdata":
+                    if (fields.Count >= 3 && int.TryParse(fields[2], out var level)) renderer.Character(fields[1], level);
+                    break;
+                case "saymsg":
+                case "globalmsg":
+                case "broadcastmsg":
+                case "guildmsg":
+                case "playermsg":
+                    if (fields.Count > 1) renderer.Chat(fields[0], fields[1]);
                     break;
             }
         }
+        renderer.Update();
+        while (renderer.TryAction(out var action))
+        {
+            switch (action.Action)
+            {
+                case "Logout": Disconnect(); break;
+                case "SendChatChannel": network.SendText(PacketCodec.Build("saymsg", action.Args[1])); break;
+                case "UseInventoryItem": network.SendText(PacketCodec.Build("useitem", (int)action.Args[0] + 1)); break;
+                case "CastSpell": network.SendText(PacketCodec.Build("cast", (int)action.Args[0] + 1)); break;
+                case "TrainStat": network.SendText(PacketCodec.Build("usestatpoint", (int)action.Args[0])); break;
+                case "ShowOptions": Status = "Use your browser's zoom and display settings."; break;
+                case "OpenWebsite": Status = "Website: https://www.xtremeworlds.com"; break;
+            }
+        }
+        if (InGame && (renderer.Failure is not null || !Connected))
+        {
+            var error = renderer.Failure ?? "The game server disconnected.";
+            Disconnect();
+            Status = error;
+        }
+        else if (InGame && renderer.Frame is not null && Status == "Starting the game renderer...") Status = "Connected";
         if (!Connected && Status == "Waiting for the game server…") Status = "The game server disconnected.";
     }
 
@@ -73,10 +111,14 @@ public sealed class BrowserGameSession(IConfiguration configuration) : IDisposab
 
     public void Disconnect()
     {
+        InGame = false;
+        renderer.Stop();
         network.Disconnect();
+        while (network.TryDequeue(out _)) { }
         Characters = [];
         Status = "Disconnected";
+        Changed?.Invoke();
     }
 
-    public void Dispose() => network.Dispose();
+    public void Dispose() { renderer.Stop(); network.Dispose(); }
 }
