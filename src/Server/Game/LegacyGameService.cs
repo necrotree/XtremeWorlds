@@ -49,6 +49,23 @@ namespace Server
                         _network.SendText(id, PacketCodec.Compose("gamesite", _settings.Website));
                         break;
                     }
+                case "getgamemaxes":
+                    {
+                        _network.SendText(id, PacketCodec.Compose("gamemaxes",
+                            _settings.MaxMaps,
+                            _settings.MaxItems,
+                            _settings.MaxShops,
+                            _settings.MaxSpells,
+                            _settings.MaxSigns,
+                            _settings.MaxNpcs,
+                            _settings.MaxGuilds,
+                            _settings.MaxGuildMembers,
+                            _settings.MaxQuests,
+                            _settings.MaxArrows,
+                            _settings.MaxClasses,
+                            _settings.MaxQuestPlayers));
+                        break;
+                    }
                 case "hdserial":
                     {
                         if (_sessions.TryGetValue(id, out PlayerSession? session) && session is not null && p.Length > 1)
