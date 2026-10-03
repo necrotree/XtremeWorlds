@@ -428,3 +428,5 @@ FodyWeavers.xsd
 #*.lscache
 /build
 /Engine/.dotnet
+/Server/data
+/Client/data
