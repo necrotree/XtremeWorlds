@@ -35,7 +35,7 @@ Sub InitServer()
     MyScript.SControl.AddObject "ScriptHardCode", clsScriptCommands, True
 
     ' Set the Important Data
-    MyScript.ExecuteStatement "\scripts\Main.as", "ServerSet"
+    MyScript.ExecuteScriptStatement "\scripts\Main.as", "ServerSet"
 
     Set GameServer = New clsServer
 
