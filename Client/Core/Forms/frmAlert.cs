@@ -1,70 +1,119 @@
-﻿using System;
+using System;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
 
 namespace XtremeWorlds.Client.Forms
 {
-    public class frmAlert : Form
+    public enum AlertButtons
     {
+        Ok,
+        YesNo
+    }
 
+    public class frmAlert : Dialog<DialogResult>
+    {
         public readonly LegacyLabel lblTitle;
         public readonly LegacyTextArea txtMessage;
-        public readonly ImageView imgOk;
-        public readonly ImageView imgYes;
-        public readonly ImageView imgNo;
-        public readonly ImageView imgAlert;
+        public readonly LegacyButton btnOk;
+        public readonly LegacyButton btnYes;
+        public readonly LegacyButton btnNo;
         public readonly LegacyTextBox txtInput;
 
-        public frmAlert()
+        public frmAlert(string message, string title = "XtremeWorlds", AlertButtons buttons = AlertButtons.Ok)
         {
-            Title = "Message";
-            ClientSize = new Size(262, 128);
-            var rootLayout = new PixelLayout();
-            Content = rootLayout;
+            Title = title;
+            ClientSize = new Size(330, 170);
+            Resizable = false;
 
-            lblTitle = new LegacyLabel();
-            lblTitle.Caption = "";
-            lblTitle.Size = new Size(230, 20);
-            rootLayout.Add(lblTitle, 16, 14);
+            lblTitle = new LegacyLabel
+            {
+                Caption = title,
+                Style = "XtremeWorldsSkinLabel"
+            };
 
-            txtMessage = new LegacyTextArea();
-            txtMessage.Text = "";
-            txtMessage.Locked = true;
-            txtMessage.Size = new Size(230, 44);
-            rootLayout.Add(txtMessage, 16, 40);
+            txtMessage = new LegacyTextArea
+            {
+                Text = message ?? string.Empty,
+                Locked = true,
+                Wrap = true,
+                Size = new Size(286, 72)
+            };
 
-            imgOk = new ImageView();
-            imgOk.Visible = false;
-            imgOk.Size = new Size(102, 24);
-            rootLayout.Add(imgOk, 0, 0);
+            txtInput = new LegacyTextBox
+            {
+                Visible = false,
+                Size = new Size(286, 24)
+            };
 
-            imgYes = new ImageView();
-            imgYes.Visible = false;
-            imgYes.Size = new Size(102, 24);
-            rootLayout.Add(imgYes, 0, 0);
+            btnOk = new LegacyButton
+            {
+                Caption = "OK",
+                Style = "XtremeWorldsSkinButton",
+                Size = new Size(92, 28),
+                Visible = buttons == AlertButtons.Ok
+            };
 
-            imgNo = new ImageView();
-            imgNo.Visible = false;
-            imgNo.Size = new Size(102, 24);
-            rootLayout.Add(imgNo, 0, 0);
+            btnYes = new LegacyButton
+            {
+                Caption = "Yes",
+                Style = "XtremeWorldsSkinButton",
+                Size = new Size(92, 28),
+                Visible = buttons == AlertButtons.YesNo
+            };
 
-            imgAlert = new ImageView();
-            imgAlert.Size = new Size(262, 128);
-            rootLayout.Add(imgAlert, 0, 0);
+            btnNo = new LegacyButton
+            {
+                Caption = "No",
+                Style = "XtremeWorldsSkinButton",
+                Size = new Size(92, 28),
+                Visible = buttons == AlertButtons.YesNo
+            };
 
-            txtInput = new LegacyTextBox();
-            txtInput.Text = "";
-            txtInput.Visible = false;
-            txtInput.Size = new Size(230, 24);
-            rootLayout.Add(txtInput, 16, 76);
+            btnOk.Click += (_, _) => Close(DialogResult.Ok);
+            btnYes.Click += (_, _) => Close(DialogResult.Yes);
+            btnNo.Click += (_, _) => Close(DialogResult.No);
 
-            Shown += OnFormShown;
+            var buttonsRow = new StackLayout
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 10,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                Items =
+                {
+                    btnYes,
+                    btnNo,
+                    btnOk
+                }
+            };
+
+            Content = new StackLayout
+            {
+                Padding = new Padding(16),
+                Spacing = 10,
+                Items =
+                {
+                    lblTitle,
+                    txtMessage,
+                    txtInput,
+                    buttonsRow
+                }
+            };
         }
 
-        protected virtual void OnFormShown(object sender, EventArgs e)
+        public static void ShowAlert(Control? parent, string message, string title = "XtremeWorlds")
         {
-            // Hook point for migrated Form_Load logic.
+            var dialog = new frmAlert(message, title, AlertButtons.Ok);
+            if (parent is null)
+                dialog.ShowModal();
+            else
+                dialog.ShowModal(parent);
+        }
+
+        public static DialogResult ShowConfirm(Control? parent, string message, string title = "XtremeWorlds")
+        {
+            var dialog = new frmAlert(message, title, AlertButtons.YesNo);
+            return parent is null ? dialog.ShowModal() : dialog.ShowModal(parent);
         }
     }
 }
