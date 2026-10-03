@@ -273,10 +273,24 @@ Private Function RunCodeReturn(sModule As String, sCode As String, ParamArray ab
         RunCodeReturn = bTemp
 End Function
 
-Public Function ExecuteStatement(sModule As String, sCode As String)
-    On Error Resume Next
+Public Sub ExecuteScriptStatement(ByVal sModule As String, ByVal sCode As String)
+    Dim scriptModule As Object
 
-    SControl.Modules(sModule).ExecuteStatement sCode
-End Function
+    On Error GoTo ScriptError
+
+    Set scriptModule = SControl.Modules(sModule)
+    scriptModule.ExecuteStatement sCode
+    Exit Sub
+
+ScriptError:
+    Err.Raise Err.Number, "MyScript.ExecuteStatement", Err.Description
+End Sub
+
+' Keep the original public name for compatibility with older server code.
+' The actual ScriptControl call lives in ExecuteScriptStatement so twinBASIC
+' cannot confuse this wrapper with the COM module's ExecuteStatement method.
+Public Sub ExecuteStatement(ByVal sModule As String, ByVal sCode As String)
+    ExecuteScriptStatement sModule, sCode
+End Sub
 
 
