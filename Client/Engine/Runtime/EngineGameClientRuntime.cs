@@ -20,6 +20,7 @@ namespace XtremeWorlds.Client.Engine.Runtime;
 public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 {
     private readonly MirrorTcpClient _network = new();
+    private readonly UITimer _networkTimer = new() { Interval = 0.02 };
     private readonly FnaAudioService _audio = new();
     private readonly FnaGraphicsService _graphics = new();
     private readonly List<GameClassInfo> _classes = new();
@@ -34,6 +35,12 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _network.DataReceived += OnNetworkData;
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
         _network.Disconnected += (_, _) => Request("Disconnected");
+
+        // Telepathy queues received messages until Tick() runs. Pump continuously
+        // while the menu is active so a response to Register cannot sit queued
+        // until the next Login click and appear to be a login response.
+        _networkTimer.Elapsed += (_, _) => _network.Tick();
+
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
 
         // Preserve the five current menu choices until the server sends class data.
@@ -53,6 +60,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     public void InitializeMenu()
     {
+        _networkTimer.Start();
         Request("InitializeMenu");
         // FNA/FAudio accepts WAV/OGG; keep startup silent when no menu track exists.
         var menuMusic = System.IO.Path.Combine(AppContext.BaseDirectory, "music", "menu.ogg");
@@ -310,6 +318,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 Ui(() => frmAlert.ShowAlert(Application.Instance?.MainForm, Field(fields, 1), "XtremeWorlds"));
                 break;
             case "allchars":
+            case "chars":
                 HandleAllCharacters(fields);
                 break;
             case "newcharclasses":
@@ -330,20 +339,27 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         Ui(() =>
         {
             if (Application.Instance?.MainForm is not frmMainMenu menu) return;
+
             menu.lstChars.Items.Clear();
-            var offset = 1;
+
+            bool namesOnly = string.Equals(Field(fields, 0), "chars", StringComparison.OrdinalIgnoreCase);
+            int offset = 1;
+
             for (var slot = 0; slot < 3; slot++)
             {
                 var name = Field(fields, offset);
-                var className = Field(fields, offset + 1);
-                var level = IntField(fields, offset + 2);
-                var sprite = IntField(fields, offset + 3);
+                var className = namesOnly ? string.Empty : Field(fields, offset + 1);
+                var level = namesOnly ? 0 : IntField(fields, offset + 2);
+                var sprite = namesOnly ? 0 : IntField(fields, offset + 3);
+
                 menu.SetCharacterSlot(slot, name, sprite);
                 menu.lstChars.Items.Add(string.IsNullOrWhiteSpace(name)
                     ? "Free Character Slot"
-                    : $"{name} a level {level} {className}");
-                offset += 4;
+                    : namesOnly ? name : $"{name} a level {level} {className}");
+
+                offset += namesOnly ? 1 : 4;
             }
+
             menu.lstChars.SelectedIndex = 0;
             menu.SelectCharacterSlot(0);
             menu.ShowCharacters();
@@ -438,6 +454,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _networkTimer.Stop();
         _graphics.Dispose();
         _audio.Dispose();
         _network.Dispose();
