@@ -4098,6 +4098,7 @@ End Sub
         Dim Bounds As RECT, Source As RECT
         Dim InventoryBackground As clsDX11Surface
         Dim Cell As Long, Slot As Long, ItemNum As Long, X As Long, Y As Long
+        Dim SlotX As Long, SlotY As Long
         If DD_ItemSurf Is Nothing Then Exit Sub
         Set InventoryBackground = InventoryBackgroundPicture()
         If InventoryBackground Is Nothing Then Exit Sub
@@ -4118,14 +4119,37 @@ End Sub
                 End If
             End If
         Next Cell
+
         picInv.Cls
         InventoryCanvas.BltToDC picInv.hDC, Bounds, Bounds
+
+        ' Draw a gray outline around every occupied inventory slot.
+        For Cell = 0 To 34
+            Slot = InventoryPage * 35 + Cell + 1
+            If Slot <= MAX_INV Then
+                ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    SlotX = 23 + (Cell Mod 5) * 45
+                    SlotY = 27 + (Cell \ 5) * 45
+                    picInv.Line (SlotX, SlotY)-(SlotX + 37, SlotY + 37), RGB(128, 128, 128), B
+                End If
+            End If
+        Next Cell
+
+        ' Replace the gray outline with yellow for the selected occupied slot.
         Cell = lstInv.ListIndex - InventoryPage * 35
         If Cell >= 0 And Cell < 35 Then
-            X = 23 + (Cell Mod 5) * 45
-            Y = 27 + (Cell \ 5) * 45
-            picInv.Line (X, Y)-(X + 37, Y + 37), RGB(255, 230, 120), B
+            Slot = InventoryPage * 35 + Cell + 1
+            If Slot <= MAX_INV Then
+                ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    X = 23 + (Cell Mod 5) * 45
+                    Y = 27 + (Cell \ 5) * 45
+                    picInv.Line (X, Y)-(X + 37, Y + 37), RGB(255, 230, 120), B
+                End If
+            End If
         End If
+
         lblInventoryPage.Caption = CStr(InventoryPage + 1) & "/" & CStr((MAX_INV + 34) \ 35)
         picInv.Refresh
     End Sub
@@ -4146,7 +4170,10 @@ End Sub
         Dim Slot As Long
         Slot = InventorySlotAt(X, Y)
         InventoryClickedSlot = Slot
-        If Button = vbLeftButton And Slot > 0 Then lstInv.ListIndex = Slot - 1
+        If Button = vbLeftButton And Slot > 0 Then
+            lstInv.ListIndex = Slot - 1
+            DrawInventoryGrid
+        End If
     End Sub
 
     Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
