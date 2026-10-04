@@ -399,7 +399,29 @@ Public Sub BltPlayerTop(ByVal index As Long)
 End Sub
 
 Public Sub SpellEditorBltAnim(ByVal Frame As Byte)
-    Call BitBlt(frmSpellEditor.picAnim.hDC, 0, 0, PIC_X, PIC_Y, frmSpellEditor.picSpells.hDC, Frame * PIC_X, frmSpellEditor.scrlAnim.Value * PIC_Y, SRCCOPY)
+    Dim Source As RECT
+    Dim Destination As RECT
+
+    If DD_SpellSurf Is Nothing Then Exit Sub
+
+    If Frame > 13 Then Frame = 0
+
+    Source.Left = CLng(Frame) * PIC_X
+    Source.Top = CLng(frmSpellEditor.scrlAnim.Value) * PIC_Y
+    Source.Right = Source.Left + PIC_X
+    Source.Bottom = Source.Top + PIC_Y
+
+    If Source.Right > DD_SpellSurf.Width Then Exit Sub
+    If Source.Bottom > DD_SpellSurf.Height Then Exit Sub
+
+    Destination.Left = 0
+    Destination.Top = 0
+    Destination.Right = PIC_X
+    Destination.Bottom = PIC_Y
+
+    frmSpellEditor.picAnim.Cls
+    DD_SpellSurf.BltToDC frmSpellEditor.picAnim.hDC, Source, Destination
+    frmSpellEditor.picAnim.Refresh
 End Sub
 
 Sub BltSpell(ByVal VicX As Long, ByVal VicY As Long, ByVal SpellAnim As Byte)
