@@ -22,6 +22,8 @@ Private mStarted As Boolean
 Private mPolling As Boolean
 Private mConnections As Collection
 Private mPort As Long
+Private mHostAddress As String
+Private mPublicAddressRequest As Object
 
 Private Sub Class_Initialize()
     mListener = -1
@@ -54,6 +56,8 @@ Public Sub StartListening()
     If WinDevLib.ws_bind(mListener, address, LenB(address)) <> 0 Then GoTo SocketFailed
     If WinDevLib.ws_listen(mListener, WinDevLib.SOMAXCONN) <> 0 Then GoTo SocketFailed
     mPort = GAME_PORT
+    TryAutomaticPortForward
+    BeginPublicAddressLookup
     Exit Sub
 SocketFailed:
     code = WinDevLib.WSAGetLastError()
@@ -64,6 +68,12 @@ End Sub
 
 Public Sub StopListening()
     Dim connection As clsNativeConnection
+    If Not mPublicAddressRequest Is Nothing Then
+        On Error Resume Next
+        mPublicAddressRequest.Abort
+        Set mPublicAddressRequest = Nothing
+        On Error GoTo 0
+    End If
     If mListener <> -1 Then
         WinDevLib.ws_closesocket mListener
         mListener = -1
@@ -129,8 +139,84 @@ PollFailed:
 End Sub
 
 Public Property Get LocalAddress() As String
-    LocalAddress = "0.0.0.0"
+    If Len(mHostAddress) = 0 Then mHostAddress = "Unavailable"
+    LocalAddress = mHostAddress
 End Property
 Public Property Get LocalPort() As Long
     LocalPort = mPort
 End Property
+
+' Resolve once during startup; bounded synchronous COM avoids completion/event-pump stalls.
+Private Sub BeginPublicAddressLookup()
+    Dim response As String, octets() As String, i As Long
+    On Error GoTo LookupFailed
+    mHostAddress = "Unavailable"
+    Set mPublicAddressRequest = CreateObject("WinHttp.WinHttpRequest.5.1")
+    mPublicAddressRequest.SetTimeouts 1500, 1500, 1500, 3000
+    mPublicAddressRequest.Open "GET", "https://api.ipify.org", False
+    mPublicAddressRequest.Send
+    If mPublicAddressRequest.Status <> 200 Then GoTo LookupFailed
+    response = Trim$(mPublicAddressRequest.ResponseText)
+    octets = Split(response, ".")
+    If UBound(octets) <> 3 Then GoTo LookupFailed
+    For i = 0 To 3
+        If Len(octets(i)) < 1 Or Len(octets(i)) > 3 Then GoTo LookupFailed
+        If octets(i) Like "*[!0-9]*" Then GoTo LookupFailed
+        If CLng(octets(i)) > 255 Then GoTo LookupFailed
+    Next i
+    mHostAddress = response
+    Set mPublicAddressRequest = Nothing
+    Exit Sub
+LookupFailed:
+    On Error Resume Next
+    AddLog "Public IP lookup failed; check internet access. " & Err.Description, "network.log"
+    mHostAddress = "Unavailable"
+    If Not mPublicAddressRequest Is Nothing Then mPublicAddressRequest.Abort
+    Set mPublicAddressRequest = Nothing
+End Sub
+' UPnP is optional: failure must never prevent the server from listening.
+Private Sub TryAutomaticPortForward()
+    Dim nat As Object, mappings As Object, mapping As Object
+    Dim adapters As Object, adapter As Object, addresses As Variant
+    Dim address As Variant, localIP As String
+    On Error GoTo ForwardFailed
+    Set nat = CreateObject("HNetCfg.NATUPnP")
+    Set mappings = nat.StaticPortMappingCollection
+    If mappings Is Nothing Then
+        AddLog "Automatic TCP port forwarding unavailable: router did not expose UPnP. Forward TCP " & mPort & " manually to this computer.", "network.log"
+        Exit Sub
+    End If
+    Set adapters = GetObject("winmgmts:\\.\root\cimv2").ExecQuery("SELECT IPAddress, DefaultIPGateway FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True")
+    For Each adapter In adapters
+        If Not IsNull(adapter.DefaultIPGateway) And Not IsNull(adapter.IPAddress) Then
+            addresses = adapter.IPAddress
+            For Each address In addresses
+                If InStr(CStr(address), ".") > 0 And Left$(CStr(address), 4) <> "169." Then
+                    localIP = CStr(address)
+                    Exit For
+                End If
+            Next address
+        End If
+        If Len(localIP) > 0 Then Exit For
+    Next adapter
+    If Len(localIP) = 0 Then Err.Raise 5, "Port forwarding", "No LAN IPv4 address with a default gateway."
+    On Error Resume Next
+    Set mapping = mappings.Item(mPort, "TCP")
+    On Error GoTo ForwardFailed
+    If Not mapping Is Nothing Then
+        If mapping.InternalClient <> localIP Or mapping.InternalPort <> mPort Then
+            AddLog "Automatic port forwarding skipped: TCP " & mPort & " already belongs to another destination.", "network.log"
+            Exit Sub
+        End If
+        mapping.Enable True
+    Else
+        Set mapping = mappings.Add(mPort, "TCP", mPort, localIP, True, "XtremeWorlds")
+    End If
+    AddLog "Router forwards TCP " & mPort & " to " & localIP & ":" & mPort & ".", "network.log"
+    Exit Sub
+ForwardFailed:
+    Dim message As String
+    message = "Automatic port forwarding failed: " & Err.Number & " " & Err.Description
+    On Error Resume Next
+    AddLog message, "network.log"
+End Sub

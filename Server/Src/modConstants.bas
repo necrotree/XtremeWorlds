@@ -8,7 +8,7 @@ Attribute VB_Name = "modConstants"
 Option Explicit
 
 ' Encryption Key
-Public Const ENC_KEY = "���-Ŧ%�tgq|\=+-_`~���������������������缽*-/+><;;:)(*^@$%^&@($GhdgbfkmsdKJGuyfkjesgf654765145674944?�F���?��"
+Public Const ENC_KEY = "???-?%?tgq|\=+-_`~??????????????????????*-/+><;;:)(*^@$%^&@($GhdgbfkmsdKJGuyfkjesgf654765145674944??F??????"
 
 Public GAME_WEBSITE As String
 Public Const ADMIN_LOG = "admin.log"
@@ -193,3 +193,5 @@ Public Const SPELL_TYPE_WARP = 7
 Public Const TARGET_TYPE_PLAYER = 0
 Public Const TARGET_TYPE_NPC = 1
 
+
+Public Const ITEM_TYPE_BOOK As Byte = 15

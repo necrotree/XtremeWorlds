@@ -1,6 +1,7 @@
 Class clsImageMenu
     Option Explicit
     Private mBackground As Object
+    Private mBackgroundToolTip As String
     Private mControls As Collection
     Private mShownControls As Collection
     Private mHiddenControls As Collection
@@ -11,6 +12,7 @@ Class clsImageMenu
         Dim groupTag As String
         If owner Is Nothing Then Set owner = frmMainGame
         Set mBackground = owner.Controls(ImageName)
+        mBackgroundToolTip = CStr(mBackground.ToolTipText)
         Set mControls = New Collection
         Set mShownControls = New Collection
         Set mHiddenControls = New Collection
@@ -37,7 +39,12 @@ Class clsImageMenu
         Dim control As Object
         ' Still apply the first hide, so designer-visible child controls are
         ' normalized even when the background starts hidden.
-        If Not value And mVisibilityApplied And Not mBackground.Visible Then Exit Property
+        mBackground.Enabled = value
+        If value Then
+            mBackground.ToolTipText = mBackgroundToolTip
+        Else
+            mBackground.ToolTipText = vbNullString
+        End If
         mBackground.Visible = value
         If value Then mBackground.ZOrder 0
         If value Then

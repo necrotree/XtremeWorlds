@@ -53,6 +53,7 @@ Public Const ITEM_TYPE_KEY = 11
 Public Const ITEM_TYPE_CURRENCY = 12
 Public Const ITEM_TYPE_SPELL = 13
 Public Const ITEM_TYPE_WARP = 14
+Public Const ITEM_TYPE_BOOK = 15
 
 ' Color constants [DO NOT EDIT]
 Public Const BLACK = 0

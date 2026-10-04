@@ -666,6 +666,10 @@ Public Sub ItemEditorInit()
         frmItemEditor.fraSpell.Visible = False
     End If
 
+    frmItemEditor.fraBook.Visible = (Item(EditorIndex).Type = ITEM_TYPE_BOOK)
+    If Item(EditorIndex).Type = ITEM_TYPE_BOOK Then
+        If Item(EditorIndex).Data1 > 0 Then frmItemEditor.scrlBook.Value = Item(EditorIndex).Data1
+    End If
     frmItemEditor.Show vbModal
 End Sub
 
@@ -698,6 +702,11 @@ Public Sub ItemEditorOk()
         Item(EditorIndex).Data3 = frmItemEditor.scrlMapY.Value
     End If
 
+    If Item(EditorIndex).Type = ITEM_TYPE_BOOK Then
+        Item(EditorIndex).Data1 = frmItemEditor.scrlBook.Value
+        Item(EditorIndex).Data2 = 0
+        Item(EditorIndex).Data3 = 0
+    End If
     Call SendSaveItem(EditorIndex)
     InItemsEditor = False
     Unload frmItemEditor

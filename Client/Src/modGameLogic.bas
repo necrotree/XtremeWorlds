@@ -1329,6 +1329,7 @@ Public Sub UpdateInventory()
     Next i
 
     frmMainGame.lstInv.ListIndex = SelectedSlot
+    frmMainGame.DrawInventoryGrid
     If frmMainGame.picMnuGear.Visible Then BltPlayerGear
 End Sub
 

@@ -19,6 +19,7 @@ Class frmItemEditor
     End Sub
     
     Private Sub cmbType_Click()
+        fraBook.Visible = (cmbType.ListIndex = ITEM_TYPE_BOOK)
         If (cmbType.ListIndex >= ITEM_TYPE_WEAPON) And (cmbType.ListIndex <= ITEM_TYPE_SHIELD) Then
             fraEquipment.Visible = True
         Else
@@ -44,6 +45,10 @@ Class frmItemEditor
         End If
     End Sub
     
+    Private Sub scrlBook_Change()
+        lblBook.Caption = CStr(scrlBook.Value)
+    End Sub
+
     Private Sub scrlMapX_Change()
         lblMapX.Caption = STR(scrlMapX.Value)
     End Sub

@@ -55,6 +55,16 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::::::::::::::::::
         ' :: Alert message packet ::
         ' ::::::::::::::::::::::::::
+        Case "bookpages"
+            If Not InGame Or UBound(Parse) <> 6 Then Exit Sub
+            Dim bookId As Long, bookPage As Long, bookTotal As Long
+            If Not OverlayInteger(Parse(1), 32767, bookId) Then Exit Sub
+            If Not OverlayInteger(Parse(2), 64, bookPage) Then Exit Sub
+            If Not OverlayInteger(Parse(3), 64, bookTotal) Then Exit Sub
+            If bookId < 1 Or bookPage < 1 Or bookPage > bookTotal Then Exit Sub
+            frmMainGame.DisplayBookPages bookId, bookPage, bookTotal, Parse(4), Parse(5), Parse(6)
+            Exit Sub
+
         Case "alertmsg"
             frmSendGetData.Visible = False
             frmMainMenu.Visible = True

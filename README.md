@@ -112,6 +112,12 @@ For example, after accepting a quest from NPC slot 2, call `SetNpcQuestStatus Pl
 
 Set the appropriate markers in `JoinMap(Player)` in `Server/scripts/Main.as`, and update them when quest progress changes. Markers reset on map changes and logout; quest scripts must derive them again from their saved quest data. The engine's existing `IsQuestComplete` flag alone does not identify quest NPCs or active objectives, so no NPC is marked automatically. Rebuild both client and server after installing this change.
 
+## Books
+
+Choose **Book** in the item editor and set its **Book ID**. The server reads the matching `Server/books/<id>.txt`; the item name is the book's title. A sample is included in `Server/books/1.txt`. Using the inventory item opens the supplied book graphic with two pages and Previous, Next, and Close controls. Reading does not consume the item.
+
+Separate pages with a line containing `[PAGE]`. Use Windows ANSI text, with up to 64 pages and 2000 characters per page. The reader can scroll longer pages. Players must own the book to request its text. Keep the `books` folder beside the server executable and `Client/gfx/gui/book.png` beside the client assets. Reopen and rebuild both twinBASIC projects after installing this change.
+
 ## Troubleshooting
 
 | Problem | Checks |

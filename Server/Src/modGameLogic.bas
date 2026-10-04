@@ -474,6 +474,7 @@ Sub PlayerMapGetItem(ByVal Index As Long)
     Dim N As Long
     Dim MapNum As Long
     Dim Msg As String
+    Dim pickupDX As Double, pickupDY As Double
 
     If IsPlaying(Index) = False Then
         Exit Sub
@@ -484,8 +485,10 @@ Sub PlayerMapGetItem(ByVal Index As Long)
     For I = 1 To MAX_MAP_ITEMS
         ' See if theres even an item here
         If (MapItem(MapNum, I).Num > 0) And (MapItem(MapNum, I).Num <= MAX_ITEMS) Then
-            ' Check if item is at the same location as the player
-            If (MapItem(MapNum, I).X = GetPlayerX(Index)) And (MapItem(MapNum, I).y = GetPlayerY(Index)) Then
+            ' Allow pickup within 32 pixels, including sub-tile movement offsets.
+            pickupDX = CDbl(MapItem(MapNum, I).X) * PIC_X - GetPlayerPixelX(Index)
+            pickupDY = CDbl(MapItem(MapNum, I).y) * PIC_Y - GetPlayerPixelY(Index)
+            If pickupDX * pickupDX + pickupDY * pickupDY <= 32# * 32# Then
                 ' Find open slot
                 N = FindOpenInvSlot(Index, MapItem(MapNum, I).Num)
 

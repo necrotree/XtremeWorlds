@@ -18,7 +18,13 @@ Class frmMainGame
     Public picKeepNotes As clsImageMenu
     Public picSign As clsImageMenu
     Public picGuildPanel As clsImageMenu
+    Private BookBackground As clsDX11Surface
+    Private CurrentBookId As Long
+    Private CurrentBookPage As Long
     Private InventoryPage As Long
+    Private InventoryDragSlot As Long
+    Private InventoryDragX As Single, InventoryDragY As Single
+    Private InventoryDragging As Boolean
     Private InventoryClickedSlot As Long
     Private InventoryCanvas As clsDX11Surface
     Private TilesetWheelRemainder As Long
@@ -525,6 +531,10 @@ End Sub
         Else
             Call UpdateInventory
             picInv.Visible = True
+            imgGuildPanel.Visible = False
+            imgGuildPanel.Enabled = False
+            imgGuildPanel.ToolTipText = vbNullString
+            DrawInventoryGrid
         End If
     End Sub
     
@@ -945,6 +955,8 @@ End Sub
         picGuildPanel.Visible = Not wasVisible
     End Sub
     Private Sub imgInventory_DblClick()
+        InventoryDragSlot = 0
+        InventoryDragging = False
         If InventoryClickedSlot > 0 Then SendUseItem InventoryClickedSlot
     End Sub
 
@@ -996,13 +1008,51 @@ End Sub
 
     Private Sub imgInventory_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Dim Slot As Long
+        InventoryDragSlot = 0
+        InventoryDragging = False
         Slot = InventorySlotAt(X, Y)
         InventoryClickedSlot = Slot
-        If Button = vbLeftButton And Slot > 0 Then lstInv.ListIndex = Slot - 1
+        If Slot < 1 Then Exit Sub
+        lstInv.ListIndex = Slot - 1
+        DrawInventoryGrid
+        If Button = vbRightButton Then
+            lblDropItem_Click
+        ElseIf Button = vbLeftButton Then
+            If GetPlayerInvItemNum(MyIndex, Slot) > 0 Then
+                InventoryDragSlot = Slot
+                InventoryDragX = X
+                InventoryDragY = Y
+            End If
+        End If
     End Sub
 
+    Private Sub imgInventory_MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
+        Dim destination As Long
+        If Button = vbLeftButton And InventoryDragSlot > 0 And InventoryDragging Then
+            destination = InventorySlotAt(X, Y)
+            If destination > 0 And destination <> InventoryDragSlot Then
+                SendData "swapinventory" & SEP_CHAR & InventoryDragSlot & SEP_CHAR & destination & END_CHAR
+                lstInv.ListIndex = destination - 1
+                DrawInventoryGrid
+                InventoryClickedSlot = 0
+            End If
+        End If
+        InventoryDragSlot = 0
+        InventoryDragging = False
+        imgInventory.MousePointer = vbDefault
+    End Sub
     Private Sub imgInventory_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Dim Slot As Long
+        If (Button And vbLeftButton) <> 0 And InventoryDragSlot > 0 Then
+            If Abs(X - InventoryDragX) >= 4 Or Abs(Y - InventoryDragY) >= 4 Then
+                InventoryDragging = True
+                imgInventory.MousePointer = vbSizeAll
+            End If
+        Else
+            InventoryDragSlot = 0
+            InventoryDragging = False
+            imgInventory.MousePointer = vbDefault
+        End If
         Slot = InventorySlotAt(X, Y)
         imgInventory.ToolTipText = vbNullString
         If Slot > 0 And Slot <= lstInv.ListCount Then imgInventory.ToolTipText = lstInv.List(Slot - 1)
@@ -1012,6 +1062,7 @@ End Sub
         If InventoryPage > 0 Then
             InventoryPage = InventoryPage - 1
             lstInv.ListIndex = InventoryPage * 35
+            DrawInventoryGrid
         End If
     End Sub
 
@@ -1019,6 +1070,7 @@ End Sub
         If (InventoryPage + 1) * 35 < MAX_INV Then
             InventoryPage = InventoryPage + 1
             lstInv.ListIndex = InventoryPage * 35
+            DrawInventoryGrid
         End If
     End Sub
 
@@ -1209,4 +1261,41 @@ End Sub
         EditorAttributeLayer = 2
     End Sub
 
+    Public Sub DisplayBookPages(ByVal Id As Long, ByVal Page As Long, ByVal Total As Long, ByVal Title As String, ByVal LeftPage As String, ByVal RightPage As String)
+        CurrentBookId = Id
+        CurrentBookPage = Page
+        If BookBackground Is Nothing Then
+            Set BookBackground = New clsDX11Surface
+            BookBackground.LoadFromFile App.Path & GFX_PATH & "gui\book.png"
+            Set imgBook.Picture = MenuSurfacePicture(BookBackground)
+        End If
+        imgBook.ZOrder 1
+        lblBookTitle.Caption = Title
+        txtBookLeft.Text = LeftPage
+        txtBookRight.Text = RightPage
+        lblBookPages.Caption = "Page " & Page & " of " & Total
+        If Page < Total Then lblBookPages.Caption = "Pages " & Page & "-" & (Page + 1) & " of " & Total
+        cmdBookPrevious.Enabled = Page > 1
+        cmdBookNext.Enabled = Page + 1 < Total
+        picBook.Visible = True
+        picBook.ZOrder 0
+    End Sub
+
+    Private Sub cmdBookPrevious_Click()
+        RequestBookPages CurrentBookPage - 2
+    End Sub
+    Private Sub cmdBookNext_Click()
+        RequestBookPages CurrentBookPage + 2
+    End Sub
+    Private Sub cmdBookClose_Click()
+        picBook.Visible = False
+        SetFocusOnGame
+    End Sub
+    Private Sub RequestBookPages(ByVal Page As Long)
+        If Not IsConnected Then
+            picBook.Visible = False
+            Exit Sub
+        End If
+        SendData "readbook" & SEP_CHAR & CurrentBookId & SEP_CHAR & Page & END_CHAR
+    End Sub
 End Class

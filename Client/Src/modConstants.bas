@@ -9,7 +9,7 @@ Attribute VB_Name = "modConstants"
 Option Explicit
 
 ' Encryption Key
-Public Const ENC_KEY = "���-Ŧ%�tgq|\=+-_`~���������������������缽*-/+><;;:)(*^@$%^&@($GhdgbfkmsdKJGuyfkjesgf654765145674944?�F���?��"
+Public Const ENC_KEY = "???-?%?tgq|\=+-_`~??????????????????????*-/+><;;:)(*^@$%^&@($GhdgbfkmsdKJGuyfkjesgf654765145674944??F??????"
 
 ' Music Extension
 Public MUSIC_EXT As String
@@ -240,3 +240,5 @@ Public Const SPELL_TYPE_SUBSP As Byte = 5
 Public Const SPELL_TYPE_GIVEITEM As Byte = 6
 Public Const SPELL_TYPE_WARP As Byte = 7
 
+
+Public Const ITEM_TYPE_BOOK As Byte = 15

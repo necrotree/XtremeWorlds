@@ -1,0 +1,17 @@
+Welcome to XtremeWorlds
+
+A world begins with a story. This book can hold yours.
+
+Choose Next to read the next spread.
+[PAGE]
+Making a book
+
+Choose Book in the item editor and set its Book ID.
+
+The text for book 1 lives in Server/books/1.txt.
+[PAGE]
+Writing your story
+
+Separate pages with a line containing [PAGE].
+
+Each book can contain up to 64 pages.

@@ -7,6 +7,8 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
     If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
     Parse = Split(Data, SEP_CHAR)
     Select Case LCase$(Parse(0))
+        Case "swapinventory": SwapInventorySlots Index, Parse
+        Case "readbook": HandleReadBook Index, Parse
         Case "getclasses": ServerPacket_getclasses Index, Data, Parse
         Case "newaccount": ServerPacket_newaccount Index, Data, Parse
         Case "delaccount": ServerPacket_delaccount Index, Data, Parse
@@ -1227,6 +1229,9 @@ Private Sub ServerPacket_useitem(ByVal Index As Long, ByVal Data As String, ByRe
                     Call TakeItem(Index, Player(Index).Char(CharNum).Inv(InvNum).Num, 0)
                     MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnUseItem " & Index & ", " & InvNum & ", " & ITEM_TYPE_POTIONSUBSP & ", " & ItemNum
                     Call SendSP(Index)
+
+                Case ITEM_TYPE_BOOK
+                    SendBookPages Index, Item(ItemNum).Data1, 1
 
                 Case ITEM_TYPE_WARP
                     Call PlayerWarp(Index, Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data1, Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data2, Item(Player(Index).Char(CharNum).Inv(InvNum).Num).Data3)
