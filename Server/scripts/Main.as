@@ -24,7 +24,7 @@ Public Const MAX_ARROWS = 100 ' Max Arrows
 Public Const MAX_CLASS = 50 ' Max Classes
 Public Const MAX_QUEST_PLAYERS = 255 ' Max People Who Can Complete the Quest
 
-Public Const DEBUG = YES ' Find errors in script file
+Public Const DEBUG_SCRIPTING = True ' Find errors in script file
 
 '************************
 '* Game core constants. *
@@ -98,9 +98,8 @@ Sub ServerSet()
     Call SetMaxQuests(MAX_QUESTS)
     Call SetMaxArrows(MAX_ARROWS)
     Call SetMaxClasses(MAX_CLASS)
-    Call SetStartPosition(START_MAP, START_X, START_Y)
 
-    Call SetDebugScripting(DEBUG)
+    Call SetDebugScripting(DEBUG_SCRIPTING)
 
 End Sub
 

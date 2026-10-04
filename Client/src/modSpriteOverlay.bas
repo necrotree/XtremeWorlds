@@ -3,11 +3,22 @@ Option Explicit
 
 Private BubbleSurface As clsDX11Surface
 Private BarsSurface As clsDX11Surface
+Private QuestSurface As clsDX11Surface
+Private QuestMarkerMap(1 To MAX_MAP_NPCS) As Long
+Private QuestMarkerNpc(1 To MAX_MAP_NPCS) As Long
+Private QuestMarkerStatus(1 To MAX_MAP_NPCS) As Long
 Private TargetSurface As clsDX11Surface
 Private TargetMarkerVisible As Boolean
-Private TargetMarkerX As Long
-Private TargetMarkerY As Long
 Private TargetMarkerMap As Long
+Private Type TargetCursorPoint
+    X As Long
+    Y As Long
+End Type
+Private Declare Function TargetGetCursorPos Lib "user32" Alias "GetCursorPos" (ByRef point As TargetCursorPoint) As Long
+Private Declare Function TargetScreenToClient Lib "user32" Alias "ScreenToClient" (ByVal hwnd As Long, ByRef point As TargetCursorPoint) As Long
+Private Declare Function TargetGetClientRect Lib "user32" Alias "GetClientRect" (ByVal hwnd As Long, ByRef bounds As RECT) As Long
+Private Const TARGET_FRAME_WIDTH As Long = 59
+Private Const TARGET_FRAME_HEIGHT As Long = 64
 Public TargetType As Long
 Public TargetNum As Long
 Private Const BAR_WIDTH As Long = 56
@@ -24,25 +35,30 @@ Public Sub InitSpriteOverlays()
     Set BarsSurface = New clsDX11Surface
     BarsSurface.LoadFromFile App.Path & GFX_PATH & "misc\bars.png"
     BarsSurface.UseAlpha = True
+    Set QuestSurface = New clsDX11Surface
+    QuestSurface.LoadFromFile App.Path & GFX_PATH & "misc\questblips.png"
+    QuestSurface.UseAlpha = True
+    If QuestSurface.Width <> 96 Or QuestSurface.Height <> 128 Then Err.Raise 5, "Sprite overlays", "questblips.png must be 96 x 128."
     Set TargetSurface = New clsDX11Surface
     TargetSurface.LoadFromFile App.Path & GFX_PATH & "misc\target.png"
     TargetSurface.ColorKey = RGB(255, 0, 255)
+    TargetSurface.UseAlpha = True
     If BubbleSurface.Width <> 128 Or BubbleSurface.Height <> 64 Then Err.Raise 5, "Sprite overlays", "chatbubble.png must be 128 x 64."
     If BarsSurface.Width <> BAR_WIDTH Or BarsSurface.Height <> BAR_HEIGHT * 4 Then Err.Raise 5, "Sprite overlays", "bars.png must be 56 x 28."
-    If TargetSurface.Width <> PIC_X Or TargetSurface.Height <> PIC_Y Then Err.Raise 5, "Sprite overlays", "target.png must be 32 x 32."
+    If TargetSurface.Width <> TARGET_FRAME_WIDTH * 2 Or TargetSurface.Height <> TARGET_FRAME_HEIGHT Then Err.Raise 5, "Sprite overlays", "target.png must be 118 x 64 (active left, preview right)."
 End Sub
 
 Public Sub DestroySpriteOverlays()
     Set BubbleSurface = Nothing
     Set BarsSurface = Nothing
+    Set QuestSurface = Nothing
+    ClearQuestMarkers
     Set TargetSurface = Nothing
     TargetMarkerVisible = False
 End Sub
 
 Public Sub SetTargetMarker(ByVal tileX As Long, ByVal tileY As Long)
     If tileX < 0 Or tileX > MAX_MAPX Or tileY < 0 Or tileY > MAX_MAPY Then Exit Sub
-    TargetMarkerX = tileX
-    TargetMarkerY = tileY
     TargetMarkerMap = GetPlayerMap(MyIndex)
     TargetMarkerVisible = True
 End Sub
@@ -51,39 +67,97 @@ Public Sub ClearTargetMarker()
     TargetMarkerVisible = False
 End Sub
 
+' Use the actual cursor position so previews disappear when leaving the map.
 Private Sub DrawTargetMarker()
-    Dim source As RECT, targetX As Long, targetY As Long
-    If Not TargetMarkerVisible Then Exit Sub
-    If TargetMarkerMap <> GetPlayerMap(MyIndex) Then
-        TargetMarkerVisible = False
-        Exit Sub
-    End If
+    Dim point As TargetCursorPoint, bounds As RECT, index As Long
     If TargetSurface Is Nothing Then Exit Sub
-    source.Right = PIC_X
-    source.Bottom = PIC_Y
-    Select Case TargetType
-        Case 1
-            If TargetNum < 1 Or TargetNum > HighIndex Then GoTo InvalidTarget
-            If Not IsPlaying(TargetNum) Or Player(TargetNum).Map <> TargetMarkerMap Then GoTo InvalidTarget
-            targetX = GetPlayerPixelX(TargetNum)
-            If GameData.PlayerX > 48 Then targetX = targetX - GameData.PlayerX / 4
-            targetY = GetPlayerPixelY(TargetNum)
-        Case 2
-            If TargetNum < 1 Or TargetNum > MAX_MAP_NPCS Then GoTo InvalidTarget
-            If MapNpc(TargetNum).Num <= 0 Then GoTo InvalidTarget
-            targetX = MapNpc(TargetNum).X * PIC_X + MapNpc(TargetNum).XOffset
-            targetY = MapNpc(TargetNum).Y * PIC_Y + MapNpc(TargetNum).YOffset - 4
-        Case Else
-            GoTo InvalidTarget
-    End Select
-    targetX = targetX + 8
-    targetY = targetY + PIC_Y
-    DD_BackBuffer.BltFast targetX, targetY, TargetSurface, source, True
-    Exit Sub
-
-InvalidTarget:
-    ClearTargetMarker
+    If TargetMarkerVisible Then
+        If TargetMarkerMap <> GetPlayerMap(MyIndex) Then ClearTargetMarker
+    End If
+    If TargetMarkerVisible Then
+        If Not DrawEntityTarget(TargetType, TargetNum, False) Then ClearTargetMarker
+    End If
+    If TargetGetCursorPos(point) = 0 Then Exit Sub
+    If TargetScreenToClient(frmMainGame.picScreen.hwnd, point) = 0 Then Exit Sub
+    If TargetGetClientRect(frmMainGame.picScreen.hwnd, bounds) = 0 Then Exit Sub
+    If bounds.Right <= 0 Or bounds.Bottom <= 0 Then Exit Sub
+    If point.X < 0 Or point.Y < 0 Or point.X >= bounds.Right Or point.Y >= bounds.Bottom Then Exit Sub
+    If InEditor Then Exit Sub
+    ' DX11 stretches the map buffer to the client rectangle, independently of ScaleMode.
+    point.X = CLng(CDbl(point.X) * DD_BackBuffer.Width / bounds.Right)
+    point.Y = CLng(CDbl(point.Y) * DD_BackBuffer.Height / bounds.Bottom)
+    For index = 1 To HighIndex
+        If IsPlaying(index) And Player(index).Map = GetPlayerMap(MyIndex) Then
+            If TargetSpriteContains(1, index, point.X, point.Y) Then
+                If Not (TargetMarkerVisible And TargetType = 1 And TargetNum = index) Then
+                    Call DrawEntityTarget(1, index, True)
+                End If
+                Exit Sub
+            End If
+        End If
+    Next index
+    For index = 1 To MAX_MAP_NPCS
+        If MapNpc(index).Num > 0 And TargetSpriteContains(2, index, point.X, point.Y) Then
+            If Not (TargetMarkerVisible And TargetType = 2 And TargetNum = index) Then
+                Call DrawEntityTarget(2, index, True)
+            End If
+            Exit Sub
+        End If
+    Next index
 End Sub
+
+' Match the sprite renderer, including movement offsets and edge clamping.
+Private Function TargetSpritePosition(ByVal kind As Long, ByVal index As Long, ByRef X As Long, ByRef Y As Long) As Boolean
+    Dim spriteWidth As Long, spriteHeight As Long
+    Select Case kind
+        Case 1
+            If index < 1 Or index > HighIndex Then Exit Function
+            If Not IsPlaying(index) Or Player(index).Map <> GetPlayerMap(MyIndex) Then Exit Function
+            X = GetPlayerPixelX(index)
+            Y = GetPlayerPixelY(index)
+        Case 2
+            If index < 1 Or index > MAX_MAP_NPCS Then Exit Function
+            If MapNpc(index).Num <= 0 Then Exit Function
+            X = CLng(MapNpc(index).X) * PIC_X + MapNpc(index).XOffset
+            Y = CLng(MapNpc(index).Y) * PIC_Y + MapNpc(index).YOffset
+        Case Else
+            Exit Function
+    End Select
+    spriteWidth = CLng(GameData.PlayerX) + 16
+    spriteHeight = PIC_Y * 2
+    If GameData.PlayerX > 48 Then X = X - CLng(GameData.PlayerX) \ 4
+    If X < 0 Then X = 0
+    If Y < 0 Then Y = 0
+    If X + spriteWidth > DD_BackBuffer.Width Then X = DD_BackBuffer.Width - spriteWidth
+    If Y + spriteHeight > DD_BackBuffer.Height Then Y = DD_BackBuffer.Height - spriteHeight
+    If X < 0 Then X = 0
+    If Y < 0 Then Y = 0
+    TargetSpritePosition = True
+End Function
+
+Private Function TargetSpriteContains(ByVal kind As Long, ByVal index As Long, ByVal mouseX As Long, ByVal mouseY As Long) As Boolean
+    Dim X As Long, Y As Long
+    If Not TargetSpritePosition(kind, index, X, Y) Then Exit Function
+    TargetSpriteContains = mouseX >= X - 8 And mouseX < X - 8 + CLng(GameData.PlayerX) + 16 And _
+                           mouseY >= Y - 16 And mouseY < Y - 16 + PIC_Y * 2
+End Function
+Private Function DrawEntityTarget(ByVal kind As Long, ByVal index As Long, ByVal preview As Boolean) As Boolean
+    Dim source As RECT, destination As RECT, targetX As Long, targetY As Long, pulse As Long
+    If Not TargetSpritePosition(kind, index, targetX, targetY) Then Exit Function
+    ' Grey brackets gently expand and contract until this entity is selected.
+    If preview Then
+        source.Left = TARGET_FRAME_WIDTH
+        pulse = Abs(((GetTickCount And &H7FFFFFFF) \ 100) Mod 8 - 4)
+    End If
+    source.Right = source.Left + TARGET_FRAME_WIDTH
+    source.Bottom = TARGET_FRAME_HEIGHT
+    destination.Left = targetX + PIC_X \ 2 - TARGET_FRAME_WIDTH \ 2 - pulse
+    destination.Top = targetY + PIC_Y \ 2 - TARGET_FRAME_HEIGHT \ 2 - pulse
+    destination.Right = destination.Left + TARGET_FRAME_WIDTH + pulse * 2
+    destination.Bottom = destination.Top + TARGET_FRAME_HEIGHT + pulse * 2
+    DD_BackBuffer.Blt destination, TargetSurface, source, True
+    DrawEntityTarget = True
+End Function
 
 Public Sub ClearSpriteOverlay(ByVal index As Long)
     Player(index).BubbleText = vbNullString
@@ -216,6 +290,7 @@ Public Sub BltSpriteOverlays()
             If hasBubble Then DrawBubbleSkin bubble
         End If
     Next index
+    DrawQuestMarkers
     DrawTargetMarker
 End Sub
 
@@ -275,4 +350,57 @@ Public Sub DrawSpriteBubbleText(ByVal DC As LongPtr)
     WinDevLib.SetBkMode DC, previousMode
     WinDevLib.SetTextColor DC, previousColor
     WinDevLib.SelectObject DC, previousFont
+End Sub
+Public Sub ClearQuestMarkers()
+    Dim index As Long
+    For index = 1 To MAX_MAP_NPCS
+        QuestMarkerMap(index) = 0
+        QuestMarkerNpc(index) = 0
+        QuestMarkerStatus(index) = 0
+    Next index
+End Sub
+
+Public Sub HandleQuestMarker(ByRef parts() As String)
+    Dim mapNum As Long, slot As Long, npcNum As Long, status As Long
+    If UBound(parts) <> 4 Then Exit Sub
+    If Not OverlayInteger(parts(1), 2147483647, mapNum) Then Exit Sub
+    If Not OverlayInteger(parts(2), MAX_MAP_NPCS, slot) Then Exit Sub
+    If Not OverlayInteger(parts(3), MAX_NPCS, npcNum) Then Exit Sub
+    If Not OverlayInteger(parts(4), 4, status) Then Exit Sub
+    If mapNum < 1 Or slot < 1 Then Exit Sub
+    If status > 0 And npcNum < 1 Then Exit Sub
+    QuestMarkerMap(slot) = mapNum
+    QuestMarkerNpc(slot) = npcNum
+    QuestMarkerStatus(slot) = status
+End Sub
+
+Private Sub DrawQuestMarkers()
+    Dim index As Long, source As RECT, X As Long, Y As Long, row As Long, frame As Long
+    If QuestSurface Is Nothing Then Exit Sub
+    frame = ((GetTickCount And &H7FFFFFFF) \ 180) Mod 4
+    If frame = 3 Then frame = 1
+    source.Left = frame * PIC_X
+    source.Right = source.Left + PIC_X
+    For index = 1 To MAX_MAP_NPCS
+        If QuestMarkerStatus(index) > 0 And QuestMarkerMap(index) = GetPlayerMap(MyIndex) Then
+            If MapNpc(index).Num > 0 And MapNpc(index).Num = QuestMarkerNpc(index) Then
+                If TargetSpritePosition(2, index, X, Y) Then
+                    Select Case QuestMarkerStatus(index)
+                        Case 1: row = 3 ' Available: yellow !
+                        Case 2: row = 0 ' In progress: grey ?
+                        Case 3: row = 1 ' Ready to turn in: yellow ?
+                        Case 4: row = 2 ' Unavailable: grey !
+                    End Select
+                    source.Top = row * PIC_Y
+                    source.Bottom = source.Top + PIC_Y
+                    X = X - 8 + (CLng(GameData.PlayerX) + 16 - PIC_X) \ 2
+                    Y = Y - 16 - PIC_Y
+                    If X < 0 Then X = 0
+                    If X + PIC_X > DD_BackBuffer.Width Then X = DD_BackBuffer.Width - PIC_X
+                    If Y < 0 Then Y = 0
+                    DD_BackBuffer.BltFast X, Y, QuestSurface, source, False
+                End If
+            End If
+        End If
+    Next index
 End Sub

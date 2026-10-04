@@ -14,6 +14,8 @@ Attribute VB_Exposed = False
 Attribute VB_Ext_KEY = "SavedWithClassBuilder6", "Yes"
 Attribute VB_Ext_KEY = "Top_Level", "Yes"
 Option Explicit
+' Winsock SOCKET is UINT_PTR on both 32-bit and 64-bit builds.
+Private Declare PtrSafe Function AcceptNativeSocket Lib "ws2_32" Alias "accept" (ByVal listener As LongPtr, ByRef address As WinDevLib.SOCKADDR_IN, ByRef addressLength As Long) As LongPtr
 Public Sockets As colSockets
 Private mListener As LongPtr
 Private mStarted As Boolean
@@ -85,12 +87,14 @@ Public Sub Poll()
     Dim connection As clsNativeConnection
     Dim index As Long
     Dim code As Long
+    Dim errorNumber As Long, errorDescription As String
     If mListener = -1 Or mPolling Then Exit Sub
+    On Error GoTo PollFailed
     mPolling = True
     
     For index = 1 To 32
         size = LenB(address)
-        handle = WinDevLib.ws_accept(mListener, address, size)
+        handle = AcceptNativeSocket(mListener, address, size)
         If handle = -1 Then
             code = WinDevLib.WSAGetLastError()
             If code <> WinDevLib.WSAEWOULDBLOCK Then Err.Raise vbObjectError + 2101, "clsServer.Poll", "Winsock accept failed: " & CStr(code)
@@ -109,10 +113,19 @@ Public Sub Poll()
         connection.Poll
         If Not connection.IsOpen Then mConnections.Remove index
     Next
-    ' Keep connection and UI events moving while preventing nested socket polls.
-    DoEvents
     mPolling = False
     Exit Sub
+PollFailed:
+    errorNumber = Err.Number
+    errorDescription = Err.Description
+    ' A single connection failure must not terminate the timer or leave polling locked.
+    On Error Resume Next
+    If Not connection Is Nothing Then
+        connection.Close
+        If connection.UserData > 0 Then modServerTCP.CloseSocket connection.UserData
+    End If
+    AddLog "Socket poll error " & errorNumber & ": " & errorDescription, "network.log"
+    mPolling = False
 End Sub
 
 Public Property Get LocalAddress() As String

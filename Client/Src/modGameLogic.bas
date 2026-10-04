@@ -40,6 +40,9 @@ Public Sub Main()
 
     ' Init text vars
     vbQuote = ChrW$(34)
+    
+    ' Create folders
+    EnsureDataFolders(App.Path)
 
     ' Grab hd serial and model numbers for submition
     Call GrabHD

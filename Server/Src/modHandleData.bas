@@ -1,8 +1,107 @@
 Attribute VB_Name = "modHandleData"
 Option Explicit
 
-Sub HandleData(ByVal Index As Long, ByVal Data As String)
-    Dim Parse() As String
+Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
+    Dim Parse() As String, Msg As String
+    On Error GoTo ErrorHandle
+    If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
+    Parse = Split(Data, SEP_CHAR)
+    Select Case LCase$(Parse(0))
+        Case "getclasses": ServerPacket_getclasses Index, Data, Parse
+        Case "newaccount": ServerPacket_newaccount Index, Data, Parse
+        Case "delaccount": ServerPacket_delaccount Index, Data, Parse
+        Case "login": ServerPacket_login Index, Data, Parse
+        Case "addchar": ServerPacket_addchar Index, Data, Parse
+        Case "delchar": ServerPacket_delchar Index, Data, Parse
+        Case "usechar": ServerPacket_usechar Index, Data, Parse
+        Case "saymsg": ServerPacket_saymsg Index, Data, Parse
+        Case "emotemsg": ServerPacket_emotemsg Index, Data, Parse
+        Case "broadcastmsg": ServerPacket_broadcastmsg Index, Data, Parse
+        Case "globalmsg": ServerPacket_globalmsg Index, Data, Parse
+        Case "adminmsg": ServerPacket_adminmsg Index, Data, Parse
+        Case "playermsg": ServerPacket_playermsg Index, Data, Parse
+        Case "playermove": ServerPacket_playermove Index, Data, Parse
+        Case "playerdir": ServerPacket_playerdir Index, Data, Parse
+        Case "useitem": ServerPacket_useitem Index, Data, Parse
+        Case "attack": ServerPacket_attack Index, Data, Parse
+        Case "usestatpoint": ServerPacket_usestatpoint Index, Data, Parse
+        Case "playerinforequest": ServerPacket_playerinforequest Index, Data, Parse
+        Case "warpmeto": ServerPacket_warpmeto Index, Data, Parse
+        Case "requesteditsign": ServerPacket_requesteditsign Index, Data, Parse
+        Case "editsign": ServerPacket_editsign Index, Data, Parse
+        Case "savesign": ServerPacket_savesign Index, Data, Parse
+        Case "requestsign": ServerPacket_requestsign Index, Data, Parse
+        Case "editarrow": ServerPacket_editarrow Index, Data, Parse
+        Case "savearrow": ServerPacket_savearrow Index, Data, Parse
+        Case "requesteditarrow": ServerPacket_requesteditarrow Index, Data, Parse
+        Case "requesteditclass": ServerPacket_requesteditclass Index, Data, Parse
+        Case "editclass": ServerPacket_editclass Index, Data, Parse
+        Case "saveclass": ServerPacket_saveclass Index, Data, Parse
+        Case "warptome": ServerPacket_warptome Index, Data, Parse
+        Case "warpto": ServerPacket_warpto Index, Data, Parse
+        Case "setsprite": ServerPacket_setsprite Index, Data, Parse
+        Case "playersprite": ServerPacket_playersprite Index, Data, Parse
+        Case "getstats": ServerPacket_getstats Index, Data, Parse
+        Case "requestnewmap": ServerPacket_requestnewmap Index, Data, Parse
+        Case "mapdata": ServerPacket_mapdata Index, Data, Parse
+        Case "needmap": ServerPacket_needmap Index, Data, Parse
+        Case "mapgetitem": ServerPacket_mapgetitem Index, Data, Parse
+        Case "mapdropitem": ServerPacket_mapdropitem Index, Data, Parse
+        Case "shutdown": ServerPacket_shutdown Index, Data, Parse
+        Case "rebootserver": ServerPacket_rebootserver Index, Data, Parse
+        Case "innsleep": ServerPacket_innsleep Index, Data, Parse
+        Case "maprespawn": ServerPacket_maprespawn Index, Data, Parse
+        Case "mapreport": ServerPacket_mapreport Index, Data, Parse
+        Case "signnames": ServerPacket_signnames Index, Data, Parse
+        Case "kickplayer": ServerPacket_kickplayer Index, Data, Parse
+        Case "banlist": ServerPacket_banlist Index, Data, Parse
+        Case "bandestroy": ServerPacket_bandestroy Index, Data, Parse
+        Case "banplayer": ServerPacket_banplayer Index, Data, Parse
+        Case "unbanplayer": ServerPacket_unbanplayer Index, Data, Parse
+        Case "hdserial": ServerPacket_hdserial Index, Data, Parse
+        Case "getgamename": ServerPacket_getgamename Index, Data, Parse
+        Case "getgamemaxes": ServerPacket_getgamemaxes Index, Data, Parse
+        Case "getgamesite": ServerPacket_getgamesite Index, Data, Parse
+        Case "requesteditmap": ServerPacket_requesteditmap Index, Data, Parse
+        Case "requestedititem": ServerPacket_requestedititem Index, Data, Parse
+        Case "edititem": ServerPacket_edititem Index, Data, Parse
+        Case "saveitem": ServerPacket_saveitem Index, Data, Parse
+        Case "saveguild": ServerPacket_saveguild Index, Data, Parse
+        Case "requesteditnpc": ServerPacket_requesteditnpc Index, Data, Parse
+        Case "editnpc": ServerPacket_editnpc Index, Data, Parse
+        Case "savenpc": ServerPacket_savenpc Index, Data, Parse
+        Case "requesteditshop": ServerPacket_requesteditshop Index, Data, Parse
+        Case "editshop": ServerPacket_editshop Index, Data, Parse
+        Case "saveshop": ServerPacket_saveshop Index, Data, Parse
+        Case "requesteditspell": ServerPacket_requesteditspell Index, Data, Parse
+        Case "editspell": ServerPacket_editspell Index, Data, Parse
+        Case "savespell": ServerPacket_savespell Index, Data, Parse
+        Case "setaccess": ServerPacket_setaccess Index, Data, Parse
+        Case "whosonline": ServerPacket_whosonline Index, Data, Parse
+        Case "onlinelist": ServerPacket_onlinelist Index, Data, Parse
+        Case "setmotd": ServerPacket_setmotd Index, Data, Parse
+        Case "bugreport": ServerPacket_bugreport Index, Data, Parse
+        Case "trade": ServerPacket_trade Index, Data, Parse
+        Case "traderequest": ServerPacket_traderequest Index, Data, Parse
+        Case "fixitem": ServerPacket_fixitem Index, Data, Parse
+        Case "search": ServerPacket_search Index, Data, Parse
+        Case "warpsearch": ServerPacket_warpsearch Index, Data, Parse
+        Case "party": ServerPacket_party Index, Data, Parse
+        Case "joinparty": ServerPacket_joinparty Index, Data, Parse
+        Case "leaveparty": ServerPacket_leaveparty Index, Data, Parse
+        Case "spells": ServerPacket_spells Index, Data, Parse
+        Case "cast": ServerPacket_cast Index, Data, Parse
+        Case "forgetspell": ServerPacket_forgetspell Index, Data, Parse
+        Case "resync": ServerPacket_resync Index, Data, Parse
+        Case "requestlocation": ServerPacket_requestlocation Index, Data, Parse
+    End Select
+    Exit Sub
+ErrorHandle:
+    Msg = "HandleData player " & Index & ": error " & Err.Number & " / " & Err.Source & " / " & Err.Description
+    AddLog Msg, "errors.log"
+End Sub
+
+Private Sub ServerPacket_getclasses(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
     Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
     Dim name As String
     Dim EncKey As String
@@ -29,25 +128,55 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
     Dim DurNeeded As Long, GoldNeeded As Long
     Dim BIp As Integer
     Dim Packet As String
-    
-    On Error GoTo ErrorHandle
-
-    ' Handle Data
-    Parse = Split(Data, SEP_CHAR)
-
-    ' :::::::::::::::::::::::::::::::::::::::::::::::
-    ' :: Requesting classes for making a character ::
-    ' :::::::::::::::::::::::::::::::::::::::::::::::
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "getclasses" Then
         If Not IsPlaying(Index) Then
             Call SendNewCharClasses(Index)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: New account packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_newaccount(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "newaccount" Then
         If Not IsPlaying(Index) And Not IsLoggedIn(Index) Then
             ' Get the data
@@ -89,10 +218,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::
-    ' :: Delete account packet ::
-    ' :::::::::::::::::::::::::::
+Private Sub ServerPacket_delaccount(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "delaccount" Then
         If Not IsPlaying(Index) And Not IsLoggedIn(Index) Then
             ' Get the data
@@ -141,10 +302,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::
-    ' :: Login packet ::
-    ' ::::::::::::::::::
+Private Sub ServerPacket_login(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "login" Then
         If Not IsPlaying(Index) And Not IsLoggedIn(Index) Then
             ' Get the data
@@ -207,10 +400,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::
-    ' :: Add character packet ::
-    ' ::::::::::::::::::::::::::
+Private Sub ServerPacket_addchar(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "addchar" Then
         If Not IsPlaying(Index) Then
             name = Parse(1)
@@ -273,10 +498,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::::
-    ' :: Deleting character packet ::
-    ' :::::::::::::::::::::::::::::::
+Private Sub ServerPacket_delchar(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "delchar" Then
         If Not IsPlaying(Index) Then
             CharNum = Val(Parse(1))
@@ -293,10 +550,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::
-    ' :: Using character packet ::
-    ' ::::::::::::::::::::::::::::
+Private Sub ServerPacket_usechar(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "usechar" Then
         If Not IsPlaying(Index) Then
             CharNum = Val(Parse(1))
@@ -330,10 +619,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::
-    ' :: Social packets ::
-    ' ::::::::::::::::::::
+Private Sub ServerPacket_saymsg(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "saymsg" Then
         Msg = Parse(1)
 
@@ -350,7 +671,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call MapMsg(GetPlayerMap(Index), GetPlayerName(Index) & " says, '" & Msg & "'", SayColor)
         Exit Sub
     End If
+End Sub
 
+Private Sub ServerPacket_emotemsg(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "emotemsg" Then
         Msg = Parse(1)
 
@@ -366,7 +722,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call MapMsg(GetPlayerMap(Index), GetPlayerName(Index) & " " & Msg, EmoteColor)
         Exit Sub
     End If
+End Sub
 
+Private Sub ServerPacket_broadcastmsg(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "broadcastmsg" Then
         Msg = Parse(1)
 
@@ -384,7 +775,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call TextAdd(frmServer.txtText, s, True)
         Exit Sub
     End If
+End Sub
 
+Private Sub ServerPacket_globalmsg(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "globalmsg" Then
         Msg = Parse(1)
 
@@ -404,7 +830,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
+Private Sub ServerPacket_adminmsg(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "adminmsg" Then
         Msg = Parse(1)
 
@@ -422,7 +883,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
+Private Sub ServerPacket_playermsg(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "playermsg" Then
         MsgTo = FindPlayer(Parse(1))
         Msg = Parse(2)
@@ -451,10 +947,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::
-    ' :: Moving character packet ::
-    ' :::::::::::::::::::::::::::::
+Private Sub ServerPacket_playermove(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "playermove" And Player(Index).GettingMap = NO Then
         Dir = Val(Parse(1))
         Movement = Val(Parse(2))
@@ -485,10 +1013,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMove(Index, Dir, Movement)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::
-    ' :: Moving character packet ::
-    ' :::::::::::::::::::::::::::::
+Private Sub ServerPacket_playerdir(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "playerdir" And Player(Index).GettingMap = NO Then
         Dir = Val(Parse(1))
 
@@ -502,10 +1062,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataToMapBut(Index, GetPlayerMap(Index), "PLAYERDIR" & SEP_CHAR & Index & SEP_CHAR & GetPlayerDir(Index) & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Use item packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_useitem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "useitem" Then
         InvNum = Val(Parse(1))
         CharNum = Player(Index).CharNum
@@ -737,10 +1329,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::
-    ' :: Player attack packet ::
-    ' ::::::::::::::::::::::::::
+Private Sub ServerPacket_attack(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "attack" Then
         ' Try to attack a player
         For I = 1 To HighIndex
@@ -800,10 +1424,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Use stats packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_usestatpoint(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "usestatpoint" Then
         PointType = Val(Parse(1))
 
@@ -841,10 +1497,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendStats(Index)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::::
-    ' :: Player info request packet ::
-    ' ::::::::::::::::::::::::::::::::
+Private Sub ServerPacket_playerinforequest(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "playerinforequest" Then
         name = Parse(1)
 
@@ -867,10 +1555,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Warp me to packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_warpmeto(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "warpmeto" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -896,12 +1616,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::
-    ' :: Request edit sign packet ::
-    ' ::::::::::::::::::::::::::::::
+Private Sub ServerPacket_requesteditsign(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
     Dim Sn As Long
     Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "requesteditsign" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -919,10 +1669,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataTo(Index, "SIGNEDITOR" & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Edit sign packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_editsign(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "editsign" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -942,10 +1724,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing sign #" & N & ".", ADMIN_LOG)
         Call SendEditSignTo(Index, N)
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Save sign packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_savesign(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If (LCase(Parse(0)) = "savesign") Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -975,10 +1789,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saving sign #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::
-    ' :: Request Sign ::
-    ' ::::::::::::::::::
+Private Sub ServerPacket_requestsign(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If (LCase(Parse(0)) = "requestsign") Then
 
         ' Sign #
@@ -993,10 +1839,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         ' Send sign info
         Call SendSignTo(Index, N)
     End If
-    
-    ' ::::::::::::::::::::::
-    ' :: Edit arrow packet ::
-    ' ::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_editarrow(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "editarrow" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1016,10 +1894,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing arrow #" & N & ".", ADMIN_LOG)
         Call SendEditArrowTo(Index, N)
     End If
-    
-    ' ::::::::::::::::::::::
-    ' :: Save arrow packet ::
-    ' ::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_savearrow(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If (LCase(Parse(0)) = "savearrow") Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1045,12 +1955,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saving arrow #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
-    
-    ' ::::::::::::::::::::::::::::::
-    ' :: Request edit arrow packet ::
-    ' ::::::::::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_requesteditarrow(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
     Dim ar As Long
     Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "requesteditarrow" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1067,12 +2007,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Call SendDataTo(Index, "ARROWEDITOR" & END_CHAR)
     End If
-    
-    ' ::::::::::::::::::::::::::::::
-    ' :: Request edit class packet ::
-    ' ::::::::::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_requesteditclass(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
     Dim cs As Long
     Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "requesteditclass" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1089,10 +2059,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Call SendDataTo(Index, "CLASSEDITOR" & END_CHAR)
     End If
-    
-    ' ::::::::::::::::::::::
-    ' :: Edit class packet ::
-    ' ::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_editclass(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "editclass" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1112,10 +2114,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing class #" & N & ".", ADMIN_LOG)
         Call SendEditClassTo(Index, N)
     End If
-    
-    ' ::::::::::::::::::::::
-    ' :: Save class packet ::
-    ' ::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_saveclass(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If (LCase(Parse(0)) = "saveclass") Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1148,10 +2182,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saving arrow #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Warp to me packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_warptome(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "warptome" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1177,10 +2243,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Warp to map packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_warpto(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "warpto" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1202,10 +2300,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " warped to map #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Set sprite packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_setsprite(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "setsprite" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1220,10 +2350,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendPlayerData(Index)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::
-    ' :: Set Player Sprite Packet ::
-    ' ::::::::::::::::::::::::::::::
+Private Sub ServerPacket_playersprite(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "playersprite" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1246,10 +2408,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::
-    ' :: Stats request packet ::
-    ' ::::::::::::::::::::::::::
+Private Sub ServerPacket_getstats(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "getstats" Then
         Call PlayerMsg(Index, "-=- Stats for " & GetPlayerName(Index) & " -=-", White)
         Call PlayerMsg(Index, "Level: " & GetPlayerLevel(Index) & "  Exp: " & GetPlayerExp(Index) & "/" & GetPlayerNextLevel(Index), White)
@@ -1262,10 +2456,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMsg(Index, "Critical Hit Chance: " & N & "%, Block Chance: " & I & "%", White)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::::::
-    ' :: Player request for a new map ::
-    ' ::::::::::::::::::::::::::::::::::
+Private Sub ServerPacket_requestnewmap(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requestnewmap" Then
         Dir = Val(Parse(1))
 
@@ -1278,10 +2504,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMove(Index, Dir, 1)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Map data packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_mapdata(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "mapdata" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1389,10 +2647,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::
-    ' :: Need map yes/no packet ::
-    ' ::::::::::::::::::::::::::::
+Private Sub ServerPacket_needmap(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "needmap" Then
         ' Get yes/no value
         s = LCase$(Parse(1))
@@ -1404,28 +2694,94 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
             Call SendJoinMap(Index)
             Player(Index).GettingMap = NO
             Call SendDataTo(Index, "MAPDONE" & END_CHAR)
+            SendQuestNpcMarkers Index
         Else
             Call SendMapItemsTo(Index, GetPlayerMap(Index))
             Call SendMapNpcsTo(Index, GetPlayerMap(Index))
             Call SendJoinMap(Index)
             Player(Index).GettingMap = NO
             Call SendDataTo(Index, "MAPDONE" & END_CHAR)
+            SendQuestNpcMarkers Index
         End If
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::::::::::::::::::::
-    ' :: Player trying to pick up something packet ::
-    ' :::::::::::::::::::::::::::::::::::::::::::::::
+Private Sub ServerPacket_mapgetitem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "mapgetitem" Then
         Call PlayerMapGetItem(Index)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::::::::::::::::
-    ' :: Player trying to drop something packet ::
-    ' ::::::::::::::::::::::::::::::::::::::::::::
+Private Sub ServerPacket_mapdropitem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "mapdropitem" Then
         InvNum = Val(Parse(1))
         Ammount = Val(Parse(2))
@@ -1454,10 +2810,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMapDropItem(Index, InvNum, Ammount)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::
-    ' :: Server Shutdown Packet ::
-    ' ::::::::::::::::::::::::::::
+Private Sub ServerPacket_shutdown(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "shutdown" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_CREATOR Then
@@ -1468,10 +2856,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         frmServer.tmrShutdown.Enabled = True
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::
-    ' :: Reboot Server Packet ::
-    ' ::::::::::::::::::::::::::
+Private Sub ServerPacket_rebootserver(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "rebootserver" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_CREATOR Then
@@ -1481,13 +2901,41 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call ServerReboot
         Exit Sub
     End If
+End Sub
 
-
-
-
-    ' ::::::::::::::::::::::::::
-    ' :: Sleep Request packet ::
-    ' ::::::::::::::::::::::::::
+Private Sub ServerPacket_innsleep(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
     Dim GoldItem As Long
     If LCase$(Parse(0)) = "innsleep" Then
 
@@ -1521,10 +2969,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Respawn map packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_maprespawn(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "maprespawn" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1550,10 +3030,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " has respawned map #" & GetPlayerMap(Index), ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Map Report Packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_mapreport(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "mapreport" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1576,10 +3088,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Sign Names Packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_signnames(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "signnames" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1593,10 +3137,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Next N
         Call SendDataTo(Index, Packet & END_CHAR)
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Kick player packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_kickplayer(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "kickplayer" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) <= 0 Then
@@ -1625,10 +3201,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Ban list packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_banlist(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "banlist" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1655,10 +3263,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Ban destroy packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_bandestroy(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "bandestroy" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_CREATOR Then
@@ -1677,10 +3317,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMsg(Index, "Ban list destroyed.", White)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Ban player packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_banplayer(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "banplayer" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1710,10 +3382,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::
-    ' :: UnBan player packet ::
-    ' :::::::::::::::::::::::::
+Private Sub ServerPacket_unbanplayer(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "unbanplayer" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1728,42 +3432,202 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: HD Serial packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_hdserial(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "hdserial" Then
         Player(Index).HDSerial = Parse(1)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Game Name packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_getgamename(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "getgamename" Then
         Call SendName(Index)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Game Maxes packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_getgamemaxes(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "getgamemaxes" Then
         Call SendMaxes(Index)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Game Site packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_getgamesite(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "getgamesite" Then
         Call SendSite(Index)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::
-    ' :: Request edit map packet ::
-    ' :::::::::::::::::::::::::::::
+Private Sub ServerPacket_requesteditmap(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requesteditmap" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -1774,10 +3638,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataTo(Index, "EDITMAP" & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::
-    ' :: Request edit item packet ::
-    ' ::::::::::::::::::::::::::::::
+Private Sub ServerPacket_requestedititem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requestedititem" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1788,10 +3684,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataTo(Index, "ITEMEDITOR" & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Edit item packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_edititem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "edititem" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1811,10 +3739,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing item #" & N & ".", ADMIN_LOG)
         Call SendEditItemTo(Index, N)
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Save item packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_saveitem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "saveitem" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1842,10 +3802,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saved item #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
-    
-    ' ::::::::::::::::::::::
-    ' :: Save class packet ::
-    ' ::::::::::::::::::::::
+End Sub
+
+Private Sub ServerPacket_saveclass_unused(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "saveclass" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1877,10 +3869,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saved item #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Save Guild packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_saveguild(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "saveguild" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1916,10 +3940,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Call AddLog(GetPlayerName(Index) & " saved guild #" & N & ".", ADMIN_LOG)
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::
-    ' :: Request edit npc packet ::
-    ' :::::::::::::::::::::::::::::
+Private Sub ServerPacket_requesteditnpc(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requesteditnpc" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1930,10 +3986,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataTo(Index, "NPCEDITOR" & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Edit npc packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_editnpc(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "editnpc" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1953,10 +4041,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing npc #" & N & ".", ADMIN_LOG)
         Call SendEditNpcTo(Index, N)
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Save npc packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_savenpc(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "savenpc" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -1995,10 +4115,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saved npc #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::::::
-    ' :: Request edit shop packet ::
-    ' ::::::::::::::::::::::::::::::
+Private Sub ServerPacket_requesteditshop(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requesteditshop" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -2009,10 +4161,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataTo(Index, "SHOPEDITOR" & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Edit shop packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_editshop(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "editshop" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -2032,10 +4216,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing shop #" & N & ".", ADMIN_LOG)
         Call SendEditShopTo(Index, N)
     End If
+End Sub
 
-    ' ::::::::::::::::::::::
-    ' :: Save shop packet ::
-    ' ::::::::::::::::::::::
+Private Sub ServerPacket_saveshop(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If (LCase$(Parse(0)) = "saveshop") Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -2074,10 +4290,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saving shop #" & ShopNum & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::::::::
-    ' :: Request edit spell packet ::
-    ' :::::::::::::::::::::::::::::::
+Private Sub ServerPacket_requesteditspell(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requesteditspell" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -2088,10 +4336,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call SendDataTo(Index, "SPELLEDITOR" & END_CHAR)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Edit spell packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_editspell(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "editspell" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -2111,10 +4391,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " editing spell #" & N & ".", ADMIN_LOG)
         Call SendEditSpellTo(Index, N)
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Save spell packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_savespell(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If (LCase$(Parse(0)) = "savespell") Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
@@ -2152,10 +4464,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " saving spell #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Set access packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_setaccess(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "setaccess" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_CREATOR Then
@@ -2189,26 +4533,122 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Who online packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_whosonline(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "whosonline" Then
         Call SendWhosOnline(Index)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Online list packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_onlinelist(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "onlinelist" Then
         Call SendOnlineList(Index)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Set MOTD packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_setmotd(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "setmotd" Then
         ' Prevent hacking
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
@@ -2222,10 +4662,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call AddLog(GetPlayerName(Index) & " changed MOTD to: " & Parse(1), ADMIN_LOG)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Bug Report packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_bugreport(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "bugreport" Then
         Dim BugReport As String
         Dim Message As String
@@ -2263,10 +4735,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMsg(Index, "Thank you for reporting this bug, " & GetPlayerName(Index), White)
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::
-    ' :: Trade packet ::
-    ' ::::::::::::::::::
+Private Sub ServerPacket_trade(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "trade" Then
         If Map(GetPlayerMap(Index)).Shop > 0 Then
             Call SendTrade(Index, Map(GetPlayerMap(Index)).Shop)
@@ -2275,10 +4779,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::::
-    ' :: Trade request packet ::
-    ' ::::::::::::::::::::::::::
+Private Sub ServerPacket_traderequest(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "traderequest" Then
         ' Trade num
         N = Val(Parse(1))
@@ -2337,10 +4873,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
 
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Fix item packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_fixitem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "fixitem" Then
         ' Inv num
         N = Val(Parse(1))
@@ -2403,10 +4971,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
             Exit Sub
         End If
     End If
+End Sub
 
-    ' :::::::::::::::::::
-    ' :: Search packet ::
-    ' :::::::::::::::::::
+Private Sub ServerPacket_search(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "search" Then
         X = Val(Parse(1))
         y = Val(Parse(2))
@@ -2482,10 +5082,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Warp Search packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_warpsearch(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "warpsearch" Then
         X = Val(Parse(1))
         y = Val(Parse(2))
@@ -2497,10 +5129,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Call PlayerWarp(Index, GetPlayerMap(Index), X, y)
     End If
+End Sub
 
-    ' ::::::::::::::::::
-    ' :: Party packet ::
-    ' ::::::::::::::::::
+Private Sub ServerPacket_party(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "party" Then
         N = FindPlayer(Parse(1))
 
@@ -2549,10 +5213,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::
-    ' :: Join party packet ::
-    ' :::::::::::::::::::::::
+Private Sub ServerPacket_joinparty(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "joinparty" Then
         N = Player(Index).PartyPlayer
 
@@ -2577,10 +5273,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' ::::::::::::::::::::::::
-    ' :: Leave party packet ::
-    ' ::::::::::::::::::::::::
+Private Sub ServerPacket_leaveparty(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "leaveparty" Then
         N = Player(Index).PartyPlayer
 
@@ -2611,18 +5339,82 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         End If
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::
-    ' :: Spells packet ::
-    ' :::::::::::::::::::
+Private Sub ServerPacket_spells(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "spells" Then
         Call SendPlayerSpells(Index)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::
-    ' :: Cast packet ::
-    ' :::::::::::::::::
+Private Sub ServerPacket_cast(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "cast" Then
         ' Spell slot
         N = Val(Parse(1))
@@ -2631,10 +5423,42 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::::::
-    ' :: Forget spell packet ::
-    ' :::::::::::::::::::::::::
+Private Sub ServerPacket_forgetspell(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase(Parse(0)) = "forgetspell" Then
         ' Spell slot
         N = CLng(Parse(1))
@@ -2658,19 +5482,83 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
 
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Resync packet  ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_resync(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "resync" Then
         Call PlayerWarp(Index, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index))
         Call PlayerMsg(Index, "Resynced!", White)
         Exit Sub
     End If
+End Sub
 
-    ' :::::::::::::::::::::
-    ' :: Location packet ::
-    ' :::::::::::::::::::::
+Private Sub ServerPacket_requestlocation(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
+    Dim name As String
+    Dim EncKey As String
+    Dim Password As String
+    Dim Sex As Long
+    Dim ClassNum As Long
+    Dim CharNum As Long
+    Dim Msg As String
+    Dim IPMask As String
+    Dim BanSlot As Long
+    Dim MsgTo As Long
+    Dim Dir As Long
+    Dim InvNum As Long
+    Dim Ammount As Long
+    Dim Damage As Long
+    Dim PointType As Long
+    Dim BanPlayer As Long
+    Dim Movement As Long
+    Dim I As Long, N As Long, X As Long, y As Long, f As Long
+    Dim MapNum As Long
+    Dim s As String
+    Dim tMapStart As Long, tMapEnd As Long
+    Dim ShopNum As Long, ItemNum As Long
+    Dim DurNeeded As Long, GoldNeeded As Long
+    Dim BIp As Integer
+    Dim Packet As String
+    Dim Sn As Long
+    Dim SnPacket As String
+    Dim ar As Long
+    Dim arPacket As String
+    Dim cs As Long
+    Dim csPacket As String
+    Dim GoldItem As Long
     If LCase$(Parse(0)) = "requestlocation" Then
         If GetPlayerAccess(Index) < ADMIN_MAPPER Then
             Call HackingAttempt(Index, "Admin Cloning")
@@ -2680,28 +5568,4 @@ Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Call PlayerMsg(Index, "Map: " & GetPlayerMap(Index) & ", X: " & GetPlayerX(Index) & ", Y: " & GetPlayerY(Index), Pink)
         Exit Sub
     End If
-
-    Exit Sub
-
-ErrorHandle:
-    Msg = "HandleData player " & Index & ": error " & Err.Number & " / " & Err.Source & " / " & Err.Description
-    Debug.Print Msg
-    Call AddLog(Msg, "errors.log")
 End Sub
-
-
-
-
-
-
-
-
-
-    ' Sub NpcTrade(ByVal Index As Long)
-    ' If Npc(MapNpc(GetPlayerMap(Index), I).Num).ShopCall > 0 Then
-    ' Call SendTrade(Index, Npc(MapNpc(GetPlayerMap(Index), I).Num).ShopCall)
-    ' Else
-    ' Call PlayerMsg(Index, "A " & Trim$(Npc(MapNpc(GetPlayerMap(Index), I).Num).Name) & " says to you,'" & Trim$(Npc(MapNpc(GetPlayerMap(Index), I).Num).AttackSay) & "'", Grey)
-    ' End If
-    ' Exit Sub
-    ' End Sub

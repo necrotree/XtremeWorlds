@@ -140,10 +140,19 @@ Public Sub MenuState(ByVal State As Long)
     End Select
 
     If Not IsConnected Then
-        frmMainMenu.ShowMenuHome
-        frmMainMenu.Visible = True
-        frmSendGetData.Visible = False
-        Call GameMsgBox("Sorry, the server seems to be down.  Please try to reconnect in a few minutes or visit " & WEBSITE, vbOKOnly, GAME_NAME)
+        ReturnToLoginMenu
     End If
 End Sub
 
+
+Public Sub ReturnToLoginMenu()
+    Dim openForm As Form
+    If InGame Then Exit Sub
+    frmSendGetData.Visible = False
+    For Each openForm In VB.Forms
+        If StrComp(openForm.Name, "frmAlert", vbTextCompare) = 0 Then openForm.Hide
+    Next
+    PlayerBuffer = vbNullString
+    frmMainMenu.ShowMenuHome
+    frmMainMenu.Visible = True
+End Sub

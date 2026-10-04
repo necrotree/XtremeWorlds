@@ -906,3 +906,8 @@ Function IsQuestComplete(ByVal Index As Long, QuestNum As Long) As Boolean
 
 End Function
 
+
+' 0 hidden/completed, 1 available, 2 in progress, 3 ready to turn in, 4 unavailable.
+Public Sub SetNpcQuestStatus(ByVal Index As Long, ByVal NpcSlot As Long, ByVal Status As Long)
+    SetQuestNpcMarker Index, NpcSlot, Status
+End Sub

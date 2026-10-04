@@ -222,6 +222,10 @@ End Sub
         KeyShift = False
     End Sub
     
+    Private Sub Socket_Disconnected()
+        If Not InGame And frmSendGetData.Visible Then ReturnToLoginMenu
+    End Sub
+
     Private Sub Socket_DataArrival(ByVal bytesTotal As Long)
         If IsConnected Then
             Call IncomingData(bytesTotal)

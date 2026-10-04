@@ -187,7 +187,6 @@ Sub SendDataTo(ByVal Index As Long, ByVal Data As String)
     dbytes = StrConv(Data, vbFromUnicode)
     If IsConnected(Index) Then
         GameServer.Sockets(Index).WriteBytes dbytes
-        DoEvents
     End If
 
 End Sub
@@ -295,13 +294,17 @@ End Sub
 Sub AcceptConnection(ByVal Socket As clsNativeConnection)
     Dim I As Long
 
+    AddLog "AcceptConnection: finding player slot", "network.log"
     I = FindOpenPlayerSlot
+    AddLog "AcceptConnection: slot " & I, "network.log"
 
     If I <> 0 Then
         ' Whoho, we can connect them
         Socket.UserData = I
         Set GameServer.Sockets(CStr(I)).Socket = Socket
+        AddLog "AcceptConnection: socket assigned", "network.log"
         Call SocketConnected(I)
+        AddLog "AcceptConnection: setup completed", "network.log"
         Socket.RequestRead
     Else
         Socket.Close
@@ -328,26 +331,27 @@ Sub SocketConnected(ByVal Index As Long)
     End If
 End Sub
 
-Sub IncomingData(ByVal Socket As clsNativeConnection, ByVal Data As clsNativePacket)
-    On Error Resume Next
+Public Sub ReceiveClientBytes(ByVal Socket As clsNativeConnection, ByRef ReceivedBytes() As Byte, Optional ByVal Trace As Boolean = False)
+    On Error GoTo PacketFailed
 
     Dim Buffer As String
-    Dim dbytes() As Byte
     Dim Packet As String
     Dim top As String * 3
-    Dim Start As Integer
+    Dim Start As Long
     Dim Index As Long
     Dim DataLength As Long
+    Dim errorNumber As Long, errorDescription As String
 
-    dbytes = Data.Read
     Socket.RequestRead
-    Buffer = StrConv(dbytes(), vbUnicode)
+    Buffer = StrConv(ReceivedBytes, vbUnicode)
     DataLength = Len(Buffer)
     Index = CLng(Socket.UserData)
+    If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
     If Buffer = "top" Then
         top = Str(TotalOnlinePlayers)
         Call SendDataTo(Index, top)
         Call CloseSocket(Index)
+        Exit Sub
     End If
 
     Player(Index).Buffer = Player(Index).Buffer & Buffer
@@ -359,7 +363,9 @@ Sub IncomingData(ByVal Socket As clsNativeConnection, ByVal Data As clsNativePac
         Player(Index).DataPackets = Player(Index).DataPackets + 1
         Start = InStr(Player(Index).Buffer, END_CHAR)
         If Len(Packet) > 0 Then
-            Call HandleData(Index, Packet)
+            If Trace Then AddLog "Handling command: " & Left$(Packet, InStr(Packet & SEP_CHAR, SEP_CHAR) - 1), "network.log"
+            Call modHandleData.HandleData(Index, Packet)
+            If Trace Then AddLog "Command completed", "network.log"
         End If
     Loop
 
@@ -384,11 +390,20 @@ Sub IncomingData(ByVal Socket As clsNativeConnection, ByVal Data As clsNativePac
         Call HackingAttempt(Index, "Packet Flooding")
         Exit Sub
     End If
+    Exit Sub
+PacketFailed:
+    errorNumber = Err.Number
+    errorDescription = Err.Description
+    On Error Resume Next
+    AddLog "Packet error for slot " & Index & ": " & errorNumber & " " & errorDescription, "network.log"
+    Socket.Close
+    If Index > 0 And Index <= MAX_PLAYERS Then CloseSocket Index
 End Sub
 
 Sub CloseSocket(ByVal Index As Long)
     ' Make sure player was/is playing the game, and if so, save'm.
     If Index > 0 And IsConnected(Index) Then
+        GameServer.Sockets(Index).Socket.BeginDisconnect
         Call LeftGame(Index)
 
         Call TextAdd(frmServer.txtText, "Connection from " & GetPlayerIP(Index) & " has been terminated.", True)

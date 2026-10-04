@@ -96,6 +96,22 @@ The `build/` folder contains scripts used for specific development changes and p
 
 For changes to networking or saved data formats, update both applications together and test with a matching client/server pair.
 
+## Quest status markers
+
+The client animates `Client/gfx/misc/questblips.png` above quest NPCs. Server quest scripts set each player's marker with `SetNpcQuestStatus(Player, NpcSlot, Status)`. `NpcSlot` is the NPC's slot on the current map (1-10), rather than its NPC database number.
+
+| Status | Meaning | Icon |
+| --- | --- | --- |
+| 0 | Hidden or completed | None |
+| 1 | Available | Yellow ! |
+| 2 | In progress | Grey ? |
+| 3 | Ready to turn in | Yellow ? |
+| 4 | Unavailable | Grey ! |
+
+For example, after accepting a quest from NPC slot 2, call `SetNpcQuestStatus Player, 2, 2`. When its objectives are met, call `SetNpcQuestStatus Player, 2, 3`; after collecting the reward, call `SetNpcQuestStatus Player, 2, 0`.
+
+Set the appropriate markers in `JoinMap(Player)` in `Server/scripts/Main.as`, and update them when quest progress changes. Markers reset on map changes and logout; quest scripts must derive them again from their saved quest data. The engine's existing `IsQuestComplete` flag alone does not identify quest NPCs or active objectives, so no NPC is marked automatically. Rebuild both client and server after installing this change.
+
 ## Troubleshooting
 
 | Problem | Checks |

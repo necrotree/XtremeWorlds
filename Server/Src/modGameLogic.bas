@@ -1449,6 +1449,8 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
         End If
     End If
     
+    ClearQuestNpcMarkers Index
+
     ' Call the Join Map Sub
     MyScript.ExecuteScriptStatement "\scripts\Main.as", "JoinMap " & Index
 
@@ -1920,6 +1922,8 @@ End Sub
 
 Sub LeftGame(ByVal Index As Long)
     Dim N As Long
+
+    ClearQuestNpcMarkers Index
 
     If Player(Index).InGame = True Then
         Player(Index).InGame = False

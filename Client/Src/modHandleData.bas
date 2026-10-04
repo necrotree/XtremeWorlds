@@ -528,6 +528,10 @@ Public Sub HandleData(ByVal Data As String)
         ' :::::::::::::::::::::
         ' :: Map data packet ::
         ' :::::::::::::::::::::
+        Case "questnpcstatus"
+            HandleQuestMarker Parse
+            Exit Sub
+
         Case "mapdata"
             Call ClearProjectiles
             n = 1

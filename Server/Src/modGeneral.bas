@@ -1,6 +1,9 @@
 Attribute VB_Name = "modGeneral"
 Option Explicit
 
+Private QuestNpcStatus() As Byte
+Private QuestNpcDefinition() As Long
+
 Sub InitServer()
     Dim IPMask As String
     Dim I As Long
@@ -43,6 +46,8 @@ Sub InitServer()
     ReDim Map(1 To MAX_MAPS_SET) As MapRec
     ReDim PlayersOnMap(1 To MAX_MAPS_SET) As Long
     ReDim TempTile(1 To MAX_MAPS_SET) As TempTileRec
+    ReDim QuestNpcStatus(1 To MAX_PLAYERS, 1 To MAX_MAP_NPCS)
+    ReDim QuestNpcDefinition(1 To MAX_PLAYERS, 1 To MAX_MAP_NPCS)
     ReDim Player(1 To MAX_PLAYERS) As AccountRec
     ReDim MapItem(1 To MAX_MAPS_SET, 1 To MAX_MAP_ITEMS) As MapItemRec
     ReDim MapNpc(1 To MAX_MAPS_SET, 1 To MAX_MAP_NPCS) As MapNpcRec
@@ -710,3 +715,38 @@ Function IsQuestComplete(ByVal Index As Long, QuestNum As Long) As Boolean
     Next Q
 
 End Function
+
+' Per-player presentation state; quest scripts retain ownership of quest rules and progress.
+Public Sub SetQuestNpcMarker(ByVal Index As Long, ByVal NpcSlot As Long, ByVal Status As Long)
+    Dim MapNum As Long
+    If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
+    If Not IsPlaying(Index) Then Exit Sub
+    If NpcSlot < 1 Or NpcSlot > MAX_MAP_NPCS Or Status < 0 Or Status > 4 Then Exit Sub
+    MapNum = GetPlayerMap(Index)
+    If MapNum < 1 Or MapNum > MAX_MAPS_SET Then Exit Sub
+    QuestNpcDefinition(Index, NpcSlot) = MapNpc(MapNum, NpcSlot).Num
+    If QuestNpcDefinition(Index, NpcSlot) = 0 Then QuestNpcDefinition(Index, NpcSlot) = Map(MapNum).Npc(NpcSlot)
+    If Status > 0 And QuestNpcDefinition(Index, NpcSlot) = 0 Then Exit Sub
+    QuestNpcStatus(Index, NpcSlot) = Status
+    SendQuestNpcMarker Index, NpcSlot
+End Sub
+
+Public Sub ClearQuestNpcMarkers(ByVal Index As Long)
+    Dim slot As Long
+    If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
+    For slot = 1 To MAX_MAP_NPCS
+        QuestNpcStatus(Index, slot) = 0
+        QuestNpcDefinition(Index, slot) = 0
+    Next slot
+End Sub
+
+Private Sub SendQuestNpcMarker(ByVal Index As Long, ByVal NpcSlot As Long)
+    SendDataTo Index, "QUESTNPCSTATUS" & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & NpcSlot & SEP_CHAR & QuestNpcDefinition(Index, NpcSlot) & SEP_CHAR & QuestNpcStatus(Index, NpcSlot) & END_CHAR
+End Sub
+
+Public Sub SendQuestNpcMarkers(ByVal Index As Long)
+    Dim slot As Long
+    For slot = 1 To MAX_MAP_NPCS
+        SendQuestNpcMarker Index, slot
+    Next slot
+End Sub

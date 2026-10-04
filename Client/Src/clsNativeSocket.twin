@@ -3,6 +3,7 @@ Class clsNativeSocket
     Public RemoteHost As String
     Public RemotePort As Long
     Public Event DataArrival(ByVal bytesTotal As Long)
+    Public Event Disconnected()
     Private mState As Long
     Private mSocket As LongPtr = -1
     Private mWindow As LongPtr
@@ -109,6 +110,7 @@ Class clsNativeSocket
         Me.Close
         LastError = errorCode
         mState = 9
+        RaiseEvent Disconnected()
     End Sub
     Public Sub WindowMessage(ByVal window As LongPtr, ByVal message As Long, ByVal wParam As LongPtr, ByVal lParam As LongPtr)
         Dim errorCode As Long = (lParam \ &H10000) And &HFFFF&
@@ -153,6 +155,7 @@ Class clsNativeSocket
                 Case WinDevLib.FD_CLOSE
                     ReceiveAvailable
                     Me.Close
+                    RaiseEvent Disconnected()
             End Select
         End If
     End Sub
@@ -168,6 +171,7 @@ Class clsNativeSocket
                     If count <> WinDevLib.WSAEWOULDBLOCK Then Fail count
                 Else
                     Me.Close
+                    RaiseEvent Disconnected()
                 End If
                 Exit Sub
             End If
