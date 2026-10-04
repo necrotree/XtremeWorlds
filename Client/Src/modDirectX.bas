@@ -339,11 +339,11 @@ Public Sub BltPlayer(ByVal index As Long)
         End If
     End With
 
-    SpriteWidth = GameData.PlayerX + 16
+    SpriteWidth = GameData.SpriteWidth + 16
     SpriteHeight = PIC_Y * 2
 
     With rec
-        .Top = GetPlayerSprite(index) * GameData.PlayerY
+        .Top = GetPlayerSprite(index) * GameData.SpriteHeight
         .Bottom = .Top + SpriteHeight
 
         .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * SpriteWidth
@@ -353,8 +353,8 @@ Public Sub BltPlayer(ByVal index As Long)
     X = GetPlayerPixelX(index)
     Y = GetPlayerPixelY(index)
 
-    If GameData.PlayerX > 48 Then
-        X = X - (GameData.PlayerX / 4)
+    If GameData.SpriteWidth > 48 Then
+        X = X - (GameData.SpriteWidth / 4)
     End If
 
     ' Keep entire sprite inside game buffer
@@ -378,21 +378,21 @@ Public Sub BltPlayerTop(ByVal index As Long)
     Dim source As RECT
 
     With source
-        .Top = (GetPlayerSprite(index) * GameData.PlayerY) - GameData.PlayerY
-        .Bottom = .Top + (GameData.PlayerY - 32)
+        .Top = (GetPlayerSprite(index) * GameData.SpriteHeight) - GameData.SpriteHeight
+        .Bottom = .Top + (GameData.SpriteHeight - 32)
 
-        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * GameData.PlayerX
-        .Right = .Left + GameData.PlayerX
+        .Left = (GetPlayerDir(index) * 3 + Player(index).Anim) * GameData.SpriteWidth
+        .Right = .Left + GameData.SpriteWidth
     End With
 
     X = GetPlayerPixelX(index)
 
-    If GameData.PlayerX > 32 Then
-        X = X - (GameData.PlayerX / 4)
+    If GameData.SpriteWidth > 32 Then
+        X = X - (GameData.SpriteWidth / 4)
     End If
 
     Y = GetPlayerPixelY(index)
-    Y = Y - (GameData.PlayerY - 32)
+    Y = Y - (GameData.SpriteHeight - 32)
 
     ' Let BltFast clip it
     DD_MiddleBuffer.BltFast X, Y, DD_SpriteSurf, source, True
@@ -438,24 +438,11 @@ Public Sub BltNPC(ByVal index As Long)
 
     If MapNpc(index).Num <= 0 Then Exit Sub
 
-    ' Walking animation
-    AnimFrame = _
-        ((CLng(MapNpc(index).XOffset) + CLng(MapNpc(index).YOffset)) \ 8) Mod 3
-
-    If AnimFrame < 0 Then
-        AnimFrame = -AnimFrame
-    End If
-
-    MapNpc(index).Anim = AnimFrame
-
-    SpriteWidth = CLng(GameData.PlayerX) + 16
-    SpriteHeight = CLng(PIC_Y) * 2
-
-    SpriteNum = CLng(Npc(MapNpc(index).Num).Sprite)
-    Direction = CLng(MapNpc(index).Dir)
+    SpriteWidth = GameData.SpriteWidth + 16
+    SpriteHeight = PIC_Y * 2
 
     With rec
-        .Top = SpriteNum * CLng(GameData.PlayerY)
+        .Top = Npc(MapNpc(index).Num).Sprite * GameData.SpriteHeight
         .Bottom = .Top + SpriteHeight
 
         .Left = ((Direction * 3) + AnimFrame) * SpriteWidth
@@ -468,8 +455,8 @@ Public Sub BltNPC(ByVal index As Long)
     Y = CLng(MapNpc(index).Y) * CLng(PIC_Y)
     Y = Y + CLng(MapNpc(index).YOffset)
 
-    If GameData.PlayerX > 48 Then
-        X = X - (CLng(GameData.PlayerX) \ 4)
+    If GameData.SpriteWidth > 48 Then
+        X = X - (GameData.SpriteWidth \ 4)
     End If
 
     If X < 0 Then X = 0

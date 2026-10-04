@@ -40,8 +40,8 @@ Type DataRec
   PlayerNames As Byte
   NpcNames As Byte
   SpellGFX As Byte
-  PlayerX As Integer
-  PlayerY As Integer
+  SpriteWidth As Integer
+  SpriteHeight As Integer
   XOffset As Byte
   YOffset As Byte
   WASD As Byte
