@@ -400,11 +400,11 @@ End Sub
 
 Public Sub SpellEditorBltAnim(ByVal Frame As Byte)
     Dim Source As RECT
-    Dim Destination As RECT
+    Dim Canvas As clsDX11Surface
 
     If DD_SpellSurf Is Nothing Then Exit Sub
 
-    If Frame > 13 Then Frame = 0
+    Frame = Frame Mod 16
 
     Source.Left = CLng(Frame) * PIC_X
     Source.Top = CLng(frmSpellEditor.scrlAnim.Value) * PIC_Y
@@ -414,14 +414,11 @@ Public Sub SpellEditorBltAnim(ByVal Frame As Byte)
     If Source.Right > DD_SpellSurf.Width Then Exit Sub
     If Source.Bottom > DD_SpellSurf.Height Then Exit Sub
 
-    Destination.Left = 0
-    Destination.Top = 0
-    Destination.Right = PIC_X
-    Destination.Bottom = PIC_Y
+    Set Canvas = New clsDX11Surface
+    Canvas.Create PIC_X, PIC_Y
+    Canvas.BltFast 0, 0, DD_SpellSurf, Source, True
 
-    frmSpellEditor.picAnim.Cls
-    DD_SpellSurf.BltToDC frmSpellEditor.picAnim.hDC, Source, Destination
-    frmSpellEditor.picAnim.Refresh
+    Set frmSpellEditor.picAnim.Picture = MenuSurfacePicture(Canvas)
 End Sub
 
 Sub BltSpell(ByVal VicX As Long, ByVal VicY As Long, ByVal SpellAnim As Byte)
