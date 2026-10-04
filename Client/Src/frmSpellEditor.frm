@@ -515,9 +515,8 @@ End Sub
 
 Private Sub tmrSpellAnim_Timer()
 
-    If i > 13 Then i = 0
-    i = i + 1
-    Call SpellEditorBltAnim(i)
+    i = (i + 1) Mod 16
+        Call SpellEditorBltAnim(i)
 End Sub
 
     Private Sub cmdArrows_Click()
