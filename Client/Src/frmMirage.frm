@@ -1029,6 +1029,54 @@ Begin VB.Form frmMainGame
          BackStyle = 0
          ForeColor = 16777215
       End
+      Begin VB.Label lblCharacterTrain
+         Left = 3675
+         Top = 2535
+         Width = 210
+         Height = 225
+         Index = 0
+         Caption = "+"
+         Alignment = 2
+         BackStyle = 0
+         ForeColor = 16777215
+         Tag = "game-menu:picMnuGear:show"
+      End
+      Begin VB.Label lblCharacterTrain
+         Left = 3675
+         Top = 2835
+         Width = 210
+         Height = 225
+         Index = 1
+         Caption = "+"
+         Alignment = 2
+         BackStyle = 0
+         ForeColor = 16777215
+         Tag = "game-menu:picMnuGear:show"
+      End
+      Begin VB.Label lblCharacterTrain
+         Left = 3675
+         Top = 3435
+         Width = 210
+         Height = 225
+         Index = 2
+         Caption = "+"
+         Alignment = 2
+         BackStyle = 0
+         ForeColor = 16777215
+         Tag = "game-menu:picMnuGear:show"
+      End
+      Begin VB.Label lblCharacterTrain
+         Left = 3675
+         Top = 3735
+         Width = 210
+         Height = 225
+         Index = 3
+         Caption = "+"
+         Alignment = 2
+         BackStyle = 0
+         ForeColor = 16777215
+         Tag = "game-menu:picMnuGear:show"
+      End
       Begin VB.Label lblCharacterValue
          Left = 1650
          Top = 2535
@@ -3346,6 +3394,21 @@ Private Sub lblTrain_Click()
    Call SendData("usestatpoint" & SEP_CHAR & cmbStat.ListIndex & END_CHAR)
    Call SetPlayerPOINTS(MyIndex, currentPoints - 1)
    lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
+End Sub
+
+Private Sub TrainCharacterStat(ByVal PointType As Long)
+    If MyIndex < 1 Then Exit Sub
+    If GetPlayerPOINTS(MyIndex) <= 0 Then Exit Sub
+    Call SendData("usestatpoint" & SEP_CHAR & PointType & END_CHAR)
+End Sub
+
+Private Sub lblCharacterTrain_Click(Index As Integer)
+    Select Case Index
+        Case 0: TrainCharacterStat 0
+        Case 1: TrainCharacterStat 1
+        Case 2: TrainCharacterStat 3
+        Case 3: TrainCharacterStat 2
+    End Select
 End Sub
 
 Private Sub optBlocked_Click()
