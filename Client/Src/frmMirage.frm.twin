@@ -621,7 +621,7 @@ End Sub
     Private Sub lstSpells_DblClick()
         If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
             SpellMemorized = lstSpells.ListIndex + 1
-            Call AddText("Successfully memorized spell!", White)
+            Call AddText("Successfully memorized spell!", BrightGreen)
         Else
             Call AddText("No spell here to memorize.", BrightRed)
         End If
@@ -1191,9 +1191,9 @@ End Sub
             If Num > 0 And Num <= MAX_SPELLS Then
                 lblSkillName(i).Caption = Trim$(Spell(Num).name)
                 If Not DD_SpellSurf Is Nothing Then
-                    Source.Left = 0
+                    Source.Left = PIC_X
                     Source.Top = Spell(Num).Graphic * PIC_Y
-                    Source.Right = PIC_X
+                    Source.Right = Source.Left + PIC_X
                     Source.Bottom = Source.Top + PIC_Y
                     If Source.Top >= 0 And Source.Bottom <= DD_SpellSurf.Height Then Canvas.BltFast 0, 0, DD_SpellSurf, Source, True
                 End If
