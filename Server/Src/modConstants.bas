@@ -192,6 +192,3 @@ Public Const SPELL_TYPE_WARP = 7
 ' Target type constants
 Public Const TARGET_TYPE_PLAYER = 0
 Public Const TARGET_TYPE_NPC = 1
-
-
-Public Const ITEM_TYPE_BOOK As Byte = 15
