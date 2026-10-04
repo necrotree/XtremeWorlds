@@ -55,8 +55,8 @@ Public Function MenuSpritePicture(ByVal Sprite As Long) As IPictureDisp
     Dim errorNumber As Long, errorText As String
     Dim frameWidth As Long, frameHeight As Long
     If DD_SpriteSurf Is Nothing Then Exit Function
-    If Sprite < 0 Or GameData.PlayerY < 1 Or GameData.PlayerX < 0 Then Exit Function
-    frameWidth = GameData.PlayerX + 16
+    If Sprite < 0 Or GameData.SpriteHeight < 1 Or GameData.SpriteWidth < 0 Then Exit Function
+    frameWidth = GameData.SpriteWidth + 16
     frameHeight = PIC_Y * 2
     If frameWidth < 1 Or frameWidth > DD_SpriteSurf.Width Then Exit Function
     If Sprite > (DD_SpriteSurf.Height - frameHeight) \ frameHeight Then Exit Function

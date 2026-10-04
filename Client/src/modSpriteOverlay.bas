@@ -78,8 +78,8 @@ Private Sub DrawTargetMarker()
         If Not DrawEntityTarget(TargetType, TargetNum, False) Then ClearTargetMarker
     End If
     If TargetGetCursorPos(point) = 0 Then Exit Sub
-    If TargetScreenToClient(frmMainGame.picScreen.hwnd, point) = 0 Then Exit Sub
-    If TargetGetClientRect(frmMainGame.picScreen.hwnd, bounds) = 0 Then Exit Sub
+    If TargetScreenToClient(frmMainGame.picScreen.hWnd, point) = 0 Then Exit Sub
+    If TargetGetClientRect(frmMainGame.picScreen.hWnd, bounds) = 0 Then Exit Sub
     If bounds.Right <= 0 Or bounds.Bottom <= 0 Then Exit Sub
     If point.X < 0 Or point.Y < 0 Or point.X >= bounds.Right Or point.Y >= bounds.Bottom Then Exit Sub
     If InEditor Then Exit Sub
@@ -123,9 +123,9 @@ Private Function TargetSpritePosition(ByVal kind As Long, ByVal index As Long, B
         Case Else
             Exit Function
     End Select
-    spriteWidth = CLng(GameData.PlayerX) + 16
+    spriteWidth = CLng(GameData.SpriteWidth) + 16
     spriteHeight = PIC_Y * 2
-    If GameData.PlayerX > 48 Then X = X - CLng(GameData.PlayerX) \ 4
+    If GameData.SpriteWidth > 48 Then X = X - CLng(GameData.SpriteWidth) \ 4
     If X < 0 Then X = 0
     If Y < 0 Then Y = 0
     If X + spriteWidth > DD_BackBuffer.Width Then X = DD_BackBuffer.Width - spriteWidth
@@ -138,7 +138,7 @@ End Function
 Private Function TargetSpriteContains(ByVal kind As Long, ByVal index As Long, ByVal mouseX As Long, ByVal mouseY As Long) As Boolean
     Dim X As Long, Y As Long
     If Not TargetSpritePosition(kind, index, X, Y) Then Exit Function
-    TargetSpriteContains = mouseX >= X - 8 And mouseX < X - 8 + CLng(GameData.PlayerX) + 16 And _
+    TargetSpriteContains = mouseX >= X - 8 And mouseX < X - 8 + CLng(GameData.SpriteWidth) + 16 And _
                            mouseY >= Y - 16 And mouseY < Y - 16 + PIC_Y * 2
 End Function
 Private Function DrawEntityTarget(ByVal kind As Long, ByVal index As Long, ByVal preview As Boolean) As Boolean
@@ -209,14 +209,14 @@ Private Sub GetOverlayPlayerSpritePosition(ByVal index As Long, ByRef SpriteX As
     Dim SpriteWidth As Long
     Dim SpriteHeight As Long
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
+    SpriteWidth = CLng(GameData.SpriteWidth) + 16
     SpriteHeight = CLng(PIC_Y) * 2
 
     X = CLng(GetPlayerPixelX(index))
     Y = CLng(GetPlayerPixelY(index))
 
-    If GameData.PlayerX > 48 Then
-        X = X - (CLng(GameData.PlayerX) \ 4)
+    If GameData.SpriteWidth > 48 Then
+        X = X - (CLng(GameData.SpriteWidth) \ 4)
     End If
 
     ' Match BltPlayer's clamping exactly.
@@ -245,7 +245,7 @@ Private Sub OverlayLayout(ByVal index As Long, ByVal hasBubble As Boolean, ByRef
     Dim barTop As Long
     Dim bubbleTop As Long
 
-    SpriteWidth = CLng(GameData.PlayerX) + 16
+    SpriteWidth = CLng(GameData.SpriteWidth) + 16
     SpriteHeight = CLng(PIC_Y) * 2
 
     ' Use the exact final position used by BltPlayer.
@@ -393,7 +393,7 @@ Private Sub DrawQuestMarkers()
                     End Select
                     source.Top = row * PIC_Y
                     source.Bottom = source.Top + PIC_Y
-                    X = X - 8 + (CLng(GameData.PlayerX) + 16 - PIC_X) \ 2
+                    X = X - 8 + (CLng(GameData.SpriteWidth) + 16 - PIC_X) \ 2
                     Y = Y - 16 - PIC_Y
                     If X < 0 Then X = 0
                     If X + PIC_X > DD_BackBuffer.Width Then X = DD_BackBuffer.Width - PIC_X

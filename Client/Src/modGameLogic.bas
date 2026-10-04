@@ -93,8 +93,8 @@ Public Sub Main()
     End If
 
     LoadHotkeys
-    GameData.PlayerX = 32
-    GameData.PlayerY = 32
+    GameData.SpriteWidth = 32
+    GameData.SpriteHeight = 32
 
     Call SetStatus("Initializing TCP settings")
     Call TcpInit
