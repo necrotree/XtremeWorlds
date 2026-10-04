@@ -195,6 +195,7 @@ Public Const ITEM_TYPE_KEY As Byte = 11
 Public Const ITEM_TYPE_CURRENCY As Byte = 12
 Public Const ITEM_TYPE_SPELL As Byte = 13
 Public Const ITEM_TYPE_WARP As Byte = 14
+Public Const ITEM_TYPE_BOOK As Byte = 15
 
 ' Direction constants
 Public Const DIR_UP As Byte = 0
