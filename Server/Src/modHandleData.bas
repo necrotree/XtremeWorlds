@@ -1311,7 +1311,7 @@ Private Sub ServerPacket_useitem(ByVal Index As Long, ByVal Data As String, ByRe
                                         Call SetPlayerSpell(Index, I, N)
                                         Call TakeItem(Index, GetPlayerInvItemNum(Index, InvNum), 0)
                                         Call PlayerMsg(Index, "You study the spell carefully...", Yellow)
-                                        Call PlayerMsg(Index, "You have learned a new spell!", White)
+                                        Call PlayerMsg(Index, "You have learned a new spell!", BrightGreen)
                                     Else
                                         Call TakeItem(Index, GetPlayerInvItemNum(Index, InvNum), 0)
                                         Call PlayerMsg(Index, "You have already learned this spell!  The spells crumbles into dust.", BrightRed)
