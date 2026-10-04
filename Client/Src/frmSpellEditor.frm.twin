@@ -71,8 +71,7 @@ Class frmSpellEditor
     
     Private Sub tmrSpellAnim_Timer()
     
-        If i > 13 Then i = 0
-        i = i + 1
+        i = (i + 1) Mod 16
         Call SpellEditorBltAnim(i)
     End Sub
     
