@@ -432,28 +432,23 @@ Public Sub BltNPC(ByVal index As Long)
     Dim Y As Long
     Dim SpriteWidth As Long
     Dim SpriteHeight As Long
-    Dim AnimFrame As Long
-    Dim Direction As Long
     Dim SpriteNum As Long
 
     If MapNpc(index).Num <= 0 Then Exit Sub
 
     SpriteWidth = GameData.SpriteWidth + 16
     SpriteHeight = PIC_Y * 2
+    SpriteNum = Npc(MapNpc(index).Num).Sprite
 
     With rec
-        .Top = Npc(MapNpc(index).Num).Sprite * GameData.SpriteHeight
+        .Top = SpriteNum * SpriteHeight
         .Bottom = .Top + SpriteHeight
-
-        .Left = ((Direction * 3) + AnimFrame) * SpriteWidth
+        .Left = (MapNpc(index).Dir * 3 + MapNpc(index).Anim) * SpriteWidth
         .Right = .Left + SpriteWidth
     End With
 
-    X = CLng(MapNpc(index).X) * CLng(PIC_X)
-    X = X + CLng(MapNpc(index).XOffset)
-
-    Y = CLng(MapNpc(index).Y) * CLng(PIC_Y)
-    Y = Y + CLng(MapNpc(index).YOffset)
+    X = MapNpc(index).X * PIC_X + MapNpc(index).XOffset
+    Y = MapNpc(index).Y * PIC_Y + MapNpc(index).YOffset
 
     If GameData.SpriteWidth > 48 Then
         X = X - (GameData.SpriteWidth \ 4)
@@ -462,12 +457,12 @@ Public Sub BltNPC(ByVal index As Long)
     If X < 0 Then X = 0
     If Y < 0 Then Y = 0
 
-    If X + SpriteWidth > CLng(DD_MiddleBuffer.Width) Then
-        X = CLng(DD_MiddleBuffer.Width) - SpriteWidth
+    If X + SpriteWidth > DD_MiddleBuffer.Width Then
+        X = DD_MiddleBuffer.Width - SpriteWidth
     End If
 
-    If Y + SpriteHeight > CLng(DD_MiddleBuffer.Height) Then
-        Y = CLng(DD_MiddleBuffer.Height) - SpriteHeight
+    If Y + SpriteHeight > DD_MiddleBuffer.Height Then
+        Y = DD_MiddleBuffer.Height - SpriteHeight
     End If
 
     If X < 0 Then X = 0
