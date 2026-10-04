@@ -961,9 +961,10 @@ End Sub
     End Sub
 
     Public Sub DrawInventoryGrid()
-        Dim Bounds As RECT, Source As RECT
+        Dim Bounds As RECT, Source As RECT, Border As RECT
         Dim InventoryBackground As clsDX11Surface
         Dim Cell As Long, Slot As Long, ItemNum As Long, X As Long, Y As Long
+        Dim SlotX As Long, SlotY As Long
         If DD_ItemSurf Is Nothing Then Exit Sub
         Set InventoryBackground = InventoryBackgroundPicture()
         If InventoryBackground Is Nothing Then Exit Sub
@@ -979,8 +980,31 @@ End Sub
             If Slot <= MAX_INV Then
                 ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
                 If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    SlotX = 23 + (Cell Mod 5) * 45
+                    SlotY = 27 + (Cell \ 5) * 45
+
                     GetItemPictureRect Item(ItemNum).Pic, Source
-                    InventoryCanvas.BltFast 26 + (Cell Mod 5) * 45, 30 + (Cell \ 5) * 45, DD_ItemSurf, Source, True
+                    InventoryCanvas.BltFast SlotX + 3, SlotY + 3, DD_ItemSurf, Source, True
+
+                    Border.Left = SlotX
+                    Border.Top = SlotY
+                    Border.Right = SlotX + 38
+                    Border.Bottom = SlotY + 1
+                    InventoryCanvas.BltColorFill Border, RGB(128, 128, 128)
+
+                    Border.Top = SlotY + 37
+                    Border.Bottom = SlotY + 38
+                    InventoryCanvas.BltColorFill Border, RGB(128, 128, 128)
+
+                    Border.Left = SlotX
+                    Border.Top = SlotY + 1
+                    Border.Right = SlotX + 1
+                    Border.Bottom = SlotY + 37
+                    InventoryCanvas.BltColorFill Border, RGB(128, 128, 128)
+
+                    Border.Left = SlotX + 37
+                    Border.Right = SlotX + 38
+                    InventoryCanvas.BltColorFill Border, RGB(128, 128, 128)
                 End If
             End If
         Next Cell
@@ -988,8 +1012,14 @@ End Sub
         X = -1: Y = -1
         Cell = lstInv.ListIndex - InventoryPage * 35
         If Cell >= 0 And Cell < 35 Then
-            X = 23 + (Cell Mod 5) * 45
-            Y = 27 + (Cell \ 5) * 45
+            Slot = InventoryPage * 35 + Cell + 1
+            If Slot <= MAX_INV Then
+                ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    X = 23 + (Cell Mod 5) * 45
+                    Y = 27 + (Cell \ 5) * 45
+                End If
+            End If
         End If
         Set imgInventory.Picture = MenuSurfacePicture(InventoryCanvas, CLng(X), CLng(Y))
     End Sub
