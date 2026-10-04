@@ -185,6 +185,21 @@ End Sub
         lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
     End Sub
     
+    Private Sub TrainCharacterStat(ByVal PointType As Long)
+        If MyIndex < 1 Then Exit Sub
+        If GetPlayerPOINTS(MyIndex) <= 0 Then Exit Sub
+        Call SendData("usestatpoint" & SEP_CHAR & PointType & END_CHAR)
+    End Sub
+
+    Private Sub lblCharacterTrain_Click(Index As Integer)
+        Select Case Index
+            Case 0: TrainCharacterStat 0
+            Case 1: TrainCharacterStat 1
+            Case 2: TrainCharacterStat 3
+            Case 3: TrainCharacterStat 2
+        End Select
+    End Sub
+
     Private Sub optBlocked_Click()
         frmMapBlock.Show vbModal
     End Sub
