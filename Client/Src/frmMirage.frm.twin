@@ -1233,6 +1233,18 @@ End Sub
         lblSkillName_DblClick index
     End Sub
 
+    Private Sub lblSkillName_MouseDown(index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        If Button <> vbRightButton Then Exit Sub
+        lblSkillName_Click index
+        lblForget_Click
+    End Sub
+
+    Private Sub imgSkillIcon_MouseDown(index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
+        If Button <> vbRightButton Then Exit Sub
+        lblSkillName_Click index
+        lblForget_Click
+    End Sub
+
     Private Sub lblSkillsNext_Click()
         Dim Slot As Long
         Slot = (lstSpells.ListIndex \ 8 + 1) * 8
