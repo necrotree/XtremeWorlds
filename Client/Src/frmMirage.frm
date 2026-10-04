@@ -4287,6 +4287,20 @@ End Sub
         lblCharacterValue(13).Caption = ChrW$(&H2014)
         lblCharacterValue(6).ToolTipText = "Not tracked by this game"
         lblCharacterValue(13).ToolTipText = "Not tracked by this game"
+        Dim TrainColor As Long
+        If GetPlayerPOINTS(MyIndex) > 0 Then
+            TrainColor = RGB(255, 255, 255)
+        Else
+            TrainColor = RGB(255, 0, 0)
+        End If
+        lblCharacterTrain(0).Caption = "+"
+        lblCharacterTrain(1).Caption = "+"
+        lblCharacterTrain(2).Caption = "+"
+        lblCharacterTrain(3).Caption = "+"
+        lblCharacterTrain(0).ForeColor = TrainColor
+        lblCharacterTrain(1).ForeColor = TrainColor
+        lblCharacterTrain(2).ForeColor = TrainColor
+        lblCharacterTrain(3).ForeColor = TrainColor
     End Sub
 
     Public Sub RefreshSkills()
