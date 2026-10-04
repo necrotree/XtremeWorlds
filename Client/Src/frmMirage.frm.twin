@@ -1026,14 +1026,26 @@ End Sub
 
     Private Function InventorySlotAt(ByVal X As Single, ByVal Y As Single) As Long
         Dim Column As Long, Row As Long, Slot As Long
+
+        ' Image mouse coordinates can arrive in twips on the classic
+        ' twinBASIC form even though the inventory layout is measured
+        ' in pixels. Normalize them before doing the grid hit test.
+        If X > 265 Or Y > 382 Then
+            X = X / Screen.TwipsPerPixelX
+            Y = Y / Screen.TwipsPerPixelY
+        End If
+
         X = X - 23
         Y = Y - 27
         If X < 0 Or Y < 0 Or X >= 225 Or Y >= 315 Then Exit Function
+
         Column = Int(X / 45)
         Row = Int(Y / 45)
+
         If X - Column * 45 >= 38 Or Y - Row * 45 >= 38 Then Exit Function
+
         Slot = InventoryPage * 35 + Row * 5 + Column + 1
-        If Slot <= MAX_INV Then InventorySlotAt = Slot
+        If Slot > 0 And Slot <= MAX_INV Then InventorySlotAt = Slot
     End Function
 
     Private Sub imgInventory_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
