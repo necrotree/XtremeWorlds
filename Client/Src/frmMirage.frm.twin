@@ -1207,6 +1207,11 @@ ConfirmationFailed:
         lblCharacterTrain(1).Caption = "+"
         lblCharacterTrain(2).Caption = "+"
         lblCharacterTrain(3).Caption = "+"
+        ' Keep the train buttons beside the stat names instead of the value column.
+        lblCharacterTrain(0).Left = 112
+        lblCharacterTrain(1).Left = 112
+        lblCharacterTrain(2).Left = 112
+        lblCharacterTrain(3).Left = 112
         lblCharacterTrain(0).ForeColor = TrainColor
         lblCharacterTrain(1).ForeColor = TrainColor
         lblCharacterTrain(2).ForeColor = TrainColor
