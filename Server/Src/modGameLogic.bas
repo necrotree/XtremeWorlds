@@ -2784,6 +2784,12 @@ Sub SetPlayerSprite(ByVal Index As Long, ByVal Sprite As Long)
 End Sub
 
 Function GetPlayerLevel(ByVal Index As Long) As Long
+    ' Player levels are 1-based.  Older/blank records can contain zero,
+    ' so normalize them the first time the level is read.
+    If Player(Index).Char(Player(Index).CharNum).Level < 1 Then
+        Player(Index).Char(Player(Index).CharNum).Level = 1
+    End If
+
     GetPlayerLevel = Player(Index).Char(Player(Index).CharNum).Level
 End Function
 
