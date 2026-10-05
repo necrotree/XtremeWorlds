@@ -129,28 +129,24 @@ Class frmBookEditor
         frmIndex.ZOrder 0
     End Sub
 
-    Public Sub LoadDefinition(ByRef parts() As String)
-        Dim bookId As Long
-        Dim questId As Long
-
+    Public Sub LoadBook(ByVal id As Long)
         If Not Initialized Then Exit Sub
-        If Not BookEditorOpen Then Exit Sub
-        If CLng(Val(parts(1))) <> Current Then Exit Sub
+        If id < 1 Or id > MAX_BOOKS Then Exit Sub
 
-        txtBookTitle.Text = DecodeBookText(parts(2))
-        txtBookHeader.Text = DecodeBookText(parts(3))
-        txtPage1.Text = DecodeBookText(parts(4))
-        txtPage2.Text = DecodeBookText(parts(5))
+        Current = id
 
-        bookId = CLng(Val(parts(6)))
-        questId = CLng(Val(parts(7)))
+        txtBookTitle.Text = Trim$(Book(id).Name)
+        txtBookHeader.Text = Trim$(Book(id).Header)
+        txtPage1.Text = RTrim$(Book(id).Pages(1))
+        txtPage2.Text = RTrim$(Book(id).Pages(2))
 
-        SelectBook bookId
-        SelectQuest questId
+        SelectBook Book(id).NextBook
+        SelectQuest Book(id).Quest
 
         cmdOk.Enabled = True
         cmdPreview.Enabled = True
 
+        BookEditorOpen = True
         Me.Show vbModeless, frmMainGame
         Me.ZOrder 0
     End Sub
@@ -168,10 +164,18 @@ Class frmBookEditor
             Exit Sub
         End If
 
-        Saving = True
+        Book(Current).Name = txtBookTitle.Text
+        Book(Current).Header = txtBookHeader.Text
+        Book(Current).Pages(1) = txtPage1.Text
+        Book(Current).Pages(2) = txtPage2.Text
+        Book(Current).NextBook = BookIds(cmbBook.ListIndex + 1)
+        Book(Current).Quest = QuestIds(cmbQuest.ListIndex + 1)
+        If Book(Current).PageCount < 2 Then Book(Current).PageCount = 2
 
+        Saving = True
         cmdOk.Enabled = False
-        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtBookTitle.Text) & SEP_CHAR & EncodeBookText(txtBookHeader.Text) & SEP_CHAR & EncodeBookText(txtPage1.Text) & SEP_CHAR & EncodeBookText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex + 1) & SEP_CHAR & QuestIds(cmbQuest.ListIndex + 1) & END_CHAR
+
+        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(Trim$(Book(Current).Name)) & SEP_CHAR & EncodeBookText(Trim$(Book(Current).Header)) & SEP_CHAR & EncodeBookText(RTrim$(Book(Current).Pages(1))) & SEP_CHAR & EncodeBookText(RTrim$(Book(Current).Pages(2))) & SEP_CHAR & Book(Current).NextBook & SEP_CHAR & Book(Current).Quest & END_CHAR
     End Sub
 
     Public Sub Saved(ByVal id As Long)
