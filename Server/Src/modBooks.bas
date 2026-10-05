@@ -122,7 +122,7 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
     If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then Exit Sub
 
     Select Case LCase$(parts(0))
-        Case "requesteditbook"
+        Case "bookeditor"
             If UBound(parts) <> 0 Then Exit Sub
             If MAX_BOOKS < 1 Then GoTo Failed
 
