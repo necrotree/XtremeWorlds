@@ -1,4 +1,4 @@
-[FormDesignerId("D5EBE62F-5E4C-4992-B6AB-D5446AE95B23")]
+[FormDesignerId("41120FFC-41A8-4880-A68F-F9E88CAB9080")]
 Class frmQuestEditor
     Attribute VB_PredeclaredId = True
     Option Explicit
