@@ -22,6 +22,14 @@ Class frmIndex
             Unload Me
             Exit Sub
         End If
+
+        If InBookEditor Then
+            frmBookEditor.SelectBookForEdit EditorIndex
+            InBookEditor = False
+            Call SendData("EDITBOOK" & SEP_CHAR & EditorIndex & END_CHAR)
+            Unload Me
+            Exit Sub
+        End If
     
         If InItemsEditor = True Then
             Call SendData("EDITITEM" & SEP_CHAR & EditorIndex & END_CHAR)
@@ -57,6 +65,7 @@ Class frmIndex
         If Selecting Then Exit Sub
         ResetEditorIndexState
         If Not QuestEditorOpen Then Unload frmQuestEditor
+        If Not BookEditorOpen Then Unload frmBookEditor
     End Sub
     
     

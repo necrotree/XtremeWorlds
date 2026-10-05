@@ -97,8 +97,9 @@ Class frmBookEditor
         Dim i As Long
         list.Clear
         For i = 1 To BookCount
-            list.AddItem CStr(BookIds(i)) & ": " & cmbBook.List(i)
+            list.AddItem cmbBook.List(i)
         Next i
+        If list.ListCount > 0 Then list.ListIndex = 0
     End Sub
 
     Public Sub SelectBookForEdit(ByVal id As Long)
@@ -109,9 +110,10 @@ Class frmBookEditor
     Public Sub OpenEditor()
         Saving = False
         BookEditorOpen = True
+        InBookEditor = True
         ReleaseGameKeys
 
-        ' Like the other editors, show the shared index first.
+        ' Like item/quest editors, choose a content slot first.
         FillIndex frmIndex.lstIndex
         frmIndex.Show vbModeless, frmMainGame
         frmIndex.ZOrder 0
@@ -139,6 +141,8 @@ Class frmBookEditor
         cmdOk.Enabled = True
         cmdPreview.Enabled = True
 
+        Me.Show vbModeless, frmMainGame
+        Me.ZOrder 0
     End Sub
 
     Private Sub cmdOk_Click()
@@ -164,9 +168,10 @@ Class frmBookEditor
         If id <> Current Then Exit Sub
 
         Saving = False
-        BookEditorOpen = False
-        BookPreviewOpen = False
-        Unload Me
+        If id >= 1 And id <= BookCount Then
+            cmbBook.List(id) = CStr(id) & ": " & txtBookTitle.Text
+        End If
+        CloseToIndex
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
@@ -212,7 +217,9 @@ Class frmBookEditor
         showIndex = IsConnected And InGame
 
         If showIndex Then
+            InBookEditor = True
             FillIndex frmIndex.lstIndex
+            If Current >= 1 And Current <= frmIndex.lstIndex.ListCount Then frmIndex.lstIndex.ListIndex = Current - 1
             frmIndex.Show vbModeless, frmMainGame
             frmIndex.ZOrder 0
         End If
@@ -230,6 +237,7 @@ Class frmBookEditor
 
         BookEditorOpen = False
         BookPreviewOpen = False
+        InBookEditor = False
 
         ReleaseGameKeys
     End Sub
