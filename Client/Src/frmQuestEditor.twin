@@ -98,7 +98,7 @@ Class frmQuestEditor
                 Case 6: txtNotReady.Text = value
                 Case 7: txtNotHadItem.Text = value
                 Case 8: cmbClassReq.ListIndex = CLng(Val(value))
-                Case 9: scrlLevel.Value = CLng(Val(value))
+                Case 9: scrlLevel.Value = CLng(Val(value)): lblLevel.Caption = CStr(scrlLevel.Value)
                 Case 10: cmbQuest.ListIndex = CLng(Val(value))
                 Case 11: chkHealth.Value = CLng(Val(value))
                 Case 12: chkMana.Value = CLng(Val(value))
@@ -140,6 +140,14 @@ Class frmQuestEditor
             Case 19: Field = txtExpGet.Text
         End Select
     End Function
+
+    Private Sub scrlLevel_Change()
+        lblLevel.Caption = CStr(scrlLevel.Value)
+    End Sub
+
+    Private Sub scrlLevel_Scroll()
+        lblLevel.Caption = CStr(scrlLevel.Value)
+    End Sub
 
     Private Sub cmdSubmit_Click()
         Dim f As Long, value As String, packet As String
