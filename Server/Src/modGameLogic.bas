@@ -1903,6 +1903,7 @@ Sub NpcDir(ByVal MapNum As Long, ByVal MapNpcNum As Long, ByVal Dir As Long)
 End Sub
 
 Sub JoinGame(ByVal Index As Long)
+    Dim N As Long
     Player(Index).XOffset = 0
     Player(Index).YOffset = 0
     ' Set the flag so we know the person is in the game
