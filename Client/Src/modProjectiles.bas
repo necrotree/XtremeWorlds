@@ -50,7 +50,11 @@ Public Sub InitSpellDeliveryEditor()
         .cmbDelivery.AddItem "Projectile hit"
         .cmbArrow.Clear
         For i = 1 To MAX_ARROWS
-            .cmbArrow.AddItem "Arrow " & CStr(i)
+            If Len(Trim$(Arrow(i).Name)) > 0 Then
+                .cmbArrow.AddItem Trim$(Arrow(i).Name)
+            Else
+                .cmbArrow.AddItem "(Unnamed Arrow)"
+            End If
         Next
         .cmbDelivery.ListIndex = SpellDelivery(EditorIndex).Mode
         .cmbArrow.ListIndex = SpellDelivery(EditorIndex).Arrow - 1
