@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "XtremeWorlds: Build twinBASIC Projects",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/Build.ps1",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
