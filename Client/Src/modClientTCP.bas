@@ -454,10 +454,10 @@ Public Sub SendSaveGuild(ByVal Guild As Long, ByVal name As String, ByVal Abr As
 
 End Sub
 
-Sub SendRequestEditQuest()
+Public Sub SendRequestEditQuest()
     Dim Packet As String
 
-    Packet = "REQUESTEDITQUEST" & END_CHAR
+    Packet = "questeditor" & END_CHAR
     Call SendData(Packet)
 End Sub
 

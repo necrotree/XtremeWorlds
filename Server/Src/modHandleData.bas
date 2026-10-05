@@ -29,6 +29,7 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
         Case "playermsg": ServerPacket_playermsg Index, Data, Parse
         Case "playermove": ServerPacket_playermove Index, Data, Parse
         Case "playerdir": ServerPacket_playerdir Index, Data, Parse
+        Case "usepotion": HandleGuiPotion Index, Parse
         Case "useitem": ServerPacket_useitem Index, Data, Parse
         Case "attack": ServerPacket_attack Index, Data, Parse
         Case "usestatpoint": ServerPacket_usestatpoint Index, Data, Parse
@@ -4079,6 +4080,11 @@ Private Sub ServerPacket_savenpc(ByVal Index As Long, ByVal Data As String, ByRe
             Exit Sub
         End If
 
+        ' The shop-link field holds the quest ID for quest givers.
+        If Val(Parse(6)) = NPC_BEHAVIOR_QUESTGIVER Then
+            If Not IsNumeric(Parse(17)) Then Exit Sub
+            If Val(Parse(17)) < 0 Or Val(Parse(17)) > MAX_QUESTS Or Val(Parse(17)) <> Fix(Val(Parse(17))) Then Exit Sub
+        End If
         ' Update the npc
         Npc(N).Name = Parse(2)
         Npc(N).AttackSay = Parse(3)
@@ -4099,6 +4105,9 @@ Private Sub ServerPacket_savenpc(ByVal Index As Long, ByVal Data As String, ByRe
         ' Save it
         Call SendUpdateNpcToAll(N)
         Call SaveNpc(N)
+        For I = 1 To HighIndex
+            If IsPlaying(I) Then RefreshDialogueQuestMarkers I
+        Next I
         Call AddLog(GetPlayerName(Index) & " saved npc #" & N & ".", ADMIN_LOG)
         Exit Sub
     End If

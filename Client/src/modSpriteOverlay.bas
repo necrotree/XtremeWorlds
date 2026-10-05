@@ -352,6 +352,7 @@ Public Sub DrawSpriteBubbleText(ByVal DC As LongPtr)
     WinDevLib.SelectObject DC, previousFont
 End Sub
 Public Sub ClearQuestMarkers()
+    ClearQuestChat
     Dim index As Long
     For index = 1 To MAX_MAP_NPCS
         QuestMarkerMap(index) = 0
@@ -386,7 +387,7 @@ Private Sub DrawQuestMarkers()
             If MapNpc(index).Num > 0 And MapNpc(index).Num = QuestMarkerNpc(index) Then
                 If TargetSpritePosition(2, index, X, Y) Then
                     Select Case QuestMarkerStatus(index)
-                        Case 1: row = 3 ' Available: yellow !
+                        Case 1: row = 2 ' Not accepted: silver !
                         Case 2: row = 0 ' In progress: grey ?
                         Case 3: row = 1 ' Ready to turn in: yellow ?
                         Case 4: row = 2 ' Unavailable: grey !

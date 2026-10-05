@@ -1,5 +1,6 @@
 Attribute VB_Name = "modGameLogic"
 Option Explicit
+Private GuiPotionTimers As Object
 
 Function GetPlayerDamage(ByVal Index As Long) As Long
     Dim WeaponSlot As Long
@@ -885,7 +886,26 @@ Function CanAttackNpc(ByVal Attacker As Long, ByVal MapNpcNum As Long) As Boolea
     NpcNum = MapNpc(MapNum, MapNpcNum).Num
 
     ' Make sure the npc isn't already dead
-    If MapNpc(MapNum, MapNpcNum).HP <= 0 Then
+    If MapNpc(MapNum, MapNpcNum).HP <= 0 And Npc(NpcNum).Behavior <> NPC_BEHAVIOR_QUESTGIVER Then
+        Exit Function
+    End If
+
+    ' Quest givers talk through the quest definitions instead of taking damage.
+    If Npc(NpcNum).Behavior = NPC_BEHAVIOR_QUESTGIVER Then
+        If GetTickCount > Player(Attacker).AttackTimer + 950 Then
+            Dim talkX As Long, talkY As Long
+            talkX = GetPlayerX(Attacker): talkY = GetPlayerY(Attacker)
+            Select Case GetPlayerDir(Attacker)
+                Case DIR_UP: talkY = talkY - 1
+                Case DIR_DOWN: talkY = talkY + 1
+                Case DIR_LEFT: talkX = talkX - 1
+                Case DIR_RIGHT: talkX = talkX + 1
+            End Select
+            If MapNpc(MapNum, MapNpcNum).X = talkX And MapNpc(MapNum, MapNpcNum).y = talkY Then
+                Player(Attacker).AttackTimer = GetTickCount
+                TalkToQuestNpc Attacker, MapNpcNum
+            End If
+        End If
         Exit Function
     End If
 
@@ -1022,7 +1042,7 @@ Function CanNpcAttackPlayer(ByVal MapNpcNum As Long, ByVal Index As Long) As Boo
     NpcNum = MapNpc(MapNum, MapNpcNum).Num
 
     ' Make sure the npc isn't already dead
-    If MapNpc(MapNum, MapNpcNum).HP <= 0 Then
+    If MapNpc(MapNum, MapNpcNum).HP <= 0 And Npc(NpcNum).Behavior <> NPC_BEHAVIOR_QUESTGIVER Then
         Exit Function
     End If
 
@@ -3254,3 +3274,41 @@ Private Function NpcAttributeWalkable(ByVal attributeType As Long, ByVal blockNp
             NpcAttributeWalkable = blockNpc = 0
     End Select
 End Function
+
+Public Sub HandleGuiPotion(ByVal Index As Long, ByRef parts() As String)
+    Dim kind As String, key As String, nowTick As Double, elapsed As Double
+    Dim maximum As Long, current As Long, amount As Long
+    If Not IsPlaying(Index) Or UBound(parts) <> 1 Then Exit Sub
+    If GetPlayerHP(Index) <= 0 Then Exit Sub
+    kind = LCase$(parts(1))
+    If kind <> "hp" And kind <> "mp" Then Exit Sub
+    If GuiPotionTimers Is Nothing Then Set GuiPotionTimers = CreateObject("Scripting.Dictionary")
+    key = LCase$(GetPlayerLogin(Index)) & ":" & LCase$(GetPlayerName(Index)) & ":" & kind
+    nowTick = CDbl(GetTickCount)
+    If nowTick < 0 Then nowTick = nowTick + 4294967296#
+    If GuiPotionTimers.Exists(key) Then
+        elapsed = nowTick - CDbl(GuiPotionTimers(key))
+        If elapsed < 0 Then elapsed = elapsed + 4294967296#
+        If elapsed < 30000 Then
+            PlayerMsg Index, "Potion ready in " & CStr(Int((30000 - elapsed + 999) / 1000)) & " seconds.", BrightRed
+            Exit Sub
+        End If
+    End If
+    If kind = "hp" Then
+        maximum = GetPlayerMaxHP(Index): current = GetPlayerHP(Index)
+    Else
+        maximum = GetPlayerMaxMP(Index): current = GetPlayerMP(Index)
+    End If
+    If current >= maximum Or maximum <= 0 Then Exit Sub
+    amount = maximum \ 4
+    If amount < 1 Then amount = 1
+    If amount > maximum - current Then amount = maximum - current
+    GuiPotionTimers(key) = nowTick
+    If kind = "hp" Then
+        SetPlayerHP Index, current + amount
+        SendHP Index
+    Else
+        SetPlayerMP Index, current + amount
+        SendMP Index
+    End If
+End Sub

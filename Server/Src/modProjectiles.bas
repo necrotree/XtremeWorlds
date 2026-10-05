@@ -166,7 +166,7 @@ Public Function CanSpellAffect(ByVal caster As Long, ByVal spellNumber As Long, 
         ' Inventory and player warp effects require a player recipient.
         If Spell(spellNumber).Type = SPELL_TYPE_GIVEITEM Or Spell(spellNumber).Type = SPELL_TYPE_WARP Then Exit Function
         If harmful Then
-            If Npc(npcNumber).Behavior = NPC_BEHAVIOR_FRIENDLY Or Npc(npcNumber).Behavior = NPC_BEHAVIOR_SHOPKEEPER Then Exit Function
+            If Npc(npcNumber).Behavior = NPC_BEHAVIOR_FRIENDLY Or Npc(npcNumber).Behavior = NPC_BEHAVIOR_SHOPKEEPER Or Npc(npcNumber).Behavior = NPC_BEHAVIOR_QUESTGIVER Then Exit Function
         End If
     Else
         Exit Function

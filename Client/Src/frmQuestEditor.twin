@@ -9,7 +9,6 @@ Class frmQuestEditor
     Private Current As Long
     Private Busy As Boolean
     Private Saving As Boolean
-
     Public Sub BeginList(ByVal total As Long)
         If total < 1 Or total > 4096 Then Exit Sub
         Busy = True
@@ -51,9 +50,12 @@ Class frmQuestEditor
         Dim i As Long
         Busy = True
         If Current < 1 Then Exit Sub
+
         Saving = False
+        ' Quest chaining uses quest IDs directly; zero means no next quest.
         cmbQuest.Enabled = True
         cmbQuest.Clear
+        cmbQuest.AddItem "None"
         For i = 1 To Count
             cmbQuest.AddItem CStr(i) & ": " & Names(i)
         Next i
@@ -83,13 +85,6 @@ Class frmQuestEditor
 
         cmdSubmit.Enabled = False
         Busy = False
-    End Sub
-
-    Private Sub cmbQuest_Click()
-        If Busy Or cmbQuest.ListIndex < 0 Then Exit Sub
-        Current = cmbQuest.ListIndex + 1
-        cmdSubmit.Enabled = False
-        If IsConnected Then frmMainGame.Socket.SendData "editquestdialogue" & SEP_CHAR & Current & END_CHAR
     End Sub
 
     Public Sub LoadDefinition(ByRef parts() As String)
@@ -184,9 +179,7 @@ Class frmQuestEditor
         If id <> Current Then Exit Sub
         Names(id) = txtName.Text
         Saving = False
-        QuestEditorOpen = False
-        Unload Me
-        SendRequestEditQuest
+        CloseToIndex
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
@@ -197,11 +190,42 @@ Class frmQuestEditor
     End Sub
 
     Private Sub cmdCancel_Click()
+        CloseToIndex
+    End Sub
+
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        If KeyCode = vbKeyEscape Then cmdCancel_Click
+    End Sub
+
+    Private Sub CloseToIndex()
+        Dim showIndex As Boolean
+        showIndex = IsConnected And InGame
+        ResetEditorIndexState
+        If showIndex Then
+            FillIndex frmIndex.lstIndex
+            If Current >= 1 And Current <= frmIndex.lstIndex.ListCount Then frmIndex.lstIndex.ListIndex = Current - 1
+            frmIndex.Show vbModeless, frmMainGame
+            frmIndex.ZOrder 0
+        End If
+        ' Cancel returns explicitly; the unload event must not request a second list.
+        QuestEditorOpen = False
         Unload Me
+        If showIndex Then
+            InQuestEditor = True
+            SendRequestEditQuest
+        End If
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
+        Dim returnToIndex As Boolean
+        returnToIndex = QuestEditorOpen And IsConnected And InGame
         QuestEditorOpen = False
+        QuestDialogueOpen = False
+        InQuestEditor = False
+        QuestEditorPending = 0
+        Current = 0
+        Saving = False
         ReleaseGameKeys
+        If returnToIndex Then SendRequestEditQuest
     End Sub
 End Class

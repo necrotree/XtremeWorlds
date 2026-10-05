@@ -853,7 +853,13 @@ Public Sub NpcEditorInit()
     frmNpcEditor.scrlDEF.Value = Npc(EditorIndex).DEF
     frmNpcEditor.scrlSPEED.Value = Npc(EditorIndex).speed
     frmNpcEditor.scrlMAGI.Value = Npc(EditorIndex).MAGI
-    frmNpcEditor.cmbShop.ListIndex = Npc(EditorIndex).ShopCall
+    frmNpcEditor.SelectQuestId 0
+    If Npc(EditorIndex).Behavior = NPC_BEHAVIOR_QUESTGIVER Then
+        frmNpcEditor.SelectQuestId Npc(EditorIndex).ShopCall
+        frmNpcEditor.cmbShop.ListIndex = 0
+    Else
+        frmNpcEditor.cmbShop.ListIndex = Npc(EditorIndex).ShopCall
+    End If
     frmNpcEditor.txtMaxHP.Text = Trim$(Npc(EditorIndex).MaxHP)
     frmNpcEditor.txtGiveEXP.Text = Trim$(Npc(EditorIndex).GiveEXP)
 
@@ -861,7 +867,7 @@ Public Sub NpcEditorInit()
 End Sub
 
 Public Sub NpcEditorOk()
-    Npc(EditorIndex).name = frmNpcEditor.txtName.Text
+        Npc(EditorIndex).name = frmNpcEditor.txtName.Text
     Npc(EditorIndex).AttackSay = frmNpcEditor.txtAttackSay.Text
     Npc(EditorIndex).Sprite = frmNpcEditor.scrlSprite.Value
     Npc(EditorIndex).SpawnSecs = Val(frmNpcEditor.txtSpawnSecs.Text)
@@ -876,7 +882,11 @@ Public Sub NpcEditorOk()
     Npc(EditorIndex).MAGI = frmNpcEditor.scrlMAGI.Value
     Npc(EditorIndex).MaxHP = frmNpcEditor.txtMaxHP.Text
     Npc(EditorIndex).GiveEXP = frmNpcEditor.txtGiveEXP.Text
-    Npc(EditorIndex).ShopCall = frmNpcEditor.cmbShop.ListIndex
+    If Npc(EditorIndex).Behavior = NPC_BEHAVIOR_QUESTGIVER Then
+        Npc(EditorIndex).ShopCall = frmNpcEditor.SelectedQuestId()
+    Else
+        Npc(EditorIndex).ShopCall = frmNpcEditor.cmbShop.ListIndex
+    End If
 
     Call SendSaveNpc(EditorIndex)
     InNpcEditor = False

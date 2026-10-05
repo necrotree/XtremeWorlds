@@ -494,17 +494,20 @@ Public Sub GameLoop()
     Loop
 
     frmMainGame.Visible = False
-    frmSendGetData.Visible = True
-    Call SetStatus("Destroying game data...")
-
-    ' Report disconnection if server disconnects
-    If IsConnected = False Then
-        Call GameMsgBox("Thank you for playing " & GAME_NAME & "!", vbOKOnly, GAME_NAME)
-        frmMainMenu.Visible = True
-    End If
-
-    ' Shutdown the game
-    Call GameDestroy
+    InEditor = False
+    ResetEditorIndexState
+    QuestEditorOpen = False
+    QuestDialogueOpen = False
+    ReleaseGameKeys
+    ClearProjectiles
+    ClearQuestMarkers
+    Unload frmQuestEditor
+    Unload frmIndex
+    Dim sessionForm As Form
+    For Each sessionForm In VB.Forms
+        If StrComp(sessionForm.Name, "frmMainMenu", vbTextCompare) <> 0 Then sessionForm.Hide
+    Next
+    ReturnToLoginMenu
 
 End Sub
 
@@ -1137,7 +1140,7 @@ Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As 
         DirLeft = GameKeyMatches(HK_LEFT, KeyCode)
         DirRight = GameKeyMatches(HK_RIGHT, KeyCode)
     End If
-    If GameKeyMatches(HK_QUIT, KeyCode) Then GameDestroy
+    If GameKeyMatches(HK_QUIT, KeyCode) Then LogoutGame
 
     ' Inventory and spell slot shortcuts must be handled from the central
     ' game input path. Child image/picture controls can own focus and prevent

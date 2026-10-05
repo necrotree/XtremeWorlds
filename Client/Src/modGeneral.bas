@@ -41,6 +41,12 @@ Public Sub UnloadAllForms()
     Next
 End Sub
 
+Public Sub LogoutGame()
+    ' Let the running game loop finish before switching back to the menu.
+    InGame = False
+    TcpDestroy
+End Sub
+
 Sub GameDestroy()
     Audio.Shutdown
     InGame = False
