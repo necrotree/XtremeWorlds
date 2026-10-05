@@ -33,6 +33,7 @@ Class frmQuestEditor
             ClassNames(i) = parts(i + 1)
         Next i
     End Sub
+
     Public Sub OpenEditor()
         Dim i As Long
         Busy = True
@@ -61,13 +62,28 @@ Class frmQuestEditor
             cmbItem.AddItem CStr(i) & ": " & Trim$(Item(i).name)
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
+
         QuestEditorOpen = True
-        ReleaseGameKeys
-        Me.Show vbModeless, frmMainGame
+        SafeReleaseGameKeys
+
+        ' Do not pass frmMainGame as an explicit owner here.  The twinBASIC
+        ' runtime can fail while constructing a modeless form with that owner.
+        Me.Show vbModeless
         Me.ZOrder 0
+
         cmbQuest.ListIndex = 0
         Busy = False
         cmbQuest_Click
+    End Sub
+
+    Private Sub SafeReleaseGameKeys()
+        ' ReleaseGameKeys depends on input objects that may not be initialized
+        ' while an editor form is being opened or destroyed.  Releasing keys
+        ' is best-effort here and must never prevent the editor from opening.
+        On Error Resume Next
+        ReleaseGameKeys
+        Err.Clear
+        On Error GoTo 0
     End Sub
 
     Private Sub cmbQuest_Click()
@@ -187,6 +203,6 @@ Class frmQuestEditor
 
     Private Sub Form_Unload(Cancel As Integer)
         QuestEditorOpen = False
-        ReleaseGameKeys
+        SafeReleaseGameKeys
     End Sub
 End Class
