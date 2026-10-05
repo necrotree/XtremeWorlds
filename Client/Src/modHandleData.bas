@@ -56,6 +56,11 @@ Public Sub HandleData(ByVal Data As String)
         Case "questdialogue", "questeditorbegin", "questeditorname", "questeditorclasses", "questeditorready", "questeditordata", "questeditorsaved", "questeditorerror"
             HandleQuestDialoguePacket Parse
             Exit Sub
+        Case "accountcreated"
+            frmSendGetData.Visible = False
+            frmMainMenu.HideMenuPanels
+            frmMainMenu.Visible = True
+            Exit Sub
         Case "wholist"
             frmMainGame.UpdateWhoList Parse
             Exit Sub
