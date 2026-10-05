@@ -3,6 +3,7 @@ Option Explicit
 Public QuestDialogueOpen As Boolean
 Public QuestEditorOpen As Boolean
 Public QuestEditorPending As Long
+Public BookEditorPending As Long
 
 Private ChatQuestId As Long
 Private ChatNpcSlot As Long
@@ -62,6 +63,7 @@ Public Sub ResetEditorIndexState()
     InClassEditor = False
     InQuestEditor = False
     QuestEditorPending = 0
+    BookEditorPending = 0
 End Sub
 
 Public Sub RequestQuestTalk(ByVal X As Single, ByVal Y As Single)
