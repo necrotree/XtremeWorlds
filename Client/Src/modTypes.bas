@@ -85,7 +85,7 @@ Type PlayerRec
   
   ' Inventory
   Inv(1 To MAX_INV) As PlayerInvRec
-  Spell(1 To MAX_PLAYER_SPELLS) As Long
+  Spell(0 To MAX_PLAYER_SPELLS - 1) As Long
      
   ' Position
   Map As Integer

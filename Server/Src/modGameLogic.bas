@@ -144,9 +144,9 @@ End Function
 Function FindOpenSpellSlot(ByVal Index As Long) As Long
     Dim I As Long
 
-    FindOpenSpellSlot = 0
+    FindOpenSpellSlot = -1
 
-    For I = 1 To MAX_PLAYER_SPELLS
+    For I = 0 To MAX_PLAYER_SPELLS - 1
         If GetPlayerSpell(Index, I) = 0 Then
             FindOpenSpellSlot = I
             Exit Function
@@ -185,7 +185,7 @@ Function HasSpell(ByVal Index As Long, ByVal SpellNum As Long) As Boolean
 
     HasSpell = False
 
-    For I = 1 To MAX_PLAYER_SPELLS
+    For I = 0 To MAX_PLAYER_SPELLS - 1
         If GetPlayerSpell(Index, I) = SpellNum Then
             HasSpell = True
             Exit Function
