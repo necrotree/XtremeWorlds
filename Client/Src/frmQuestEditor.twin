@@ -38,10 +38,7 @@ Class frmQuestEditor
         Dim i As Long
         Busy = True
         cmbQuest.Clear
-        cmbQuest.Clear
-        cmbQuest.AddItem "None"
         For i = 1 To Count
-            cmbQuest.AddItem CStr(i) & ": " & Names(i)
             cmbQuest.AddItem CStr(i) & ": " & Names(i)
         Next i
         cmbNpc.Clear
@@ -68,12 +65,10 @@ Class frmQuestEditor
         Me.Show vbModeless, frmMainGame
         Me.ZOrder 0
 
-        If Count > 0 Then
-            Busy = False
-            cmbQuest.ListIndex = 0
-        Else
-            Busy = False
-        End If
+        Current = 0
+        cmbQuest.ListIndex = -1
+        cmdSubmit.Enabled = False
+        Busy = False
     End Sub
 
     Private Sub cmbQuest_Click()
@@ -176,10 +171,11 @@ Class frmQuestEditor
         Names(id) = txtName.Text
         Busy = True
         cmbQuest.List(id - 1) = CStr(id) & ": " & txtName.Text
-        cmbQuest.List(id) = CStr(id) & ": " & txtName.Text
+        Current = 0
+        cmbQuest.ListIndex = -1
         Busy = False
         Saving = False
-        cmdSubmit.Enabled = True
+        cmdSubmit.Enabled = False
         cmbQuest.Enabled = True
     End Sub
 
