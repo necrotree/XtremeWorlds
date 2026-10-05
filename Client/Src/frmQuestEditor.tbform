@@ -879,7 +879,9 @@
             "Left": 104,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtHadItem"
+            "Name": "txtHadItem",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -897,7 +899,9 @@
             "Left": 104,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtNotHadItem"
+            "Name": "txtNotHadItem",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -915,7 +919,9 @@
             "Left": 104,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtNotReady"
+            "Name": "txtNotReady",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -933,7 +939,9 @@
             "Left": 104,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtNpcSay"
+            "Name": "txtNpcSay",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -951,7 +959,9 @@
             "Left": 104,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtCompleted"
+            "Name": "txtCompleted",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -969,7 +979,9 @@
             "Left": 104,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtName"
+            "Name": "txtName",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1097,7 +1109,9 @@
             "Left": -4896,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtItemGetValue"
+            "Name": "txtItemGetValue",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1155,7 +1169,9 @@
             "Index": 0,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtItemHasValue"
+            "Name": "txtItemHasValue",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1214,7 +1230,9 @@
             "Index": 1,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtItemHasValue"
+            "Name": "txtItemHasValue",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1273,7 +1291,9 @@
             "Index": 2,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtItemHasValue"
+            "Name": "txtItemHasValue",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1332,7 +1352,9 @@
             "Index": 3,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtItemHasValue"
+            "Name": "txtItemHasValue",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1391,7 +1413,9 @@
             "Index": 4,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtItemHasValue"
+            "Name": "txtItemHasValue",
+            "BackColor": 16777215,
+            "ForeColor": 0
           },
           {
             "FontStrikethru": 0,
@@ -1448,7 +1472,9 @@
             "Left": -4896,
             "_clsid": "{33AD4EE0-6699-11CF-B70C-00AA0060D393}",
             "_className": "TextBox",
-            "Name": "txtExpGet"
+            "Name": "txtExpGet",
+            "BackColor": 16777215,
+            "ForeColor": 0
           }
         ]
       }
