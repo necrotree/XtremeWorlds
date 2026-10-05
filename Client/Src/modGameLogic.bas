@@ -1127,6 +1127,11 @@ Sub CheckInput(ByVal KeyState As Byte, ByVal KeyCode As Integer, ByVal Shift As 
         DirRight = GameKeyMatches(HK_RIGHT, KeyCode)
     End If
     If GameKeyMatches(HK_QUIT, KeyCode) Then GameDestroy
+
+    ' Inventory and spell slot shortcuts must be handled from the central
+    ' game input path. Child image/picture controls can own focus and prevent
+    ' frmMainGame.Form_KeyUp from receiving the key release.
+    Call UseSlotHotkey(KeyCode)
 End Sub
 
 Function IsTryingToMove() As Boolean
