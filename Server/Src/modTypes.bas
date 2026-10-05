@@ -26,14 +26,9 @@ Public Type BookRec
     PageCount As Long
     NextBook As Long
     Quest As Long
-
-    ' Keep book text variable-length in memory.  The record serializer still
-    ' reads/writes the legacy fixed widths, so the .bok file format is unchanged.
-    ' A fixed Pages(1 To 64) As String * 2000 makes every BookRec enormous and
-    ' native UDT temporaries/copies can exhaust the thread stack (0xC00000FD).
-    Name As String
-    Header As String
-    Pages(1 To 64) As String
+    Name As String * 64
+    Header As String * 64
+    Pages(1 To 64) As String * 2000
 End Type
 
 Type PlayerInvRec
