@@ -1220,6 +1220,8 @@ Public Sub HandleData(ByVal Data As String)
             Next i
 
             frmMainGame.lstSpells.ListIndex = SelectedSpellSlot
+            frmMainGame.RefreshSkills
+            frmMainGame.picPlayerSpells.Visible = True
 
             Exit Sub
             
