@@ -3375,7 +3375,6 @@ Private Sub lblForget_Click()
             If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
 
             SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR
-            picPlayerSpells.Visible = False
         End If
     Else
         AddText "No spell here.", BrightRed
@@ -3711,7 +3710,6 @@ End Sub
 Private Sub picSpells_Click()
     Call CloseSideMenu
     If picPlayerSpells.Visible = True Then
-        picPlayerSpells.Visible = False
     Else
         Call SendData("spells" & END_CHAR)
     End If
@@ -3877,7 +3875,6 @@ Private Sub lblCancel_Click()
 End Sub
 
 Private Sub lblSpellsCancel_Click()
-    picPlayerSpells.Visible = False
 End Sub
 
 Private Sub EmptyGearSlot(ByVal Slot As Byte)
