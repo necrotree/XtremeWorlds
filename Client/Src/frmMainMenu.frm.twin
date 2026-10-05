@@ -134,6 +134,10 @@ Class frmMainMenu
     
     Private Sub picNewAcctConnect_Click()
         If txtNewAcctPassword.Text <> txtNewAcctVerify.Text Then
+            ' Keep registration active when local password validation fails.
+            HideMenuPanels
+            SetMenuVisible "mnuNewAccount", True
+            Me.Visible = True
             GameMsgBox "Passwords do not match.", vbExclamation, GAME_NAME
             txtNewAcctVerify.SetFocus
             Exit Sub
