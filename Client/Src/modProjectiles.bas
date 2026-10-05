@@ -53,7 +53,7 @@ Public Sub InitSpellDeliveryEditor()
             If Len(Trim$(Arrow(i).Name)) > 0 Then
                 .cmbArrow.AddItem Trim$(Arrow(i).Name)
             Else
-                .cmbArrow.AddItem "(Unnamed Arrow)"
+                .cmbArrow.AddItem ""
             End If
         Next
         .cmbDelivery.ListIndex = SpellDelivery(EditorIndex).Mode
