@@ -85,10 +85,7 @@ Public Sub HandleData(ByVal Data As String)
 
         Case "alertmsg"
             frmSendGetData.Visible = False
-
-            ' Keep the currently selected menu panel visible on validation/login errors.
-            ' The server uses AlertMsg for errors from both Login and Register.
-            frmMainMenu.Visible = True
+            frmMainMenu.RestoreActiveMenu
 
             Msg = Parse(1)
             Call GameMsgBox(Msg, vbOKOnly, GAME_NAME)
