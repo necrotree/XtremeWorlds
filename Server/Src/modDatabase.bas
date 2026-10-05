@@ -156,6 +156,8 @@ Sub AddAccount(ByVal Index As Long, ByVal Name As String, ByVal Password As Stri
 
     For I = 1 To MAX_CHARS
         Call ClearChar(Index, I)
+        Player(Index).Char(I).Level = 1
+        Player(Index).Char(I).Exp = 0
     Next I
 
     Call SavePlayer(Index)
