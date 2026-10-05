@@ -15,6 +15,7 @@ Public Const HK_INVENTORY As Long = 11
 Public Const HK_SPELL As Long = HK_INVENTORY + MAX_INV
 Public Const HK_COUNT As Long = HK_SPELL + MAX_PLAYER_SPELLS - 1
 Public Hotkeys(1 To HK_COUNT) As Integer
+Public SpellHotkeySpell(1 To MAX_PLAYER_SPELLS) As Long
 Public CustomHotkeys As Boolean
 Public EditingHotkeys As Boolean
 Private mLoaded As Boolean
@@ -125,6 +126,7 @@ End Function
 
 Public Sub LoadHotkeys()
     Dim i As Long, count As Long, buffer As String, value As String, path As String
+    Dim spellValue As Long
     DefaultHotkeys Hotkeys, False
     CustomHotkeys = False
     path = App.Path & DATA_PATH & "Hotkeys.ini"
@@ -140,6 +142,13 @@ Public Sub LoadHotkeys()
             Hotkeys(i) = CInt(value)
         Next
         If Len(ValidateHotkeys(Hotkeys)) > 0 Then GoTo InvalidProfile
+        For i = 1 To MAX_PLAYER_SPELLS
+            buffer = Space$(16)
+            count = ReadKeySetting("Spells", CStr(i), "0", buffer, Len(buffer), path)
+            value = Left$(buffer, count)
+            spellValue = Val(value)
+            If spellValue >= 0 And spellValue <= MAX_SPELLS Then SpellHotkeySpell(i) = spellValue
+        Next
         CustomHotkeys = True
     End If
     mLoaded = True
@@ -159,6 +168,10 @@ Public Function SaveHotkeys(ByRef keys() As Integer) As Boolean
     If Len(Dir$(temporary)) > 0 Or Len(Dir$(backup)) > 0 Then Err.Raise 58, , "A Hotkeys.ini recovery file already exists."
     For i = 1 To HK_COUNT
         If WriteKeySetting("Keyboard", CStr(i), CStr(keys(i)), temporary) = 0 Then Err.Raise 75
+    Next
+    For i = 1 To MAX_PLAYER_SPELLS
+        If InGame And MyIndex > 0 Then SpellHotkeySpell(i) = Player(MyIndex).Spell(i)
+        If WriteKeySetting("Spells", CStr(i), CStr(SpellHotkeySpell(i)), temporary) = 0 Then Err.Raise 75
     Next
     If WriteKeySetting("Keyboard", "Enabled", "1", temporary) = 0 Then Err.Raise 75
     If Len(Dir$(path)) > 0 Then
@@ -238,7 +251,8 @@ Public Sub UseSlotHotkey(ByVal key As Integer)
                 If GetPlayerInvItemNum(MyIndex, slot) > 0 Then SendUseItem slot
             Else
                 slot = action - HK_SPELL + 1
-                If Player(MyIndex).Spell(slot) <= 0 Then Exit Sub
+                slot = ResolveSpellHotkeySlot(slot)
+                If slot <= 0 Then Exit Sub
                 If GetTickCount <= Player(MyIndex).AttackTimer + 1000 Then Exit Sub
                 If Player(MyIndex).Moving <> 0 Then
                     AddText "Cannot cast while walking!", BrightRed
@@ -253,3 +267,28 @@ Public Sub UseSlotHotkey(ByVal key As Integer)
         End If
     Next
 End Sub
+
+
+Private Function ResolveSpellHotkeySlot(ByVal bindingSlot As Long) As Long
+    Dim i As Long
+    Dim spellNum As Long
+
+    If bindingSlot < 1 Or bindingSlot > MAX_PLAYER_SPELLS Then Exit Function
+
+    spellNum = SpellHotkeySpell(bindingSlot)
+    If spellNum > 0 Then
+        For i = 1 To MAX_PLAYER_SPELLS
+            If Player(MyIndex).Spell(i) = spellNum Then
+                ResolveSpellHotkeySlot = i
+                Exit Function
+            End If
+        Next
+        Exit Function
+    End If
+
+    ' Backward compatibility for Hotkeys.ini files created before spell
+    ' identities were stored separately.
+    If Player(MyIndex).Spell(bindingSlot) > 0 Then
+        ResolveSpellHotkeySlot = bindingSlot
+    End If
+End Function
