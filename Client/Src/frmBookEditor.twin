@@ -29,7 +29,7 @@ Class frmBookEditor
         cmbBook.ListIndex = 0
         cmbQuest.ListIndex = 0
 
-        cmdSave.Enabled = False
+        cmdOk.Enabled = False
         cmdPreview.Enabled = False
 
         Initialized = True
@@ -102,7 +102,7 @@ Class frmBookEditor
 
         txtId.Text = "1"
         cmdLoad.Enabled = True
-        cmdSave.Enabled = False
+        cmdOk.Enabled = False
         cmdPreview.Enabled = False
 
         cmdLoad_Click
@@ -118,7 +118,7 @@ Class frmBookEditor
 
         Current = CLng(txtId.Text)
 
-        cmdSave.Enabled = False
+        cmdOk.Enabled = False
         cmdPreview.Enabled = False
 
         lblStatus.Caption = "Loading book " & Current & "..."
@@ -134,10 +134,10 @@ Class frmBookEditor
         If Not BookEditorOpen Then Exit Sub
         If CLng(Val(parts(1))) <> Current Then Exit Sub
 
-        txtName.Text = DecodeBookText(parts(2))
-        txtHeader.Text = DecodeBookText(parts(3))
-        txtLeft.Text = DecodeBookText(parts(4))
-        txtRight.Text = DecodeBookText(parts(5))
+        txtBookTitle.Text = DecodeBookText(parts(2))
+        txtBookHeader.Text = DecodeBookText(parts(3))
+        txtPage1.Text = DecodeBookText(parts(4))
+        txtPage2.Text = DecodeBookText(parts(5))
 
         bookId = CLng(Val(parts(6)))
         questId = CLng(Val(parts(7)))
@@ -145,13 +145,13 @@ Class frmBookEditor
         SelectBook bookId
         SelectQuest questId
 
-        cmdSave.Enabled = True
+        cmdOk.Enabled = True
         cmdPreview.Enabled = True
 
         lblStatus.Caption = "Editing book " & Current & ". Additional imported pages are preserved."
     End Sub
 
-    Private Sub cmdSave_Click()
+    Private Sub cmdOk_Click()
         If Saving Then Exit Sub
         If Current < 1 Then Exit Sub
         If Not IsConnected Then Exit Sub
@@ -166,12 +166,12 @@ Class frmBookEditor
 
         Saving = True
 
-        cmdSave.Enabled = False
+        cmdOk.Enabled = False
         cmdLoad.Enabled = False
 
         lblStatus.Caption = "Saving..."
 
-        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtName.Text) & SEP_CHAR & EncodeBookText(txtHeader.Text) & SEP_CHAR & EncodeBookText(txtLeft.Text) & SEP_CHAR & EncodeBookText(txtRight.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
+        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtBookTitle.Text) & SEP_CHAR & EncodeBookText(txtBookHeader.Text) & SEP_CHAR & EncodeBookText(txtPage1.Text) & SEP_CHAR & EncodeBookText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
     End Sub
 
     Public Sub Saved(ByVal id As Long)
@@ -187,7 +187,7 @@ Class frmBookEditor
         Saving = False
 
         cmdLoad.Enabled = True
-        cmdSave.Enabled = (Current > 0 And cmdPreview.Enabled)
+        cmdOk.Enabled = (Current > 0 And cmdPreview.Enabled)
 
         lblStatus.Caption = message
 
@@ -197,16 +197,16 @@ Class frmBookEditor
     Private Sub cmdPreview_Click()
         Dim title As String
 
-        title = txtHeader.Text
+        title = txtBookHeader.Text
 
         If Len(title) = 0 Then
-            title = txtName.Text
+            title = txtBookTitle.Text
         End If
 
         LinkedBookId = 0
         BookPreviewOpen = True
 
-        frmMainGame.DisplayBookPages Current, 1, 2, title, txtLeft.Text, txtRight.Text
+        frmMainGame.DisplayBookPages Current, 1, 2, title, txtPage1.Text, txtPage2.Text
 
         Me.Hide
 
