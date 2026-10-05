@@ -554,7 +554,7 @@ Private Sub ServerPacket_delchar(ByVal Index As Long, ByVal Data As String, ByRe
 
             Call DelChar(Index, CharNum)
             Call AddLog("Character deleted on " & GetPlayerLogin(Index) & "'s account.", PLAYER_LOG)
-            Call AlertMsg(Index, "Character has been deleted!")
+            Call SendChars(Index)
         End If
         Exit Sub
     End If
