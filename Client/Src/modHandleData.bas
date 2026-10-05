@@ -76,7 +76,7 @@ Public Sub HandleData(ByVal Data As String)
         Case "bookpages"
             If Not InGame Or UBound(Parse) <> 6 Then Exit Sub
             Dim bookId As Long, bookPage As Long, bookTotal As Long
-            If Not OverlayInteger(Parse(1), 32767, bookId) Then Exit Sub
+            If Not OverlayInteger(Parse(1), MAX_BOOKS, bookId) Then Exit Sub
             If Not OverlayInteger(Parse(2), 64, bookPage) Then Exit Sub
             If Not OverlayInteger(Parse(3), 64, bookTotal) Then Exit Sub
             If bookId < 1 Or bookPage < 1 Or bookPage > bookTotal Then Exit Sub
@@ -636,7 +636,7 @@ Public Sub HandleData(ByVal Data As String)
             If Parse(n) = "MAPEX1" Then
                 n = n + 1
                 If UBound(Parse) < n + (MAX_MAPX + 1) * (MAX_MAPY + 1) * 13 - 1 Then Exit Sub
-                For y = 0 To MAX_MAPY
+                For Y = 0 To MAX_MAPY
                     For X = 0 To MAX_MAPX
                         SaveMap.Tile(X, Y).LayerTileset(0) = Val(Parse(n + 0))
                         SaveMap.Tile(X, Y).LayerTileset(1) = Val(Parse(n + 1))
@@ -653,7 +653,7 @@ Public Sub HandleData(ByVal Data As String)
                         SaveMap.Tile(X, Y).Data23 = Val(Parse(n + 12))
                         n = n + 13
                     Next X
-                Next y
+                Next Y
             End If
         End If
 

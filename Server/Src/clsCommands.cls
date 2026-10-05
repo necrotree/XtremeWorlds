@@ -82,6 +82,10 @@ Sub SetMaxClasses(ByVal Classes As Integer)
     MAX_CLASS = Val(Classes)
 End Sub
 
+Sub SetMaxBooks(ByVal Books As Integer)
+    MAX_BOOKS = Val(Books)
+End Sub
+
 Sub GlobalMsg(ByVal Msg As String, ByVal Color As Byte)
     Dim Packet As String
 

@@ -2094,9 +2094,7 @@ Sub CheckPlayerLevelUp(ByVal Index As Long)
     Dim I As Long
     Dim N, f As Byte
     Dim ExtraEXP As Long
-
-
-
+    
     ' Check if attacker got a level up
     If GetPlayerExp(Index) >= GetPlayerNextLevel(Index) Then
         MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnLevelUp " & Index
@@ -2122,10 +2120,6 @@ Sub CheckPlayerLevelUp(ByVal Index As Long)
     ' Call GlobalMsg(GetPlayerName(Index) & " has gained a level!", Brown)
     ' Call PlayerMsg(Index, "You have gained a level!  You now have " & GetPlayerPOINTS(Index) & " stat points to distribute.", BrightBlue)
     End If
-
-    ' Do not recurse unconditionally. The old call caused an infinite recursion
-    ' and stack overflow whenever this routine was reached.
-
 End Sub
 
 Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal HitType As Long, ByVal N As Long)
@@ -2737,8 +2731,29 @@ Sub ClearSpells()
     Next I
 End Sub
 
+Sub ClearBook(ByVal Index As Long)
+    ResetBookRec Book(Index)
+End Sub
 
+Sub ClearBooks()
+    Dim I As Long
 
+    For I = 1 To MAX_BOOKS
+        Call ClearBook(I)
+    Next I
+End Sub
+
+Sub ClearArrows()
+    Dim I As Long
+
+    For I = 1 To MAX_ARROWS
+        Call ClearArrow(I)
+    Next I
+End Sub
+
+Sub ClearArrow(ByVal Index As Long)
+    ResetArrowRec Arrow(Index)
+End Sub
 
 ' //////////////////////
 ' // PLAYER FUNCTIONS //
@@ -2789,12 +2804,6 @@ Sub SetPlayerSprite(ByVal Index As Long, ByVal Sprite As Long)
 End Sub
 
 Function GetPlayerLevel(ByVal Index As Long) As Long
-    ' Player levels are 1-based.  Older/blank records can contain zero,
-    ' so normalize them the first time the level is read.
-    If Player(Index).Char(Player(Index).CharNum).Level < 1 Then
-        Player(Index).Char(Player(Index).CharNum).Level = 1
-    End If
-
     GetPlayerLevel = Player(Index).Char(Player(Index).CharNum).Level
 End Function
 

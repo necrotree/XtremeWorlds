@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 2326825581,
+		"__lastUpdateMarker": 3709212686,
 		"_children": [
 			{
 				"Anchors": {
@@ -14958,7 +14958,7 @@
 				"Height": 15,
 				"Index": 0,
 				"InternalSectionId": -1,
-				"Left": 840,
+				"Left": 800,
 				"LineSpacing": 0,
 				"LinkItem": null,
 				"LinkMode": "vbLinkNone",
@@ -15039,7 +15039,7 @@
 				"Height": 15,
 				"Index": 1,
 				"InternalSectionId": -1,
-				"Left": 840,
+				"Left": 800,
 				"LineSpacing": 0,
 				"LinkItem": null,
 				"LinkMode": "vbLinkNone",
@@ -15120,7 +15120,7 @@
 				"Height": 15,
 				"Index": 2,
 				"InternalSectionId": -1,
-				"Left": 840,
+				"Left": 800,
 				"LineSpacing": 0,
 				"LinkItem": null,
 				"LinkMode": "vbLinkNone",
@@ -15201,7 +15201,7 @@
 				"Height": 15,
 				"Index": 3,
 				"InternalSectionId": -1,
-				"Left": 840,
+				"Left": 800,
 				"LineSpacing": 0,
 				"LinkItem": null,
 				"LinkMode": "vbLinkNone",

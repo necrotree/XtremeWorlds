@@ -5,7 +5,6 @@ Class frmBookEditor
 
     Private Current As Long
     Private Saving As Boolean
-    Private BookIds(0 To 32767) As Long
     Private QuestIds(0 To 32767) As Long
     Private BookCount As Long
     Private QuestCount As Long
@@ -42,13 +41,13 @@ Class frmBookEditor
         If BookCount >= 32767 Then Exit Sub
 
         For i = 0 To BookCount
-            If BookIds(i) = id Then Exit Sub
+            If Book(i) = id Then Exit Sub
         Next i
 
         cmbBook.AddItem CStr(id) & ": " & title
 
         BookCount = BookCount + 1
-        BookIds(BookCount) = id
+        Book(BookCount) = id
     End Sub
 
     Public Sub AddQuest(ByVal id As Long, ByVal title As String)
@@ -73,7 +72,7 @@ Class frmBookEditor
         cmbBook.ListIndex = 0
 
         For i = 0 To BookCount
-            If BookIds(i) = id Then
+            If Book(i) = id Then
                 cmbBook.ListIndex = i
                 Exit Sub
             End If
@@ -153,7 +152,7 @@ Class frmBookEditor
         If cmbBook.ListIndex < 0 Then Exit Sub
         If cmbQuest.ListIndex < 0 Then Exit Sub
 
-        If BookIds(cmbBook.ListIndex) = Current Then
+        If Book(cmbBook.ListIndex) = Current Then
             GameMsgBox "Choose a different connecting book.", vbExclamation
             Exit Sub
         End If

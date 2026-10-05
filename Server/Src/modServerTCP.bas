@@ -1141,9 +1141,6 @@ Public Sub HandleReadBook(ByVal Index As Long, ByRef Parts() As String)
     SendBookPages Index, bookId, page
 End Sub
 
-Public Sub SendBookPages(ByVal Index As Long, ByVal BookId As Long, ByVal Page As Long)
-    SendBinaryBookPages Index, BookId, Page
-End Sub
 Public Sub SwapInventorySlots(ByVal Index As Long, ByRef Parts() As String)
     Dim source As Long, destination As Long, character As Long, temporary As PlayerInvRec
     If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub

@@ -23,6 +23,7 @@ Public Const MAX_QUESTS = 255 ' Max Quests
 Public Const MAX_ARROWS = 100 ' Max Arrows
 Public Const MAX_CLASS = 50 ' Max Classes
 Public Const MAX_QUEST_PLAYERS = 255 ' Max People Who Can Complete the Quest
+Public Const MAX_BOOKS = 255 ' Max Books
 
 Public Const DEBUG_SCRIPTING = True ' Find errors in script file
 
@@ -99,6 +100,7 @@ Sub ServerSet()
     Call SetMaxQuests(MAX_QUESTS)
     Call SetMaxArrows(MAX_ARROWS)
     Call SetMaxClasses(MAX_CLASS)
+    Call SetMaxBooks(MAX_BOOKS)
 
     Call SetDebugScripting(DEBUG_SCRIPTING)
 

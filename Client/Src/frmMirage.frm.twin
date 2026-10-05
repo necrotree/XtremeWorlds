@@ -1212,6 +1212,7 @@ ConfirmationFailed:
         lblCharacterTrain(2).ForeColor = TrainColor
         lblCharacterTrain(3).ForeColor = TrainColor
     End Sub
+    
     Public Sub RefreshSkills()
         Dim Page As Long, i As Long, Slot As Long, Num As Long
         Dim Canvas As New clsDX11Surface, Bounds As RECT, Source As RECT

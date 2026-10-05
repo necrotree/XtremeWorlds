@@ -6,11 +6,13 @@ Public Type ArrowRec
     Sprite As Long
     Range As Long
 End Type
+
 Public Type SpellDeliveryRec
     Mode As Long ' 0 = selected target within range, 1 = directional projectile
     Arrow As Long
     Range As Long
 End Type
+
 Private Type ProjectileRec
     Active As Boolean
     Owner As Long
@@ -23,6 +25,7 @@ Private Type ProjectileRec
     Remaining As Long
     LastStep As Long
 End Type
+
 Public SpellDelivery() As SpellDeliveryRec
 Private Shots(1 To MAX_PROJECTILES) As ProjectileRec
 Private DeliveryReady As Boolean

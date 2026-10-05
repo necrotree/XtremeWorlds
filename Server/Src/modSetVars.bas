@@ -59,6 +59,10 @@ Sub SetMaxClasses(ByVal Classes As Integer)
     MAX_CLASS = Val(Classes)
 End Sub
 
+Sub SetMaxBooks(ByVal Books As Integer)
+    MAX_BOOKS = Val(Books)
+End Sub
+
 Sub InitTray(ByVal Name As String)
     nid.cbSize = Len(nid)
     nid.hWnd = frmServer.hWnd

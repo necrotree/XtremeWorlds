@@ -1,4 +1,4 @@
-Attribute VB_Name = "modGeneral"
+﻿Attribute VB_Name = "modGeneral"
 Option Explicit
 
 Private QuestNpcStatus() As Byte
@@ -59,6 +59,7 @@ Sub InitServer()
     ReDim Guild(1 To MAX_GUILDS) As GuildRec
     ReDim Arrow(1 To MAX_ARROWS) As ArrowRec
     ReDim Class(1 To MAX_CLASS) As ClassRec
+    ReDim Book(1 To MAX_BOOKS) As BookRec
     For G = 1 To MAX_GUILDS
         ReDim Preserve Guild(G).Member(1 To MAX_GUILD_MEMBERS) As String * NAME_LENGTH
     Next G
@@ -85,6 +86,8 @@ Sub InitServer()
     Call ClearMapNpcs
     Call ClearNpcs
     Call ClearItems
+    Call ClearBooks
+    Call ClearArrows
     Call ClearShops
     Call ClearSpells
     Call ClearSigns
@@ -93,7 +96,7 @@ Sub InitServer()
     Call LoadClasses
     Call LoadMaps
     Call LoadItems
-    Call InitializeBooks
+    Call LoadBooks
     Call LoadNpcs
     Call LoadShops
     Call LoadSigns

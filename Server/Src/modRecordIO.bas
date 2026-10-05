@@ -98,7 +98,7 @@ Public Sub ResetPlayerRec(ByRef value As PlayerRec)
     value.Sex = 0
     value.Class = 1
     value.Sprite = 0
-    value.Level = 0
+    value.Level = 1
     value.Exp = 0
     value.Access = 0
     value.PK = 0
@@ -750,4 +750,53 @@ Public Sub ReadArrowRec(ByVal file As clsDataFile, ByRef value As ArrowRec)
     value.Name = file.ReadText(NAME_LENGTH)
     value.Range = file.ReadLong()
     value.Sprite = file.ReadLong()
+End Sub
+
+Public Sub ReadBookRec(ByVal file As clsDataFile, ByRef value As BookRec)
+    Dim i0 As Long, i1 As Long, count As Long, capacity As Long, i As Long
+    value.Name = file.ReadText(NAME_LENGTH)
+    value.Header = file.ReadText(64)
+    value.PageCount = file.ReadLong()
+    For i = 1 To 64
+        value.Pages(i) = file.ReadText(2000)
+    Next
+    value.NextBook = file.ReadLong()
+    value.Quest = file.ReadLong()
+    value.Signature = file.ReadLong()
+    value.Version = file.ReadLong()
+End Sub
+
+Public Sub WriteBookRec(ByVal file As clsDataFile, ByRef value As BookRec)
+    Dim i0 As Long, i1 As Long, count As Long, capacity As Long, i As Long
+    file.WriteText value.Name, NAME_LENGTH
+    file.WriteText(value.Header, 64)
+    file.WriteLong(value.PageCount)
+    For i = 1 To 64
+        file.WriteText(value.Pages(i), 2000)
+    Next
+    file.WriteLong(value.NextBook)
+    file.WriteLong(value.Quest)
+    file.WriteLong(value.Signature)
+    file.WriteLong(value.Version)
+End Sub
+
+Public Sub ResetBookRec(ByRef value As BookRec)
+    Dim i0 As Long, i1 As Long, count As Long, capacity As Long, i As Long
+    value.Name = vbNullString
+    value.Header = vbNullString
+    value.PageCount = 0
+    For i = 1 To 64
+        value.Pages(i) = 0
+    Next
+    value.NextBook = 0
+    value.Quest = 0
+    value.Signature = 0
+    value.Version = 0
+End Sub
+
+Public Sub ResetArrowRec(ByRef value As ArrowRec)
+    Dim i0 As Long, i1 As Long, count As Long, capacity As Long, i As Long
+    value.Name = vbNullString
+    value.Range = 0
+    value.Sprite = 0
 End Sub

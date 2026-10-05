@@ -18,6 +18,7 @@ Public Guild() As GuildRec
 Public Quest() As QuestRec
 Public Ban() As BanRec
 Public Arrow() As ArrowRec
+Public Book() As BookRec
 
 Type PlayerInvRec
   Num As Long

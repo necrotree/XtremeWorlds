@@ -21,6 +21,7 @@ Public Sign() As SignRec
 Public Spell() As SpellRec
 Public Guild() As GuildRec
 Public Arrow() As ArrowRec
+Public Book() As BookRec
 Public GameData As DataRec
 
 Public Type TextSize

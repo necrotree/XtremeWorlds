@@ -346,11 +346,11 @@ Sub LoadItems()
         Call SetStatus("Loading items... ")
         FileName = App.Path & "\data\items\item" & I & ".itm"
 
-    Dim dataFile5 As clsDataFile
-    Set dataFile5 = New clsDataFile
-    dataFile5.Load FileName
-    ReadItemRec dataFile5, Item(I)
-    dataFile5.RequireEnd
+        Dim dataFile5 As clsDataFile
+        Set dataFile5 = New clsDataFile
+        dataFile5.Load FileName
+        ReadItemRec dataFile5, Item(I)
+        dataFile5.RequireEnd
 
         DoEvents
     Next
@@ -963,3 +963,60 @@ Sub SaveBan(ByVal BanNum As Long)
     Call PutVar(FileName, "Ban" & BanNum, "BannedHD", Ban(BanNum).BannedHD)
     Call PutVar(FileName, "Total", "Total", CStr(MAX_BANS))
 End Sub
+
+Sub SaveBooks()
+    Dim I As Long
+
+    Call SetStatus("Saving books... ")
+
+    For I = 1 To MAX_BOOKS
+
+        If Not FileExist("data\books\book" & I & ".bok") Then
+            Call SetStatus("Saving books... ")
+
+            DoEvents
+            Call SaveBook(I)
+        End If
+
+    Next
+
+End Sub
+
+Sub SaveBook(ByVal BookNum As Long)
+    Dim FileName As String
+    Dim f  As Long
+
+    FileName = App.Path & "\data\books\book" & BookNum & ".bok"
+
+    Dim dataFile4 As clsDataFile
+    Set dataFile4 = New clsDataFile
+    WriteBookRec dataFile4, Book(BookNum)
+    dataFile4.Save FileName
+End Sub
+
+Sub LoadBooks()
+    Dim FileName As String
+    Dim I As Long
+    Dim f As Long
+
+    Call CheckBooks
+
+    For I = 1 To MAX_BOOKS
+        Call SetStatus("Loading books... ")
+        FileName = App.Path & "\data\books\book" & I & ".bok"
+
+        Dim dataFile5 As clsDataFile
+        Set dataFile5 = New clsDataFile
+        dataFile5.Load FileName
+        ReadBookRec dataFile5, Book(I)
+        dataFile5.RequireEnd
+
+        DoEvents
+    Next
+
+End Sub
+
+Sub CheckBooks()
+    Call SaveBooks
+End Sub
+

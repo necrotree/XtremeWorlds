@@ -71,6 +71,7 @@ Public MAX_GUILDS As Long
 Public MAX_QUESTS As Long
 Public MAX_ARROWS As Long
 Public MAX_CLASS As Long
+Public MAX_BOOKS As Long
 Public MAX_GUILD_MEMBERS As Long
 Public Const MAX_PROJECTILES = 256
 Public Const MAX_PLAYERS_SET = 100
