@@ -503,7 +503,7 @@ Sub SaveShop(ByVal ShopNum As Long)
     Dim FileName As String
     Dim f  As Long
 
-    FileName = App.Path & "\data\Shops\Shop" & ShopNum & ".shp"
+    FileName = App.Path & "\data\shops\shop" & ShopNum & ".shp"
 
     Dim dataFile10 As clsDataFile
     Set dataFile10 = New clsDataFile
@@ -541,7 +541,7 @@ Sub SaveSign(ByVal SignNum As Long)
     Dim FileName As String
     Dim f  As Long
 
-    FileName = App.Path & "\data\Signs\Sign" & SignNum & ".sign"
+    FileName = App.Path & "\data\signs\sign" & SignNum & ".sign"
 
     Dim dataFile12 As clsDataFile
     Set dataFile12 = New clsDataFile
@@ -576,7 +576,7 @@ Sub LoadSigns()
 
     For I = 1 To MAX_SIGNS
         Call SetStatus("Loading signs... ")
-        FileName = App.Path & "\data\Signs\Sign" & I & ".sign"
+        FileName = App.Path & "\data\signs\sign" & I & ".sign"
 
     Dim dataFile13 As clsDataFile
     Set dataFile13 = New clsDataFile
@@ -595,7 +595,7 @@ Sub SaveSpell(ByVal SpellNum As Long)
     Dim FileName As String
     Dim f  As Long
 
-    FileName = App.Path & "\data\Spells\Spell" & SpellNum & ".spl"
+    FileName = App.Path & "\data\spells\spell" & SpellNum & ".spl"
 
     Dim dataFile14 As clsDataFile
     Set dataFile14 = New clsDataFile
