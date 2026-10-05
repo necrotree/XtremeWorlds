@@ -16,13 +16,13 @@ Class frmBookEditor
         BookCount = 0
         QuestCount = 0
         If MAX_BOOKS > 0 Then
-            ReDim BookIds(0 To MAX_BOOKS)
+            ReDim BookIds(1 To MAX_BOOKS + 1)
         Else
-            ReDim BookIds(0 To 0)
+            ReDim BookIds(1 To 1)
         End If
-        ReDim QuestIds(0 To 0)
-        BookIds(0) = 0
-        QuestIds(0) = 0
+        ReDim QuestIds(1 To 1)
+        BookIds(1) = 0
+        QuestIds(1) = 0
         Current = 0
         Saving = False
 
@@ -48,14 +48,14 @@ Class frmBookEditor
         If id < 1 Or id > MAX_BOOKS Then Exit Sub
         If BookCount >= MAX_BOOKS Then Exit Sub
 
-        For i = 0 To BookCount
+        For i = 1 To BookCount
             If BookIds(i) = id Then Exit Sub
         Next i
 
         cmbBook.AddItem CStr(id) & ": " & title
 
         BookCount = BookCount + 1
-        BookIds(BookCount) = id
+        BookIds(BookCount + 1) = id
     End Sub
 
     Public Sub AddQuest(ByVal id As Long, ByVal title As String)
@@ -64,15 +64,15 @@ Class frmBookEditor
         If Not Initialized Then Exit Sub
         If id < 1 Then Exit Sub
 
-        For i = 0 To QuestCount
+        For i = 1 To QuestCount
             If QuestIds(i) = id Then Exit Sub
         Next i
 
         cmbQuest.AddItem CStr(id) & ": " & title
 
         QuestCount = QuestCount + 1
-        ReDim Preserve QuestIds(0 To QuestCount)
-        QuestIds(QuestCount) = id
+        ReDim Preserve QuestIds(1 To QuestCount + 1)
+        QuestIds(QuestCount + 1) = id
     End Sub
 
     Private Sub SelectBook(ByVal id As Long)
@@ -80,8 +80,9 @@ Class frmBookEditor
 
         cmbBook.ListIndex = 0
 
-        For i = 0 To BookCount
-            If BookIds(i) = id Then
+        If id = 0 Then Exit Sub
+        For i = 1 To BookCount
+            If BookIds(i + 1) = id Then
                 cmbBook.ListIndex = i
                 Exit Sub
             End If
@@ -93,8 +94,9 @@ Class frmBookEditor
 
         cmbQuest.ListIndex = 0
 
-        For i = 0 To QuestCount
-            If QuestIds(i) = id Then
+        If id = 0 Then Exit Sub
+        For i = 1 To QuestCount
+            If QuestIds(i + 1) = id Then
                 cmbQuest.ListIndex = i
                 Exit Sub
             End If
@@ -161,7 +163,7 @@ Class frmBookEditor
         If cmbBook.ListIndex < 0 Then Exit Sub
         If cmbQuest.ListIndex < 0 Then Exit Sub
 
-        If BookIds(cmbBook.ListIndex) = Current Then
+        If BookIds(cmbBook.ListIndex + 1) = Current Then
             GameMsgBox "Choose a different connecting book.", vbExclamation
             Exit Sub
         End If
@@ -169,7 +171,7 @@ Class frmBookEditor
         Saving = True
 
         cmdOk.Enabled = False
-        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtBookTitle.Text) & SEP_CHAR & EncodeBookText(txtBookHeader.Text) & SEP_CHAR & EncodeBookText(txtPage1.Text) & SEP_CHAR & EncodeBookText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
+        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtBookTitle.Text) & SEP_CHAR & EncodeBookText(txtBookHeader.Text) & SEP_CHAR & EncodeBookText(txtPage1.Text) & SEP_CHAR & EncodeBookText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex + 1) & SEP_CHAR & QuestIds(cmbQuest.ListIndex + 1) & END_CHAR
     End Sub
 
     Public Sub Saved(ByVal id As Long)
