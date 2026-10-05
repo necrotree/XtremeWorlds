@@ -23,6 +23,19 @@ Class frmQuestEditor
         If id >= 1 And id <= Count Then Names(id) = value
     End Sub
 
+    Public Sub FillIndex(ByVal list As Object)
+        Dim i As Long
+        list.Clear
+        For i = 1 To Count
+            list.AddItem CStr(i) & ": " & Names(i)
+        Next i
+    End Sub
+
+    Public Sub SelectQuest(ByVal id As Long)
+        If id < 1 Or id > Count Then Exit Sub
+        Current = id
+    End Sub
+
     Public Sub SetClassNames(ByRef parts() As String)
         Dim i As Long
         ClassCount = CLng(Val(parts(1)))
@@ -37,7 +50,7 @@ Class frmQuestEditor
     Public Sub OpenEditor()
         Dim i As Long
         Busy = True
-        Current = 0
+        If Current < 1 Then Exit Sub
         Saving = False
         cmbQuest.Enabled = True
         cmbQuest.Clear
@@ -68,8 +81,6 @@ Class frmQuestEditor
         Me.Show vbModeless, frmMainGame
         Me.ZOrder 0
 
-        Current = 0
-        cmbQuest.ListIndex = -1
         cmdSubmit.Enabled = False
         Busy = False
     End Sub
@@ -175,8 +186,7 @@ Class frmQuestEditor
         Saving = False
         QuestEditorOpen = False
         Unload Me
-        frmMainGame.Socket.SendData "requesteditquest" & END_CHAR
-        frmIndex.Show
+        SendRequestEditQuest
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
