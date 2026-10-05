@@ -48,6 +48,11 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Get the packet
     Select Case LCase$(Parse$(0))
+        Case "npcquestbegin"
+            Load frmNpcEditor
+            frmNpcEditor.BeginQuestList
+        Case "npcquestname"
+            If UBound(Parse) = 2 Then frmNpcEditor.AddQuestName CLng(Val(Parse(1))), Parse(2)
         Case "questdialogue", "questeditorbegin", "questeditorname", "questeditorclasses", "questeditorready", "questeditordata", "questeditorsaved", "questeditorerror"
             HandleQuestDialoguePacket Parse
             Exit Sub
@@ -777,6 +782,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Item editor packet ::
         ' ::::::::::::::::::::::::
         Case "itemeditor"
+            ResetEditorIndexState
             InItemsEditor = True
 
             frmIndex.Show
@@ -850,6 +856,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Sign editor packet ::
         ' ::::::::::::::::::::::::
         Case "signeditor"
+            ResetEditorIndexState
             InSignEditor = True
 
             frmIndex.Show
@@ -958,6 +965,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Npc editor packet ::
         ' :::::::::::::::::::::::
         Case "npceditor"
+            ResetEditorIndexState
             InNpcEditor = True
 
             frmIndex.Show
@@ -1048,6 +1056,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Shop editor packet ::
         ' ::::::::::::::::::::::::
         Case "shopeditor"
+            ResetEditorIndexState
             InShopEditor = True
 
             frmIndex.Show
@@ -1112,6 +1121,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Spell editor packet ::
         ' :::::::::::::::::::::::::
         Case "spelleditor"
+            ResetEditorIndexState
             InSpellEditor = True
 
             frmIndex.Show
@@ -1273,6 +1283,7 @@ Public Sub HandleData(ByVal Data As String)
         Case "arrowsaveerror"
             If ArrowEditorActive Then frmArrowEditor.SaveFailed
         Case "arroweditor"
+            ResetEditorIndexState
             InArrowEditor = True
             
             frmIndex.Show
@@ -1286,6 +1297,7 @@ Public Sub HandleData(ByVal Data As String)
             frmIndex.lstIndex.ListIndex = 0
             
         Case "classeditor"
+            ResetEditorIndexState
             InClassEditor = True
             
             frmIndex.Show

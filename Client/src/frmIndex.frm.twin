@@ -9,9 +9,19 @@ Class frmIndex
     Attribute VB_PredeclaredId = True
     Attribute VB_Exposed = False
     Option Explicit
+    Private Selecting As Boolean
     
     Private Sub cmdOK_Click()
+        If lstIndex.ListIndex < 0 Then Exit Sub
+        Selecting = True
         EditorIndex = lstIndex.ListIndex + 1
+        If InQuestEditor Then
+            ResetEditorIndexState
+            QuestEditorPending = EditorIndex
+            Call SendData("EDITQUESTDIALOGUE" & SEP_CHAR & EditorIndex & END_CHAR)
+            Unload Me
+            Exit Sub
+        End If
     
         If InItemsEditor = True Then
             Call SendData("EDITITEM" & SEP_CHAR & EditorIndex & END_CHAR)
@@ -35,17 +45,18 @@ Class frmIndex
             Call SendData("EDITCLASS" & SEP_CHAR & EditorIndex & END_CHAR)
         End If
             
+        ResetEditorIndexState
         Unload frmIndex
     End Sub
     
     Private Sub cmdCancel_Click()
-        InItemsEditor = False
-        InNpcEditor = False
-        InShopEditor = False
-        InSpellEditor = False
-        InSignEditor = False
-        InArrowEditor = False
         Unload frmIndex
+    End Sub
+
+    Private Sub Form_Unload(Cancel As Integer)
+        If Selecting Then Exit Sub
+        ResetEditorIndexState
+        If Not QuestEditorOpen Then Unload frmQuestEditor
     End Sub
     
     

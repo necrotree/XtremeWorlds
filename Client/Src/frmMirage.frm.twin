@@ -31,6 +31,7 @@ Class frmMainGame
     Private TilesetWheelRemainder As Long
 
 
+    Public QuestText As clsNativeRichText
     Public WithEvents txtChat As clsNativeRichText
     Public WithEvents Socket As clsNativeSocket
     Public WithEvents Notetext As clsNativeRichText
@@ -106,6 +107,8 @@ End Sub
         Call ApplyMovementControls
         ' Blend the chat input strip into the surrounding interface panel.
         txtMyTextBox.BackColor = RGB(45, 45, 34)
+        Set QuestText = New clsNativeRichText
+        QuestText.Attach hostQuestText, True, RGB(172, 149, 113), 9, "Rockwell"
         Set txtChat = New clsNativeRichText
         txtChat.Attach hosttxtChat, True, RGB(24, 24, 16), 9.75, "Rockwell"
         Set Socket = New clsNativeSocket
@@ -381,6 +384,14 @@ ConfirmationFailed:
     End Sub
 
     
+    Private Sub lblQuestAction_Click()
+        SubmitQuestChatAction
+    End Sub
+
+    Private Sub lblQuestDismiss_Click()
+        ClearQuestChat
+    End Sub
+
     Private Sub picScreen_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
         Call EditorMouseDown(Button, Shift, X, Y)
         If KeyShift = True Then
@@ -552,8 +563,16 @@ ConfirmationFailed:
         Call SendData("trade" & END_CHAR)
     End Sub
     
+    Private Sub imgHealthPotion_Click()
+        If InGame And IsConnected Then SendData "usepotion" & SEP_CHAR & "hp" & END_CHAR
+    End Sub
+
+    Private Sub imgManaPotion_Click()
+        If InGame And IsConnected Then SendData "usepotion" & SEP_CHAR & "mp" & END_CHAR
+    End Sub
+
     Private Sub picQuit_Click()
-        Call GameDestroy
+        Call LogoutGame
     End Sub
     
     Private Sub picInventory_Click()

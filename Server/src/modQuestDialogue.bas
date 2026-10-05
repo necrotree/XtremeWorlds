@@ -1,6 +1,15 @@
 Attribute VB_Name = "modQuestDialogue"
 Option Explicit
 
+Public Sub SendNpcQuestNames(ByVal Index As Long)
+    Dim q As Long
+    EnsureDefinitions
+    SendDataTo Index, "NPCQUESTBEGIN" & END_CHAR
+    For q = 1 To MAX_QUESTS
+        SendDataTo Index, "NPCQUESTNAME" & SEP_CHAR & q & SEP_CHAR & Definitions(q).Field(1) & END_CHAR
+    Next q
+End Sub
+
 Public Sub SendBookQuestNames(ByVal Index As Long)
     Dim q As Long
     EnsureDefinitions
@@ -100,7 +109,8 @@ Private Function Nearby(ByVal Index As Long, ByVal slot As Long, ByVal npcNumber
     If slot < 1 Or slot > MAX_MAP_NPCS Then Exit Function
     mapNumber = GetPlayerMap(Index)
     If mapNumber < 1 Or mapNumber > MAX_MAPS_SET Then Exit Function
-    If MapNpc(mapNumber, slot).Num <> npcNumber Or MapNpc(mapNumber, slot).HP <= 0 Then Exit Function
+    If MapNpc(mapNumber, slot).Num <> npcNumber Then Exit Function
+    If Npc(npcNumber).Behavior <> NPC_BEHAVIOR_QUESTGIVER And MapNpc(mapNumber, slot).HP <= 0 Then Exit Function
     Nearby = Abs(CLng(MapNpc(mapNumber, slot).X) - GetPlayerX(Index)) <= 1 And Abs(CLng(MapNpc(mapNumber, slot).y) - GetPlayerY(Index)) <= 1
 End Function
 
@@ -123,10 +133,20 @@ Private Function HasRequiredItem(ByVal Index As Long, ByVal q As Long) As Boolea
     If Not HasRequiredItem Then HasRequiredItem = ItemCount(Index, Number(q, 15)) >= Number(q, 16)
 End Function
 
+Private Function NpcOffersQuest(ByVal npcNumber As Long, ByVal q As Long) As Boolean
+    If npcNumber < 1 Or npcNumber > MAX_NPCS Or q < 1 Or q > MAX_QUESTS Then Exit Function
+    If Npc(npcNumber).Behavior = NPC_BEHAVIOR_QUESTGIVER Then
+        ' Quest givers store their quest ID in the unused shop-link field.
+        NpcOffersQuest = Npc(npcNumber).ShopCall = q
+    Else
+        NpcOffersQuest = Number(q, 2) = npcNumber
+    End If
+End Function
+
 Private Sub ShowDialogue(ByVal Index As Long, ByVal q As Long, ByVal slot As Long, ByVal field As Long, ByVal action As Long, Optional ByVal message As String = "")
     If Len(message) = 0 Then message = Definitions(q).Field(field)
     If Len(message) = 0 Then message = "There is nothing more to say right now."
-    SendDataTo Index, "QUESTDIALOGUE" & SEP_CHAR & q & SEP_CHAR & slot & SEP_CHAR & Definitions(q).Field(1) & SEP_CHAR & Trim$(Npc(Number(q, 2)).Name) & SEP_CHAR & message & SEP_CHAR & action & END_CHAR
+    SendDataTo Index, "QUESTDIALOGUE" & SEP_CHAR & q & SEP_CHAR & slot & SEP_CHAR & Definitions(q).Field(1) & SEP_CHAR & Trim$(Npc(MapNpc(GetPlayerMap(Index), slot).Num).Name) & SEP_CHAR & message & SEP_CHAR & action & END_CHAR
 End Sub
 
 Public Sub RefreshDialogueQuestMarkers(ByVal Index As Long)
@@ -138,7 +158,7 @@ Public Sub RefreshDialogueQuestMarkers(ByVal Index As Long)
         npcNumber = MapNpc(GetPlayerMap(Index), slot).Num
         status = 0
         For q = 1 To MAX_QUESTS
-            If Len(Definitions(q).Field(1)) > 0 And Number(q, 2) = npcNumber And npcNumber > 0 Then
+            If Len(Definitions(q).Field(1)) > 0 And NpcOffersQuest(npcNumber, q) And npcNumber > 0 Then
                 state = Progress(Index, q)
                 If Eligible(Index, q) Then
                     If state = 1 Then
@@ -148,19 +168,29 @@ Public Sub RefreshDialogueQuestMarkers(ByVal Index As Long)
                     ElseIf state <> 2 Or Number(q, 14) = 0 Then
                         status = 1
                     End If
+                ElseIf status = 0 Then
+                    status = 4
                 End If
             End If
         Next q
         If npcNumber > 0 Then
+            If Npc(npcNumber).Behavior = NPC_BEHAVIOR_QUESTGIVER Then SetQuestNpcMarker Index, slot, status
             ' Leave script-owned markers alone when no dialogue quest uses this NPC.
             For q = 1 To MAX_QUESTS
-                If Number(q, 2) = npcNumber And Len(Definitions(q).Field(1)) > 0 Then
+                If NpcOffersQuest(npcNumber, q) And Len(Definitions(q).Field(1)) > 0 Then
                     SetQuestNpcMarker Index, slot, status
                     Exit For
                 End If
             Next q
         End If
     Next slot
+End Sub
+
+Public Sub TalkToQuestNpc(ByVal Index As Long, ByVal NpcSlot As Long)
+    Dim parts(0 To 1) As String
+    parts(0) = "questtalk"
+    parts(1) = CStr(NpcSlot)
+    HandleQuestTalk Index, parts
 End Sub
 
 Public Sub HandleQuestTalk(ByVal Index As Long, ByRef parts() As String)
@@ -174,7 +204,7 @@ Public Sub HandleQuestTalk(ByVal Index As Long, ByRef parts() As String)
     If Not Nearby(Index, slot, npcNumber) Then Exit Sub
     EnsureDefinitions
     For q = 1 To MAX_QUESTS
-        If Number(q, 2) = npcNumber And Len(Definitions(q).Field(1)) > 0 Then
+        If NpcOffersQuest(npcNumber, q) And Len(Definitions(q).Field(1)) > 0 Then
             If selected = 0 Then selected = q
             If Eligible(Index, q) Then
                 state = Progress(Index, q)
@@ -191,12 +221,12 @@ Public Sub HandleQuestTalk(ByVal Index As Long, ByRef parts() As String)
     If Not Eligible(Index, q) Then
         ShowDialogue Index, q, slot, 6, 0
     ElseIf Progress(Index, q) = 2 And Number(q, 14) = 1 Then
-        ShowDialogue Index, q, slot, 7, 0
+        ShowDialogue Index, q, slot, 5, 0
     ElseIf Progress(Index, q) = 1 Then
         If HasRequiredItem(Index, q) Then
             ShowDialogue Index, q, slot, 3, 2
         Else
-            ShowDialogue Index, q, slot, 5, 0
+            ShowDialogue Index, q, slot, 7, 0
         End If
     Else
         ShowDialogue Index, q, slot, 3, 1
@@ -211,16 +241,20 @@ Public Sub HandleQuestAction(ByVal Index As Long, ByRef parts() As String)
     q = CLng(parts(1)): slot = CLng(parts(2)): action = CLng(parts(3))
     EnsureDefinitions
     If Len(Definitions(q).Field(1)) = 0 Then Exit Sub
-    If Not Nearby(Index, slot, Number(q, 2)) Then Exit Sub
+    If GetPlayerMap(Index) < 1 Or GetPlayerMap(Index) > MAX_MAPS_SET Then Exit Sub
+    Dim npcNumber As Long
+    npcNumber = MapNpc(GetPlayerMap(Index), slot).Num
+    If Not NpcOffersQuest(npcNumber, q) Then Exit Sub
+    If Not Nearby(Index, slot, npcNumber) Then Exit Sub
     If Not Eligible(Index, q) Then ShowDialogue Index, q, slot, 6, 0: Exit Sub
-    If Progress(Index, q) = 2 And Number(q, 14) = 1 Then ShowDialogue Index, q, slot, 7, 0: Exit Sub
+    If Progress(Index, q) = 2 And Number(q, 14) = 1 Then ShowDialogue Index, q, slot, 5, 0: Exit Sub
     If action = 1 Then
         If Progress(Index, q) = 1 Then Exit Sub
         SetProgress Index, q, 1
         ShowDialogue Index, q, slot, 3, 0, "Quest accepted. " & Definitions(q).Field(3)
     Else
         If Progress(Index, q) <> 1 Then Exit Sub
-        If Not HasRequiredItem(Index, q) Then ShowDialogue Index, q, slot, 5, 0: Exit Sub
+        If Not HasRequiredItem(Index, q) Then ShowDialogue Index, q, slot, 7, 0: Exit Sub
         required = Number(q, 15): reward = Number(q, 17): amount = Number(q, 18)
         If reward > 0 Then
             If Item(reward).Type = ITEM_TYPE_CURRENCY Then

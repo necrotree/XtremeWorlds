@@ -16,6 +16,13 @@ item and quantity are consumed on completion; rewards can include an item and
 experience. Quantities range from 1 to the inventory-slot limit. A blank name
 disables the definition. Saving does not reset existing character progress.
 
+In **NPC Editor**, set the NPC's behavior to **Quest giver** and set **Quest ID**
+to its slot in **Quest Editor**. Use `0` for no quest. Place the NPC on the map.
+This quest ID controls its dialogue and blip; multiple quest givers can offer
+the same quest. Quest givers stay in place
+and cannot be damaged by melee attacks or harmful spells. Existing NPC behavior
+IDs and record layouts are unchanged.
+
 **Full health**, **Full magic**, and **Full stamina** restore those vitals on
 completion. **Once** prevents repeating the quest. Otherwise, a completed quest
 can be accepted again. **On completion, unlock** enables the selected next quest;
@@ -23,15 +30,25 @@ the player talks to that quest's NPC to accept it. The server rejects cycles.
 
 ## Playing
 
-Right-click the assigned NPC while standing within one tile. The dialogue shows
-the quest title, NPC name, and message, with **Accept quest**, **Complete quest**,
-or **Close**, according to progress and requirements. A quest without a required
+Face an adjacent quest giver and use the normal attack/interact action to chat,
+or right-click the assigned NPC while standing within one tile. The chat box
+shows the quest title, NPC name, and message. **Accept quest** or **Complete quest**
+appears beside the chat controls according to progress and requirements.
+**Dismiss** clears the current interaction while retaining the chat history.
+A quest without a required
 item can be completed by talking to its NPC again after accepting.
 
 Completion rechecks proximity, class, level, prior quest completion, required
 items, and inventory capacity on the server. Full inventories do not consume
 required items. Clicking Complete again cannot duplicate a completed reward.
-Game hotkeys pause while the dialogue or editor is open.
+Quest chat leaves gameplay available. Game hotkeys pause while the quest editor
+is open. Changing maps clears the active quest chat buttons.
+
+Quest blips show a yellow **?** for an available quest, a grey **?** while its
+required items are missing, and a yellow **?** when it is ready to complete.
+Quests whose requirements are not met show a grey **!**. Completed once-only
+quests have no blip. Quest givers without an assigned enabled quest clear their
+dialogue blip. Quest givers can be interacted with even when their Max HP is zero.
 
 Definitions are stored in `Server/data/QuestDialogue.ini`. Progress is stored per
 account and character in `Server/data/QuestProgress.ini`, and survives reconnects

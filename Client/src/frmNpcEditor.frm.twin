@@ -10,10 +10,49 @@ Class frmNpcEditor
     Attribute VB_Exposed = False
     Option Explicit
     
+    Public Sub BeginQuestList()
+        cmbQuestId.Clear
+        cmbQuestId.AddItem "None"
+        cmbQuestId.ItemData(0) = 0
+        cmbQuestId.ListIndex = 0
+    End Sub
+
+    Public Sub AddQuestName(ByVal id As Long, ByVal title As String)
+        If id < 1 Then Exit Sub
+        cmbQuestId.AddItem CStr(id) & ": " & title
+        cmbQuestId.ItemData(cmbQuestId.NewIndex) = id
+    End Sub
+
+    Public Sub SelectQuestId(ByVal id As Long)
+        Dim i As Long
+        If cmbQuestId.ListCount = 0 Then BeginQuestList
+        cmbQuestId.ListIndex = 0
+        For i = 0 To cmbQuestId.ListCount - 1
+            If cmbQuestId.ItemData(i) = id Then
+                cmbQuestId.ListIndex = i
+                Exit Sub
+            End If
+        Next i
+        If id > 0 Then
+            AddQuestName id, "(unavailable)"
+            cmbQuestId.ListIndex = cmbQuestId.NewIndex
+        End If
+    End Sub
+
+    Public Function SelectedQuestId() As Long
+        If cmbQuestId.ListIndex >= 0 Then SelectedQuestId = cmbQuestId.ItemData(cmbQuestId.ListIndex)
+    End Function
+
     Private Sub cmbBehavior_Click()
+        cmbQuestId.Visible = cmbBehavior.ListIndex = NPC_BEHAVIOR_QUESTGIVER
         If cmbBehavior.ListIndex = NPC_BEHAVIOR_SHOPKEEPER Then
+            lbl17.Caption = "Shopkeeper's Shop"
             lbl17.Visible = True
             cmbShop.Visible = True
+        ElseIf cmbBehavior.ListIndex = NPC_BEHAVIOR_QUESTGIVER Then
+            lbl17.Caption = "Quest ID"
+            lbl17.Visible = True
+            cmbShop.Visible = False
         Else
             lbl17.Visible = False
             cmbShop.Visible = False
@@ -22,6 +61,7 @@ Class frmNpcEditor
     
     Private Sub Form_Load()
         Dim X As Long
+        cmbBehavior.AddItem "Quest giver"
         cmbShop.AddItem "No Shop"
         For X = 1 To MAX_SHOPS
             cmbShop.AddItem X & ": " & Trim$(Shop(X).name)

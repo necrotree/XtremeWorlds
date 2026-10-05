@@ -1,4 +1,4 @@
-[FormDesignerId("D5EBE62F-5E4C-4992-B6AB-D5446AE95B23")]
+[FormDesignerId("41120FFC-41A8-4880-A68F-F9E88CAB9080")]
 Class frmQuestEditor
     Attribute VB_PredeclaredId = True
     Option Explicit
@@ -9,7 +9,6 @@ Class frmQuestEditor
     Private Current As Long
     Private Busy As Boolean
     Private Saving As Boolean
-
     Public Sub BeginList(ByVal total As Long)
         If total < 1 Or total > 4096 Then Exit Sub
         Busy = True
@@ -21,6 +20,19 @@ Class frmQuestEditor
 
     Public Sub SetQuestName(ByVal id As Long, ByVal value As String)
         If id >= 1 And id <= Count Then Names(id) = value
+    End Sub
+
+    Public Sub FillIndex(ByVal list As Object)
+        Dim i As Long
+        list.Clear
+        For i = 1 To Count
+            list.AddItem CStr(i) & ": " & Names(i)
+        Next i
+    End Sub
+
+    Public Sub SelectQuest(ByVal id As Long)
+        If id < 1 Or id > Count Then Exit Sub
+        Current = id
     End Sub
 
     Public Sub SetClassNames(ByRef parts() As String)
@@ -37,12 +49,15 @@ Class frmQuestEditor
     Public Sub OpenEditor()
         Dim i As Long
         Busy = True
+        If Current < 1 Then Exit Sub
+
+        Saving = False
+        ' Quest chaining uses quest IDs directly; zero means no next quest.
+        cmbQuest.Enabled = True
         cmbQuest.Clear
-        cmbNext.Clear
-        cmbNext.AddItem "None"
+        cmbQuest.AddItem "None"
         For i = 1 To Count
             cmbQuest.AddItem CStr(i) & ": " & Names(i)
-            cmbNext.AddItem CStr(i) & ": " & Names(i)
         Next i
         cmbNpc.Clear
         cmbNpc.AddItem "Choose an NPC"
@@ -54,44 +69,22 @@ Class frmQuestEditor
         For i = 1 To ClassCount
             cmbClassReq.AddItem Trim$(ClassNames(i))
         Next i
-        cmbItem.Clear
-        cmbReward.Clear
-        cmbItem.AddItem "None"
-        cmbReward.AddItem "None"
+        cmbItemHas(0).Clear
+        cmbItemGet.Clear
+        cmbItemHas(0).AddItem "None"
+        cmbItemGet.AddItem "None"
         For i = 1 To MAX_ITEMS
-            cmbItem.AddItem CStr(i) & ": " & Trim$(Item(i).name)
-            cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
+            cmbItemHas(0).AddItem CStr(i) & ": " & Trim$(Item(i).name)
+            cmbItemGet.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
         QuestEditorOpen = True
-        SafeReleaseGameKeys
-
-        ' Do not pass frmMainGame as an explicit owner here.  The twinBASIC
-        ' runtime can fail while constructing a modeless form with that owner.
-        Me.Show vbModeless
+        ReleaseGameKeys
+        Me.Show vbModeless, frmMainGame
         Me.ZOrder 0
 
-        cmbQuest.ListIndex = 0
+        cmdSubmit.Enabled = False
         Busy = False
-        cmbQuest_Click
-    End Sub
-
-    Private Sub SafeReleaseGameKeys()
-        ' ReleaseGameKeys depends on input objects that may not be initialized
-        ' while an editor form is being opened or destroyed.  Releasing keys
-        ' is best-effort here and must never prevent the editor from opening.
-        On Error Resume Next
-        ReleaseGameKeys
-        Err.Clear
-        On Error GoTo 0
-    End Sub
-
-    Private Sub cmbQuest_Click()
-        If Busy Or cmbQuest.ListIndex < 0 Then Exit Sub
-        Current = cmbQuest.ListIndex + 1
-        cmdSave.Enabled = False
-        lblStatus.Caption = "Loading quest " & Current & "..."
-        If IsConnected Then frmMainGame.Socket.SendData "editquestdialogue" & SEP_CHAR & Current & END_CHAR
     End Sub
 
     Public Sub LoadDefinition(ByRef parts() As String)
@@ -103,57 +96,64 @@ Class frmQuestEditor
             Select Case f
                 Case 1: txtName.Text = value
                 Case 2: cmbNpc.ListIndex = CLng(Val(value))
-                Case 3: txtSay.Text = value
+                Case 3: txtNpcSay.Text = value
                 Case 4: txtCompleted.Text = value
-                Case 5: txtMissing.Text = value
+                Case 5: txtHadItem.Text = value
                 Case 6: txtNotReady.Text = value
-                Case 7: txtDone.Text = value
+                Case 7: txtNotHadItem.Text = value
                 Case 8: cmbClassReq.ListIndex = CLng(Val(value))
-                Case 9: txtLevel.Text = CStr(Val(value))
-                Case 10: cmbNext.ListIndex = CLng(Val(value))
-                Case 11: chkHP.Value = CLng(Val(value))
-                Case 12: chkMP.Value = CLng(Val(value))
-                Case 13: chkSP.Value = CLng(Val(value))
+                Case 9: scrlLevel.Value = CLng(Val(value)): lblLevel.Caption = CStr(scrlLevel.Value)
+                Case 10: cmbQuest.ListIndex = CLng(Val(value))
+                Case 11: chkHealth.Value = CLng(Val(value))
+                Case 12: chkMana.Value = CLng(Val(value))
+                Case 13: chkStamina.Value = CLng(Val(value))
                 Case 14: chkOnce.Value = CLng(Val(value))
-                Case 15: cmbItem.ListIndex = CLng(Val(value))
-                Case 16: txtItemQty.Text = value
-                Case 17: cmbReward.ListIndex = CLng(Val(value))
-                Case 18: txtRewardQty.Text = value
-                Case 19: txtExp.Text = CStr(Val(value))
+                Case 15: cmbItemHas(0).ListIndex = CLng(Val(value))
+                Case 16: txtItemHasValue(0).Text = value
+                Case 17: cmbItemGet.ListIndex = CLng(Val(value))
+                Case 18: txtItemGetValue.Text = value
+                Case 19: txtExpGet.Text = CStr(Val(value))
             End Select
         Next f
-        If Len(txtItemQty.Text) = 0 Then txtItemQty.Text = "1"
-        If Len(txtRewardQty.Text) = 0 Then txtRewardQty.Text = "1"
+        If Len(txtItemHasValue(0).Text) = 0 Then txtItemHasValue(0).Text = "1"
+        If Len(txtItemGetValue.Text) = 0 Then txtItemGetValue.Text = "1"
         Busy = False
-        cmdSave.Enabled = True
-        lblStatus.Caption = "Editing quest " & Current & ". Leave its name blank to disable it."
+        cmdSubmit.Enabled = True
     End Sub
 
     Private Function Field(ByVal f As Long) As String
         Select Case f
             Case 1: Field = Trim$(txtName.Text)
             Case 2: Field = CStr(cmbNpc.ListIndex)
-            Case 3: Field = txtSay.Text
+            Case 3: Field = txtNpcSay.Text
             Case 4: Field = txtCompleted.Text
-            Case 5: Field = txtMissing.Text
+            Case 5: Field = txtHadItem.Text
             Case 6: Field = txtNotReady.Text
-            Case 7: Field = txtDone.Text
+            Case 7: Field = txtNotHadItem.Text
             Case 8: Field = CStr(cmbClassReq.ListIndex)
-            Case 9: Field = txtLevel.Text
-            Case 10: Field = CStr(cmbNext.ListIndex)
-            Case 11: Field = CStr(chkHP.Value)
-            Case 12: Field = CStr(chkMP.Value)
-            Case 13: Field = CStr(chkSP.Value)
+            Case 9: Field = CStr(scrlLevel.Value)
+            Case 10: Field = CStr(cmbQuest.ListIndex)
+            Case 11: Field = CStr(chkHealth.Value)
+            Case 12: Field = CStr(chkMana.Value)
+            Case 13: Field = CStr(chkStamina.Value)
             Case 14: Field = CStr(chkOnce.Value)
-            Case 15: Field = CStr(cmbItem.ListIndex)
-            Case 16: Field = txtItemQty.Text
-            Case 17: Field = CStr(cmbReward.ListIndex)
-            Case 18: Field = txtRewardQty.Text
-            Case 19: Field = txtExp.Text
+            Case 15: Field = CStr(cmbItemHas(0).ListIndex)
+            Case 16: Field = txtItemHasValue(0).Text
+            Case 17: Field = CStr(cmbItemGet.ListIndex)
+            Case 18: Field = txtItemGetValue.Text
+            Case 19: Field = txtExpGet.Text
         End Select
     End Function
 
-    Private Sub cmdSave_Click()
+    Private Sub scrlLevel_Change()
+        lblLevel.Caption = CStr(scrlLevel.Value)
+    End Sub
+
+    Private Sub scrlLevel_Scroll()
+        lblLevel.Caption = CStr(scrlLevel.Value)
+    End Sub
+
+    Private Sub cmdSubmit_Click()
         Dim f As Long, value As String, packet As String
         If Saving Or Current < 1 Or Not IsConnected Then Exit Sub
         packet = "savequestdialogue" & SEP_CHAR & Current
@@ -170,39 +170,62 @@ Class frmQuestEditor
             packet = packet & SEP_CHAR & value
         Next f
         Saving = True
-        cmdSave.Enabled = False
+        cmdSubmit.Enabled = False
         cmbQuest.Enabled = False
-        lblStatus.Caption = "Saving quest " & Current & "..."
         frmMainGame.Socket.SendData packet & END_CHAR
     End Sub
 
     Public Sub Saved(ByVal id As Long)
         If id <> Current Then Exit Sub
         Names(id) = txtName.Text
-        Busy = True
-        cmbQuest.List(id - 1) = CStr(id) & ": " & txtName.Text
-        cmbNext.List(id) = CStr(id) & ": " & txtName.Text
-        Busy = False
         Saving = False
-        cmdSave.Enabled = True
-        cmbQuest.Enabled = True
-        lblStatus.Caption = "Quest " & id & " saved."
+        CloseToIndex
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
         Saving = False
-        cmdSave.Enabled = True
+        cmdSubmit.Enabled = True
         cmbQuest.Enabled = True
-        lblStatus.Caption = message
         GameMsgBox message, vbExclamation, "Quest Editor"
     End Sub
 
     Private Sub cmdCancel_Click()
+        CloseToIndex
+    End Sub
+
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        If KeyCode = vbKeyEscape Then cmdCancel_Click
+    End Sub
+
+    Private Sub CloseToIndex()
+        Dim showIndex As Boolean
+        showIndex = IsConnected And InGame
+        ResetEditorIndexState
+        If showIndex Then
+            FillIndex frmIndex.lstIndex
+            If Current >= 1 And Current <= frmIndex.lstIndex.ListCount Then frmIndex.lstIndex.ListIndex = Current - 1
+            frmIndex.Show vbModeless, frmMainGame
+            frmIndex.ZOrder 0
+        End If
+        ' Cancel returns explicitly; the unload event must not request a second list.
+        QuestEditorOpen = False
         Unload Me
+        If showIndex Then
+            InQuestEditor = True
+            SendRequestEditQuest
+        End If
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
+        Dim returnToIndex As Boolean
+        returnToIndex = QuestEditorOpen And IsConnected And InGame
         QuestEditorOpen = False
-        SafeReleaseGameKeys
+        QuestDialogueOpen = False
+        InQuestEditor = False
+        QuestEditorPending = 0
+        Current = 0
+        Saving = False
+        ReleaseGameKeys
+        If returnToIndex Then SendRequestEditQuest
     End Sub
 End Class

@@ -309,7 +309,7 @@ Sub GameAI()
                     Target = MapNpc(y, X).Target
 
                     ' Check to see if its time for the npc to walk
-                    If Npc(NpcNum).Behavior >= 0 Then
+                    If Npc(NpcNum).Behavior >= 0 And Npc(NpcNum).Behavior <> NPC_BEHAVIOR_QUESTGIVER Then
                         ' Check to see if we are following a player or not
                         If Target > 0 Then
                             ' Check if the player is even playing, if so follow'm
