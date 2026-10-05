@@ -170,7 +170,7 @@ Public Function SaveHotkeys(ByRef keys() As Integer) As Boolean
         If WriteKeySetting("Keyboard", CStr(i), CStr(keys(i)), temporary) = 0 Then Err.Raise 75
     Next
     For i = 1 To MAX_PLAYER_SPELLS
-        If InGame And MyIndex > 0 Then SpellHotkeySpell(i) = Player(MyIndex).Spell(i)
+        If InGame And MyIndex > 0 Then SpellHotkeySpell(i) = Player(MyIndex).Spell(i - 1)
         If WriteKeySetting("Spells", CStr(i), CStr(SpellHotkeySpell(i)), temporary) = 0 Then Err.Raise 75
     Next
     If WriteKeySetting("Keyboard", "Enabled", "1", temporary) = 0 Then Err.Raise 75
@@ -277,7 +277,7 @@ Private Function ResolveSpellHotkeySlot(ByVal bindingSlot As Long) As Long
 
     spellNum = SpellHotkeySpell(bindingSlot)
     If spellNum > 0 Then
-        For i = 1 To MAX_PLAYER_SPELLS
+        For i = 0 To MAX_PLAYER_SPELLS - 1
             If Player(MyIndex).Spell(i) = spellNum Then
                 ResolveSpellHotkeySlot = i
                 Exit Function
@@ -288,7 +288,7 @@ Private Function ResolveSpellHotkeySlot(ByVal bindingSlot As Long) As Long
 
     ' Backward compatibility for Hotkeys.ini files created before spell
     ' identities were stored separately.
-    If Player(MyIndex).Spell(bindingSlot) > 0 Then
-        ResolveSpellHotkeySlot = bindingSlot
+    If Player(MyIndex).Spell(bindingSlot - 1) > 0 Then
+        ResolveSpellHotkeySlot = bindingSlot - 1
     End If
 End Function
