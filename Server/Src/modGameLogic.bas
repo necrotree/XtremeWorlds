@@ -2118,7 +2118,8 @@ Sub CheckPlayerLevelUp(ByVal Index As Long)
     ' Call PlayerMsg(Index, "You have gained a level!  You now have " & GetPlayerPOINTS(Index) & " stat points to distribute.", BrightBlue)
     End If
 
-    Call CheckPlayerLevelUp(Index)
+    ' Do not recurse unconditionally. The old call caused an infinite recursion
+    ' and stack overflow whenever this routine was reached.
 
 End Sub
 
