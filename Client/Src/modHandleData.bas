@@ -59,6 +59,7 @@ Public Sub HandleData(ByVal Data As String)
         Case "accountcreated"
             frmSendGetData.Visible = False
             frmMainMenu.HideMenuPanels
+            frmMainMenu.SetMenuVisible "mnuLogin", True
             frmMainMenu.Visible = True
             Exit Sub
         Case "wholist"
