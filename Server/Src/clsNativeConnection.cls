@@ -149,14 +149,10 @@ CleanupFailed:
         End If
     End Sub
     Public Sub Poll()
-        Dim buffer() As Byte
+        Dim buffer(0 To 8191) As Byte
         Dim count As Long
         Dim batch As Long
         Dim received() As Byte, byteIndex As Long
-        ' Keep the 8 KB receive buffer off the native procedure stack.  A fixed local
-        ' array is stack storage in native builds and can turn timer/socket re-entry
-        ' into STATUS_STACK_OVERFLOW (0xC00000FD).
-        ReDim buffer(0 To 8191)
         FlushOutput
         ' Bound work per tick so one busy client cannot monopolize the UI/game loop.
         For batch = 1 To 8
