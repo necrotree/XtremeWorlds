@@ -175,6 +175,7 @@ Class frmQuestEditor
         Saving = False
         QuestEditorOpen = False
         Unload Me
+        frmIndex.Show
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
