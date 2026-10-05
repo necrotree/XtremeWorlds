@@ -54,12 +54,12 @@ Class frmQuestEditor
         For i = 1 To ClassCount
             cmbClassReq.AddItem Trim$(ClassNames(i))
         Next i
-        cmbItemHas.Clear
+        cmbItemHas(0).Clear
         cmbItemGet.Clear
-        cmbItemHas.AddItem "None"
+        cmbItemHas(0).AddItem "None"
         cmbItemGet.AddItem "None"
         For i = 1 To MAX_ITEMS
-            cmbItemHas.AddItem CStr(i) & ": " & Trim$(Item(i).name)
+            cmbItemHas(0).AddItem CStr(i) & ": " & Trim$(Item(i).name)
             cmbItemGet.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
@@ -93,14 +93,14 @@ Class frmQuestEditor
                 Case 12: chkMana.Value = CLng(Val(value))
                 Case 13: chkStamina.Value = CLng(Val(value))
                 Case 14: chkOnce.Value = CLng(Val(value))
-                Case 15: cmbItemHas.ListIndex = CLng(Val(value))
-                Case 16: txtItemHasValue.Text = value
+                Case 15: cmbItemHas(0).ListIndex = CLng(Val(value))
+                Case 16: txtItemHasValue(0).Text = value
                 Case 17: cmbItemGet.ListIndex = CLng(Val(value))
                 Case 18: txtItemGetValue.Text = value
                 Case 19: txtExpGet.Text = CStr(Val(value))
             End Select
         Next f
-        If Len(txtItemHasValue.Text) = 0 Then txtItemHasValue.Text = "1"
+        If Len(txtItemHasValue(0).Text) = 0 Then txtItemHasValue(0).Text = "1"
         If Len(txtItemGetValue.Text) = 0 Then txtItemGetValue.Text = "1"
         Busy = False
         cmdSubmit.Enabled = True
@@ -122,8 +122,8 @@ Class frmQuestEditor
             Case 12: Field = CStr(chkMana.Value)
             Case 13: Field = CStr(chkStamina.Value)
             Case 14: Field = CStr(chkOnce.Value)
-            Case 15: Field = CStr(cmbItemHas.ListIndex)
-            Case 16: Field = txtItemHasValue.Text
+            Case 15: Field = CStr(cmbItemHas(0).ListIndex)
+            Case 16: Field = txtItemHasValue(0).Text
             Case 17: Field = CStr(cmbItemGet.ListIndex)
             Case 18: Field = txtItemGetValue.Text
             Case 19: Field = txtExpGet.Text
