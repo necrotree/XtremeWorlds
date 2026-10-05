@@ -106,7 +106,7 @@ End Sub
         ' Blend the chat input strip into the surrounding interface panel.
         txtMyTextBox.BackColor = RGB(45, 45, 34)
         Set txtChat = New clsNativeRichText
-        txtChat.Attach hosttxtChat, True, 0, 9.75, "Rockwell"
+        txtChat.Attach hosttxtChat, True, RGB(45, 45, 33), 9.75, "Rockwell"
         Set Socket = New clsNativeSocket
         Socket.Attach Me.hWnd
         RegisterNativeWindow picBack.hWnd, Me

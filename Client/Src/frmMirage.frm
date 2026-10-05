@@ -2672,7 +2672,7 @@ Begin VB.Form frmMainGame
       _ExtentX        =   13361
       _ExtentY        =   2566
       _Version        =   393217
-      BackColor       =   0
+      BackColor       =   2174253
       BorderStyle     =   0
       ReadOnly        =   -1  'True
       ScrollBars      =   2
