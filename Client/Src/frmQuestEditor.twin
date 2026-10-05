@@ -63,11 +63,9 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        Busy = False
-        Current = 1
-        cmdSave.Enabled = False
-        lblStatus.Caption = "Loading quest 1..."
-        If IsConnected Then frmMainGame.Socket.SendData "editquestdialogue" & SEP_CHAR & Current & END_CHAR
+        ' Keep Busy set while OpenEditor returns.  In twinBASIC the caller can
+        ' still be completing the form/control activation at this point.
+        ' Selecting/loading a quest is deferred until the user selects one.
     End Sub
 
     Private Sub cmbQuest_Click()
