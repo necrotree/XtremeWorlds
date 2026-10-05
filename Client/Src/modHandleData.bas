@@ -84,11 +84,18 @@ Public Sub HandleData(ByVal Data As String)
             Exit Sub
 
         Case "alertmsg"
-            frmSendGetData.Visible = False
+            ' Restore the menu before closing the status window. Closing the
+            ' status form first can expose frmMainMenu while all menu groups
+            ' are still hidden.
             frmMainMenu.RestoreActiveMenu
+            frmSendGetData.Visible = False
 
             Msg = Parse(1)
             Call GameMsgBox(Msg, vbOKOnly, GAME_NAME)
+
+            ' Modal alert handling can change focus/visibility. Re-apply the
+            ' active page once more after the alert closes.
+            frmMainMenu.RestoreActiveMenu
             Exit Sub
 
         ' ::::::::::::::::::::::::::::
