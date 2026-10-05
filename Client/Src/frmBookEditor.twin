@@ -5,7 +5,8 @@ Class frmBookEditor
 
     Private Current As Long
     Private Saving As Boolean
-    Private QuestIds(0 To 32767) As Long
+    Private BookIds() As Long
+    Private QuestIds() As Long
     Private BookCount As Long
     Private QuestCount As Long
     Private Initialized As Boolean
@@ -14,6 +15,12 @@ Class frmBookEditor
         Initialized = False
         BookCount = 0
         QuestCount = 0
+        If MAX_BOOKS > 0 Then
+            ReDim BookIds(0 To MAX_BOOKS)
+        Else
+            ReDim BookIds(0 To 0)
+        End If
+        ReDim QuestIds(0 To 0)
         BookIds(0) = 0
         QuestIds(0) = 0
         Current = 0
@@ -38,23 +45,24 @@ Class frmBookEditor
         Dim i As Long
 
         If Not Initialized Then Exit Sub
-        If BookCount >= 32767 Then Exit Sub
+        If id < 1 Or id > MAX_BOOKS Then Exit Sub
+        If BookCount >= MAX_BOOKS Then Exit Sub
 
         For i = 0 To BookCount
-            If Book(i) = id Then Exit Sub
+            If BookIds(i) = id Then Exit Sub
         Next i
 
         cmbBook.AddItem CStr(id) & ": " & title
 
         BookCount = BookCount + 1
-        Book(BookCount) = id
+        BookIds(BookCount) = id
     End Sub
 
     Public Sub AddQuest(ByVal id As Long, ByVal title As String)
         Dim i As Long
 
         If Not Initialized Then Exit Sub
-        If QuestCount >= 32767 Then Exit Sub
+        If id < 1 Then Exit Sub
 
         For i = 0 To QuestCount
             If QuestIds(i) = id Then Exit Sub
@@ -63,6 +71,7 @@ Class frmBookEditor
         cmbQuest.AddItem CStr(id) & ": " & title
 
         QuestCount = QuestCount + 1
+        ReDim Preserve QuestIds(0 To QuestCount)
         QuestIds(QuestCount) = id
     End Sub
 
@@ -72,7 +81,7 @@ Class frmBookEditor
         cmbBook.ListIndex = 0
 
         For i = 0 To BookCount
-            If Book(i) = id Then
+            If BookIds(i) = id Then
                 cmbBook.ListIndex = i
                 Exit Sub
             End If
@@ -152,7 +161,7 @@ Class frmBookEditor
         If cmbBook.ListIndex < 0 Then Exit Sub
         If cmbQuest.ListIndex < 0 Then Exit Sub
 
-        If Book(cmbBook.ListIndex) = Current Then
+        If BookIds(cmbBook.ListIndex) = Current Then
             GameMsgBox "Choose a different connecting book.", vbExclamation
             Exit Sub
         End If
