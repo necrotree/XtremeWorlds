@@ -1,6 +1,18 @@
 Attribute VB_Name = "modBooks"
 Option Explicit
 
+Public Type BookRec
+    Signature As Long
+    Version As Long
+    PageCount As Long
+    NextBook As Long
+    Quest As Long
+    Name As String * 64
+    Header As String * 64
+    Pages(1 To 64) As String * 2000
+End Type
+
+
 Private Function BookNumber(ByVal value As String, ByVal maximum As Long) As Boolean
     Dim i As Long
     Dim code As Long
