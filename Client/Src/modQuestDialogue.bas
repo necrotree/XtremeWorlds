@@ -33,10 +33,16 @@ Public Sub HandleQuestDialoguePacket(ByRef parts() As String)
             If UBound(parts) < 2 Then Exit Sub
             frmQuestEditor.SetClassNames parts
         Case "questeditorready"
-            frmQuestEditor.OpenEditor
+            InQuestEditor = True
+            frmIndex.lstIndex.Clear
+            frmQuestEditor.FillIndex frmIndex.lstIndex
+            If frmIndex.lstIndex.ListCount > 0 Then frmIndex.lstIndex.ListIndex = 0
+            frmIndex.Show
         Case "questeditordata"
             If UBound(parts) <> 20 Then Exit Sub
+            frmQuestEditor.SelectQuest CLng(Val(parts(1)))
             frmQuestEditor.LoadDefinition parts
+            frmQuestEditor.OpenEditor
         Case "questeditorsaved"
             If UBound(parts) <> 1 Then Exit Sub
             frmQuestEditor.Saved CLng(Val(parts(1)))
