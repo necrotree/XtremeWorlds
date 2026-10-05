@@ -128,9 +128,27 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
 
             SendDataTo Index, "BOOKEDITORBEGIN" & SEP_CHAR & MAX_BOOKS & END_CHAR
 
+            ' Send the editor list as one packet. Sending hundreds of tiny
+            ' socket writes back-to-back can re-enter the IOCP socket layer
+            ' and terminate the server without reaching the VB error handler.
+            packet = vbNullString
+
             For id = 1 To MAX_BOOKS
-                SendDataTo Index, "BOOKEDITORNAME" & SEP_CHAR & id & SEP_CHAR & CleanBookPacketText(Trim$(Book(id).Name)) & END_CHAR
+                packet = packet & _
+                    "BOOKEDITORNAME" & SEP_CHAR & _
+                    id & SEP_CHAR & _
+                    CleanBookPacketText(Trim$(Book(id).Name)) & _
+                    END_CHAR
+
+                If Len(packet) >= 8192 Then
+                    SendDataTo Index, packet
+                    packet = vbNullString
+                End If
             Next id
+
+            If LenB(packet) <> 0 Then
+                SendDataTo Index, packet
+            End If
 
             SendBookQuestNames Index
             SendDataTo Index, "BOOKEDITORREADY" & END_CHAR
