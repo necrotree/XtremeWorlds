@@ -1,6 +1,17 @@
 Attribute VB_Name = "modBooks"
 Option Explicit
 
+Public Type BookRec
+    Signature As Long
+    Version As Long
+    PageCount As Long
+    NextBook As Long
+    Quest As Long
+    Name As String * 64
+    Header As String * 64
+    Pages(1 To 64) As String * 2000
+End Type
+
 Private Function BookNumber(ByVal value As String, ByVal maximum As Long) As Boolean
     Dim i As Long
     Dim code As Long
@@ -19,7 +30,8 @@ Public Function BookHex(ByVal value As String) As String
     Dim i As Long
 
     For i = 1 To Len(value)
-        BookHex = BookHex & Right$("0000" & Hex$(AscW(Mid$(value, i, 1)) And &HFFFF&), 4)
+        BookHex = BookHex & _
+            Right$("0000" & Hex$(AscW(Mid$(value, i, 1)) And &HFFFF&), 4)
     Next i
 End Function
 
@@ -31,13 +43,19 @@ Public Function BookUnhex(ByVal value As String, ByVal maximum As Long) As Strin
     If Len(value) > maximum * 4 Then Err.Raise 5
 
     For i = 1 To Len(value)
-        If InStr(1, "0123456789ABCDEF", Mid$(value, i, 1), vbTextCompare) = 0 Then Err.Raise 5
+        If InStr(1, "0123456789ABCDEF", Mid$(value, i, 1), vbTextCompare) = 0 Then
+            Err.Raise 5
+        End If
     Next i
 
     For i = 1 To Len(value) Step 4
         code = CLng("&H" & Mid$(value, i, 4))
+
+        ' UTF-16 signed conversion.
         If code > 32767 Then code = code - 65536
+
         If code = 0 Then Err.Raise 5
+
         BookUnhex = BookUnhex & ChrW$(code)
     Next i
 End Function
@@ -52,15 +70,19 @@ Private Function OwnsBook(ByVal Index As Long, ByVal id As Long) As Boolean
 
     For slot = 1 To MAX_INV
         itemNum = GetPlayerInvItemNum(Index, slot)
+
         If itemNum >= 1 And itemNum <= MAX_ITEMS Then
             If Item(itemNum).Type = ITEM_TYPE_BOOK Then
                 current = Item(itemNum).Data1
+
                 For depth = 1 To 64
                     If current < 1 Or current > MAX_BOOKS Then Exit For
+
                     If current = id Then
                         OwnsBook = True
                         Exit Function
                     End If
+
                     current = Book(current).NextBook
                 Next depth
             End If
@@ -73,8 +95,10 @@ Public Sub SendBookPages(ByVal Index As Long, ByVal id As Long, ByVal page As Lo
     Dim rightPage As String
 
     If Not IsPlaying(Index) Then Exit Sub
+
     If id < 1 Or id > MAX_BOOKS Then Exit Sub
     If page < 1 Or page > 64 Then Exit Sub
+
     If Not OwnsBook(Index, id) Then Exit Sub
 
     If Book(id).PageCount < 1 Then
@@ -83,7 +107,10 @@ Public Sub SendBookPages(ByVal Index As Long, ByVal id As Long, ByVal page As Lo
     End If
 
     If page > Book(id).PageCount Then Exit Sub
+
+    ' Always start on the left page of a two-page spread.
     page = ((page - 1) \ 2) * 2 + 1
+
     If page > Book(id).PageCount Then Exit Sub
 
     If LenB(RTrim$(Book(id).Pages(page))) = 0 Then
@@ -92,21 +119,46 @@ Public Sub SendBookPages(ByVal Index As Long, ByVal id As Long, ByVal page As Lo
     End If
 
     title = Trim$(Book(id).Header)
-    If LenB(title) = 0 Then title = Trim$(Book(id).Name)
-    If LenB(title) = 0 Then title = "Book " & id
+
+    If LenB(title) = 0 Then
+        title = Trim$(Book(id).Name)
+    End If
+
+    If LenB(title) = 0 Then
+        title = "Book " & id
+    End If
 
     rightPage = vbNullString
-    If page < Book(id).PageCount Then rightPage = RTrim$(Book(id).Pages(page + 1))
 
-    SendDataTo Index, "BOOKLINK" & SEP_CHAR & id & SEP_CHAR & Book(id).NextBook & END_CHAR
-    SendDataTo Index, "BOOKPAGES" & SEP_CHAR & id & SEP_CHAR & page & SEP_CHAR & Book(id).PageCount & SEP_CHAR & CleanBookPacketText(title) & SEP_CHAR & CleanBookPacketText(RTrim$(Book(id).Pages(page))) & SEP_CHAR & CleanBookPacketText(rightPage) & END_CHAR
+    If page < Book(id).PageCount Then
+        rightPage = RTrim$(Book(id).Pages(page + 1))
+    End If
 
-    If Book(id).Quest > 0 And Book(id).Quest <= MAX_QUESTS Then BeginBookQuest Index, Book(id).Quest
+    SendDataTo Index, _
+        "BOOKLINK" & SEP_CHAR & _
+        id & SEP_CHAR & _
+        Book(id).NextBook & _
+        END_CHAR
+
+    SendDataTo Index, _
+        "BOOKPAGES" & SEP_CHAR & _
+        id & SEP_CHAR & _
+        page & SEP_CHAR & _
+        Book(id).PageCount & SEP_CHAR & _
+        CleanBookPacketText(title) & SEP_CHAR & _
+        CleanBookPacketText(RTrim$(Book(id).Pages(page))) & SEP_CHAR & _
+        CleanBookPacketText(rightPage) & _
+        END_CHAR
+
+    If Book(id).Quest > 0 And Book(id).Quest <= MAX_QUESTS Then
+        BeginBookQuest Index, Book(id).Quest
+    End If
 End Sub
 
 Private Function CleanBookPacketText(ByVal value As String) As String
     value = Replace(value, SEP_CHAR, " ")
     value = Replace(value, END_CHAR, " ")
+
     CleanBookPacketText = value
 End Function
 
@@ -122,54 +174,59 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
     If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then Exit Sub
 
     Select Case LCase$(parts(0))
+
         Case "bookeditor"
+
             If UBound(parts) <> 0 Then Exit Sub
-            If MAX_BOOKS < 1 Then GoTo Failed
 
-            SendDataTo Index, "BOOKEDITORBEGIN" & SEP_CHAR & MAX_BOOKS & END_CHAR
+            SendDataTo Index, "BOOKEDITORBEGIN" & END_CHAR
 
-            ' Send the editor list as one packet. Sending hundreds of tiny
-            ' socket writes back-to-back can re-enter the IOCP socket layer
-            ' and terminate the server without reaching the VB error handler.
-            packet = vbNullString
-
+            ' Books work like the other editors:
+            ' every slot from 1 to MAX_BOOKS is always available.
             For id = 1 To MAX_BOOKS
-                packet = packet & _
+                SendDataTo Index, _
                     "BOOKEDITORNAME" & SEP_CHAR & _
                     id & SEP_CHAR & _
                     CleanBookPacketText(Trim$(Book(id).Name)) & _
                     END_CHAR
-
-                If Len(packet) >= 8192 Then
-                    SendDataTo Index, packet
-                    packet = vbNullString
-                End If
             Next id
 
-            If LenB(packet) <> 0 Then
-                SendDataTo Index, packet
-            End If
-
             SendBookQuestNames Index
+
             SendDataTo Index, "BOOKEDITORREADY" & END_CHAR
 
         Case "editbook"
+
             If UBound(parts) <> 1 Then Exit Sub
+
             If Not BookNumber(parts(1), MAX_BOOKS) Then Exit Sub
 
             id = CLng(parts(1))
+
             If id < 1 Or id > MAX_BOOKS Then Exit Sub
 
-            packet = "BOOKEDITORDATA" & SEP_CHAR & id & SEP_CHAR & BookHex(Trim$(Book(id).Name)) & SEP_CHAR & BookHex(Trim$(Book(id).Header)) & SEP_CHAR & BookHex(RTrim$(Book(id).Pages(1))) & SEP_CHAR & BookHex(RTrim$(Book(id).Pages(2))) & SEP_CHAR & Book(id).NextBook & SEP_CHAR & Book(id).Quest
+            packet = _
+                "BOOKEDITORDATA" & SEP_CHAR & _
+                id & SEP_CHAR & _
+                BookHex(Trim$(Book(id).Name)) & SEP_CHAR & _
+                BookHex(Trim$(Book(id).Header)) & SEP_CHAR & _
+                BookHex(RTrim$(Book(id).Pages(1))) & SEP_CHAR & _
+                BookHex(RTrim$(Book(id).Pages(2))) & SEP_CHAR & _
+                Book(id).NextBook & SEP_CHAR & _
+                Book(id).Quest
+
             SendDataTo Index, packet & END_CHAR
 
         Case "savebook"
+
             If UBound(parts) <> 7 Then Exit Sub
+
             If Not BookNumber(parts(1), MAX_BOOKS) Then GoTo Failed
             If Not BookNumber(parts(6), MAX_BOOKS) Then GoTo Failed
             If Not BookNumber(parts(7), MAX_QUESTS) Then GoTo Failed
 
             id = CLng(parts(1))
+
             If id < 1 Or id > MAX_BOOKS Then GoTo Failed
 
             Book(id).Name = BookUnhex(parts(2), 64)
@@ -178,24 +235,46 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
             Book(id).Pages(2) = BookUnhex(parts(5), 2000)
             Book(id).NextBook = CLng(parts(6))
             Book(id).Quest = CLng(parts(7))
-            If Book(id).PageCount < 2 Then Book(id).PageCount = 2
 
+            If Book(id).PageCount < 2 Then
+                Book(id).PageCount = 2
+            End If
+
+            ' A book cannot link to itself.
             If Book(id).NextBook = id Then GoTo Failed
 
+            ' Validate the linked-book chain and prevent loops.
             current = Book(id).NextBook
+
             For depth = 1 To 64
                 If current = 0 Then Exit For
-                If current < 1 Or current > MAX_BOOKS Then GoTo Failed
-                If current = id Then GoTo Failed
+
+                If current < 1 Or current > MAX_BOOKS Then
+                    GoTo Failed
+                End If
+
+                If current = id Then
+                    GoTo Failed
+                End If
+
                 current = Book(current).NextBook
             Next depth
+
+            ' More than 64 links means the chain is invalid or cyclic.
             If current <> 0 Then GoTo Failed
 
             SaveBook id
-            SendDataTo Index, "BOOKEDITORSAVED" & SEP_CHAR & id & END_CHAR
+
+            SendDataTo Index, _
+                "BOOKEDITORSAVED" & SEP_CHAR & id & END_CHAR
+
     End Select
+
     Exit Sub
 
 Failed:
-    SendDataTo Index, "BOOKEDITORERROR" & SEP_CHAR & "Unable to load or save. Check field lengths and connecting book loops." & END_CHAR
+    SendDataTo Index, _
+        "BOOKEDITORERROR" & SEP_CHAR & _
+        "Unable to load or save. Check field lengths and connecting book loops." & _
+        END_CHAR
 End Sub
