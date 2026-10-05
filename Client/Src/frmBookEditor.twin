@@ -93,21 +93,28 @@ Class frmBookEditor
         Next i
     End Sub
 
+    Public Sub FillIndex(ByVal list As Object)
+        Dim i As Long
+        list.Clear
+        For i = 1 To BookCount
+            list.AddItem CStr(BookIds(i)) & ": " & cmbBook.List(i)
+        Next i
+    End Sub
+
+    Public Sub SelectBookForEdit(ByVal id As Long)
+        If id < 1 Then Exit Sub
+        Current = id
+    End Sub
+
     Public Sub OpenEditor()
-        Current = 0
         Saving = False
         BookEditorOpen = True
-
         ReleaseGameKeys
 
-        Current = 1
-        cmdOk.Enabled = False
-        cmdPreview.Enabled = False
-
-        Me.Show vbModeless, frmMainGame
-        Me.ZOrder 0
-
-        frmMainGame.Socket.SendData "editbook" & SEP_CHAR & Current & END_CHAR
+        ' Like the other editors, show the shared index first.
+        FillIndex frmIndex.lstIndex
+        frmIndex.Show vbModeless, frmMainGame
+        frmIndex.ZOrder 0
     End Sub
 
     Public Sub LoadDefinition(ByRef parts() As String)
@@ -197,6 +204,21 @@ Class frmBookEditor
     End Sub
 
     Private Sub cmdCancel_Click()
+        CloseToIndex
+    End Sub
+
+    Private Sub CloseToIndex()
+        Dim showIndex As Boolean
+        showIndex = IsConnected And InGame
+
+        If showIndex Then
+            FillIndex frmIndex.lstIndex
+            frmIndex.Show vbModeless, frmMainGame
+            frmIndex.ZOrder 0
+        End If
+
+        BookEditorOpen = False
+        BookPreviewOpen = False
         Unload Me
     End Sub
 
