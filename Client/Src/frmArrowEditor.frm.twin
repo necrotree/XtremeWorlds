@@ -12,6 +12,7 @@ Private Sub Form_Load()
     mBusy = True
     If Not DD_ArrowSurf Is Nothing Then scrlSprite.Max = DD_ArrowSurf.Height \ PIC_Y - 1
     mBusy = False
+    DrawPreview
 End Sub
 
 Private Sub scrlSprite_Change()
@@ -39,10 +40,10 @@ Private Sub DrawPreview()
     destination.Bottom = destination.Top + PIC_Y * 2
     DD_ArrowSurf.BltToDC picPreview.hDC, source, destination
     source.Right = PIC_X
-    destination.Left = (picIcon.ScaleWidth - PIC_X) \ 2
-    destination.Top = (picIcon.ScaleHeight - PIC_Y) \ 2
-    destination.Right = destination.Left + PIC_X
-    destination.Bottom = destination.Top + PIC_Y
+    destination.Left = 0
+    destination.Top = 0
+    destination.Right = picIcon.ScaleWidth
+    destination.Bottom = picIcon.ScaleHeight
     DD_ArrowSurf.BltToDC picIcon.hDC, source, destination
     picIcon.Refresh
     picPreview.Refresh
@@ -72,7 +73,7 @@ Public Sub SaveComplete(ByVal number As Long)
     Arrow(number).Range = scrlRange.Value
     mSaving = False
     SetEditingEnabled True
-    Unload Me
+    ReturnToIndex
 End Sub
 
 Public Sub SaveFailed()
@@ -89,6 +90,31 @@ Private Sub SetEditingEnabled(ByVal enabled As Boolean)
 End Sub
 
 Private Sub cmdCancel_Click()
+    ReturnToIndex
+End Sub
+
+Private Sub ReturnToIndex()
+    Dim i As Long
+
+    ArrowEditorActive = False
+    ResetEditorIndexState
+    InArrowEditor = True
+
+    frmIndex.lstIndex.Clear
+    For i = 1 To MAX_ARROWS
+        frmIndex.lstIndex.AddItem i & ": " & Trim$(Arrow(i).Name)
+    Next i
+
+    If mSaveIndex >= 1 And mSaveIndex <= MAX_ARROWS Then
+        frmIndex.lstIndex.ListIndex = mSaveIndex - 1
+    ElseIf EditorIndex >= 1 And EditorIndex <= MAX_ARROWS Then
+        frmIndex.lstIndex.ListIndex = EditorIndex - 1
+    ElseIf frmIndex.lstIndex.ListCount > 0 Then
+        frmIndex.lstIndex.ListIndex = 0
+    End If
+
+    frmIndex.Show vbModeless, frmMainGame
+    frmIndex.ZOrder 0
     Unload Me
 End Sub
 
