@@ -12,6 +12,7 @@ Class frmMainMenu
     Private mCharacterSprites(0 To 2) As Long
     Private mWebsitePolls As Long
     Private mMenus As Collection
+    Private mActiveMenu As String
     
     Private Sub Form_Load()
         Dim FileName As String
@@ -458,6 +459,16 @@ Private Sub picRegisterLogin_Click()
         Dim menu As clsImageMenu
         Set menu = mMenus.Item(menuName)
         menu.Visible = showMenu
+        If showMenu Then mActiveMenu = menuName
+    End Sub
+
+    Public Sub RestoreActiveMenu()
+        Dim menuName As String
+        menuName = mActiveMenu
+        If LenB(menuName) = 0 Then menuName = "mnuHome"
+        HideMenuPanels
+        SetMenuVisible menuName, True
+        Me.Visible = True
     End Sub
 
     Private Sub lblMale_Click()
