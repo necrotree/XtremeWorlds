@@ -63,6 +63,17 @@ Class frmQuestEditor
             cmbItemGet.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
+        QuestEditorOpen = True
+        ReleaseGameKeys
+        Me.Show vbModeless, frmMainGame
+        Me.ZOrder 0
+
+        If Count > 0 Then
+            Busy = False
+            cmbQuest.ListIndex = 0
+        Else
+            Busy = False
+        End If
     End Sub
 
     Private Sub cmbQuest_Click()
@@ -176,5 +187,7 @@ Class frmQuestEditor
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
+        QuestEditorOpen = False
+        ReleaseGameKeys
     End Sub
 End Class
