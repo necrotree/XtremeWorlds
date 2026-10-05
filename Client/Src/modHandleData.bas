@@ -1462,6 +1462,7 @@ Public Sub HandleData(ByVal Data As String)
             MAX_GUILDS = Val(Parse(8))
             MAX_GUILD_MEMBERS = Val(Parse(9))
             MAX_ARROWS = Val(Parse(10))
+            MAX_BOOKS = Val(Parse(11))
 
             ReDim Shop(1 To MAX_SHOPS) As ShopRec
             ReDim Sign(1 To MAX_SIGNS) As SignRec
@@ -1471,6 +1472,7 @@ Public Sub HandleData(ByVal Data As String)
             ReDim Npc(1 To MAX_NPCS) As NpcRec
             ReDim Guild(1 To MAX_GUILDS) As GuildRec
             ReDim Arrow(1 To MAX_ARROWS) As ArrowRec
+            ReDim Book(1 To MAX_BOOKS) As BookRec
 
             For i = 1 To MAX_GUILDS
                 ReDim Preserve Guild(i).Member(1 To MAX_GUILD_MEMBERS) As String * NAME_LENGTH
