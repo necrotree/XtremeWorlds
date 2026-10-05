@@ -252,7 +252,7 @@ Public Sub UseSlotHotkey(ByVal key As Integer)
             Else
                 slot = action - HK_SPELL + 1
                 slot = ResolveSpellHotkeySlot(slot)
-                If slot <= 0 Then Exit Sub
+                If slot < 0 Then Exit Sub
                 If GetTickCount <= Player(MyIndex).AttackTimer + 1000 Then Exit Sub
                 If Player(MyIndex).Moving <> 0 Then
                     AddText "Cannot cast while walking!", BrightRed
