@@ -42,6 +42,29 @@ Public Function DeliveryInteger(ByVal text As String, ByVal minimum As Long, ByV
     DeliveryInteger = True
 End Function
 
+Public Sub LoadSpellDelivery()
+    Dim i As Long
+    Dim section As String
+    ReDim SpellDelivery(1 To MAX_SPELLS)
+    For i = 1 To MAX_SPELLS
+        section = "Spell" & CStr(i)
+        SpellDelivery(i).Mode = Val(GetVar(DeliveryFile, section, "Mode"))
+        SpellDelivery(i).Arrow = Val(GetVar(DeliveryFile, section, "Arrow"))
+        SpellDelivery(i).Range = Val(GetVar(DeliveryFile, section, "Range"))
+        If SpellDelivery(i).Mode < 0 Or SpellDelivery(i).Mode > 1 Then SpellDelivery(i).Mode = 0
+        If SpellDelivery(i).Arrow < 1 Or SpellDelivery(i).Arrow > MAX_ARROWS Then SpellDelivery(i).Arrow = 1
+        If SpellDelivery(i).Range < 1 Or SpellDelivery(i).Range > 32 Then SpellDelivery(i).Range = 32
+    Next i
+    DeliveryReady = True
+End Sub
+
+Public Sub SendArrowData(ByVal Index As Long)
+    Dim i As Long
+    For i = 1 To MAX_ARROWS
+        SendDataTo Index, "ARROWDATA" & SEP_CHAR & i & SEP_CHAR & Arrow(i).Sprite & SEP_CHAR & Arrow(i).Range & SEP_CHAR & Trim$(Arrow(i).Name) & END_CHAR
+    Next i
+End Sub
+
 Sub SaveArrows()
     Dim I As Long
 
