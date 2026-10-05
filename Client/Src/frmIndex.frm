@@ -81,6 +81,9 @@ Private Sub cmdOK_Click()
     If InSignEditor = True Then
         Call SendData("EDITSIGN" & SEP_CHAR & EditorIndex & END_CHAR)
     End If
+    If InQuestEditor = True Then
+        Call SendData("EDITQUESTDIALOGUE" & SEP_CHAR & EditorIndex & END_CHAR)
+    End If
     Unload frmIndex
 End Sub
 
@@ -91,6 +94,7 @@ Private Sub cmdCancel_Click()
     InShopEditor = False
     InSpellEditor = False
     InSignEditor = False
+    InQuestEditor = False
     Unload frmIndex
 End Sub
 
