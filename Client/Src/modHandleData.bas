@@ -312,7 +312,7 @@ Public Sub HandleData(ByVal Data As String)
             If GetPlayerMaxMP(MyIndex) > 0 Then
                 frmMainGame.lblMP(0).Caption = GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
                 frmMainGame.lblMP(1).Caption = GetPlayerMP(MyIndex) & "/" & GetPlayerMaxMP(MyIndex)
-                frmMainGame.shpMP.Width = (((GetPlayerMP(MyIndex) / 100) / (GetPlayerMaxMP(MyIndex) / 100)) * 211)
+                frmMainGame.shpMP.Width = StatusBarWidth(GetPlayerMP(MyIndex), GetPlayerMaxMP(MyIndex))
             End If
             Exit Sub
 
@@ -325,7 +325,7 @@ Public Sub HandleData(ByVal Data As String)
             If GetPlayerMaxSP(MyIndex) > 0 Then
                 frmMainGame.lblSP(0).Caption = GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
                 frmMainGame.lblSP(1).Caption = GetPlayerSP(MyIndex) & "/" & GetPlayerMaxSP(MyIndex)
-                frmMainGame.shpSP.Width = (((GetPlayerSP(MyIndex) / 100) / (GetPlayerMaxSP(MyIndex) / 100)) * 211)
+                frmMainGame.shpSP.Width = StatusBarWidth(GetPlayerSP(MyIndex), GetPlayerMaxSP(MyIndex))
             End If
             Exit Sub
 
@@ -343,7 +343,7 @@ Public Sub HandleData(ByVal Data As String)
                 experienceRatio = experience / NextLevel
                 If experienceRatio < 0 Then experienceRatio = 0
                 If experienceRatio > 1 Then experienceRatio = 1
-                frmMainGame.shpEXP.Width = experienceRatio * 211
+                frmMainGame.shpEXP.Width = StatusBarWidth(experience, NextLevel)
                 frmMainGame.lblExperience.Caption = Format$(experience, "#,##0") & Format$(remainingExperience, "#,##0")
                 frmMainGame.lblExperience.ToolTipText = "Experience: " & Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0") & "; TNL: " & Format$(remainingExperience, "#,##0")
             Else
@@ -1530,3 +1530,22 @@ Public Sub HandleData(ByVal Data As String)
 
     End Select
 End Sub
+
+Private Function StatusBarWidth(ByVal CurrentValue As Double, ByVal MaximumValue As Double) As Double
+    Const STATUS_BAR_WIDTH As Double = 211
+    Const STATUS_LABEL_WIDTH As Double = 58
+    Dim ratio As Double
+
+    If MaximumValue <= 0 Or CurrentValue <= 0 Then
+        StatusBarWidth = 0
+        Exit Function
+    End If
+
+    ratio = CurrentValue / MaximumValue
+    If ratio < 0 Then ratio = 0
+    If ratio > 1 Then ratio = 1
+
+    StatusBarWidth = ratio * STATUS_BAR_WIDTH
+    If StatusBarWidth < STATUS_LABEL_WIDTH Then StatusBarWidth = STATUS_LABEL_WIDTH
+    If StatusBarWidth > STATUS_BAR_WIDTH Then StatusBarWidth = STATUS_BAR_WIDTH
+End Function
