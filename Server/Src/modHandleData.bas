@@ -219,7 +219,7 @@ Private Sub ServerPacket_newaccount(ByVal Index As Long, ByVal Data As String, B
                 Call AddAccount(Index, name, Password)
                 Call TextAdd(frmServer.txtText, "Account " & name & " has been created.", True)
                 Call AddLog("Account " & name & " has been created.", PLAYER_LOG)
-                Call AlertMsg(Index, "Your account has been created!")
+                Call SendDataTo(Index, "accountcreated" & END_CHAR)
             Else
                 Call AlertMsg(Index, "Sorry, that account name is already taken!")
             End If
@@ -502,7 +502,7 @@ Private Sub ServerPacket_addchar(ByVal Index As Long, ByVal Data As String, ByRe
             Call AddChar(Index, name, Sex, ClassNum, CharNum)
             Call SavePlayer(Index)
             Call AddLog("Character " & name & " added to " & GetPlayerLogin(Index) & "'s account.", PLAYER_LOG)
-            Call AlertMsg(Index, "Character has been created!")
+            Call SendChars(Index)
         End If
         Exit Sub
     End If
