@@ -155,11 +155,11 @@ End Sub
     End Sub
 
     Private Sub lblForget_Click()
-        If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
+        If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
             If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
-                If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
+                If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
     
-                SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR
+                SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex & END_CHAR
             End If
         Else
             AddText "No spell here.", BrightRed
@@ -619,8 +619,8 @@ End Sub
     End Sub
     
     Private Sub lstSpells_DblClick()
-        If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
-            SpellMemorized = lstSpells.ListIndex + 1
+        If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
+            SpellMemorized = lstSpells.ListIndex
             Call AddText("Successfully memorized spell!", BrightGreen)
         Else
             Call AddText("No spell here to memorize.", BrightRed)
@@ -652,10 +652,10 @@ End Sub
     End Sub
     
     Private Sub lblCast_Click()
-        If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
+        If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
             If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
                 If Player(MyIndex).Moving = 0 Then
-                    Call SendData("cast" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR)
+                    Call SendData("cast" & SEP_CHAR & lstSpells.ListIndex & END_CHAR)
                     Player(MyIndex).Attacking = 1
                     Player(MyIndex).AttackTimer = GetTickCount
                     Player(MyIndex).CastedSpell = YES
@@ -1181,9 +1181,9 @@ End Sub
         Bounds.Right = 32
         Bounds.Bottom = 32
         For i = 0 To 7
-            Slot = Page * 8 + i + 1
+            Slot = Page * 8 + i
             Num = 0
-            If Slot <= MAX_PLAYER_SPELLS Then Num = Player(MyIndex).Spell(Slot)
+            If Slot < MAX_PLAYER_SPELLS Then Num = Player(MyIndex).Spell(Slot)
             lblSkillName(i).Caption = "Empty"
             lblSkillName(i).ForeColor = RGB(220, 205, 180)
             Canvas.BltColorFill Bounds, RGB(102, 51, 51)
@@ -1197,11 +1197,11 @@ End Sub
                     If Source.Top >= 0 And Source.Bottom <= DD_SpellSurf.Height Then Canvas.BltFast 0, 0, DD_SpellSurf, Source, True
                 End If
             End If
-            If Slot = lstSpells.ListIndex + 1 Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
+            If Slot = lstSpells.ListIndex Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
             imgSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
             Set imgSkillIcon(i).Picture = MenuSurfacePicture(Canvas)
         Next i
-        Num = Player(MyIndex).Spell(lstSpells.ListIndex + 1)
+        Num = Player(MyIndex).Spell(lstSpells.ListIndex)
         lblSkillsDetails.Caption = "Empty spell slot."
         If Num > 0 And Num <= MAX_SPELLS Then
             lblSkillsDetails.Caption = Trim$(Spell(Num).name) & vbCrLf & vbCrLf & "Level: " & Spell(Num).LevelReq & vbCrLf & "Mana: " & Spell(Num).MPReq & vbCrLf & vbCrLf & "Double-click to memorize."
