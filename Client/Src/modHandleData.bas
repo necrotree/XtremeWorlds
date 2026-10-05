@@ -1210,8 +1210,8 @@ Public Sub HandleData(ByVal Data As String)
             frmMainGame.lstSpells.Clear
 
             ' Put spells known in player record
-            For i = 1 To MAX_PLAYER_SPELLS
-                Player(MyIndex).Spell(i) = Val(Parse(i))
+            For i = 0 To MAX_PLAYER_SPELLS - 1
+                Player(MyIndex).Spell(i) = Val(Parse(i + 1))
                 If Player(MyIndex).Spell(i) <> 0 Then
                     frmMainGame.lstSpells.AddItem i & ": " & Trim$(Spell(Player(MyIndex).Spell(i)).name)
                 Else
