@@ -1296,7 +1296,11 @@ Private Sub ServerPacket_useitem(ByVal Index As Long, ByVal Data As String, ByRe
                     ' Get the spell num
                     N = Item(GetPlayerInvItemNum(Index, InvNum)).Data1
 
-                    If N > 0 Then
+                    If N > 0 And N <= MAX_SPELLS Then
+                        If LenB(Trim$(Spell(N).Name)) = 0 Then
+                            Call PlayerMsg(Index, "This spell has no saved definition. Ask an administrator to save it in the spell editor. Your scroll has not been consumed.", BrightRed)
+                            Exit Sub
+                        End If
                         ' Make sure they are the right class
                         If Spell(N).ClassReq - 1 = GetPlayerClass(Index) Or Spell(N).ClassReq = 0 Then
                             ' Make sure they are the right level
@@ -1309,6 +1313,8 @@ Private Sub ServerPacket_useitem(ByVal Index As Long, ByVal Data As String, ByRe
                                     ' Make sure they dont already have the spell
                                     If Not HasSpell(Index, N) Then
                                         Call SetPlayerSpell(Index, I, N)
+                                        Call SendUpdateSpellTo(Index, N)
+                                        Call SendPlayerSpells(Index)
                                         Call TakeItem(Index, GetPlayerInvItemNum(Index, InvNum), 0)
                                         Call PlayerMsg(Index, "You study the spell carefully...", Yellow)
                                         Call PlayerMsg(Index, "You have learned a new spell!", BrightGreen)
@@ -5469,7 +5475,7 @@ Private Sub ServerPacket_forgetspell(ByVal Index As Long, ByVal Data As String, 
         N = CLng(Parse(1))
 
         ' Prevent subscript out of range
-        If N < 0 Or N >= MAX_PLAYER_SPELLS Then
+        If N < 1 Or N > MAX_PLAYER_SPELLS Then
             HackingAttempt Index, "Invalid Spell Slot"
             Exit Sub
         End If
@@ -5481,7 +5487,7 @@ Private Sub ServerPacket_forgetspell(ByVal Index As Long, ByVal Data As String, 
             Else
                 PlayerMsg Index, "You have forgotten the spell" & vbQuote & Trim$(Spell(.Spell(N)).Name) & vbQuote, Green
                 .Spell(N) = 0
-                Call SendSpells(Index)
+                Call SendPlayerSpells(Index)
             End If
         End With
 

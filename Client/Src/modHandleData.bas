@@ -217,6 +217,8 @@ Public Sub HandleData(ByVal Data As String)
         Case "ingame"
             InGame = True
             Call GameInit
+            Call EnsureGameGraphics
+            frmMainGame.RefreshSkills
             Call GameLoop
             Exit Sub
 
@@ -1124,6 +1126,20 @@ Public Sub HandleData(ByVal Data As String)
 
             ' Update the spell name
             Spell(n).name = Parse(2)
+            If UBound(Parse) >= 5 Then
+                Spell(n).Graphic = Val(Parse(3))
+                Spell(n).LevelReq = Val(Parse(4))
+                Spell(n).MPReq = Val(Parse(5))
+            End If
+            If MyIndex > 0 And MyIndex <= MAX_PLAYERS Then
+                For i = 0 To frmMainGame.lstSpells.ListCount - 1
+                    If i >= MAX_PLAYER_SPELLS Then Exit For
+                    If Player(MyIndex).Spell(i) = n Then
+                        frmMainGame.lstSpells.List(i) = (i + 1) & ": " & Trim$(Spell(n).name)
+                    End If
+                Next i
+                If InGame Then frmMainGame.RefreshSkills
+            End If
             Exit Sub
 
         ' :::::::::::::::::::::::
@@ -1202,26 +1218,32 @@ Public Sub HandleData(ByVal Data As String)
         ' :: Spells packet ::
         ' :::::::::::::::::::
         Case "spells"
-
-            frmMainGame.picPlayerSpells.Visible = True
-            Dim SelectedSpellSlot As Long
+            Dim SelectedSpellSlot As Long, LearnedSpellSlot As Long, IncomingSpell As Long
+            LearnedSpellSlot = -1
             SelectedSpellSlot = frmMainGame.lstSpells.ListIndex
             If SelectedSpellSlot < 0 Or SelectedSpellSlot >= MAX_PLAYER_SPELLS Then SelectedSpellSlot = 0
             frmMainGame.lstSpells.Clear
 
             ' Put spells known in player record
             For i = 0 To MAX_PLAYER_SPELLS - 1
-                Player(MyIndex).Spell(i) = Val(Parse(i + 1))
+                IncomingSpell = Val(Parse(i + 1))
+                If IncomingSpell < 0 Or IncomingSpell > MAX_SPELLS Then IncomingSpell = 0
+                If InGame And IncomingSpell > 0 Then
+                    If Player(MyIndex).Spell(i) <> IncomingSpell And LearnedSpellSlot < 0 Then LearnedSpellSlot = i
+                End If
+                Player(MyIndex).Spell(i) = IncomingSpell
                 If Player(MyIndex).Spell(i) <> 0 Then
-                    frmMainGame.lstSpells.AddItem i & ": " & Trim$(Spell(Player(MyIndex).Spell(i)).name)
+                    frmMainGame.lstSpells.AddItem (i + 1) & ": " & Trim$(Spell(Player(MyIndex).Spell(i)).name)
                 Else
-                    frmMainGame.lstSpells.AddItem i & ": Unused Spell Slot"
+                    frmMainGame.lstSpells.AddItem (i + 1) & ": Unused Spell Slot"
                 End If
             Next i
 
+            If LearnedSpellSlot >= 0 Then SelectedSpellSlot = LearnedSpellSlot
+            Call EnsureGameGraphics
             frmMainGame.lstSpells.ListIndex = SelectedSpellSlot
             frmMainGame.RefreshSkills
-            frmMainGame.picPlayerSpells.Visible = True
+            If InGame Then frmMainGame.picPlayerSpells.Visible = True
 
             Exit Sub
             

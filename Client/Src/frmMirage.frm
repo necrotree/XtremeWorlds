@@ -3370,16 +3370,33 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Private Sub lblForget_Click()
-    If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
-        If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
-            If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex + 1)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
-
-            SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR
+        Static Confirming As Boolean
+        Dim Slot As Long, SpellNum As Long, PlayerIndex As Long
+        If Confirming Then Exit Sub
+        If Not InGame Or MyIndex < 1 Or MyIndex > MAX_PLAYERS Then Exit Sub
+        PlayerIndex = MyIndex
+        Slot = lstSpells.ListIndex
+        If Slot < 0 Or Slot >= MAX_PLAYER_SPELLS Then Exit Sub
+        SpellNum = Player(PlayerIndex).Spell(Slot)
+        If SpellNum < 1 Or SpellNum > MAX_SPELLS Then
+            AddText "No spell here.", BrightRed
+            Exit Sub
         End If
-    Else
-        AddText "No spell here.", BrightRed
-    End If
-End Sub
+        If GetTickCount <= Player(PlayerIndex).AttackTimer + 1000 Then Exit Sub
+        Confirming = True
+        On Error GoTo ConfirmationFailed
+        If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(SpellNum).name) & vbQuote & "?", vbYesNo, GAME_NAME) <> vbYes Then GoTo Finished
+        If Not InGame Or MyIndex <> PlayerIndex Then GoTo Finished
+        If Player(PlayerIndex).Spell(Slot) <> SpellNum Then GoTo Finished
+        ' Let the normal message loop process the reply after this handler returns.
+        If IsConnected Then Socket.SendData "forgetspell" & SEP_CHAR & (Slot + 1) & END_CHAR
+Finished:
+        Confirming = False
+        Exit Sub
+ConfirmationFailed:
+        Confirming = False
+        Err.Raise Err.Number, Err.Source, Err.Description
+    End Sub
 
 Private Sub lblPlayers_Click()
     Call CloseSideMenu
@@ -3821,7 +3838,8 @@ Private Sub lstInv_DblClick()
 End Sub
 
 Private Sub lstSpells_DblClick()
-    If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
+    If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
+    If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
         SpellMemorized = lstSpells.ListIndex + 1
         Call AddText("Successfully memorized spell!", BrightGreen)
     Else
@@ -3854,10 +3872,11 @@ Private Sub lblDropItem_Click()
 End Sub
 
 Private Sub lblCast_Click()
-    If Player(MyIndex).Spell(lstSpells.ListIndex + 1) > 0 Then
+    If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
+    If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
         If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
             If Player(MyIndex).Moving = 0 Then
-                Call SendData("cast" & SEP_CHAR & lstSpells.ListIndex + 1 & END_CHAR)
+                Call SendData("cast" & SEP_CHAR & (lstSpells.ListIndex + 1) & END_CHAR)
                 Player(MyIndex).Attacking = 1
                 Player(MyIndex).AttackTimer = GetTickCount
                 Player(MyIndex).CastedSpell = YES
@@ -4310,14 +4329,15 @@ End Sub
         Bounds.Right = 32
         Bounds.Bottom = 32
         For i = 0 To 7
-            Slot = Page * 8 + i + 1
+            Slot = Page * 8 + i
             Num = 0
-            If Slot <= MAX_PLAYER_SPELLS Then Num = Player(MyIndex).Spell(Slot)
+            If Slot < MAX_PLAYER_SPELLS Then Num = Player(MyIndex).Spell(Slot)
             lblSkillName(i).Caption = "Empty"
             lblSkillName(i).ForeColor = RGB(220, 205, 180)
             Canvas.BltColorFill Bounds, RGB(102, 51, 51)
             If Num > 0 And Num <= MAX_SPELLS Then
                 lblSkillName(i).Caption = Trim$(Spell(Num).name)
+                If LenB(lblSkillName(i).Caption) = 0 Then lblSkillName(i).Caption = "Spell #" & Num & " (undefined)"
                 If Not DD_SpellSurf Is Nothing Then
                     Source.Left = PIC_X
                     Source.Top = Spell(Num).Graphic * PIC_Y
@@ -4326,12 +4346,12 @@ End Sub
                     If Source.Top >= 0 And Source.Bottom <= DD_SpellSurf.Height Then Canvas.BltFast 0, 0, DD_SpellSurf, Source, True
                 End If
             End If
-            If Slot = lstSpells.ListIndex + 1 Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
-            picSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
+            If Slot = lstSpells.ListIndex Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
+            picSkillIcon(i).ToolTipText = (Slot + 1) & ": " & lblSkillName(i).Caption
             Canvas.BltToDC picSkillIcon(i).hDC, Bounds, Bounds
             picSkillIcon(i).Refresh
         Next i
-        Num = Player(MyIndex).Spell(lstSpells.ListIndex + 1)
+        Num = Player(MyIndex).Spell(lstSpells.ListIndex)
         lblSkillsDetails.Caption = "Empty spell slot."
         If Num > 0 And Num <= MAX_SPELLS Then
             lblSkillsDetails.Caption = Trim$(Spell(Num).name) & vbCrLf & vbCrLf & "Level: " & Spell(Num).LevelReq & vbCrLf & "Mana: " & Spell(Num).MPReq & vbCrLf & vbCrLf & "Double-click to memorize."

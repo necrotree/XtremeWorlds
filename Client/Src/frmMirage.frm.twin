@@ -155,15 +155,32 @@ End Sub
     End Sub
 
     Private Sub lblForget_Click()
-        If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
-            If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
-                If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(Player(MyIndex).Spell(lstSpells.ListIndex)).name) & vbQuote & "?", vbYesNo) = vbNo Then Exit Sub
-    
-                SendData "forgetspell" & SEP_CHAR & lstSpells.ListIndex & END_CHAR
-            End If
-        Else
+        Static Confirming As Boolean
+        Dim Slot As Long, SpellNum As Long, PlayerIndex As Long
+        If Confirming Then Exit Sub
+        If Not InGame Or MyIndex < 1 Or MyIndex > MAX_PLAYERS Then Exit Sub
+        PlayerIndex = MyIndex
+        Slot = lstSpells.ListIndex
+        If Slot < 0 Or Slot >= MAX_PLAYER_SPELLS Then Exit Sub
+        SpellNum = Player(PlayerIndex).Spell(Slot)
+        If SpellNum < 1 Or SpellNum > MAX_SPELLS Then
             AddText "No spell here.", BrightRed
+            Exit Sub
         End If
+        If GetTickCount <= Player(PlayerIndex).AttackTimer + 1000 Then Exit Sub
+        Confirming = True
+        On Error GoTo ConfirmationFailed
+        If GameMsgBox("Are you sure you want to forget the spell " & vbQuote & Trim$(Spell(SpellNum).name) & vbQuote & "?", vbYesNo, GAME_NAME) <> vbYes Then GoTo Finished
+        If Not InGame Or MyIndex <> PlayerIndex Then GoTo Finished
+        If Player(PlayerIndex).Spell(Slot) <> SpellNum Then GoTo Finished
+        ' Let the normal message loop process the reply after this handler returns.
+        If IsConnected Then Socket.SendData "forgetspell" & SEP_CHAR & (Slot + 1) & END_CHAR
+Finished:
+        Confirming = False
+        Exit Sub
+ConfirmationFailed:
+        Confirming = False
+        Err.Raise Err.Number, Err.Source, Err.Description
     End Sub
     
     Private Sub lblPlayers_Click()
@@ -619,8 +636,9 @@ End Sub
     End Sub
     
     Private Sub lstSpells_DblClick()
+        If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
         If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
-            SpellMemorized = lstSpells.ListIndex
+            SpellMemorized = lstSpells.ListIndex + 1
             Call AddText("Successfully memorized spell!", BrightGreen)
         Else
             Call AddText("No spell here to memorize.", BrightRed)
@@ -652,10 +670,11 @@ End Sub
     End Sub
     
     Private Sub lblCast_Click()
+        If lstSpells.ListIndex < 0 Or lstSpells.ListIndex >= MAX_PLAYER_SPELLS Then Exit Sub
         If Player(MyIndex).Spell(lstSpells.ListIndex) > 0 Then
             If GetTickCount > Player(MyIndex).AttackTimer + 1000 Then
                 If Player(MyIndex).Moving = 0 Then
-                    Call SendData("cast" & SEP_CHAR & lstSpells.ListIndex & END_CHAR)
+                    Call SendData("cast" & SEP_CHAR & (lstSpells.ListIndex + 1) & END_CHAR)
                     Player(MyIndex).Attacking = 1
                     Player(MyIndex).AttackTimer = GetTickCount
                     Player(MyIndex).CastedSpell = YES
@@ -1189,6 +1208,7 @@ End Sub
             Canvas.BltColorFill Bounds, RGB(102, 51, 51)
             If Num > 0 And Num <= MAX_SPELLS Then
                 lblSkillName(i).Caption = Trim$(Spell(Num).name)
+                If LenB(lblSkillName(i).Caption) = 0 Then lblSkillName(i).Caption = "Spell #" & Num & " (undefined)"
                 If Not DD_SpellSurf Is Nothing Then
                     Source.Left = PIC_X
                     Source.Top = Spell(Num).Graphic * PIC_Y
@@ -1198,7 +1218,7 @@ End Sub
                 End If
             End If
             If Slot = lstSpells.ListIndex Then lblSkillName(i).ForeColor = RGB(255, 230, 120)
-            imgSkillIcon(i).ToolTipText = Slot & ": " & lblSkillName(i).Caption
+            imgSkillIcon(i).ToolTipText = (Slot + 1) & ": " & lblSkillName(i).Caption
             Set imgSkillIcon(i).Picture = MenuSurfacePicture(Canvas)
         Next i
         Num = Player(MyIndex).Spell(lstSpells.ListIndex)

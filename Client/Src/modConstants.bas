@@ -240,6 +240,3 @@ Public Const SPELL_TYPE_SUBMP As Byte = 4
 Public Const SPELL_TYPE_SUBSP As Byte = 5
 Public Const SPELL_TYPE_GIVEITEM As Byte = 6
 Public Const SPELL_TYPE_WARP As Byte = 7
-
-
-Public Const ITEM_TYPE_BOOK As Byte = 15

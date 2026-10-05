@@ -287,7 +287,8 @@ Sub HackingAttempt(ByVal Index As Long, ByVal Reason As String)
             Call GlobalMsg(GetPlayerLogin(Index) & "/" & GetPlayerName(Index) & " has been booted for (" & Reason & ")", White)
         End If
 
-        Call AlertMsg(Index, "You have been botted from " & GAME_NAME & ".")
+        AddLog "Player " & Index & " rejected: " & Reason, "network.log"
+        Call AlertMsg(Index, "You have been booted from " & GAME_NAME & ". Reason: " & Reason & ".")
     End If
 End Sub
 
@@ -866,14 +867,14 @@ End Sub
 Sub SendUpdateSpellToAll(ByVal SpellNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & END_CHAR
+    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & SEP_CHAR & Spell(SpellNum).Graphic & SEP_CHAR & Spell(SpellNum).LevelReq & SEP_CHAR & Spell(SpellNum).MPReq & END_CHAR
     Call SendDataToAll(Packet)
 End Sub
 
 Sub SendUpdateSpellTo(ByVal Index As Long, ByVal SpellNum As Long)
     Dim Packet As String
 
-    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & END_CHAR
+    Packet = "UPDATESPELL" & SEP_CHAR & SpellNum & SEP_CHAR & Trim$(Spell(SpellNum).Name) & SEP_CHAR & Spell(SpellNum).Graphic & SEP_CHAR & Spell(SpellNum).LevelReq & SEP_CHAR & Spell(SpellNum).MPReq & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 
@@ -920,7 +921,7 @@ Sub SendPlayerSpells(ByVal Index As Long)
     Dim I As Long
 
     Packet = "SPELLS" & SEP_CHAR
-    For I = 0 To MAX_PLAYER_SPELLS - 1
+    For I = 1 To MAX_PLAYER_SPELLS
         Packet = Packet & GetPlayerSpell(Index, I) & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR

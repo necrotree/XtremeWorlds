@@ -258,7 +258,7 @@ Public Sub UseSlotHotkey(ByVal key As Integer)
                     AddText "Cannot cast while walking!", BrightRed
                     Exit Sub
                 End If
-                SendData "cast" & SEP_CHAR & slot & END_CHAR
+                SendData "cast" & SEP_CHAR & (slot + 1) & END_CHAR
                 Player(MyIndex).Attacking = 1
                 Player(MyIndex).AttackTimer = GetTickCount
                 Player(MyIndex).CastedSpell = YES

@@ -237,3 +237,4 @@ $RECYCLE.BIN/
 *.exe
 /Client/Client
 /Server/Server
+/Client/Src/Client

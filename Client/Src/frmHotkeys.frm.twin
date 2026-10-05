@@ -48,7 +48,7 @@ Private Function ActionCaption(ByVal action As Long) As String
     ActionCaption = HotkeyActionName(action)
     If Not InGame Or MyIndex < 1 Or MyIndex > MAX_PLAYERS Then Exit Function
     If action >= HK_SPELL Then
-        number = Player(MyIndex).Spell(action - HK_SPELL + 1)
+        number = Player(MyIndex).Spell(action - HK_SPELL)
         If number > 0 And number <= MAX_SPELLS Then ActionCaption = ActionCaption & ": " & Trim$(Spell(number).name)
     ElseIf action >= HK_INVENTORY Then
         number = GetPlayerInvItemNum(MyIndex, action - HK_INVENTORY + 1)

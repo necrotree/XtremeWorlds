@@ -146,7 +146,7 @@ Function FindOpenSpellSlot(ByVal Index As Long) As Long
 
     FindOpenSpellSlot = -1
 
-    For I = 0 To MAX_PLAYER_SPELLS - 1
+    For I = 1 To MAX_PLAYER_SPELLS
         If GetPlayerSpell(Index, I) = 0 Then
             FindOpenSpellSlot = I
             Exit Function
@@ -185,7 +185,7 @@ Function HasSpell(ByVal Index As Long, ByVal SpellNum As Long) As Boolean
 
     HasSpell = False
 
-    For I = 0 To MAX_PLAYER_SPELLS - 1
+    For I = 1 To MAX_PLAYER_SPELLS
         If GetPlayerSpell(Index, I) = SpellNum Then
             HasSpell = True
             Exit Function
@@ -1898,6 +1898,7 @@ Sub JoinGame(ByVal Index As Long)
     Call SendNpcs(Index)
     Call SendShops(Index)
     Call SendSpells(Index)
+    Call SendPlayerSpells(Index)
     Call SendGuilds(Index)
     Call SendInventory(Index)
     Call SendWornEquipment(Index)
