@@ -920,7 +920,7 @@ Sub SendPlayerSpells(ByVal Index As Long)
     Dim I As Long
 
     Packet = "SPELLS" & SEP_CHAR
-    For I = 1 To MAX_PLAYER_SPELLS
+    For I = 0 To MAX_PLAYER_SPELLS - 1
         Packet = Packet & GetPlayerSpell(Index, I) & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
