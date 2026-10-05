@@ -181,18 +181,15 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
         Case "bookeditor"
             If UBound(parts) <> 0 Then Exit Sub
             SendDataTo Index, "BOOKEDITORBEGIN" & END_CHAR
-            fileName = Dir$(App.Path & "\books\*.bin")
-            Do While Len(fileName) > 0
-                id = Val(fileName)
-                If id >= 1 And id <= 32767 And fileName = CStr(id) & ".bin" Then
-                    count = count + 1
-                    ids(count) = id
+
+            ' Books are content slots, just like items.  Always expose the
+            ' complete slot range so empty books can be created from the index.
+            For id = 1 To MAX_ITEMS
+                If ReadDefinition(id, book) Then
+                    SendDataTo Index, "BOOKEDITORNAME" & SEP_CHAR & id & SEP_CHAR & Replace(Replace(Trim$(book.Name), SEP_CHAR, " "), END_CHAR, " ") & END_CHAR
                 End If
-                fileName = Dir$()
-            Loop
-            For q = 1 To count
-                If ReadDefinition(ids(q), book) Then SendDataTo Index, "BOOKEDITORNAME" & SEP_CHAR & ids(q) & SEP_CHAR & Replace(Replace(Trim$(book.Name), SEP_CHAR, " "), END_CHAR, " ") & END_CHAR
-            Next q
+            Next id
+
             SendBookQuestNames Index
             SendDataTo Index, "BOOKEDITORREADY" & END_CHAR
         Case "editbook"
