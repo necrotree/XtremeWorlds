@@ -7,7 +7,7 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
     If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
     Parse = Split(Data, SEP_CHAR)
     Select Case LCase$(Parse(0))
-        Case "bookeditor", "editbook", "savebook": HandleBookEditor Index, Parse
+        Case "requesteditbook", "editbook", "savebook": HandleBookEditor Index, Parse
         Case "requesteditquest": ServerPacket_requesteditquest Index, Data, Parse
         Case "questeditor", "editquestdialogue", "savequestdialogue": HandleQuestEditor Index, Parse
         Case "questtalk": HandleQuestTalk Index, Parse
