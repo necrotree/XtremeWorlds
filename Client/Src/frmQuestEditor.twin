@@ -63,8 +63,6 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        QuestEditorOpen = True
-
         cmbQuest.ListIndex = 0
         Busy = False
         cmbQuest_Click
@@ -186,6 +184,5 @@ Class frmQuestEditor
     End Sub
 
     Private Sub Form_Unload(Cancel As Integer)
-        QuestEditorOpen = False
     End Sub
 End Class
