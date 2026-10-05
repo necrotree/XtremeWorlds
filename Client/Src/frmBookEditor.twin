@@ -163,10 +163,7 @@ Class frmBookEditor
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
-        Saving = False
-
-        cmdOk.Enabled = (Current > 0 And cmdPreview.Enabled)
-
+        ' Display load/save errors, but otherwise leave the editor alone.
         GameMsgBox message, vbExclamation, "Book Editor"
     End Sub
 
