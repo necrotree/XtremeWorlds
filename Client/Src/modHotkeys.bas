@@ -273,6 +273,7 @@ Private Function ResolveSpellHotkeySlot(ByVal bindingSlot As Long) As Long
     Dim i As Long
     Dim spellNum As Long
 
+    ResolveSpellHotkeySlot = -1
     If bindingSlot < 1 Or bindingSlot > MAX_PLAYER_SPELLS Then Exit Function
 
     spellNum = SpellHotkeySpell(bindingSlot)
