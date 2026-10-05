@@ -94,14 +94,16 @@ Class frmBookEditor
     End Sub
 
     Public Sub OpenEditor()
+        Current = 0
+        Saving = False
         BookEditorOpen = True
 
         ReleaseGameKeys
 
-        Me.Show vbModeless, frmMainGame
-        Me.ZOrder 0
-
         txtId.Text = "1"
+        cmdLoad.Enabled = True
+        cmdSave.Enabled = False
+        cmdPreview.Enabled = False
 
         cmdLoad_Click
     End Sub
@@ -176,13 +178,9 @@ Class frmBookEditor
         If id <> Current Then Exit Sub
 
         Saving = False
-
-        cmdSave.Enabled = True
-        cmdLoad.Enabled = True
-
-        AddBook Current, txtName.Text
-
-        lblStatus.Caption = "Book " & Current & " saved."
+        BookEditorOpen = False
+        BookPreviewOpen = False
+        Unload Me
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
