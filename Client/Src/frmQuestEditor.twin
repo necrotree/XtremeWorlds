@@ -63,9 +63,11 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        cmbQuest.ListIndex = 0
         Busy = False
-        cmbQuest_Click
+        Current = 1
+        cmdSave.Enabled = False
+        lblStatus.Caption = "Loading quest 1..."
+        If IsConnected Then frmMainGame.Socket.SendData "editquestdialogue" & SEP_CHAR & Current & END_CHAR
     End Sub
 
     Private Sub cmbQuest_Click()
