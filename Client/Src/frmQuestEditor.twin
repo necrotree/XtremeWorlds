@@ -63,10 +63,6 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        ' Show the form before changing the global editor state.  Setting
-        ' QuestEditorOpen while this form is still being constructed can
-        ' trigger code that expects the editor/window to already exist.
-        SafeReleaseGameKeys
         Me.Show vbModeless
         QuestEditorOpen = True
         Me.ZOrder 0
@@ -74,16 +70,6 @@ Class frmQuestEditor
         cmbQuest.ListIndex = 0
         Busy = False
         cmbQuest_Click
-    End Sub
-
-    Private Sub SafeReleaseGameKeys()
-        ' ReleaseGameKeys depends on input objects that may not be initialized
-        ' while an editor form is being opened or destroyed.  Releasing keys
-        ' is best-effort here and must never prevent the editor from opening.
-        On Error Resume Next
-        ReleaseGameKeys
-        Err.Clear
-        On Error GoTo 0
     End Sub
 
     Private Sub cmbQuest_Click()
@@ -203,6 +189,5 @@ Class frmQuestEditor
 
     Private Sub Form_Unload(Cancel As Integer)
         QuestEditorOpen = False
-        SafeReleaseGameKeys
     End Sub
 End Class
