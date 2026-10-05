@@ -175,6 +175,7 @@ Class frmQuestEditor
         Saving = False
         QuestEditorOpen = False
         Unload Me
+        frmMainGame.Socket.SendData "requesteditquest" & END_CHAR
         frmIndex.Show
     End Sub
 
