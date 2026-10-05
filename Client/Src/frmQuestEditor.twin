@@ -63,9 +63,7 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        Me.Show vbModeless
         QuestEditorOpen = True
-        Me.ZOrder 0
 
         cmbQuest.ListIndex = 0
         Busy = False
