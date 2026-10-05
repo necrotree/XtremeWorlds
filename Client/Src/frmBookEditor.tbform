@@ -210,7 +210,7 @@
             "Width": 153,
             "Top": 376,
             "Left": 176,
-            "Caption": "Add",
+            "Caption": "Preview",
             "_clsid": "{33AD4EF0-6699-11CF-B70C-00AA0060D393}",
             "_className": "CommandButton",
             "Name": "cmdPreview"
