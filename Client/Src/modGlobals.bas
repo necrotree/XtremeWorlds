@@ -141,6 +141,7 @@ Public InSignEditor As Boolean
 Public InArrowEditor As Boolean
 Public InClassEditor As Boolean
 Public InQuestEditor As Boolean
+Public InBookEditor As Boolean
 
 ' Game fps
 Public GameFPS As Long
