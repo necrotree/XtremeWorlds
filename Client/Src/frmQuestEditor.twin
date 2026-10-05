@@ -37,6 +37,9 @@ Class frmQuestEditor
     Public Sub OpenEditor()
         Dim i As Long
         Busy = True
+        Current = 0
+        Saving = False
+        cmbQuest.Enabled = True
         cmbQuest.Clear
         For i = 1 To Count
             cmbQuest.AddItem CStr(i) & ": " & Names(i)
@@ -169,14 +172,9 @@ Class frmQuestEditor
     Public Sub Saved(ByVal id As Long)
         If id <> Current Then Exit Sub
         Names(id) = txtName.Text
-        Busy = True
-        cmbQuest.List(id - 1) = CStr(id) & ": " & txtName.Text
-        Current = 0
-        cmbQuest.ListIndex = -1
-        Busy = False
         Saving = False
-        cmdSubmit.Enabled = False
-        cmbQuest.Enabled = True
+        QuestEditorOpen = False
+        Unload Me
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
