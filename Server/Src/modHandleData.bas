@@ -1305,7 +1305,7 @@ Private Sub ServerPacket_useitem(ByVal Index As Long, ByVal Data As String, ByRe
                                 I = FindOpenSpellSlot(Index)
 
                                 ' Make sure they have an open spell slot
-                                If I > 0 Then
+                                If I >= 0 Then
                                     ' Make sure they dont already have the spell
                                     If Not HasSpell(Index, N) Then
                                         Call SetPlayerSpell(Index, I, N)
@@ -5469,7 +5469,7 @@ Private Sub ServerPacket_forgetspell(ByVal Index As Long, ByVal Data As String, 
         N = CLng(Parse(1))
 
         ' Prevent subscript out of range
-        If N <= 0 Or N > MAX_PLAYER_SPELLS Then
+        If N < 0 Or N >= MAX_PLAYER_SPELLS Then
             HackingAttempt Index, "Invalid Spell Slot"
             Exit Sub
         End If
