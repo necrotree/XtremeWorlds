@@ -76,7 +76,6 @@ Class frmQuestEditor
     Public Sub LoadDefinition(ByRef parts() As String)
         Dim f As Long, value As String
         If CLng(Val(parts(1))) <> Current Then Exit Sub
-        Busy = True
         For f = 1 To 19
             value = parts(f + 1)
             Select Case f
