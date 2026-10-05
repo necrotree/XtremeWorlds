@@ -116,6 +116,9 @@ Public Sub HandleData(ByVal Data As String)
         ' :: All characters packet ::
         ' :::::::::::::::::::::::::::
         Case "allchars"
+            Call SetStatus("Loading characters...")
+            frmSendGetData.Visible = True
+            DoEvents
             Call EnsureGameGraphics
             n = 1
 
