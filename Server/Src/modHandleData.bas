@@ -8,6 +8,7 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
     Parse = Split(Data, SEP_CHAR)
     Select Case LCase$(Parse(0))
         Case "bookeditor", "editbook", "savebook": HandleBookEditor Index, Parse
+        Case "requesteditquest": ServerPacket_requesteditquest Index, Data, Parse
         Case "questeditor", "editquestdialogue", "savequestdialogue": HandleQuestEditor Index, Parse
         Case "questtalk": HandleQuestTalk Index, Parse
         Case "questaction": HandleQuestAction Index, Parse
@@ -3613,6 +3614,17 @@ Private Sub ServerPacket_requesteditmap(ByVal Index As Long, ByVal Data As Strin
         Call SendDataTo(Index, "EDITMAP" & END_CHAR)
         Exit Sub
     End If
+End Sub
+
+Private Sub ServerPacket_requesteditquest(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
+    If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
+        Call HackingAttempt(Index, "Admin Cloning")
+        Exit Sub
+    End If
+
+    Dim QuestParse(0 To 0) As String
+    QuestParse(0) = "questeditor"
+    HandleQuestEditor Index, QuestParse
 End Sub
 
 Private Sub ServerPacket_requestedititem(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
