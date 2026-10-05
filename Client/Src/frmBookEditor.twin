@@ -175,7 +175,7 @@ Class frmBookEditor
         Saving = True
         cmdOk.Enabled = False
 
-        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(Trim$(Book(Current).Name)) & SEP_CHAR & EncodeBookText(Trim$(Book(Current).Header)) & SEP_CHAR & EncodeBookText(RTrim$(Book(Current).Pages(1))) & SEP_CHAR & EncodeBookText(RTrim$(Book(Current).Pages(2))) & SEP_CHAR & Book(Current).NextBook & SEP_CHAR & Book(Current).Quest & END_CHAR
+        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & Trim$(Book(Current).Name) & SEP_CHAR & Trim$(Book(Current).Header) & SEP_CHAR & RTrim$(Book(Current).Pages(1)) & SEP_CHAR & RTrim$(Book(Current).Pages(2)) & SEP_CHAR & Book(Current).NextBook & SEP_CHAR & Book(Current).Quest & END_CHAR
     End Sub
 
     Public Sub Saved(ByVal id As Long)
