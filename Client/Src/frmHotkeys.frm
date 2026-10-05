@@ -132,8 +132,10 @@ Private Function ActionCaption(ByVal action As Long) As String
     ActionCaption = HotkeyActionName(action)
     If Not InGame Or MyIndex < 1 Or MyIndex > MAX_PLAYERS Then Exit Function
     If action >= HK_SPELL Then
-        number = SpellHotkeySpell(action - HK_SPELL + 1)
-        If number <= 0 Then number = Player(MyIndex).Spell(action - HK_SPELL + 1)
+        ' Display the current learned spell in this slot exactly like inventory
+        ' displays the current item in its slot. SpellHotkeySpell remains the
+        ' persisted identity used when the shortcut is activated.
+        number = Player(MyIndex).Spell(action - HK_SPELL + 1)
         If number > 0 And number <= MAX_SPELLS Then ActionCaption = ActionCaption & ": " & Trim$(Spell(number).name)
     ElseIf action >= HK_INVENTORY Then
         number = GetPlayerInvItemNum(MyIndex, action - HK_INVENTORY + 1)
