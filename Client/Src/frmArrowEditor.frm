@@ -103,12 +103,6 @@ Begin VB.Form frmArrowEditor
       ScaleMode = 3
       BackColor = 0
    End
-   Begin VB.Label lblStatus
-      Left = 120
-      Top = 3240
-      Width = 4815
-      Height = 240
-   End
    Begin VB.CommandButton cmdOk
       Left = 120
       Top = 3600
@@ -162,7 +156,6 @@ Private Sub cmbArrow_Click()
         scrlRange.Value = 8
     End If
     mBusy = False
-    lblStatus.Caption = vbNullString
     DrawPreview
 End Sub
 
@@ -214,7 +207,6 @@ Private Sub SaveArrow()
     number = cmbArrow.ListIndex + 1
     mSaving = True
     SetEditingEnabled False
-    lblStatus.Caption = "Saving arrow " & number & "..."
     SendData "SAVEARROW" & SEP_CHAR & number & SEP_CHAR & scrlSprite.Value & SEP_CHAR & scrlRange.Value & SEP_CHAR & Trim$(txtName.Text) & END_CHAR
 End Sub
 
@@ -225,7 +217,6 @@ Public Sub SaveComplete(ByVal number As Long)
     Arrows(number).Range = scrlRange.Value
     mSaving = False
     SetEditingEnabled True
-    lblStatus.Caption = "Arrow " & number & " saved."
     Unload Me
 End Sub
 

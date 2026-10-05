@@ -48,6 +48,9 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Get the packet
     Select Case LCase$(Parse$(0))
+        Case "questdialogue", "questeditorbegin", "questeditorname", "questeditorclasses", "questeditorready", "questeditordata", "questeditorsaved", "questeditorerror"
+            HandleQuestDialoguePacket Parse
+            Exit Sub
         Case "wholist"
             frmMainGame.UpdateWhoList Parse
             Exit Sub
@@ -55,6 +58,10 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::::::::::::::::::
         ' :: Alert message packet ::
         ' ::::::::::::::::::::::::::
+        Case "bookeditorbegin", "bookeditorname", "bookeditorquest", "bookeditorready", "bookeditordata", "bookeditorsaved", "bookeditorerror"
+            HandleBookEditorPacket Parse
+        Case "booklink"
+            If UBound(Parse) = 2 Then LinkedBookId = CLng(Val(Parse(2)))
         Case "bookpages"
             If Not InGame Or UBound(Parse) <> 6 Then Exit Sub
             Dim bookId As Long, bookPage As Long, bookTotal As Long
@@ -1259,6 +1266,12 @@ Public Sub HandleData(ByVal Data As String)
             Arrow(Parse(1)).Name = vbNullString
             Arrow(Parse(1)).Name = Left$(Parse(4), 50)
             
+        Case "arrowsaved"
+            If UBound(Parse) <> 1 Then Exit Sub
+            n = Val(Parse(1))
+            If ArrowEditorActive And n >= 1 And n <= MAX_ARROWS Then frmArrowEditor.SaveComplete n
+        Case "arrowsaveerror"
+            If ArrowEditorActive Then frmArrowEditor.SaveFailed
         Case "arroweditor"
             InArrowEditor = True
             

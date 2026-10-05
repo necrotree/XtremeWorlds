@@ -4,6 +4,7 @@ Attribute VB_PredeclaredId = True
 Option Explicit
 Private mBusy As Boolean
 Private mSaving As Boolean
+Private mSaveIndex As Long
 
 Private Sub Form_Load()
     Dim i As Long
@@ -52,26 +53,32 @@ Private Sub cmdOk_Click()
 End Sub
 
 Private Sub SaveArrow()
-    If mSaving Then Exit Sub
+    If mSaving Or Not IsConnected Then Exit Sub
+    If EditorIndex < 1 Or EditorIndex > MAX_ARROWS Then Exit Sub
     If InStr(txtName.Text, SEP_CHAR) > 0 Or InStr(txtName.Text, END_CHAR) > 0 Then
         GameMsgBox "The name contains an unsupported character.", vbExclamation
         Exit Sub
     End If
+    mSaveIndex = EditorIndex
     mSaving = True
     SetEditingEnabled False
-    lblStatus.Caption = "Saving arrow " & EditorIndex & "..."
-    SendData "SAVEARROW" & SEP_CHAR & EditorIndex & SEP_CHAR & scrlSprite.Value & SEP_CHAR & scrlRange.Value & SEP_CHAR & Trim$(txtName.Text) & END_CHAR
+    SendData "SAVEARROW" & SEP_CHAR & mSaveIndex & SEP_CHAR & scrlSprite.Value & SEP_CHAR & scrlRange.Value & SEP_CHAR & Trim$(txtName.Text) & END_CHAR
 End Sub
 
 Public Sub SaveComplete(ByVal number As Long)
-    If Not mSaving Then Exit Sub
+    If Not mSaving Or number <> mSaveIndex Then Exit Sub
     Arrow(number).Name = Trim$(txtName.Text)
     Arrow(number).Sprite = scrlSprite.Value
     Arrow(number).Range = scrlRange.Value
     mSaving = False
     SetEditingEnabled True
-    lblStatus.Caption = "Arrow " & number & " saved."
     Unload Me
+End Sub
+
+Public Sub SaveFailed()
+    mSaving = False
+    SetEditingEnabled True
+    GameMsgBox "The arrow could not be saved. Please try again.", vbExclamation
 End Sub
 
 Private Sub SetEditingEnabled(ByVal enabled As Boolean)

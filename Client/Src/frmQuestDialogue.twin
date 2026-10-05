@@ -1,0 +1,46 @@
+[FormDesignerId("83CB40EE-97BC-419D-97A8-B1B4071E199A")]
+Class frmQuestDialogue
+    Attribute VB_PredeclaredId = True
+    Option Explicit
+    Private QuestId As Long
+    Private NpcSlot As Long
+    Private Action As Long
+
+    Public Sub Display(ByVal id As Long, ByVal slot As Long, ByVal title As String, ByVal npcName As String, ByVal message As String, ByVal nextAction As Long)
+        QuestId = id
+        NpcSlot = slot
+        Action = nextAction
+        lblTitle.Caption = title
+        lblNpc.Caption = npcName
+        txtMessage.Text = message
+        cmdAction.Visible = Action > 0
+        cmdAction.Enabled = True
+        If Action = 1 Then cmdAction.Caption = "Accept quest"
+        If Action = 2 Then cmdAction.Caption = "Complete quest"
+        QuestDialogueOpen = True
+        ReleaseGameKeys
+        Me.Show vbModeless, frmMainGame
+        Me.ZOrder 0
+    End Sub
+
+    Private Sub cmdAction_Click()
+        If Not InGame Or Not IsConnected Then Unload Me: Exit Sub
+        If Action < 1 Or Action > 2 Then Exit Sub
+        cmdAction.Enabled = False
+        ' Do not dispatch the server reply inside the button event.
+        frmMainGame.Socket.SendData "questaction" & SEP_CHAR & QuestId & SEP_CHAR & NpcSlot & SEP_CHAR & Action & END_CHAR
+    End Sub
+
+    Private Sub cmdClose_Click()
+        Unload Me
+    End Sub
+
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        If KeyCode = vbKeyEscape Then Unload Me
+    End Sub
+
+    Private Sub Form_Unload(Cancel As Integer)
+        QuestDialogueOpen = False
+        ReleaseGameKeys
+    End Sub
+End Class

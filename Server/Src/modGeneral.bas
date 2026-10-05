@@ -93,6 +93,7 @@ Sub InitServer()
     Call LoadClasses
     Call LoadMaps
     Call LoadItems
+    Call InitializeBooks
     Call LoadNpcs
     Call LoadShops
     Call LoadSigns
@@ -746,6 +747,7 @@ End Sub
 
 Public Sub SendQuestNpcMarkers(ByVal Index As Long)
     Dim slot As Long
+    RefreshDialogueQuestMarkers Index
     For slot = 1 To MAX_MAP_NPCS
         SendQuestNpcMarker Index, slot
     Next slot

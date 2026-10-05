@@ -21,6 +21,7 @@ Class frmMainGame
     Private BookBackground As clsDX11Surface
     Private CurrentBookId As Long
     Private CurrentBookPage As Long
+    Private CurrentBookTotal As Long
     Private InventoryPage As Long
     Private InventoryDragSlot As Long
     Private InventoryDragX As Single, InventoryDragY As Single
@@ -308,13 +309,13 @@ ConfirmationFailed:
             KeyCode = 0
             Exit Sub
         End If
-        If EditingHotkeys Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
+        If EditingHotkeys Or QuestDialogueOpen Or QuestEditorOpen Or BookEditorOpen Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
         Call CheckInput(1, KeyCode, Shift)
     End Sub
     
     Private Sub Form_KeyUp(KeyCode As Integer, Shift As Integer)
         If KeyCode = vbKeyReturn Then ChatEnterDown = False
-        If EditingHotkeys Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
+        If EditingHotkeys Or QuestDialogueOpen Or QuestEditorOpen Or BookEditorOpen Or ChatUnlocked Or ChatInputHasFocus Or Not TxtHasFocus Then Exit Sub
         Call CheckInput(0, KeyCode, Shift)
         Call UseSlotHotkey(KeyCode)
         If GameKeyMatches(HK_ADMIN, KeyCode) And GetPlayerAccess(MyIndex) > 0 Then
@@ -388,6 +389,7 @@ ConfirmationFailed:
             End If
         Else
             Call PlayerSearch(Button, Shift, X, Y)
+            If Button = vbRightButton Then RequestQuestTalk X, Y
         End If
     End Sub
     
@@ -1347,6 +1349,14 @@ ConfirmationFailed:
         Call SendRequestEditClass
     End Sub
     
+    Private Sub cmdBookEditor_Click()
+        If IsConnected Then Socket.SendData "bookeditor" & END_CHAR
+    End Sub
+
+    Private Sub cmdQuestEditor_Click()
+        If IsConnected Then Socket.SendData "questeditor" & END_CHAR
+    End Sub
+
     Private Sub cmbArrowEditor_Click()
         Call SendRequestEditArrow
     End Sub
@@ -1366,6 +1376,7 @@ ConfirmationFailed:
     Public Sub DisplayBookPages(ByVal Id As Long, ByVal Page As Long, ByVal Total As Long, ByVal Title As String, ByVal LeftPage As String, ByVal RightPage As String)
         CurrentBookId = Id
         CurrentBookPage = Page
+        CurrentBookTotal = Total
         If BookBackground Is Nothing Then
             Set BookBackground = New clsDX11Surface
             BookBackground.LoadFromFile App.Path & GFX_PATH & "gui\book.png"
@@ -1378,7 +1389,7 @@ ConfirmationFailed:
         lblBookPages.Caption = "Page " & Page & " of " & Total
         If Page < Total Then lblBookPages.Caption = "Pages " & Page & "-" & (Page + 1) & " of " & Total
         cmdBookPrevious.Enabled = Page > 1
-        cmdBookNext.Enabled = Page + 1 < Total
+        cmdBookNext.Enabled = (Page + 1 < Total Or LinkedBookId > 0)
         picBook.Visible = True
         picBook.ZOrder 0
     End Sub
@@ -1387,10 +1398,15 @@ ConfirmationFailed:
         RequestBookPages CurrentBookPage - 2
     End Sub
     Private Sub cmdBookNext_Click()
-        RequestBookPages CurrentBookPage + 2
+        If LinkedBookId > 0 And CurrentBookPage + 2 > CurrentBookTotal Then
+            SendData "readbook" & SEP_CHAR & LinkedBookId & SEP_CHAR & 1 & END_CHAR
+        Else
+            RequestBookPages CurrentBookPage + 2
+        End If
     End Sub
     Private Sub cmdBookClose_Click()
         picBook.Visible = False
+        If BookPreviewOpen Then frmBookEditor.ReturnFromPreview: Exit Sub
         SetFocusOnGame
     End Sub
     Private Sub RequestBookPages(ByVal Page As Long)

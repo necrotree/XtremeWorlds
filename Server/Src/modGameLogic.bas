@@ -1916,6 +1916,7 @@ Sub JoinGame(ByVal Index As Long)
     Call PlayerWarp(Index, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index))
 
     ' Send welcome messages
+    RefreshDialogueQuestMarkers Index
     Call SendWelcome(Index)
 
     ' Send the flag so they know they can start doing stuff

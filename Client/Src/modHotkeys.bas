@@ -211,7 +211,7 @@ End Function
 Public Function GameKeyDown(ByVal action As Long) As Boolean
     Dim alternate As Integer
     If Not mLoaded Then LoadHotkeys
-    If EditingHotkeys Or Not TxtHasFocus Or frmMainGame.ChatUnlocked Then Exit Function
+    If EditingHotkeys Or QuestDialogueOpen Or QuestEditorOpen Or BookEditorOpen Or Not TxtHasFocus Or frmMainGame.ChatUnlocked Then Exit Function
     If Hotkeys(action) <> 0 Then GameKeyDown = (GetAsyncKeyState(Hotkeys(action)) < 0)
     If Not CustomHotkeys And GameData.WASD <> 0 Then
         Select Case action
@@ -242,7 +242,7 @@ End Sub
 ' Called once on key release, using the same restrictions as the game buttons.
 Public Sub UseSlotHotkey(ByVal key As Integer)
     Dim action As Long, slot As Long
-    If Not InGame Or GettingMap Or EditingHotkeys Or Not TxtHasFocus Then Exit Sub
+    If Not InGame Or GettingMap Or EditingHotkeys Or QuestDialogueOpen Or QuestEditorOpen Or BookEditorOpen Or Not TxtHasFocus Then Exit Sub
     If frmMainGame.ChatUnlocked Then Exit Sub
     For action = HK_INVENTORY To HK_COUNT
         If GameKeyMatches(action, key) Then

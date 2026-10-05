@@ -7,6 +7,10 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
     If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
     Parse = Split(Data, SEP_CHAR)
     Select Case LCase$(Parse(0))
+        Case "bookeditor", "editbook", "savebook": HandleBookEditor Index, Parse
+        Case "questeditor", "editquestdialogue", "savequestdialogue": HandleQuestEditor Index, Parse
+        Case "questtalk": HandleQuestTalk Index, Parse
+        Case "questaction": HandleQuestAction Index, Parse
         Case "swapinventory": SwapInventorySlots Index, Parse
         Case "readbook": HandleReadBook Index, Parse
         Case "getclasses": ServerPacket_getclasses Index, Data, Parse
@@ -1908,66 +1912,26 @@ Private Sub ServerPacket_editarrow(ByVal Index As Long, ByVal Data As String, By
 End Sub
 
 Private Sub ServerPacket_savearrow(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
-    Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
-    Dim name As String
-    Dim EncKey As String
-    Dim Password As String
-    Dim Sex As Long
-    Dim ClassNum As Long
-    Dim CharNum As Long
-    Dim Msg As String
-    Dim IPMask As String
-    Dim BanSlot As Long
-    Dim MsgTo As Long
-    Dim Dir As Long
-    Dim InvNum As Long
-    Dim Ammount As Long
-    Dim Damage As Long
-    Dim PointType As Long
-    Dim BanPlayer As Long
-    Dim Movement As Long
-    Dim I As Long, N As Long, X As Long, y As Long, f As Long
-    Dim MapNum As Long
-    Dim s As String
-    Dim tMapStart As Long, tMapEnd As Long
-    Dim ShopNum As Long, ItemNum As Long
-    Dim DurNeeded As Long, GoldNeeded As Long
-    Dim BIp As Integer
-    Dim Packet As String
-    Dim Sn As Long
-    Dim SnPacket As String
-    Dim ar As Long
-    Dim arPacket As String
-    Dim cs As Long
-    Dim csPacket As String
-    Dim GoldItem As Long
-    If (LCase(Parse(0)) = "savearrow") Then
-        ' Prevent hacking
-        If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then
-            Call HackingAttempt(Index, "Admin Cloning")
-            Exit Sub
-        End If
-
-        ' Sign #
-        N = Val(Parse(1))
-
-        ' Prevent hacking
-        If N < 0 Or N > MAX_ARROWS Then
-            Call HackingAttempt(Index, "Invalid Arrow Index")
-            Exit Sub
-        End If
-
-        Arrow(Parse(1)).Sprite = Parse(2)
-        Arrow(Parse(1)).Range = Parse(3)
-        Arrow(Parse(1)).Name = Trim$(Parse(4))
-
-        ' Save it
-        Call SaveArrow(N)
-        Call AddLog(GetPlayerName(Index) & " saving arrow #" & N & ".", ADMIN_LOG)
-        Exit Sub
-    End If
+    Dim number As Long, sprite As Long, distance As Long
+    On Error GoTo Failed
+    If Not IsPlaying(Index) Then Exit Sub
+    If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then Exit Sub
+    If UBound(Parse) <> 4 Then GoTo Failed
+    If Not DeliveryInteger(Parse(1), 1, MAX_ARROWS, number) Then GoTo Failed
+    If Not DeliveryInteger(Parse(2), 0, 32767, sprite) Then GoTo Failed
+    If Not DeliveryInteger(Parse(3), 0, 32, distance) Then GoTo Failed
+    If Len(Parse(4)) > 50 Then GoTo Failed
+    Arrow(number).Sprite = sprite
+    Arrow(number).Range = distance
+    Arrow(number).Name = Trim$(Parse(4))
+    SaveArrow number
+    SendDataToAll "ARROWDATA" & SEP_CHAR & number & SEP_CHAR & sprite & SEP_CHAR & distance & SEP_CHAR & Trim$(Arrow(number).Name) & END_CHAR
+    SendDataTo Index, "ARROWSAVED" & SEP_CHAR & number & END_CHAR
+    AddLog GetPlayerName(Index) & " saving arrow #" & number & ".", ADMIN_LOG
+    Exit Sub
+Failed:
+    SendDataTo Index, "ARROWSAVEERROR" & END_CHAR
 End Sub
-
 Private Sub ServerPacket_requesteditarrow(ByVal Index As Long, ByVal Data As String, ByRef Parse() As String)
     Dim deliveryMode As Long, deliveryArrow As Long, deliveryRange As Long
     Dim name As String

@@ -12,15 +12,13 @@ Private ServerLoadPercent As Long
 Sub UpdateCaption()
     Dim Address As String
     Dim Online As Long
-    Dim Filled As Long
     Address = "0.0.0.0"
     If Not GameServer Is Nothing Then
         Address = GameServer.LocalAddress
         frmServer.txtPort.Text = CStr(GameServer.LocalPort)
     End If
     Online = TotalOnlinePlayers
-    Filled = (ServerLoadPercent + 5) \ 10
-    frmServer.Caption = GAME_NAME & " :: Server | IP: " & Address & " | Players: " & CStr(Online) & " | Load: [" & String$(Filled, "|") & String$(10 - Filled, ".") & "] " & CStr(ServerLoadPercent) & "%"
+    frmServer.Caption = GAME_NAME & " :: Server | IP: " & Address & " | Players: " & CStr(Online)
     frmServer.txtIP.Text = Address
     frmServer.txtOnline.Text = CStr(Online)
 End Sub
@@ -637,6 +635,7 @@ Sub SendInventoryUpdate(ByVal Index As Long, ByVal InvSlot As Long)
 
     Packet = "PLAYERINVUPDATE" & SEP_CHAR & InvSlot & SEP_CHAR & GetPlayerInvItemNum(Index, InvSlot) & SEP_CHAR & GetPlayerInvItemValue(Index, InvSlot) & SEP_CHAR & GetPlayerInvItemDur(Index, InvSlot) & END_CHAR
     Call SendDataTo(Index, Packet)
+    RefreshDialogueQuestMarkers Index
 End Sub
 
 Sub SendWornEquipment(ByVal Index As Long)
@@ -1142,63 +1141,8 @@ Public Sub HandleReadBook(ByVal Index As Long, ByRef Parts() As String)
 End Sub
 
 Public Sub SendBookPages(ByVal Index As Long, ByVal BookId As Long, ByVal Page As Long)
-    Dim slot As Long, itemNum As Long, title As String, fileName As String
-    Dim pages(1 To 64) As String, total As Long, line As String, rightPage As String
-    Dim file As Long, opened As Boolean, owned As Boolean
-    On Error GoTo BookError
-    If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
-    If Not IsPlaying(Index) Then Exit Sub
-    If BookId < 1 Or BookId > 32767 Or Page < 1 Or Page > 64 Then Exit Sub
-    For slot = 1 To MAX_INV
-        itemNum = GetPlayerInvItemNum(Index, slot)
-        If itemNum >= 1 And itemNum <= MAX_ITEMS Then
-            If Item(itemNum).Type = ITEM_TYPE_BOOK And Item(itemNum).Data1 = BookId Then
-                owned = True
-                title = Trim$(Item(itemNum).Name)
-                Exit For
-            End If
-        End If
-    Next slot
-    If Not owned Then Exit Sub
-    fileName = App.Path & "\books\" & BookId & ".txt"
-    If Len(Dir$(fileName)) = 0 Then
-        PlayerMsg Index, "This book has no text yet.", White
-        Exit Sub
-    End If
-    file = FreeFile
-    Open fileName For Input As #file
-    opened = True
-    total = 1
-    Do While Not EOF(file)
-        Line Input #file, line
-        If line = "[PAGE]" Then
-            If total = 64 Then Err.Raise 5, "Book", "Books support at most 64 pages."
-            total = total + 1
-        Else
-            If Len(pages(total)) + Len(line) + 2 > 2000 Then Err.Raise 5, "Book", "Each book page supports at most 2000 characters."
-            pages(total) = pages(total) & line & vbCrLf
-        End If
-    Loop
-    Close #file
-    opened = False
-    If Page > total Then Exit Sub
-    ' A spread always begins on an odd page.
-    Page = ((Page - 1) \ 2) * 2 + 1
-    If Page < total Then rightPage = pages(Page + 1)
-    SendDataTo Index, "BOOKPAGES" & SEP_CHAR & BookId & SEP_CHAR & Page & SEP_CHAR & total & SEP_CHAR & BookPacketText(title) & SEP_CHAR & BookPacketText(pages(Page)) & SEP_CHAR & BookPacketText(rightPage) & END_CHAR
-    Exit Sub
-BookError:
-    Dim failure As String
-    failure = "Book " & BookId & ": " & Err.Number & " " & Err.Description
-    On Error Resume Next
-    If opened Then Close #file
-    AddLog failure, "errors.log"
-    PlayerMsg Index, "This book could not be opened.", White
+    SendBinaryBookPages Index, BookId, Page
 End Sub
-
-Private Function BookPacketText(ByVal text As String) As String
-    BookPacketText = Replace(Replace(text, SEP_CHAR, " "), END_CHAR, " ")
-End Function
 Public Sub SwapInventorySlots(ByVal Index As Long, ByRef Parts() As String)
     Dim source As Long, destination As Long, character As Long, temporary As PlayerInvRec
     If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub

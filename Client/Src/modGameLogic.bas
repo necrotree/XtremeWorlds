@@ -613,6 +613,17 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
 
         ' // Commands //
         ' Help
+        If LCase$(Trim$(MyText)) = "/bookeditor" Then
+            SendData "bookeditor" & END_CHAR
+            MyText = vbNullString
+            Exit Sub
+        End If
+        If LCase$(Trim$(MyText)) = "/questeditor" Then
+            Call SendData("questeditor" & END_CHAR)
+            MyText = ""
+            Exit Sub
+        End If
+
         If LCase$(Mid$(MyText, 1, 5)) = "/help" Then
             Call AddText("Social Commands:", HelpColor)
             Call AddText("'msghere = Broadcast Message", HelpColor)
