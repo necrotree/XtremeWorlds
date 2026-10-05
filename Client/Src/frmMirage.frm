@@ -377,7 +377,7 @@ Begin VB.Form frmMainGame
                Width           =   1215
             End
             Begin VB.OptionButton optMask2 
-               Caption         =   "Mask2"
+               Caption         =   "Mask 2"
                BeginProperty Font 
                   Name            =   "Tahoma"
                   Size            =   8.25
@@ -428,7 +428,7 @@ Begin VB.Form frmMainGame
                Width           =   1215
             End
             Begin VB.OptionButton optFringe2 
-               Caption         =   "Fringe2"
+               Caption         =   "Fringe 2"
                BeginProperty Font 
                   Name            =   "Tahoma"
                   Size            =   8.25

@@ -171,7 +171,30 @@ Public Sub EditorMouseDown(Button As Integer, Shift As Integer, X As Single, Y A
 
         If (Button = 2) And (X1 >= 0) And (X1 <= MAX_MAPX) And (Y1 >= 0) And (Y1 <= MAX_MAPY) Then
             If frmMainGame.optLayers.Value = True Then
-                With Map.Tile(X1, Y1)
+                Call EditorEraseSelection(X1, Y1)
+            Else
+                Call ReadEditorAttribute(Map.Tile(X1, Y1), attributeTile)
+                With attributeTile
+                    .Type = 0
+                    .Data1 = 0
+                    .Data2 = 0
+                    .Data3 = 0
+                End With
+                Call WriteEditorAttribute(Map.Tile(X1, Y1), attributeTile)
+            End If
+        End If
+        Call BltMap
+    End If
+End Sub
+
+Private Sub EditorEraseSelection(ByVal MapX As Long, ByVal MapY As Long)
+    Dim X As Long, Y As Long
+    If EditorSelectionWidth < 1 Then EditorSelectionWidth = 1
+    If EditorSelectionHeight < 1 Then EditorSelectionHeight = 1
+    For Y = 0 To EditorSelectionHeight - 1
+        For X = 0 To EditorSelectionWidth - 1
+            If MapX + X >= 0 And MapX + X <= MAX_MAPX And MapY + Y >= 0 And MapY + Y <= MAX_MAPY Then
+                With Map.Tile(MapX + X, MapY + Y)
                     If frmMainGame.optGround.Value = True Then
                         .Ground = 0
                         .LayerTileset(0) = 0
@@ -209,19 +232,9 @@ Public Sub EditorMouseDown(Button As Integer, Shift As Integer, X As Single, Y A
                         .LayerTileset(8) = 0
                     End If
                 End With
-            Else
-                Call ReadEditorAttribute(Map.Tile(X1, Y1), attributeTile)
-                With attributeTile
-                    .Type = 0
-                    .Data1 = 0
-                    .Data2 = 0
-                    .Data3 = 0
-                End With
-                Call WriteEditorAttribute(Map.Tile(X1, Y1), attributeTile)
             End If
-        End If
-        Call BltMap
-    End If
+        Next X
+    Next Y
 End Sub
 
 Private Sub EditorPaintSelection(ByVal MapX As Long, ByVal MapY As Long)
