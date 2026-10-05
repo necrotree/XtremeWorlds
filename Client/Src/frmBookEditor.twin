@@ -1,4 +1,4 @@
-[FormDesignerId("9B637F03-73F7-41AF-A510-EDE7E5F8CB29")]
+[FormDesignerId("296D7561-D324-4351-93D4-305C9206FEA0")]
 Class frmBookEditor
     Attribute VB_PredeclaredId = True
     Option Explicit
@@ -100,28 +100,12 @@ Class frmBookEditor
 
         ReleaseGameKeys
 
-        txtId.Text = "1"
-        cmdLoad.Enabled = True
+        Current = 1
         cmdOk.Enabled = False
         cmdPreview.Enabled = False
 
-        cmdLoad_Click
-    End Sub
-
-    Private Sub cmdLoad_Click()
-        If Saving Then Exit Sub
-        If Not IsConnected Then Exit Sub
-        If Not IsNumeric(txtId.Text) Then Exit Sub
-        If Val(txtId.Text) < 1 Then Exit Sub
-        If Val(txtId.Text) > 32767 Then Exit Sub
-        If Val(txtId.Text) <> Fix(Val(txtId.Text)) Then Exit Sub
-
-        Current = CLng(txtId.Text)
-
-        cmdOk.Enabled = False
-        cmdPreview.Enabled = False
-
-        lblStatus.Caption = "Loading book " & Current & "..."
+        Me.Show vbModeless, frmMainGame
+        Me.ZOrder 0
 
         frmMainGame.Socket.SendData "editbook" & SEP_CHAR & Current & END_CHAR
     End Sub
@@ -148,7 +132,6 @@ Class frmBookEditor
         cmdOk.Enabled = True
         cmdPreview.Enabled = True
 
-        lblStatus.Caption = "Editing book " & Current & ". Additional imported pages are preserved."
     End Sub
 
     Private Sub cmdOk_Click()
@@ -167,10 +150,6 @@ Class frmBookEditor
         Saving = True
 
         cmdOk.Enabled = False
-        cmdLoad.Enabled = False
-
-        lblStatus.Caption = "Saving..."
-
         frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtBookTitle.Text) & SEP_CHAR & EncodeBookText(txtBookHeader.Text) & SEP_CHAR & EncodeBookText(txtPage1.Text) & SEP_CHAR & EncodeBookText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
     End Sub
 
@@ -186,10 +165,7 @@ Class frmBookEditor
     Public Sub SaveFailed(ByVal message As String)
         Saving = False
 
-        cmdLoad.Enabled = True
         cmdOk.Enabled = (Current > 0 And cmdPreview.Enabled)
-
-        lblStatus.Caption = message
 
         GameMsgBox message, vbExclamation, "Book Editor"
     End Sub
