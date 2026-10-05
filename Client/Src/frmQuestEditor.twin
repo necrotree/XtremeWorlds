@@ -63,9 +63,6 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        ' Keep Busy set while OpenEditor returns.  In twinBASIC the caller can
-        ' still be completing the form/control activation at this point.
-        ' Selecting/loading a quest is deferred until the user selects one.
     End Sub
 
     Private Sub cmbQuest_Click()
