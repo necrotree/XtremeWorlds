@@ -63,12 +63,12 @@ Class frmQuestEditor
             cmbReward.AddItem CStr(i) & ": " & Trim$(Item(i).name)
         Next i
 
-        QuestEditorOpen = True
+        ' Show the form before changing the global editor state.  Setting
+        ' QuestEditorOpen while this form is still being constructed can
+        ' trigger code that expects the editor/window to already exist.
         SafeReleaseGameKeys
-
-        ' Do not pass frmMainGame as an explicit owner here.  The twinBASIC
-        ' runtime can fail while constructing a modeless form with that owner.
         Me.Show vbModeless
+        QuestEditorOpen = True
         Me.ZOrder 0
 
         cmbQuest.ListIndex = 0
