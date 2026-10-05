@@ -1918,6 +1918,10 @@ Sub JoinGame(ByVal Index As Long)
     Call SendNpcs(Index)
     Call SendShops(Index)
     Call SendSpells(Index)
+    Call SendArrowData(Index)
+    For N = 1 To MAX_SPELLS
+        Call SendSpellDelivery(Index, N)
+    Next N
     Call SendPlayerSpells(Index)
     Call SendGuilds(Index)
     Call SendInventory(Index)
