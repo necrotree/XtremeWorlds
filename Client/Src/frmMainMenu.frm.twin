@@ -466,9 +466,11 @@ Private Sub picRegisterLogin_Click()
         Dim menuName As String
         menuName = mActiveMenu
         If LenB(menuName) = 0 Then menuName = "mnuHome"
-        HideMenuPanels
-        SetMenuVisible menuName, True
+
+        ' Do not hide every menu here. The active page was already selected
+        ' before the request/status window opened. Re-apply only that page.
         Me.Visible = True
+        SetMenuVisible menuName, True
     End Sub
 
     Private Sub lblMale_Click()
