@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Eto.Drawing;
 using Eto.Forms;
 using XtremeWorlds.Client.UI;
@@ -327,6 +328,25 @@ namespace XtremeWorlds.Client.Forms
             cmdOk.Click += (_, _) => { if (ApplyChanges()) Close(); };
             cmdCancel.Click += (_, _) => CancelChanges();
             Shown += OnFormShown;
+        }
+
+        public void SetArrowNames(IEnumerable<string> arrowNames, int selectedArrow = 0)
+        {
+            cmbArrow.Items.Clear();
+            cmbArrow.Items.Add("None");
+
+            if (arrowNames != null)
+            {
+                foreach (var arrowName in arrowNames)
+                {
+                    var name = (arrowName ?? string.Empty).Trim();
+                    cmbArrow.Items.Add(name.Length > 0 ? name : "(Unnamed Arrow)");
+                }
+            }
+
+            cmbArrow.SelectedIndex = selectedArrow >= 0 && selectedArrow < cmbArrow.Items.Count
+                ? selectedArrow
+                : 0;
         }
 
         protected virtual void OnFormShown(object sender, EventArgs e)

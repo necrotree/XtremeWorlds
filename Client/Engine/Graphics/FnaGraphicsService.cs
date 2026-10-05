@@ -458,6 +458,13 @@ public sealed class FnaGraphicsService : IDisposable
                     _action("WarpToTile", new object[] { tileX, tileY });
             }
 
+            if (rightPressed && TryScreenToLogical(mouse.X, mouse.Y, out var rightX, out var rightY) &&
+                _activePanel == MainGamePanel.Skills &&
+                TryGetSkillSlot(rightX, rightY, out var forgetSkillSlot))
+            {
+                _action("ForgetSpell", new object[] { forgetSkillSlot });
+            }
+
             if (leftPressed && TryScreenToLogical(mouse.X, mouse.Y, out var x, out var y))
             {
                 if (StatsButton.Contains(x, y)) TogglePanel(MainGamePanel.Character);

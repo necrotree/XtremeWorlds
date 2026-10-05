@@ -254,6 +254,9 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "CastSpell":
                 SendPacket("cast", IntArg(arguments, 0) + 1);
                 break;
+            case "ForgetSpell":
+                SendPacket("forgetspell", IntArg(arguments, 0) + 1);
+                break;
             case "PlaySound":
                 _audio.PlaySound(Arg(arguments, 0));
                 break;
