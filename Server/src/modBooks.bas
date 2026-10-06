@@ -26,40 +26,6 @@ Private Function BookNumber(ByVal value As String, ByVal maximum As Long) As Boo
     BookNumber = (Val(value) <= maximum)
 End Function
 
-Public Function BookHex(ByVal value As String) As String
-    Dim i As Long
-
-    For i = 1 To Len(value)
-        BookHex = BookHex & _
-            Right$("0000" & Hex$(AscW(Mid$(value, i, 1)) And &HFFFF&), 4)
-    Next i
-End Function
-
-Public Function BookUnhex(ByVal value As String, ByVal maximum As Long) As String
-    Dim i As Long
-    Dim code As Long
-
-    If Len(value) Mod 4 <> 0 Then Err.Raise 5
-    If Len(value) > maximum * 4 Then Err.Raise 5
-
-    For i = 1 To Len(value)
-        If InStr(1, "0123456789ABCDEF", Mid$(value, i, 1), vbTextCompare) = 0 Then
-            Err.Raise 5
-        End If
-    Next i
-
-    For i = 1 To Len(value) Step 4
-        code = CLng("&H" & Mid$(value, i, 4))
-
-        ' UTF-16 signed conversion.
-        If code > 32767 Then code = code - 65536
-
-        If code = 0 Then Err.Raise 5
-
-        BookUnhex = BookUnhex & ChrW$(code)
-    Next i
-End Function
-
 Private Function OwnsBook(ByVal Index As Long, ByVal id As Long) As Boolean
     Dim slot As Long
     Dim itemNum As Long
@@ -208,10 +174,10 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
             packet = _
                 "BOOKEDITORDATA" & SEP_CHAR & _
                 id & SEP_CHAR & _
-                BookHex(Trim$(Book(id).Name)) & SEP_CHAR & _
-                BookHex(Trim$(Book(id).Header)) & SEP_CHAR & _
-                BookHex(RTrim$(Book(id).Pages(1))) & SEP_CHAR & _
-                BookHex(RTrim$(Book(id).Pages(2))) & SEP_CHAR & _
+                CleanBookPacketText(Trim$(Book(id).Name)) & SEP_CHAR & _
+                CleanBookPacketText(Trim$(Book(id).Header)) & SEP_CHAR & _
+                CleanBookPacketText(RTrim$(Book(id).Pages(1))) & SEP_CHAR & _
+                CleanBookPacketText(RTrim$(Book(id).Pages(2))) & SEP_CHAR & _
                 Book(id).NextBook & SEP_CHAR & _
                 Book(id).Quest
 
@@ -229,10 +195,10 @@ Public Sub HandleBookEditor(ByVal Index As Long, ByRef parts() As String)
 
             If id < 1 Or id > MAX_BOOKS Then GoTo Failed
 
-            Book(id).Name = BookUnhex(parts(2), 64)
-            Book(id).Header = BookUnhex(parts(3), 64)
-            Book(id).Pages(1) = BookUnhex(parts(4), 2000)
-            Book(id).Pages(2) = BookUnhex(parts(5), 2000)
+            Book(id).Name = parts(2)
+            Book(id).Header = parts(3)
+            Book(id).Pages(1) = parts(4)
+            Book(id).Pages(2) = parts(5)
             Book(id).NextBook = CLng(parts(6))
             Book(id).Quest = CLng(parts(7))
 
