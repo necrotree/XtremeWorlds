@@ -1043,6 +1043,8 @@ Public Sub HandleData(ByVal Data As String)
         ' :::::::::::::::::::::
         Case "editnpc"
             n = Val(Parse(1))
+            If n < 1 Or n > MAX_NPCS Then Exit Sub
+            EditorIndex = n
 
             ' Update the npc
             Npc(n).name = Parse(2)

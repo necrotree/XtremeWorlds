@@ -848,6 +848,7 @@ Public Sub NpcEditorInit()
     frmNpcEditor.scrlRange.Value = Npc(EditorIndex).Range
     frmNpcEditor.txtChance.Text = Str(Npc(EditorIndex).DropChance)
     frmNpcEditor.scrlNum.Value = Npc(EditorIndex).DropItem
+    frmNpcEditor.RefreshDropItem
     frmNpcEditor.scrlValue.Value = Npc(EditorIndex).DropItemValue
     frmNpcEditor.scrlSTR.Value = Npc(EditorIndex).STR
     frmNpcEditor.scrlDEF.Value = Npc(EditorIndex).DEF

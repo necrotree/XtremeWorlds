@@ -339,7 +339,7 @@ Public Sub GameLoop()
                 If NPCWho > 0 Then
                     If MapNpc(NPCWho).Num > 0 Then
                         If GetTickCount < DmgTime + 2000 Then
-                            Call DrawText(TexthDC, (MapNpc(NPCWho).X) * PIC_X + (Int(Len(DmgDamage)) / 2) * 3 + MapNpc(NPCWho).XOffset, (MapNpc(NPCWho).Y) * PIC_Y - 57 + MapNpc(NPCWho).YOffset - iii, DmgDamage, QBColor(White))
+                            Call DrawText(TexthDC, (MapNpc(NPCWho).X) * PIC_X + (Int(Len(DmgDamage)) / 2) * 3 + MapNpc(NPCWho).XOffset, (MapNpc(NPCWho).Y) * PIC_Y - 57 + MapNpc(NPCWho).YOffset - iii, DmgDamage, QBColor(BrightRed))
                         End If
                         iii = iii + 1
                     End If

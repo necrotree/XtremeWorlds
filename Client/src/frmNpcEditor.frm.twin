@@ -103,9 +103,15 @@ Class frmNpcEditor
     End Sub
     
     Private Sub scrlNum_Change()
+        RefreshDropItem
+    End Sub
+
+    Public Sub RefreshDropItem()
         lblNum.Caption = Str(scrlNum.Value)
-        If scrlNum.Value > 0 Then
+        If scrlNum.Value > 0 And scrlNum.Value <= MAX_ITEMS Then
             lblItemName.Caption = Trim$(Item(scrlNum.Value).name)
+        Else
+            lblItemName.Caption = "None"
         End If
     End Sub
     

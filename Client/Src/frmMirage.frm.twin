@@ -1197,6 +1197,7 @@ ConfirmationFailed:
         Dim statButton As Long
         For statButton = 0 To 3
             lblCharacterTrain(statButton).Enabled = (GetPlayerPOINTS(MyIndex) > 0)
+            lblCharacterTrain(statButton).ZOrder 0
         Next
         lblCharacterTrain(0).Caption = "+"
         lblCharacterTrain(1).Caption = "+"
