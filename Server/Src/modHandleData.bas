@@ -22,6 +22,7 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
     End If
     Select Case LCase$(Parse(0))
         Case "moderation": HandleModeration Index, Parse
+        Case "guildrank": HandleGuildRank Index, Parse
         Case "guilddetails": SendGuildDetails Index
         Case "bookeditor", "editbook", "savebook": HandleBookEditor Index, Parse
         Case "requesteditquest": ServerPacket_requesteditquest Index, Data, Parse

@@ -1191,7 +1191,7 @@ Public Sub SendGuildDetails(ByVal Index As Long)
         For previous = 1 To member - 1
             If LCase$(name) = LCase$(Trim$(Guild(guildId).Member(previous))) Then duplicate = True
         Next previous
-        If Len(name) > 0 And Not duplicate Then SendGuildMemberDetails Index, name, "Member"
+        If Len(name) > 0 And Not duplicate Then SendGuildMemberDetails Index, name, GuildRankName(guildId, name)
     Next member
 End Sub
 
@@ -1210,4 +1210,46 @@ Public Sub SendNpcVitals(ByVal MapNum As Long, ByVal Slot As Long)
     NpcNum = MapNpc(MapNum, Slot).Num
     If NpcNum <= 0 Then Exit Sub
     SendDataToMap MapNum, "NPCVITALS" & SEP_CHAR & MapNum & SEP_CHAR & Slot & SEP_CHAR & NpcNum & SEP_CHAR & MapNpc(MapNum, Slot).HP & SEP_CHAR & GetNpcMaxHP(NpcNum) & SEP_CHAR & MapNpc(MapNum, Slot).MP & END_CHAR
+End Sub
+
+Public Function GuildRankName(ByVal guildId As Long, ByVal memberName As String) As String
+    Select Case Val(GetVar(App.Path & "\data\guildranks.ini", CStr(guildId), memberName))
+        Case 1: GuildRankName = "Officer"
+        Case 2: GuildRankName = "Leader"
+        Case Else: GuildRankName = "Member"
+    End Select
+End Function
+
+Public Sub HandleGuildRank(ByVal Index As Long, ByRef parts() As String)
+    Dim guildId As Long, member As Long, targetName As String, rank As Long, found As Boolean, playerIndex As Long
+    If Not IsPlaying(Index) Or UBound(parts) <> 2 Then Exit Sub
+    guildId = GetPlayerGuild(Index)
+    If guildId < 1 Or guildId > MAX_GUILDS Then Exit Sub
+    If StrComp(Trim$(Guild(guildId).Founder), Trim$(GetPlayerName(Index)), vbTextCompare) <> 0 Then
+        PlayerMsg Index, "Only the guild founder can change ranks.", BrightRed
+        Exit Sub
+    End If
+    targetName = Trim$(parts(2))
+    If StrComp(targetName, Trim$(Guild(guildId).Founder), vbTextCompare) = 0 Then Exit Sub
+    For member = 1 To MAX_GUILD_MEMBERS
+        If StrComp(Trim$(Guild(guildId).Member(member)), targetName, vbTextCompare) = 0 And Len(targetName) > 0 Then found = True
+    Next member
+    If Not found Then Exit Sub
+    rank = Val(GetVar(App.Path & "\data\guildranks.ini", CStr(guildId), targetName))
+    Select Case LCase$(parts(1))
+        Case "promote": rank = rank + 1
+        Case "demote": rank = rank - 1
+        Case Else: Exit Sub
+    End Select
+    If rank < 0 Or rank > 2 Then
+        PlayerMsg Index, "That member is already at the rank limit.", BrightRed
+        Exit Sub
+    End If
+    PutVar App.Path & "\data\guildranks.ini", CStr(guildId), targetName, CStr(rank)
+    AddLog Trim$(GetPlayerName(Index)) & " changed " & targetName & " to " & GuildRankName(guildId, targetName) & ".", ADMIN_LOG
+    For playerIndex = 1 To HighIndex
+        If IsPlaying(playerIndex) Then
+            If GetPlayerGuild(playerIndex) = guildId Then SendGuildDetails playerIndex
+        End If
+    Next playerIndex
 End Sub

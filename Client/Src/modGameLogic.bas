@@ -5,6 +5,7 @@ Attribute VB_Name = "modGameLogic"
 ' * 07/12/2005  Shannara   Added correct procedures from modTypes.bas.
 ' ****************************************************************
 Option Explicit
+Public AdminPanelOpen As Boolean
 
 Public MenuMusicFile As String
 
@@ -1437,46 +1438,23 @@ Public Sub GrabHD()
     End With
 End Sub
 
-Sub AdminPanel()
+Public Sub HideAdminPanelIfLoaded()
+    Dim loadedForm As Object
+    For Each loadedForm In Forms
+        If TypeName(loadedForm) = "frmAdminPanel" Then
+            loadedForm.Hide
+            Exit For
+        End If
+    Next
+    AdminPanelOpen = False
+End Sub
 
-    Select Case GetPlayerAccess(MyIndex)
-        Case ADMIN_MONITER
-            frmMainGame.fraPlayer.Visible = True
-            frmMainGame.fraMapNum.Visible = True
-            frmMainGame.fraSpriteNum.Visible = True
-            frmMainGame.fralvl1.Visible = True
-        Case ADMIN_MAPPER
-            frmMainGame.fraPlayer.Visible = True
-            frmMainGame.fraMapNum.Visible = True
-            frmMainGame.fraSpriteNum.Visible = True
-            frmMainGame.fralvl1.Visible = True
-            frmMainGame.fralvl2.Visible = True
-        Case ADMIN_DEVELOPER
-            frmMainGame.fraPlayer.Visible = True
-            frmMainGame.fraMapNum.Visible = True
-            frmMainGame.fraSpriteNum.Visible = True
-            frmMainGame.fralvl1.Visible = True
-            frmMainGame.fralvl2.Visible = True
-            frmMainGame.fralvl3.Visible = True
-        Case ADMIN_CREATOR
-            frmMainGame.fraPlayer.Visible = True
-            frmMainGame.fraMapNum.Visible = True
-            frmMainGame.fraSpriteNum.Visible = True
-            frmMainGame.fralvl1.Visible = True
-            frmMainGame.fralvl2.Visible = True
-            frmMainGame.fralvl3.Visible = True
-            frmMainGame.fralvl4.Visible = True
-    End Select
-    If GetPlayerAccess(MyIndex) > 4 Then
-        frmMainGame.fraPlayer.Visible = True
-        frmMainGame.fraMapNum.Visible = True
-        frmMainGame.fraSpriteNum.Visible = True
-        frmMainGame.fralvl1.Visible = True
-        frmMainGame.fralvl2.Visible = True
-        frmMainGame.fralvl3.Visible = True
-        frmMainGame.fralvl4.Visible = True
-    End If
-    Call frmMainGame.LayoutGamePanels
+Sub AdminPanel()
+    If MyIndex < 1 Then Exit Sub
+    If GetPlayerAccess(MyIndex) < ADMIN_MONITER Then Exit Sub
+    frmAdminPanel.Show vbModeless
+    frmAdminPanel.ApplyAccess
+    AdminPanelOpen = True
 End Sub
 
 Public Sub vbDABLDraw16(surface As clsDX11Surface, srcRect As RECT, X As Long, Y As Long, alphaval As Long, ScreenWidth As Integer, ScreenHeight As Integer, Optional Clip As Boolean = True)
