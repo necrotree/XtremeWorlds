@@ -128,7 +128,7 @@ Sub SendNewAccount(ByVal name As String, ByVal Password As String, ByVal EncKey 
 
 ' Call SendData("HDSerial" & SEP_CHAR & GetHDSerial("C") & END_CHAR)
 
-    Packet = "newaccount" & SEP_CHAR & Trim$(name) & SEP_CHAR & Trim$(Password) & SEP_CHAR & Trim$(EncKey) & END_CHAR
+    Packet = "newaccount" & SEP_CHAR & Trim$(name) & SEP_CHAR & Trim$(Password) & SEP_CHAR & App.Major & SEP_CHAR & App.Minor & SEP_CHAR & App.Revision & SEP_CHAR & Trim$(EncKey) & END_CHAR
     Call SendData(Packet)
 End Sub
 

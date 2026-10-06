@@ -203,6 +203,7 @@ Private Sub ServerPacket_newaccount(ByVal Index As Long, ByVal Data As String, B
     Dim csPacket As String
     Dim GoldItem As Long
     If LCase$(Parse(0)) = "newaccount" Then
+        If Not CheckClientVersion(Index, Parse) Then Exit Sub
         If Not IsPlaying(Index) And Not IsLoggedIn(Index) Then
             ' Get the data
             name = Parse(1)
@@ -364,6 +365,7 @@ Private Sub ServerPacket_login(ByVal Index As Long, ByVal Data As String, ByRef 
     Dim csPacket As String
     Dim GoldItem As Long
     If LCase$(Parse(0)) = "login" Then
+        If Not CheckClientVersion(Index, Parse) Then Exit Sub
         If Not IsPlaying(Index) And Not IsLoggedIn(Index) Then
             ' Get the data
             name = Parse(1)
@@ -387,11 +389,6 @@ Private Sub ServerPacket_login(ByVal Index As Long, ByVal Data As String, ByRef 
                 End If
             Next I
 
-            ' Check versions
-            If Val(Parse(3)) < CLIENT_MAJOR Or Val(Parse(4)) < CLIENT_MINOR Or Val(Parse(5)) < CLIENT_REVISION Then
-                Call AlertMsg(Index, "Version outdated, please visit " & GAME_WEBSITE)
-                Exit Sub
-            End If
 
             If Len(Trim$(name)) < 3 Or Len(Trim$(Password)) < 3 Then
                 Call AlertMsg(Index, "Your name and password must be at least three characters in length")
@@ -5582,3 +5579,30 @@ Private Sub ServerPacket_requestlocation(ByVal Index As Long, ByVal Data As Stri
         Exit Sub
     End If
 End Sub
+
+Private Function CheckClientVersion(ByVal Index As Long, ByRef parts() As String) As Boolean
+    Dim version(0 To 2) As Long, component As Long, digit As Long, text As String
+    Dim supported As Boolean
+    If UBound(parts) < 6 Then GoTo InvalidVersion
+    For component = 0 To 2
+        text = parts(component + 3)
+        If Len(text) < 1 Or Len(text) > 5 Then GoTo InvalidVersion
+        For digit = 1 To Len(text)
+            If Asc(Mid$(text, digit, 1)) < 48 Or Asc(Mid$(text, digit, 1)) > 57 Then GoTo InvalidVersion
+        Next digit
+        version(component) = CLng(text)
+        If version(component) > 65535 Then GoTo InvalidVersion
+    Next component
+    If version(0) <> CLIENT_MAJOR Then
+        supported = version(0) > CLIENT_MAJOR
+    ElseIf version(1) <> CLIENT_MINOR Then
+        supported = version(1) > CLIENT_MINOR
+    Else
+        supported = version(2) >= CLIENT_REVISION
+    End If
+    If Not supported Then GoTo InvalidVersion
+    CheckClientVersion = True
+    Exit Function
+InvalidVersion:
+    AlertMsg Index, "Client version unsupported. Version " & CLIENT_MAJOR & "." & CLIENT_MINOR & "." & CLIENT_REVISION & " or newer is required. Please visit " & GAME_WEBSITE
+End Function
