@@ -48,6 +48,12 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Get the packet
     Select Case LCase$(Parse$(0))
+        Case "guilddetailsbegin"
+            If UBound(Parse) = 2 Then frmMainGame.BeginGuildDetails Parse(1), Parse(2)
+            Exit Sub
+        Case "guildmemberdetails"
+            If UBound(Parse) = 3 Then frmMainGame.AddGuildMember Parse(1), Parse(2), Parse(3)
+            Exit Sub
         Case "npcquestbegin"
             Load frmNpcEditor
             frmNpcEditor.BeginQuestList
@@ -247,6 +253,7 @@ Public Sub HandleData(ByVal Data As String)
             Call GameInit
             Call EnsureGameGraphics
             frmMainGame.RefreshSkills
+            frmMainGame.RequestGuildDetails
             Call GameLoop
             Exit Sub
 
@@ -375,6 +382,7 @@ Public Sub HandleData(ByVal Data As String)
         ' :::::::::::::::::::::::::
         Case "playerguild"
             Call SetPlayerGuild(MyIndex, Val(Parse(1)))
+            If InGame Then frmMainGame.RequestGuildDetails
             Exit Sub
 
         ' ::::::::::::::::::::::::
@@ -851,6 +859,7 @@ Public Sub HandleData(ByVal Data As String)
 
             ' Update the player in Guild!
             Player(n).Guild = Val(Parse(2))
+            If n = MyIndex And InGame Then frmMainGame.RequestGuildDetails
             Exit Sub
 
         ' ::::::::::::::::::::::
@@ -1296,6 +1305,7 @@ Public Sub HandleData(ByVal Data As String)
             Call EnsureGameGraphics
             frmMainGame.lstSpells.ListIndex = SelectedSpellSlot
             frmMainGame.RefreshSkills
+            frmMainGame.RequestGuildDetails
             If InGame Then frmMainGame.picPlayerSpells.Visible = True
 
             Exit Sub

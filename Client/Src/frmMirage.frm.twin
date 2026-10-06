@@ -998,7 +998,44 @@ ConfirmationFailed:
         wasVisible = picGuildPanel.Visible
         CloseSideMenu
         picGuildPanel.Visible = Not wasVisible
+        If picGuildPanel.Visible Then RequestGuildDetails
     End Sub
+
+    Public Sub RequestGuildDetails()
+        Dim guildId As Long
+        lstGuildMembers.Clear
+        lblGuildMemberDetails.Caption = vbNullString
+        lblGuildName.Caption = "No guild"
+        If MyIndex < 1 Then Exit Sub
+        guildId = GetPlayerGuild(MyIndex)
+        If guildId > 0 And guildId <= MAX_GUILDS Then
+            lblGuildName.Caption = Trim$(Guild(guildId).name)
+        End If
+        If InGame Then SendData "guilddetails" & END_CHAR
+    End Sub
+
+    Public Sub BeginGuildDetails(ByVal guildName As String, ByVal founder As String)
+        lstGuildMembers.Clear
+        lblGuildName.Caption = guildName
+        lblGuildMemberDetails.Caption = vbNullString
+    End Sub
+
+    Public Sub AddGuildMember(ByVal memberName As String, ByVal role As String, ByVal status As String)
+        Dim i As Long
+        For i = 0 To lstGuildMembers.ListCount - 1
+            If StrComp(lstGuildMembers.List(i), memberName, vbTextCompare) = 0 Then Exit Sub
+        Next i
+        lstGuildMembers.AddItem memberName
+        If lstGuildMembers.ListIndex < 0 Then lstGuildMembers.ListIndex = 0
+        lstGuildMembers_Click
+    End Sub
+
+    Private Sub lstGuildMembers_Click()
+        lblGuildMemberDetails.Caption = vbNullString
+        If lstGuildMembers.ListIndex < 0 Then Exit Sub
+        lblGuildMemberDetails.Caption = lstGuildMembers.List(lstGuildMembers.ListIndex)
+    End Sub
+
     Private Sub imgInventory_DblClick()
         InventoryDragSlot = 0
         InventoryDragging = False
