@@ -55,11 +55,20 @@ Class clsNativeSocket
             If mResolve = 0 Then Fail WinDevLib.WSAGetLastError()
         End If
     End Sub
+    Private Function SetTcpNoDelay(ByVal SocketHandle As LongPtr) As Boolean
+        Dim enabled As Long = 1
+        SetTcpNoDelay = (WinDevLib.ws_setsockopt(SocketHandle, WinDevLib.IPPROTO_TCP, WinDevLib.TCP_NODELAY, enabled, LenB(enabled)) = 0)
+    End Function
+
     Private Sub ConnectAddress(ByVal address As Long)
         Dim endpoint As WinDevLib.SOCKADDR_IN
         Dim result As Long
         mSocket = WinDevLib.ws_socket(WinDevLib.AF_INET, WinDevLib.SOCK_STREAM, WinDevLib.IPPROTO_TCP)
         If mSocket = -1 Then
+            Fail WinDevLib.WSAGetLastError()
+            Exit Sub
+        End If
+        If Not SetTcpNoDelay(mSocket) Then
             Fail WinDevLib.WSAGetLastError()
             Exit Sub
         End If

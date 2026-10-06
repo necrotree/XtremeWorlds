@@ -30,11 +30,20 @@ Attribute VB_Ext_KEY = "Top_Level" ,"Yes"
     Private mOffset As Long
     Private mShutdownAfterSend As Boolean
 
+    Private Function SetTcpNoDelay(ByVal SocketHandle As LongPtr) As Boolean
+        Dim enabled As Long = 1
+        SetTcpNoDelay = (WinDevLib.ws_setsockopt(SocketHandle, WinDevLib.IPPROTO_TCP, WinDevLib.TCP_NODELAY, enabled, LenB(enabled)) = 0)
+    End Function
+
     Public Sub Attach(ByVal handle As LongPtr, ByRef address As WinDevLib.SOCKADDR_IN)
         Dim bytes(0 To 3) As Byte
         Dim nonblocking As Long = 1
         mDisconnecting = False
         mSocket = handle
+        If Not SetTcpNoDelay(mSocket) Then
+            Me.Close
+            Exit Sub
+        End If
         Set RemoteAddress = New clsNativeAddress
         ' Read the IPv4 bytes without passing a UDT to an untyped memory-copy API.
         Dim ipv4 As Long
