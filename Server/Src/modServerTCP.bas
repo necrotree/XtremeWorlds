@@ -549,7 +549,7 @@ Sub SendMapItemsTo(ByVal Index As Long, ByVal MapNum As Long)
 
     Packet = "MAPITEMDATA" & SEP_CHAR
     For I = 1 To MAX_MAP_ITEMS
-        Packet = Packet & MapItem(MapNum, I).Num & SEP_CHAR & MapItem(MapNum, I).Value & SEP_CHAR & MapItem(MapNum, I).Dur & SEP_CHAR & MapItem(MapNum, I).X & SEP_CHAR & MapItem(MapNum, I).y & SEP_CHAR
+        Packet = Packet & MapItem(MapNum, I).Num & SEP_CHAR & MapItem(MapNum, I).Value & SEP_CHAR & MapItem(MapNum, I).Dur & SEP_CHAR & MapItem(MapNum, I).X & SEP_CHAR & MapItem(MapNum, I).y & SEP_CHAR & MapItem(MapNum, I).XOffset & SEP_CHAR & MapItem(MapNum, I).YOffset & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
 
@@ -562,7 +562,7 @@ Sub SendMapItemsToAll(ByVal MapNum As Long)
 
     Packet = "MAPITEMDATA" & SEP_CHAR
     For I = 1 To MAX_MAP_ITEMS
-        Packet = Packet & MapItem(MapNum, I).Num & SEP_CHAR & MapItem(MapNum, I).Value & SEP_CHAR & MapItem(MapNum, I).Dur & SEP_CHAR & MapItem(MapNum, I).X & SEP_CHAR & MapItem(MapNum, I).y & SEP_CHAR
+        Packet = Packet & MapItem(MapNum, I).Num & SEP_CHAR & MapItem(MapNum, I).Value & SEP_CHAR & MapItem(MapNum, I).Dur & SEP_CHAR & MapItem(MapNum, I).X & SEP_CHAR & MapItem(MapNum, I).y & SEP_CHAR & MapItem(MapNum, I).XOffset & SEP_CHAR & MapItem(MapNum, I).YOffset & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
 
@@ -1174,3 +1174,33 @@ Private Function InventorySlotAfterSwap(ByVal slot As Long, ByVal source As Long
     If slot = source Then InventorySlotAfterSwap = destination
     If slot = destination Then InventorySlotAfterSwap = source
 End Function
+Public Sub SendGuildDetails(ByVal Index As Long)
+    Dim guildId As Long, member As Long, previous As Long, name As String, duplicate As Boolean
+    If Not IsPlaying(Index) Then Exit Sub
+    guildId = GetPlayerGuild(Index)
+    If guildId < 1 Or guildId > MAX_GUILDS Then
+        SendDataTo Index, "GUILDDETAILSBEGIN" & SEP_CHAR & "No guild" & SEP_CHAR & "" & END_CHAR
+        Exit Sub
+    End If
+    SendDataTo Index, "GUILDDETAILSBEGIN" & SEP_CHAR & Trim$(Guild(guildId).Name) & SEP_CHAR & Trim$(Guild(guildId).Founder) & END_CHAR
+    name = Trim$(Guild(guildId).Founder)
+    If Len(name) > 0 Then SendGuildMemberDetails Index, name, "Founder"
+    For member = 1 To MAX_GUILD_MEMBERS
+        name = Trim$(Guild(guildId).Member(member))
+        duplicate = (LCase$(name) = LCase$(Trim$(Guild(guildId).Founder)))
+        For previous = 1 To member - 1
+            If LCase$(name) = LCase$(Trim$(Guild(guildId).Member(previous))) Then duplicate = True
+        Next previous
+        If Len(name) > 0 And Not duplicate Then SendGuildMemberDetails Index, name, "Member"
+    Next member
+End Sub
+
+Private Sub SendGuildMemberDetails(ByVal Index As Long, ByVal name As String, ByVal role As String)
+    Dim playerIndex As Long, status As String
+    status = "Offline"
+    playerIndex = FindPlayer(name)
+    If playerIndex > 0 And playerIndex <= MAX_PLAYERS Then
+        If IsPlaying(playerIndex) Then status = "Online"
+    End If
+    SendDataTo Index, "GUILDMEMBERDETAILS" & SEP_CHAR & name & SEP_CHAR & role & SEP_CHAR & status & END_CHAR
+End Sub

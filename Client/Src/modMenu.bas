@@ -70,7 +70,6 @@ Public Sub CloseSideMenu()
         .picPlayerSpells.Visible = False
         .picInv.Visible = False
         .picKeepNotes.Visible = False
-        .picMnuTrain.Visible = False
         .picLiveStats.Visible = False
     End With
 End Sub

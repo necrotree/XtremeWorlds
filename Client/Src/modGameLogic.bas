@@ -524,7 +524,7 @@ Sub ProcessMovement(ByVal index As Long)
         frmMainGame.lblSP(0) = "SP: " & Val(GetPlayerSP(MyIndex)) & "/" & Val(GetPlayerMaxSP(MyIndex))
         frmMainGame.lblSP(1) = frmMainGame.lblSP(0)
         If GetPlayerMaxSP(MyIndex) > 0 Then
-            frmMainGame.shpSP.Width = (GetPlayerSP(MyIndex) / GetPlayerMaxSP(MyIndex)) * 211
+            frmMainGame.shpSP.Width = StatusBarWidth(GetPlayerSP(MyIndex), GetPlayerMaxSP(MyIndex))
         End If
     End If
 End Sub
@@ -683,8 +683,8 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
         ' Show training
         If LCase$(Mid$(MyText, 1, 6)) = "/train" Then
             Call CloseSideMenu
-            frmMainGame.picMnuTrain.Visible = True
-            frmMainGame.cmbStat.ListIndex = 0
+            frmMainGame.RefreshCharacterDetails
+            frmMainGame.picMnuGear.Visible = True
             MyText = vbNullString
             Exit Sub
         End If
@@ -1079,14 +1079,17 @@ Sub CheckMapGetItem()
     End If
 End Sub
 
-Public Sub CheckAttack()
+Public Sub CheckAttack(Optional ByVal MouseAttack As Boolean = False)
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
 ' * ----    ---    ----
 ' * 07/12/2005  Shannara   Optimized function.
 ' ****************************************************************
 
-    If ControlDown = True And Player(MyIndex).AttackTimer + 1000 < GetTickCount And Player(MyIndex).Attacking = 0 Then
+    If Not InGame Or GettingMap Or InEditor Then Exit Sub
+    If MyIndex < 1 Then Exit Sub
+    If EditingHotkeys Or QuestDialogueOpen Or QuestEditorOpen Or BookEditorOpen Or frmMainGame.ChatUnlocked Then Exit Sub
+    If (ControlDown Or MouseAttack) And Player(MyIndex).AttackTimer + 1000 < GetTickCount And Player(MyIndex).Attacking = 0 Then
         With Player(MyIndex)
             .Attacking = 1
             .AttackTimer = GetTickCount

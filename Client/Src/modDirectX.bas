@@ -307,15 +307,15 @@ Public Sub BltItem(ByVal ItemNum As Long)
 
     ' Only used if ever want to switch to blt rather then bltfast
     With rec_pos
-        .Top = MapItem(ItemNum).Y * PIC_Y
+        .Top = (MapItem(ItemNum).Y * PIC_Y + MapItem(ItemNum).YOffset)
         .Bottom = .Top + PIC_Y
-        .Left = MapItem(ItemNum).X * PIC_X
+        .Left = (MapItem(ItemNum).X * PIC_X + MapItem(ItemNum).XOffset)
         .Right = .Left + PIC_X
     End With
 
     Call GetItemPictureRect(Item(MapItem(ItemNum).Num).Pic, rec)
 
-    Call DD_MiddleBuffer.BltFast(MapItem(ItemNum).X * PIC_X, MapItem(ItemNum).Y * PIC_Y, DD_ItemSurf, rec, True)
+    Call DD_MiddleBuffer.BltFast((MapItem(ItemNum).X * PIC_X + MapItem(ItemNum).XOffset), (MapItem(ItemNum).Y * PIC_Y + MapItem(ItemNum).YOffset), DD_ItemSurf, rec, True)
 End Sub
 
 Public Sub BltPlayer(ByVal index As Long)

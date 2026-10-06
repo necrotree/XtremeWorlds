@@ -403,7 +403,7 @@ Sub SpawnItem(ByVal ItemNum As Long, ByVal ItemVal As Long, ByVal MapNum As Long
     Call SpawnItemSlot(I, ItemNum, ItemVal, Item(ItemNum).Data1, MapNum, X, y)
 End Sub
 
-Sub SpawnItemSlot(ByVal MapItemSlot As Long, ByVal ItemNum As Long, ByVal ItemVal As Long, ByVal ItemDur As Long, ByVal MapNum As Long, ByVal X As Long, ByVal y As Long)
+Sub SpawnItemSlot(ByVal MapItemSlot As Long, ByVal ItemNum As Long, ByVal ItemVal As Long, ByVal ItemDur As Long, ByVal MapNum As Long, ByVal X As Long, ByVal y As Long, Optional ByVal XOffset As Long = 0, Optional ByVal YOffset As Long = 0)
     Dim Packet As String
     Dim I As Long
 
@@ -412,6 +412,7 @@ Sub SpawnItemSlot(ByVal MapItemSlot As Long, ByVal ItemNum As Long, ByVal ItemVa
         Exit Sub
     End If
 
+    If XOffset < 0 Or XOffset >= PIC_X Or YOffset < 0 Or YOffset >= PIC_Y Then Exit Sub
     I = MapItemSlot
 
     If I <> 0 And ItemNum >= 0 And ItemNum <= MAX_ITEMS Then
@@ -430,8 +431,10 @@ Sub SpawnItemSlot(ByVal MapItemSlot As Long, ByVal ItemNum As Long, ByVal ItemVa
 
         MapItem(MapNum, I).X = X
         MapItem(MapNum, I).y = y
+        MapItem(MapNum, I).XOffset = XOffset
+        MapItem(MapNum, I).YOffset = YOffset
 
-        Packet = "SPAWNITEM" & SEP_CHAR & I & SEP_CHAR & ItemNum & SEP_CHAR & ItemVal & SEP_CHAR & MapItem(MapNum, I).Dur & SEP_CHAR & X & SEP_CHAR & y & END_CHAR
+        Packet = "SPAWNITEM" & SEP_CHAR & I & SEP_CHAR & ItemNum & SEP_CHAR & ItemVal & SEP_CHAR & MapItem(MapNum, I).Dur & SEP_CHAR & X & SEP_CHAR & y & SEP_CHAR & XOffset & SEP_CHAR & YOffset & END_CHAR
         Call SendDataToMap(MapNum, Packet)
     End If
 End Sub
@@ -487,8 +490,8 @@ Sub PlayerMapGetItem(ByVal Index As Long)
         ' See if theres even an item here
         If (MapItem(MapNum, I).Num > 0) And (MapItem(MapNum, I).Num <= MAX_ITEMS) Then
             ' Allow pickup within 32 pixels, including sub-tile movement offsets.
-            pickupDX = CDbl(MapItem(MapNum, I).X) * PIC_X - GetPlayerPixelX(Index)
-            pickupDY = CDbl(MapItem(MapNum, I).y) * PIC_Y - GetPlayerPixelY(Index)
+            pickupDX = CDbl(MapItem(MapNum, I).X) * PIC_X + MapItem(MapNum, I).XOffset - GetPlayerPixelX(Index)
+            pickupDY = CDbl(MapItem(MapNum, I).y) * PIC_Y + MapItem(MapNum, I).YOffset - GetPlayerPixelY(Index)
             If pickupDX * pickupDX + pickupDY * pickupDY <= 32# * 32# Then
                 ' Find open slot
                 N = FindOpenInvSlot(Index, MapItem(MapNum, I).Num)
@@ -617,7 +620,7 @@ Sub PlayerMapDropItem(ByVal Index As Long, ByVal InvNum As Long, ByVal Ammount A
             ' Send inventory update
             Call SendInventoryUpdate(Index, InvNum)
             ' Spawn the item before we set the num or we'll get a different free map item slot
-            Call SpawnItemSlot(I, MapItem(GetPlayerMap(Index), I).Num, Ammount, MapItem(GetPlayerMap(Index), I).Dur, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index))
+            Call SpawnItemSlot(I, MapItem(GetPlayerMap(Index), I).Num, Ammount, MapItem(GetPlayerMap(Index), I).Dur, GetPlayerMap(Index), GetPlayerX(Index), GetPlayerY(Index), Player(Index).XOffset, Player(Index).YOffset)
         
             MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnItemDrop " & Index & "," & MapItem(GetPlayerMap(Index), I).Num & "," & MapItem(GetPlayerMap(Index), I).Value & "," & MapItem(GetPlayerMap(Index), I).Dur & "," & InvNum
         
@@ -2636,6 +2639,8 @@ Sub ClearMapItem(ByVal Index As Long, ByVal MapNum As Long)
     MapItem(MapNum, Index).Dur = 0
     MapItem(MapNum, Index).X = 0
     MapItem(MapNum, Index).y = 0
+    MapItem(MapNum, Index).XOffset = 0
+    MapItem(MapNum, Index).YOffset = 0
 End Sub
 
 Sub ClearMapItems()

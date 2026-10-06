@@ -206,6 +206,8 @@ Type MapItemRec
   
   X As Byte
   Y As Byte
+  XOffset As Byte
+  YOffset As Byte
 End Type
 
 Type NpcRec

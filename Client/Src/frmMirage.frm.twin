@@ -11,7 +11,6 @@ Class frmMainGame
     Option Explicit
     Public picMnuGear As clsImageMenu
     Public picLiveStats As clsImageMenu
-    Public picMnuTrain As clsImageMenu
     Public picWho As clsImageMenu
     Public picInv As clsImageMenu
     Public picPlayerSpells As clsImageMenu
@@ -99,6 +98,16 @@ End Sub
     
     Private Sub Form_Load()
         InitializeImageMenus
+        StretchStatusTexture Picture1
+        StretchStatusTexture Picture2
+        StretchStatusTexture Picture3
+        StretchStatusTexture shpHP
+        StretchStatusTexture shpMP
+        StretchStatusTexture shpSP
+        shpEXP.ZOrder 0
+        lblHP(0).ZOrder 0
+        lblMP(0).ZOrder 0
+        lblSP(0).ZOrder 0
         LayoutGamePanels
         TilesetWheelRemainder = 0
         picPlayerList.Visible = False
@@ -197,15 +206,6 @@ ConfirmationFailed:
         End If
     End Sub
     
-    Private Sub lblTrain_Click()
-        Dim currentPoints As Long
-        currentPoints = GetPlayerPOINTS(MyIndex)
-        lblPlayerPoints.Caption = "Current Stat Points: " & CStr(currentPoints)
-        If currentPoints <= 0 Then Exit Sub
-        Call SendData("usestatpoint" & SEP_CHAR & cmbStat.ListIndex & END_CHAR)
-        Call SetPlayerPOINTS(MyIndex, currentPoints - 1)
-        lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
-    End Sub
     
     Private Sub TrainCharacterStat(ByVal PointType As Long)
         If MyIndex < 1 Then Exit Sub
@@ -400,7 +400,7 @@ ConfirmationFailed:
             End If
         Else
             Call PlayerSearch(Button, Shift, X, Y)
-            If Button = vbRightButton Then RequestQuestTalk X, Y
+            If Button = vbRightButton Then CheckAttack True
         End If
     End Sub
     
@@ -549,15 +549,6 @@ ConfirmationFailed:
         BltPlayerGear
     End Sub
     
-    Private Sub picTrain_Click()
-        Call CloseSideMenu
-        Call SendData("getlivestats" & END_CHAR)
-        lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
-        picMnuTrain.Visible = True
-        frmMainGame.cmbStat.ListIndex = 0
-    ' frmTrade.mnuTrain.Visible = True
-    ' frmTrade.Caption = "Crystalion II :: Training"
-    End Sub
     
     Private Sub picTrade_Click()
         Call SendData("trade" & END_CHAR)
@@ -1199,10 +1190,14 @@ ConfirmationFailed:
         lblCharacterValue(13).ToolTipText = "Not tracked by this game"
         Dim TrainColor As Long
         If GetPlayerPOINTS(MyIndex) > 0 Then
-            TrainColor = RGB(255, 255, 255)
+            TrainColor = RGB(80, 220, 80)
         Else
-            TrainColor = RGB(255, 0, 0)
+            TrainColor = RGB(80, 220, 80)
         End If
+        Dim statButton As Long
+        For statButton = 0 To 3
+            lblCharacterTrain(statButton).Enabled = (GetPlayerPOINTS(MyIndex) > 0)
+        Next
         lblCharacterTrain(0).Caption = "+"
         lblCharacterTrain(1).Caption = "+"
         lblCharacterTrain(2).Caption = "+"
@@ -1298,13 +1293,22 @@ ConfirmationFailed:
         If Slot >= 0 Then lstSpells.ListIndex = Slot
     End Sub
     
+    Private Sub StretchStatusTexture(ByVal bar As Object)
+        Dim texture As StdPicture
+        Set texture = bar.Picture
+        bar.AutoRedraw = True
+        bar.ScaleMode = vbPixels
+        Set bar.Picture = Nothing
+        bar.Cls
+        If Not texture Is Nothing Then bar.PaintPicture texture, 0, 0, bar.ScaleWidth, bar.ScaleHeight
+        Set bar.Picture = bar.Image
+    End Sub
+
     Private Sub InitializeImageMenus()
         Set picMnuGear = New clsImageMenu
         picMnuGear.Initialize "picMnuGear", "imgCharacter"
         Set picLiveStats = New clsImageMenu
         picLiveStats.Initialize "picLiveStats", "imgLiveStats"
-        Set picMnuTrain = New clsImageMenu
-        picMnuTrain.Initialize "picMnuTrain", "imgTraining"
         Set picWho = New clsImageMenu
         picWho.Initialize "picWho", "imgWho"
         Set picInv = New clsImageMenu

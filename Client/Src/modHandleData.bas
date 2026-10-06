@@ -1,4 +1,4 @@
-Attribute VB_Name = "modHandleData"
+﻿Attribute VB_Name = "modHandleData"
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
 ' * ----    ---    ----
@@ -298,7 +298,7 @@ Public Sub HandleData(ByVal Data As String)
                 With frmMainGame
                     .lblHP(0).Caption = GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
                     .lblHP(1).Caption = GetPlayerHP(MyIndex) & "/" & GetPlayerMaxHP(MyIndex)
-                    .shpHP.Width = (((GetPlayerHP(MyIndex) / 100) / (GetPlayerMaxHP(MyIndex) / 100)) * 211)
+                    .shpHP.Width = StatusBarWidth(GetPlayerHP(MyIndex), GetPlayerMaxHP(MyIndex))
                 End With
             End If
             Exit Sub
@@ -349,16 +349,13 @@ Public Sub HandleData(ByVal Data As String)
                 If experienceRatio < 0 Then experienceRatio = 0
                 If experienceRatio > 1 Then experienceRatio = 1
                 frmMainGame.shpEXP.Width = StatusBarWidth(experience, NextLevel)
-                frmMainGame.lblExperience.Caption = Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0")
-                frmMainGame.lblExperience.ToolTipText = "Experience: " & Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0") & "; TNL: " & Format$(remainingExperience, "#,##0")
             Else
                 frmMainGame.shpEXP.Width = 0
-                frmMainGame.lblExperience.Caption = Format$(experience, "#,##0")
-                frmMainGame.lblExperience.ToolTipText = "The server has not supplied a next-level target."
             End If
             frmMainGame.lblLevel.Caption = CStr(GetPlayerLevel(MyIndex))
             frmMainGame.lblEXP.Caption = CStr(GetPlayerExp(MyIndex))
             frmMainGame.lblTNL.Caption = CStr(remainingExperience)
+            frmMainGame.lblExperience.Caption = Str$(GetPlayerExp(MyIndex)) + "/" + Str$(GetPlayerNextLevel(MyIndex))
             frmMainGame.RefreshCharacterDetails
             Exit Sub
 
@@ -370,6 +367,7 @@ Public Sub HandleData(ByVal Data As String)
             Call SetPlayerDEF(MyIndex, Val(Parse(2)))
             Call SetPlayerSPEED(MyIndex, Val(Parse(3)))
             Call SetPlayerMAGI(MyIndex, Val(Parse(4)))
+            frmMainGame.RefreshCharacterDetails
             Exit Sub
 
         ' :::::::::::::::::::::::::
@@ -698,8 +696,10 @@ Public Sub HandleData(ByVal Data As String)
                 SaveMapItem(i).Dur = Val(Parse(n + 2))
                 SaveMapItem(i).X = Val(Parse(n + 3))
                 SaveMapItem(i).Y = Val(Parse(n + 4))
+                SaveMapItem(i).XOffset = Val(Parse(n + 5))
+                SaveMapItem(i).YOffset = Val(Parse(n + 6))
 
-                n = n + 5
+                n = n + 7
             Next i
 
             Exit Sub
@@ -801,6 +801,12 @@ Public Sub HandleData(ByVal Data As String)
             MapItem(n).Dur = Val(Parse(4))
             MapItem(n).X = Val(Parse(5))
             MapItem(n).Y = Val(Parse(6))
+            MapItem(n).XOffset = 0
+            MapItem(n).YOffset = 0
+            If UBound(Parse) >= 8 Then
+                MapItem(n).XOffset = Val(Parse(7))
+                MapItem(n).YOffset = Val(Parse(8))
+            End If
             Exit Sub
 
         ' ::::::::::::::::::::::::
@@ -1409,7 +1415,6 @@ Public Sub HandleData(ByVal Data As String)
 
                 Call SetPlayerPOINTS(MyIndex, Trim$(Parse(6)))
                 frmMainGame.lblPoints.Caption = GetPlayerPOINTS(MyIndex)
-                frmMainGame.lblPlayerPoints.Caption = "Current Stat Points: " & CStr(GetPlayerPOINTS(MyIndex))
 
                 frmMainGame.lblEXP.Caption = Trim$(Parse(2))
                 frmMainGame.lblTNL.Caption = Int(Trim$(Parse(3)) - Trim$(Parse(2)))
@@ -1541,9 +1546,8 @@ Public Sub HandleData(ByVal Data As String)
     End Select
 End Sub
 
-Private Function StatusBarWidth(ByVal CurrentValue As Double, ByVal MaximumValue As Double) As Double
+Public Function StatusBarWidth(ByVal CurrentValue As Double, ByVal MaximumValue As Double) As Double
     Const STATUS_BAR_WIDTH As Double = 211
-    Const STATUS_LABEL_WIDTH As Double = 58
     Dim ratio As Double
 
     If MaximumValue <= 0 Or CurrentValue <= 0 Then
@@ -1556,6 +1560,5 @@ Private Function StatusBarWidth(ByVal CurrentValue As Double, ByVal MaximumValue
     If ratio > 1 Then ratio = 1
 
     StatusBarWidth = ratio * STATUS_BAR_WIDTH
-    If StatusBarWidth < STATUS_LABEL_WIDTH Then StatusBarWidth = STATUS_LABEL_WIDTH
     If StatusBarWidth > STATUS_BAR_WIDTH Then StatusBarWidth = STATUS_BAR_WIDTH
 End Function

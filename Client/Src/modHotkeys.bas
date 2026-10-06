@@ -203,7 +203,7 @@ Public Function GameKeyMatches(ByVal action As Long, ByVal key As Integer) As Bo
             Case HK_DOWN: GameKeyMatches = GameKeyMatches Or key = vbKeyS
             Case HK_LEFT: GameKeyMatches = GameKeyMatches Or key = vbKeyA
             Case HK_RIGHT: GameKeyMatches = GameKeyMatches Or key = vbKeyD
-            Case HK_PICKUP: GameKeyMatches = GameKeyMatches Or key = vbKeyE
+            Case HK_PICKUP: GameKeyMatches = GameKeyMatches Or key = vbKeyE Or key = vbKeySpace
         End Select
     End If
 End Function
@@ -219,7 +219,9 @@ Public Function GameKeyDown(ByVal action As Long) As Boolean
             Case HK_DOWN: alternate = vbKeyS
             Case HK_LEFT: alternate = vbKeyA
             Case HK_RIGHT: alternate = vbKeyD
-            Case HK_PICKUP: alternate = vbKeyE
+            Case HK_PICKUP:
+                alternate = vbKeyE
+                GameKeyDown = GameKeyDown Or GetAsyncKeyState(vbKeySpace) < 0
         End Select
         If alternate <> 0 Then GameKeyDown = GameKeyDown Or GetAsyncKeyState(alternate) < 0
     End If
