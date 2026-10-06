@@ -543,6 +543,7 @@ Sub GameAI()
                         If MapNpc(y, X).HP > GetNpcMaxHP(NpcNum) Then
                             MapNpc(y, X).HP = GetNpcMaxHP(NpcNum)
                         End If
+                        Call SendNpcVitals(y, X)
                     End If
                 End If
 

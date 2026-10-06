@@ -290,8 +290,25 @@ Public Sub BltSpriteOverlays()
             If hasBubble Then DrawBubbleSkin bubble
         End If
     Next index
+    If GameData.Vitals = 1 Then DrawNpcVitals
     DrawQuestMarkers
     DrawTargetMarker
+End Sub
+
+Private Sub DrawNpcVitals()
+    Dim index As Long, X As Long, Y As Long, centerX As Long
+    For index = 1 To MAX_MAP_NPCS
+        If MapNpc(index).Num > 0 And MapNpc(index).MaxHP > 0 Then
+            If TargetSpritePosition(2, index, X, Y) Then
+                centerX = X - 8 + (CLng(GameData.SpriteWidth) + 16) \ 2
+                Y = Y - 16 + PIC_Y * 2 + 2
+                DrawVitalBar centerX - BAR_WIDTH \ 2, Y, 0, MapNpc(index).HP, MapNpc(index).MaxHP
+                If Npc(MapNpc(index).Num).MAGI > 0 Then
+                    DrawVitalBar centerX - BAR_WIDTH \ 2, Y + 8, 1, MapNpc(index).MP, CLng(Npc(MapNpc(index).Num).MAGI) * 2
+                End If
+            End If
+        End If
+    Next index
 End Sub
 
 Private Sub DrawVitalBar(ByVal X As Long, ByVal Y As Long, ByVal row As Long, ByVal value As Long, ByVal maximum As Long)

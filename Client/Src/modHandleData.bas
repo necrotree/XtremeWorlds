@@ -715,8 +715,11 @@ Public Sub HandleData(ByVal Data As String)
                 SaveMapNpc(i).X = Val(Parse(n + 1))
                 SaveMapNpc(i).Y = Val(Parse(n + 2))
                 SaveMapNpc(i).Dir = Val(Parse(n + 3))
+                SaveMapNpc(i).HP = Val(Parse(n + 4))
+                SaveMapNpc(i).MaxHP = Val(Parse(n + 5))
+                SaveMapNpc(i).MP = Val(Parse(n + 6))
 
-                n = n + 4
+                n = n + 7
             Next i
 
             Exit Sub
@@ -945,6 +948,17 @@ Public Sub HandleData(ByVal Data As String)
         ' ::::::::::::::::::::::
         ' :: Npc spawn packet ::
         ' ::::::::::::::::::::::
+        Case "npcvitals"
+            If GettingMap Or UBound(Parse) < 6 Then Exit Sub
+            If Val(Parse(1)) <> GetPlayerMap(MyIndex) Then Exit Sub
+            n = Val(Parse(2))
+            If n < 1 Or n > MAX_MAP_NPCS Then Exit Sub
+            If MapNpc(n).Num <> Val(Parse(3)) Then Exit Sub
+            MapNpc(n).HP = Val(Parse(4))
+            MapNpc(n).MaxHP = Val(Parse(5))
+            MapNpc(n).MP = Val(Parse(6))
+            Exit Sub
+
         Case "spawnnpc"
             n = Val(Parse(1))
 
@@ -952,6 +966,9 @@ Public Sub HandleData(ByVal Data As String)
             MapNpc(n).X = Val(Parse(3))
             MapNpc(n).Y = Val(Parse(4))
             MapNpc(n).Dir = Val(Parse(5))
+            MapNpc(n).HP = Val(Parse(6))
+            MapNpc(n).MaxHP = Val(Parse(7))
+            MapNpc(n).MP = Val(Parse(8))
 
             ' Client use only
             MapNpc(n).XOffset = 0

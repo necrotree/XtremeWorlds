@@ -575,7 +575,7 @@ Sub SendMapNpcsTo(ByVal Index As Long, ByVal MapNum As Long)
 
     Packet = "MAPNPCDATA" & SEP_CHAR
     For I = 1 To MAX_MAP_NPCS
-        Packet = Packet & MapNpc(MapNum, I).Num & SEP_CHAR & MapNpc(MapNum, I).X & SEP_CHAR & MapNpc(MapNum, I).y & SEP_CHAR & MapNpc(MapNum, I).Dir & SEP_CHAR
+        Packet = Packet & MapNpc(MapNum, I).Num & SEP_CHAR & MapNpc(MapNum, I).X & SEP_CHAR & MapNpc(MapNum, I).y & SEP_CHAR & MapNpc(MapNum, I).Dir & SEP_CHAR & MapNpc(MapNum, I).HP & SEP_CHAR & GetNpcMaxHP(MapNpc(MapNum, I).Num) & SEP_CHAR & MapNpc(MapNum, I).MP & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
 
@@ -588,7 +588,7 @@ Sub SendMapNpcsToMap(ByVal MapNum As Long)
 
     Packet = "MAPNPCDATA" & SEP_CHAR
     For I = 1 To MAX_MAP_NPCS
-        Packet = Packet & MapNpc(MapNum, I).Num & SEP_CHAR & MapNpc(MapNum, I).X & SEP_CHAR & MapNpc(MapNum, I).y & SEP_CHAR & MapNpc(MapNum, I).Dir & SEP_CHAR
+        Packet = Packet & MapNpc(MapNum, I).Num & SEP_CHAR & MapNpc(MapNum, I).X & SEP_CHAR & MapNpc(MapNum, I).y & SEP_CHAR & MapNpc(MapNum, I).Dir & SEP_CHAR & MapNpc(MapNum, I).HP & SEP_CHAR & GetNpcMaxHP(MapNpc(MapNum, I).Num) & SEP_CHAR & MapNpc(MapNum, I).MP & SEP_CHAR
     Next I
     Packet = Packet & END_CHAR
 
@@ -1203,4 +1203,11 @@ Private Sub SendGuildMemberDetails(ByVal Index As Long, ByVal name As String, By
         If IsPlaying(playerIndex) Then status = "Online"
     End If
     SendDataTo Index, "GUILDMEMBERDETAILS" & SEP_CHAR & name & SEP_CHAR & role & SEP_CHAR & status & END_CHAR
+End Sub
+
+Public Sub SendNpcVitals(ByVal MapNum As Long, ByVal Slot As Long)
+    Dim NpcNum As Long
+    NpcNum = MapNpc(MapNum, Slot).Num
+    If NpcNum <= 0 Then Exit Sub
+    SendDataToMap MapNum, "NPCVITALS" & SEP_CHAR & MapNum & SEP_CHAR & Slot & SEP_CHAR & NpcNum & SEP_CHAR & MapNpc(MapNum, Slot).HP & SEP_CHAR & GetNpcMaxHP(NpcNum) & SEP_CHAR & MapNpc(MapNum, Slot).MP & END_CHAR
 End Sub

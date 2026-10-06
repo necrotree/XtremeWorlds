@@ -706,7 +706,7 @@ Sub SpawnNpc(ByVal MapNpcNum As Long, ByVal MapNum As Long)
 
         ' If we suceeded in spawning then send it to everyone
         If Spawned Then
-            Packet = "SPAWNNPC" & SEP_CHAR & MapNpcNum & SEP_CHAR & MapNpc(MapNum, MapNpcNum).Num & SEP_CHAR & MapNpc(MapNum, MapNpcNum).X & SEP_CHAR & MapNpc(MapNum, MapNpcNum).y & SEP_CHAR & MapNpc(MapNum, MapNpcNum).Dir & END_CHAR
+            Packet = "SPAWNNPC" & SEP_CHAR & MapNpcNum & SEP_CHAR & MapNpc(MapNum, MapNpcNum).Num & SEP_CHAR & MapNpc(MapNum, MapNpcNum).X & SEP_CHAR & MapNpc(MapNum, MapNpcNum).y & SEP_CHAR & MapNpc(MapNum, MapNpcNum).Dir & SEP_CHAR & MapNpc(MapNum, MapNpcNum).HP & SEP_CHAR & GetNpcMaxHP(NpcNum) & SEP_CHAR & MapNpc(MapNum, MapNpcNum).MP & END_CHAR
             Call SendDataToMap(MapNum, Packet)
         End If
     End If
@@ -1390,6 +1390,7 @@ Sub AttackNpc(ByVal Attacker As Long, ByVal MapNpcNum As Long, ByVal Damage As L
     Else
         ' NPC not dead, just do the damage
         MapNpc(MapNum, MapNpcNum).HP = MapNpc(MapNum, MapNpcNum).HP - Damage
+        Call SendNpcVitals(MapNum, MapNpcNum)
 
         ' Check for a weapon and say damage
         If N = 0 Then
@@ -2312,11 +2313,13 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
             Select Case Spell(SpellNum).Type
                 Case SPELL_TYPE_ADDHP
                     MapNpc(GetPlayerMap(Index), N).HP = MapNpc(GetPlayerMap(Index), N).HP + Spell(SpellNum).Data1
+                    Call SendNpcVitals(GetPlayerMap(Index), N)
                 Case SPELL_TYPE_SUBHP   ' I am here
 
                     Damage = (Int(GetPlayerMAGI(Index) / 4) + Spell(SpellNum).Data1) - Int(Npc(NpcNum).DEF / 2)
                     If Damage > 0 And Damage < MapNpc(GetPlayerMap(Index), N).HP Then
                         MapNpc(GetPlayerMap(Index), N).HP = MapNpc(GetPlayerMap(Index), N).HP - Damage
+                        Call SendNpcVitals(GetPlayerMap(Index), N)
                         Call PlayerMsg(Index, "Your spell dealt " & Str$(Damage) & " damage!", Yellow)
                     ElseIf Damage >= MapNpc(GetPlayerMap(Index), N).HP Then
                         Call PlayerMsg(Index, "Your spell dealt " & Damage & " damage, killing it.", BrightRed)
@@ -2386,9 +2389,11 @@ Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal H
 
                 Case SPELL_TYPE_ADDMP
                     MapNpc(GetPlayerMap(Index), N).MP = MapNpc(GetPlayerMap(Index), N).MP + Spell(SpellNum).Data1
+                    Call SendNpcVitals(GetPlayerMap(Index), N)
 
                 Case SPELL_TYPE_SUBMP
                     MapNpc(GetPlayerMap(Index), N).MP = MapNpc(GetPlayerMap(Index), N).MP - Spell(SpellNum).Data1
+                    Call SendNpcVitals(GetPlayerMap(Index), N)
 
                 Case SPELL_TYPE_ADDSP
                     MapNpc(GetPlayerMap(Index), N).SP = MapNpc(GetPlayerMap(Index), N).SP + Spell(SpellNum).Data1
