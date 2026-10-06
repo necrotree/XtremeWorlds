@@ -10,11 +10,12 @@ Class frmBookEditor
     Private QuestCount As Long
     Private Initialized As Boolean
 
-    Public Sub BeginList()
+    Public Sub BeginList(ByVal maximum As Long)
         Initialized = False
         BookCount = 0
         QuestCount = 0
-        BookIds(0) = 0
+        MAX_BOOKS = maximum
+        ReDim Book(1 To MAX_BOOKS) As BookRec
         QuestIds(0) = 0
         Current = 0
         Saving = False
@@ -35,19 +36,18 @@ Class frmBookEditor
     End Sub
 
     Public Sub AddBook(ByVal id As Long, ByVal title As String)
-        Dim i As Long
-
         If Not Initialized Then Exit Sub
-        If BookCount >= 32767 Then Exit Sub
-
-        For i = 0 To BookCount
-            If Book(i) = id Then Exit Sub
-        Next i
-
+        If id < 1 Or id > MAX_BOOKS Then Exit Sub
+        ' Server sends every slot in order, matching the shared index editor.
+        If id <= BookCount Then Exit Sub
+        If id <> BookCount + 1 Then Exit Sub
+        SetBookName Book(id), title
         cmbBook.AddItem CStr(id) & ": " & title
+        BookCount = id
+    End Sub
 
-        BookCount = BookCount + 1
-        Book(BookCount) = id
+    Private Sub SetBookName(ByRef value As BookRec, ByVal title As String)
+        value.Name = title
     End Sub
 
     Public Sub AddQuest(ByVal id As Long, ByVal title As String)
@@ -67,16 +67,8 @@ Class frmBookEditor
     End Sub
 
     Private Sub SelectBook(ByVal id As Long)
-        Dim i As Long
-
         cmbBook.ListIndex = 0
-
-        For i = 0 To BookCount
-            If Book(i) = id Then
-                cmbBook.ListIndex = i
-                Exit Sub
-            End If
-        Next i
+        If id >= 1 And id <= BookCount Then cmbBook.ListIndex = id
     End Sub
 
     Private Sub SelectQuest(ByVal id As Long)
@@ -102,7 +94,7 @@ Class frmBookEditor
     End Sub
 
     Public Sub SelectBookForEdit(ByVal id As Long)
-        If id < 1 Then Exit Sub
+        If id < 1 Or id > BookCount Then Exit Sub
         Current = id
     End Sub
 
@@ -119,29 +111,48 @@ Class frmBookEditor
     End Sub
 
     Public Sub LoadDefinition(ByRef parts() As String)
-        Dim bookId As Long
-        Dim questId As Long
 
         If Not Initialized Then Exit Sub
         If Not BookEditorOpen Then Exit Sub
+        If Current < 1 Or Current > BookCount Then Exit Sub
         If CLng(Val(parts(1))) <> Current Then Exit Sub
 
-        txtBookTitle.Text = parts(2)
-        txtBookHeader.Text = parts(3)
-        txtPage1.Text = parts(4)
-        txtPage2.Text = parts(5)
-
-        bookId = CLng(Val(parts(6)))
-        questId = CLng(Val(parts(7)))
-
-        SelectBook bookId
-        SelectQuest questId
+        LoadBookRecord Book(Current), parts
 
         cmdOk.Enabled = True
         cmdPreview.Enabled = True
 
         Me.Show vbModeless, frmMainGame
         Me.ZOrder 0
+    End Sub
+
+    Private Sub LoadBookRecord(ByRef value As BookRec, ByRef parts() As String)
+        value.Name = parts(2)
+        value.Header = parts(3)
+        value.Pages(1) = parts(4)
+        value.Pages(2) = parts(5)
+        value.PageCount = 2
+        value.NextBook = CLng(Val(parts(6)))
+        value.Quest = CLng(Val(parts(7)))
+        txtBookTitle.Text = RTrim$(value.Name)
+        txtBookHeader.Text = RTrim$(value.Header)
+        txtPage1.Text = RTrim$(value.Pages(1))
+        txtPage2.Text = RTrim$(value.Pages(2))
+        SelectBook value.NextBook
+        SelectQuest value.Quest
+    End Sub
+
+    Private Sub StoreBookRecord(ByRef value As BookRec)
+        value.Name = CleanBookEditorText(txtBookTitle.Text)
+        value.Header = CleanBookEditorText(txtBookHeader.Text)
+        value.Pages(1) = CleanBookEditorText(txtPage1.Text)
+        value.Pages(2) = CleanBookEditorText(txtPage2.Text)
+        value.NextBook = cmbBook.ListIndex
+        value.Quest = QuestIds(cmbQuest.ListIndex)
+    End Sub
+
+    Private Sub SendBookRecord(ByRef value As BookRec)
+        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & RTrim$(value.Name) & SEP_CHAR & RTrim$(value.Header) & SEP_CHAR & RTrim$(value.Pages(1)) & SEP_CHAR & RTrim$(value.Pages(2)) & SEP_CHAR & value.NextBook & SEP_CHAR & value.Quest & END_CHAR
     End Sub
 
     Private Function CleanBookEditorText(ByVal value As String) As String
@@ -158,7 +169,7 @@ Class frmBookEditor
         If cmbBook.ListIndex < 0 Then Exit Sub
         If cmbQuest.ListIndex < 0 Then Exit Sub
 
-        If Book(cmbBook.ListIndex) = Current Then
+        If cmbBook.ListIndex = Current Then
             GameMsgBox "Choose a different connecting book.", vbExclamation
             Exit Sub
         End If
@@ -166,7 +177,8 @@ Class frmBookEditor
         Saving = True
 
         cmdOk.Enabled = False
-        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & CleanBookEditorText(txtBookTitle.Text) & SEP_CHAR & CleanBookEditorText(txtBookHeader.Text) & SEP_CHAR & CleanBookEditorText(txtPage1.Text) & SEP_CHAR & CleanBookEditorText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
+        StoreBookRecord Book(Current)
+        SendBookRecord Book(Current)
     End Sub
 
     Public Sub Saved(ByVal id As Long)
@@ -180,6 +192,8 @@ Class frmBookEditor
     End Sub
 
     Public Sub SaveFailed(ByVal message As String)
+        Saving = False
+        cmdOk.Enabled = (Current >= 1 And Current <= BookCount)
         ' Display load/save errors, but otherwise leave the editor alone.
         GameMsgBox message, vbExclamation, "Book Editor"
     End Sub
@@ -193,6 +207,7 @@ Class frmBookEditor
             title = txtBookTitle.Text
         End If
 
+        StoreBookRecord Book(Current)
         LinkedBookId = 0
         BookPreviewOpen = True
 

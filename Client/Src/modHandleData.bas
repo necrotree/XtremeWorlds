@@ -1462,6 +1462,7 @@ Public Sub HandleData(ByVal Data As String)
             MAX_GUILDS = Val(Parse(8))
             MAX_GUILD_MEMBERS = Val(Parse(9))
             MAX_ARROWS = Val(Parse(10))
+            If UBound(Parse) >= 11 Then MAX_BOOKS = Val(Parse(11))
 
             ReDim Shop(1 To MAX_SHOPS) As ShopRec
             ReDim Sign(1 To MAX_SIGNS) As SignRec

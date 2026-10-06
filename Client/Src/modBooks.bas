@@ -5,10 +5,14 @@ Public BookPreviewOpen As Boolean
 Public LinkedBookId As Long
 
 Public Sub HandleBookEditorPacket(ByRef parts() As String)
+    Dim maximum As Long
     Select Case LCase$(parts(0))
         Case "bookeditorbegin"
+            If UBound(parts) <> 1 Then Exit Sub
+            If Not OverlayInteger(parts(1), 32767, maximum) Then Exit Sub
+            If maximum < 1 Then Exit Sub
             Load frmBookEditor
-            frmBookEditor.BeginList
+            frmBookEditor.BeginList maximum
         Case "bookeditorname"
             If UBound(parts) = 2 Then frmBookEditor.AddBook CLng(Val(parts(1))), parts(2)
         Case "bookeditorquest"

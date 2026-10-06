@@ -786,7 +786,7 @@ Public Sub ResetBookRec(ByRef value As BookRec)
     value.Header = vbNullString
     value.PageCount = 0
     For i = 1 To 64
-        value.Pages(i) = 0
+        value.Pages(i) = vbNullString
     Next
     value.NextBook = 0
     value.Quest = 0
