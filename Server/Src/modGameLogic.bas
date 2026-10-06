@@ -450,7 +450,8 @@ End Sub
 Sub SpawnMapItems(ByVal MapNum As Long)
     Dim X As Long
     Dim y As Long
-    Dim I As Long
+    Dim ItemNum As Long
+    Dim ItemValue As Long
 
     ' Check for subscript out of range
     If MapNum <= 0 Or MapNum > MAX_MAPS_SET Then
@@ -460,15 +461,33 @@ Sub SpawnMapItems(ByVal MapNum As Long)
     ' Spawn what we have
     For y = 0 To MAX_MAPY
         For X = 0 To MAX_MAPX
-            ' Check if the tile type is an item or a saved tile incase someone drops something
-            If (HasTileType(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM)) Then
-                ' Check to see if its a currency and if they set the value to 0 set it to 1 automatically
-                If Item(TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 1)).Type = ITEM_TYPE_CURRENCY And TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 2) <= 0 Then
-                    Call SpawnItem(TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 1), 1, MapNum, X, y)
-                Else
-                    Call SpawnItem(TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 1), TileAttributeData(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM, 2), MapNum, X, y)
+
+            If HasTileType(Map(MapNum).Tile(X, y), TILE_TYPE_ITEM) Then
+
+                ItemNum = TileAttributeData( _
+                    Map(MapNum).Tile(X, y), _
+                    TILE_TYPE_ITEM, _
+                    1 _
+                )
+
+                ItemValue = TileAttributeData( _
+                    Map(MapNum).Tile(X, y), _
+                    TILE_TYPE_ITEM, _
+                    2 _
+                )
+
+                ' Never access Item() unless the item actually exists.
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+
+                    If Item(ItemNum).Type = ITEM_TYPE_CURRENCY And ItemValue <= 0 Then
+                        Call SpawnItem(ItemNum, 1, MapNum, X, y)
+                    Else
+                        Call SpawnItem(ItemNum, ItemValue, MapNum, X, y)
+                    End If
+
                 End If
             End If
+
         Next X
     Next y
 End Sub
