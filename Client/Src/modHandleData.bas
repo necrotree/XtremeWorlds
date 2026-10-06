@@ -1,4 +1,4 @@
-﻿Attribute VB_Name = "modHandleData"
+Attribute VB_Name = "modHandleData"
 ' ****************************************************************
 ' * WHEN    WHO    WHAT
 ' * ----    ---    ----
@@ -737,20 +737,6 @@ Public Sub HandleData(ByVal Data As String)
 
             GettingMap = False
             Call BltMap
-
-            If Map.Moral = MAP_MORAL_NONE Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
-                frmMainGame.lblMapInfo.ForeColor = RGB(231, 0, 0)
-            ElseIf Map.Moral = MAP_MORAL_SAFE Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
-                frmMainGame.lblMapInfo.ForeColor = RGB(255, 255, 255)
-            ElseIf Map.Moral = MAP_MORAL_INN Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
-                frmMainGame.lblMapInfo.ForeColor = RGB(220, 192, 0)
-            ElseIf Map.Moral = MAP_MORAL_ARENA Then
-                frmMainGame.lblMapInfo.Caption = Trim$(Map.Name)
-                frmMainGame.lblMapInfo.ForeColor = RGB(174, 174, 174)
-            End If
 
             BltMap
 

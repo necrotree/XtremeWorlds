@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 3292046156,
+		"__lastUpdateMarker": 2855160987,
 		"_children": [
 			{
 				"Anchors": {
@@ -4850,87 +4850,6 @@
 				"Visible": true,
 				"WhatsThisHelpID": 0,
 				"Width": 35,
-				"WordWrap": false,
-				"_className": "Label",
-				"_clsid": "{33AD4ED8-6699-11CF-B70C-00AA0060D393}"
-			},
-			{
-				"Alignment": "vbLeftJustify",
-				"Anchors": {
-					"Bottom": false,
-					"Left": true,
-					"Right": false,
-					"Top": true,
-					"_clsid": "{8524D4B5-72A9-40A9-A189-29E7905C40CA}"
-				},
-				"Angle": 0,
-				"Appearance": "vbAppear3d",
-				"AutoSize": false,
-				"BackColor": 16777215,
-				"BackStyle": "vbBFTransparent",
-				"BorderCustomOptions": {
-					"Bottom": {
-						"Color": 0,
-						"Padding": 0,
-						"Size": 0
-					},
-					"Left": {
-						"Color": 0,
-						"Padding": 0,
-						"Size": 0
-					},
-					"Right": {
-						"Color": 0,
-						"Padding": 0,
-						"Size": 0
-					},
-					"Top": {
-						"Color": 0,
-						"Padding": 0,
-						"Size": 0
-					}
-				},
-				"BorderStyle": "vbNoBorder",
-				"Caption": "Map Name",
-				"DataField": null,
-				"DataFieldAggregate": "vbAggregateNone",
-				"DataFormat": null,
-				"DataMember": null,
-				"DataSource": null,
-				"Dock": "vbDockNone",
-				"DragIcon": "",
-				"DragMode": "vbManual",
-				"Enabled": true,
-				"FontBold": true,
-				"FontItalic": false,
-				"FontName": "Rockwell",
-				"FontSize": 8.25,
-				"FontStrikethru": false,
-				"FontUnderline": false,
-				"ForeColor": 16777215,
-				"Height": 16,
-				"Index": -1,
-				"InternalSectionId": -1,
-				"Left": 20,
-				"LineSpacing": 0,
-				"LinkItem": null,
-				"LinkMode": "vbLinkNone",
-				"LinkTimeout": 50,
-				"LinkTopic": null,
-				"MouseIcon": "",
-				"MousePointer": "vbDefault",
-				"Name": "lblMapInfo",
-				"OLEDropMode": "vbOLEDropNone",
-				"RightToLeft": false,
-				"TabIndex": 125,
-				"Tag": null,
-				"ToolTipText": null,
-				"Top": 508,
-				"UseMnemonic": true,
-				"VerticalAlignment": "vbVerticalAlignTop",
-				"Visible": true,
-				"WhatsThisHelpID": 0,
-				"Width": 420,
 				"WordWrap": false,
 				"_className": "Label",
 				"_clsid": "{33AD4ED8-6699-11CF-B70C-00AA0060D393}"
