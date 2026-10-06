@@ -3061,6 +3061,14 @@ End Sub
 
 Function GetPlayerInvItemValue(ByVal Index As Long, ByVal InvSlot As Long) As Long
     GetPlayerInvItemValue = Player(Index).Char(Player(Index).CharNum).Inv(InvSlot).Value
+    ' Older occupied currency slots may have a zero stored value: one physical item.
+    If GetPlayerInvItemValue = 0 Then
+        Dim itemNum As Long
+        itemNum = GetPlayerInvItemNum(Index, InvSlot)
+        If itemNum > 0 And itemNum <= MAX_ITEMS Then
+            If Item(itemNum).Type = ITEM_TYPE_CURRENCY Then GetPlayerInvItemValue = 1
+        End If
+    End If
 End Function
 
 Sub SetPlayerInvItemValue(ByVal Index As Long, ByVal InvSlot As Long, ByVal ItemValue As Long)

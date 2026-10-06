@@ -294,3 +294,24 @@ MissingImage:
     EmoteSprite(index) = 0
     Set EmoteSurface(sprite) = Nothing
 End Sub
+Public Function ConvertCurrency(ByVal Amount As Double) As String
+    If Amount < 10000 Then
+        ConvertCurrency = Format$(Fix(Amount), "0")
+    ElseIf Amount < 1000000# Then
+        ConvertCurrency = Format$(Fix(Amount / 1000#), "0") & "k"
+    ElseIf Amount < 1000000000# Then
+        ConvertCurrency = Format$(Fix(Amount / 1000000#), "0") & "m"
+    Else
+        ConvertCurrency = Format$(Fix(Amount / 1000000000#), "0") & "b"
+    End If
+End Function
+
+Public Function CurrencyColor(ByVal Amount As Double) As Long
+    If Amount < 1000000# Then
+        CurrencyColor = QBColor(White)
+    ElseIf Amount < 10000000# Then
+        CurrencyColor = QBColor(Yellow)
+    Else
+        CurrencyColor = QBColor(BrightGreen)
+    End If
+End Function

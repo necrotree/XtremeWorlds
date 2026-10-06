@@ -11,88 +11,87 @@ Class frmDrop
     Option Explicit
     
     Private Ammount As Long
+    Private DropSlot As Long
+    Private DropItemNum As Long
     
     Private Sub Form_Load()
         Me.Caption = GAME_NAME & " :: Drop Item"
-        Dim InvNum As Long
-    
-        Ammount = 1
-        InvNum = frmMainGame.lstInv.ListIndex + 1
-    
-        frmDrop.lblName = Trim$(Item(GetPlayerInvItemNum(MyIndex, InvNum)).name)
-        Call ProcessAmmount
     End Sub
-    
+
+    Public Sub OpenForSlot(ByVal slot As Long)
+        If MyIndex < 1 Or slot < 1 Or slot > MAX_INV Then Exit Sub
+        If GetPlayerInvItemNum(MyIndex, slot) < 1 Or GetPlayerInvItemNum(MyIndex, slot) > MAX_ITEMS Then Exit Sub
+        DropSlot = slot
+        DropItemNum = GetPlayerInvItemNum(MyIndex, slot)
+        Ammount = 1
+        Me.Show vbModeless
+        lblName.Caption = Trim$(Item(DropItemNum).name)
+        ProcessAmmount
+    End Sub
+
     Private Sub cmdOK_Click()
-        Dim InvNum As Long
-    
-        InvNum = frmMainGame.lstInv.ListIndex + 1
-    
-        Call SendDropItem(InvNum, Ammount)
+        If Not InGame Or Not IsConnected Then Unload Me: Exit Sub
+        If DropSlot < 1 Or DropSlot > MAX_INV Then Unload Me: Exit Sub
+        If GetPlayerInvItemNum(MyIndex, DropSlot) <> DropItemNum Then Unload Me: Exit Sub
+        If GetPlayerInvItemValue(MyIndex, DropSlot) < Ammount Then Exit Sub
+        SendDropItem DropSlot, Ammount
         Unload Me
     End Sub
-    
+
     Private Sub cmdCancel_Click()
         Unload Me
     End Sub
     
     Private Sub cmdPlus1_Click()
-        Ammount = Ammount + 1
-        Call ProcessAmmount
+        ChangeAmount 1
     End Sub
     
     Private Sub cmdMinus1_Click()
-        Ammount = Ammount - 1
-        Call ProcessAmmount
+        ChangeAmount -1
     End Sub
     
     Private Sub cmdPlus10_Click()
-        Ammount = Ammount + 10
-        Call ProcessAmmount
+        ChangeAmount 10
     End Sub
     
     Private Sub cmdMinus10_Click()
-        Ammount = Ammount - 10
-        Call ProcessAmmount
+        ChangeAmount -10
     End Sub
     
     Private Sub cmdPlus100_Click()
-        Ammount = Ammount + 100
-        Call ProcessAmmount
+        ChangeAmount 100
     End Sub
     
     Private Sub cmdMinus100_Click()
-        Ammount = Ammount - 100
-        Call ProcessAmmount
+        ChangeAmount -100
     End Sub
     
     Private Sub cmdPlus1000_Click()
-        Ammount = Ammount + 1000
-        Call ProcessAmmount
+        ChangeAmount 1000
     End Sub
     
     Private Sub cmdMinus1000_Click()
-        Ammount = Ammount - 1000
-        Call ProcessAmmount
+        ChangeAmount -1000
     End Sub
     
+    Private Sub ChangeAmount(ByVal delta As Long)
+        Dim amount As Double
+        amount = CDbl(Ammount) + delta
+        If amount < 1 Then amount = 1
+        If amount > 2147483647# Then amount = 2147483647#
+        Ammount = CLng(amount)
+        ProcessAmmount
+    End Sub
+
     Private Sub ProcessAmmount()
-        Dim InvNum As Long
-    
-        InvNum = frmMainGame.lstInv.ListIndex + 1
-    
-        ' Check if more then max and set back to max if so
-        If Ammount > GetPlayerInvItemValue(MyIndex, InvNum) Then
-            Ammount = GetPlayerInvItemValue(MyIndex, InvNum)
-        End If
-    
-        ' Make sure its not 0
-        If Ammount <= 0 Then
-            Ammount = 1
-        End If
-    
-        frmDrop.lblAmmount.Caption = Ammount & "/" & GetPlayerInvItemValue(MyIndex, InvNum)
+        Dim maximum As Long
+        If Not InGame Or DropSlot < 1 Or DropSlot > MAX_INV Then Unload Me: Exit Sub
+        If GetPlayerInvItemNum(MyIndex, DropSlot) <> DropItemNum Then Unload Me: Exit Sub
+        maximum = GetPlayerInvItemValue(MyIndex, DropSlot)
+        If maximum < 1 Then Unload Me: Exit Sub
+        If Ammount > maximum Then Ammount = maximum
+        If Ammount < 1 Then Ammount = 1
+        lblAmmount.Caption = Ammount & "/" & maximum
     End Sub
-    
 
 End Class

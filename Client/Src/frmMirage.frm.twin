@@ -646,19 +646,43 @@ ConfirmationFailed:
     End Sub
     
     Private Sub lblDropItem_Click()
-        Dim Value As Long
-        Dim InvNum As Long
-    
-        InvNum = frmMainGame.lstInv.ListIndex + 1
-    
-        If GetPlayerInvItemNum(MyIndex, InvNum) > 0 And GetPlayerInvItemNum(MyIndex, InvNum) <= MAX_ITEMS Then
-            If Item(GetPlayerInvItemNum(MyIndex, InvNum)).Type = ITEM_TYPE_CURRENCY Then
-                ' Show them the drop dialog
-                frmDrop.Show vbModal
-            Else
-                Call SendDropItem(frmMainGame.lstInv.ListIndex + 1, 0)
-            End If
+        Static prompting As Boolean
+        Dim InvNum As Long, itemNum As Long, amount As Long, maximum As Long
+        Dim text As String, itemName As String, digit As Long
+        If prompting Or Not InGame Or Not IsConnected Then Exit Sub
+        InvNum = lstInv.ListIndex + 1
+        If InvNum < 1 Or InvNum > MAX_INV Then Exit Sub
+        itemNum = GetPlayerInvItemNum(MyIndex, InvNum)
+        If itemNum < 1 Or itemNum > MAX_ITEMS Then Exit Sub
+        prompting = True
+        On Error GoTo Finished
+        itemName = Trim$(Item(itemNum).name)
+        If Item(itemNum).Type = ITEM_TYPE_CURRENCY Then
+            maximum = GetPlayerInvItemValue(MyIndex, InvNum)
+            text = GameInputBox("How much " & itemName & " would you like to drop?", "1", " ")
+            text = Trim$(text)
+            If Len(text) = 0 Then GoTo Finished
+            If Len(text) > 10 Then GoTo InvalidAmount
+            For digit = 1 To Len(text)
+                If Asc(Mid$(text, digit, 1)) < 48 Or Asc(Mid$(text, digit, 1)) > 57 Then GoTo InvalidAmount
+            Next digit
+            If CDbl(text) < 1 Or CDbl(text) > maximum Then GoTo InvalidAmount
+            amount = CLng(text)
+
+        Else
+            amount = 0
+            text = "Drop " & itemName & "?"
+            If GameMsgBox(text, vbYesNo Or vbDefaultButton2, " ") <> vbYes Then GoTo Finished
         End If
+        If Not InGame Or Not IsConnected Then GoTo Finished
+        If GetPlayerInvItemNum(MyIndex, InvNum) <> itemNum Then GoTo Finished
+        If amount > GetPlayerInvItemValue(MyIndex, InvNum) Then GoTo InvalidAmount
+        SendDropItem InvNum, amount
+        GoTo Finished
+InvalidAmount:
+        GameMsgBox "Enter a whole number between 1 and the available amount.", vbOKOnly, " "
+Finished:
+        prompting = False
     End Sub
     
     Private Sub lblCast_Click()
@@ -980,8 +1004,23 @@ ConfirmationFailed:
         If InventoryClickedSlot > 0 Then SendUseItem InventoryClickedSlot
     End Sub
 
+    Public Sub RefreshGold()
+        Dim slot As Long, total As Double
+        If MyIndex >= 1 And MyIndex <= MAX_PLAYERS Then
+            For slot = 1 To MAX_INV
+                If GetPlayerInvItemNum(MyIndex, slot) = 1 Then
+                    total = total + GetPlayerInvItemValue(MyIndex, slot)
+                End If
+            Next slot
+        End If
+        lblGold.Caption = ConvertCurrency(total)
+        lblGold.ForeColor = CurrencyColor(total)
+    End Sub
+
     Public Sub DrawInventoryGrid()
+        RefreshGold
         Dim Bounds As RECT, Source As RECT, Border As RECT
+        Dim quantityDC As LongPtr, oldFont As LongPtr, amount As Long, quantityText As String, textBounds As RECT
         Dim InventoryBackground As clsDX11Surface
         Dim Cell As Long, Slot As Long, ItemNum As Long, X As Long, Y As Long
         Dim SlotX As Long, SlotY As Long
@@ -1028,6 +1067,31 @@ ConfirmationFailed:
                 End If
             End If
         Next Cell
+
+        ' Finish GPU blits first; quantity text uses a single GDI pass.
+        quantityDC = InventoryCanvas.GetDC
+        oldFont = WinDevLib.SelectObject(quantityDC, GameFont)
+        WinDevLib.SetBkMode quantityDC, WinDevLib.TRANSPARENT
+        For Cell = 0 To 34
+            Slot = InventoryPage * 35 + Cell + 1
+            If Slot <= MAX_INV Then
+                ItemNum = GetPlayerInvItemNum(MyIndex, Slot)
+                If ItemNum > 0 And ItemNum <= MAX_ITEMS Then
+                    If Item(ItemNum).Type = ITEM_TYPE_CURRENCY Then
+                        amount = GetPlayerInvItemValue(MyIndex, Slot)
+                        quantityText = ConvertCurrency(amount)
+                        textBounds.Left = 24 + (Cell Mod 5) * 45
+                        textBounds.Top = 50 + (Cell \ 5) * 45
+                        textBounds.Right = textBounds.Left + 35
+                        textBounds.Bottom = textBounds.Top + 14
+                        WinDevLib.SetTextColor quantityDC, CurrencyColor(amount)
+                        WinDevLib.DrawTextW quantityDC, StrPtr(quantityText), Len(quantityText), textBounds, WinDevLib.DT_RIGHT Or WinDevLib.DT_SINGLELINE Or WinDevLib.DT_NOPREFIX
+                    End If
+                End If
+            End If
+        Next Cell
+        WinDevLib.SelectObject quantityDC, oldFont
+        InventoryCanvas.ReleaseDC quantityDC
 
         X = -1: Y = -1
         Cell = lstInv.ListIndex - InventoryPage * 35

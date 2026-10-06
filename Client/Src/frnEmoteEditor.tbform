@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 1514678535,
+		"__lastUpdateMarker": 296988027,
 		"_children": [
 			{
 				"Alignment": "vbLeftJustify",
@@ -555,10 +555,10 @@
 				"FontStrikethru": false,
 				"FontUnderline": false,
 				"ForeColor": -2147483630,
-				"Height": 41,
+				"Height": 30,
 				"Index": -1,
 				"InternalSectionId": -1,
-				"Left": 8,
+				"Left": 8.0001,
 				"LineSpacing": 0,
 				"LinkItem": null,
 				"LinkMode": "vbLinkNone",

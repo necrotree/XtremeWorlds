@@ -1352,6 +1352,7 @@ End Sub
 
 
 Public Sub UpdateInventory()
+    frmMainGame.RefreshGold
     Dim i As Long, SelectedSlot As Long
     SelectedSlot = frmMainGame.lstInv.ListIndex
     If SelectedSlot < 0 Or SelectedSlot >= MAX_INV Then SelectedSlot = 0
@@ -1362,7 +1363,7 @@ Public Sub UpdateInventory()
     For i = 1 To MAX_INV
         If GetPlayerInvItemNum(MyIndex, i) > 0 And GetPlayerInvItemNum(MyIndex, i) <= MAX_ITEMS Then
             If Item(GetPlayerInvItemNum(MyIndex, i)).Type = ITEM_TYPE_CURRENCY Then
-                frmMainGame.lstInv.AddItem i & ": " & Trim$(Item(GetPlayerInvItemNum(MyIndex, i)).name) & " (" & GetPlayerInvItemValue(MyIndex, i) & ")"
+                frmMainGame.lstInv.AddItem i & ": " & Trim$(Item(GetPlayerInvItemNum(MyIndex, i)).name) & " (" & ConvertCurrency(GetPlayerInvItemValue(MyIndex, i)) & ")"
             Else
                 ' Check if this item is being worn
                 If GetPlayerWeaponSlot(MyIndex) = i Or GetPlayerArmorSlot(MyIndex) = i Or GetPlayerHelmetSlot(MyIndex) = i Or GetPlayerShieldSlot(MyIndex) = i Then

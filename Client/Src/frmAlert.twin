@@ -17,6 +17,7 @@ Class frmAlert
         InputMode = False
         InputValue = vbNullString
         lblTitle.Caption = Title
+        lblTitle.Visible = Len(Trim$(Title)) > 0
         txtMessage.Text = Message
         ' Long messages scroll inside a fixed-size alert so its header remains readable.
         txtMessage.Height = 44
