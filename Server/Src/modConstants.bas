@@ -15,10 +15,7 @@ Public Const ADMIN_LOG = "admin.log"
 Public Const PLAYER_LOG = "player.log"
 Public Const BUG_LOG = "bugs.log"
 
-' Version constants
-Public Const CLIENT_MAJOR = 1
-Public Const CLIENT_MINOR = 0
-Public Const CLIENT_REVISION = 0
+' Version checks use App.Major, App.Minor, and App.Revision from project settings.
 
 Public Const MAX_LINES = 500
 

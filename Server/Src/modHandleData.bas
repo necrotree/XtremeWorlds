@@ -5593,16 +5593,16 @@ Private Function CheckClientVersion(ByVal Index As Long, ByRef parts() As String
         version(component) = CLng(text)
         If version(component) > 65535 Then GoTo InvalidVersion
     Next component
-    If version(0) <> CLIENT_MAJOR Then
-        supported = version(0) > CLIENT_MAJOR
-    ElseIf version(1) <> CLIENT_MINOR Then
-        supported = version(1) > CLIENT_MINOR
+    If version(0) <> App.Major Then
+        supported = version(0) > App.Major
+    ElseIf version(1) <> App.Minor Then
+        supported = version(1) > App.Minor
     Else
-        supported = version(2) >= CLIENT_REVISION
+        supported = version(2) >= App.Revision
     End If
     If Not supported Then GoTo InvalidVersion
     CheckClientVersion = True
     Exit Function
 InvalidVersion:
-    AlertMsg Index, "Client version unsupported. Version " & CLIENT_MAJOR & "." & CLIENT_MINOR & "." & CLIENT_REVISION & " or newer is required. Please visit " & GAME_WEBSITE
+    AlertMsg Index, "Client version unsupported. Version " & App.Major & "." & App.Minor & "." & App.Revision & " or newer is required. Please visit " & GAME_WEBSITE
 End Function
