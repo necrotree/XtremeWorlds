@@ -50,7 +50,7 @@
 		"Picture": "",
 		"PictureDpiScaling": false,
 		"RightToLeft": false,
-		"ScaleHeight": 224,
+		"ScaleHeight": 182,
 		"ScaleLeft": 0,
 		"ScaleMode": "vbPixels",
 		"ScaleTop": 0,
@@ -76,7 +76,7 @@
 			"showGrid": true,
 			"showOutlines": false
 		},
-		"__lastUpdateMarker": 2353817190,
+		"__lastUpdateMarker": 1514678535,
 		"_children": [
 			{
 				"Alignment": "vbLeftJustify",
@@ -555,7 +555,7 @@
 				"FontStrikethru": false,
 				"FontUnderline": false,
 				"ForeColor": -2147483630,
-				"Height": 30,
+				"Height": 41,
 				"Index": -1,
 				"InternalSectionId": -1,
 				"Left": 8,
@@ -572,7 +572,7 @@
 				"TabIndex": 0,
 				"Tag": null,
 				"ToolTipText": null,
-				"Top": 104,
+				"Top": 101,
 				"UseMnemonic": true,
 				"VerticalAlignment": "vbVerticalAlignTop",
 				"Visible": true,
