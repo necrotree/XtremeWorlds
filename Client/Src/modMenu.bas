@@ -83,6 +83,10 @@ Public Sub MenuState(ByVal State As Long)
 ' * 07/12/2005  Shannara   Added website constant.
 ' ****************************************************************
 
+    If State = MENU_STATE_NEWCHAR Or State = MENU_STATE_ADDCHAR Then
+        If Not frmMainMenu.CanCreateCharacter Then Exit Sub
+    End If
+
     frmSendGetData.Visible = True
     Call SetStatus("Connecting to server...")
     Select Case State

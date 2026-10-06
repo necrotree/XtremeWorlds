@@ -181,7 +181,6 @@ Dim Exp
 Dim strStart
 Dim strLate
 
-
     ' Tell the victim that the damage that has been done and let everyone know they are dead.
     If IsVowel(GetNpcName(NpcNum)) Then
         strStart = "An "
@@ -195,9 +194,8 @@ Dim strLate
     Call PlayerMsg(Victim, strStart & GetNpcName(NpcNum) & " hit you for " & Damage & " hit points, killing you.", BRIGHTRED)
     Call GlobalMsg(GetPlayerName(Victim) & " has been killed by " & strLate & GetNpcName(NpcNum), BRIGHTRED)
 
-
     ' Calculate exp the victim will loose.
-    Exp = CInt(GetPlayerExp(Victim) / 3)
+    Exp = CLng(GetPlayerExp(Victim) / 3)
 
     ' Make sure we dont set it to less then 0
     If Exp < 0 Then
@@ -244,7 +242,7 @@ Dim Exp
         End If
 
         ' Calculate exp to give attacker
-        Exp = CInt(GetPlayerExp(Victim) / 10)
+        Exp = CLng(GetPlayerExp(Victim) / 10)
 
         ' Make sure we dont get less then 0
         If Exp < 0 Then

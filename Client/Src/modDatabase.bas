@@ -386,7 +386,7 @@ Sub SetPlayerExp(ByVal index As Long, ByVal Exp As Long)
 End Sub
 
 Function GetPlayerNextLevel(ByVal index As Long) As Long
-    GetPlayerNextLevel = (GetPlayerLevel(index) + 1) * (GetPlayerSTR(index) + GetPlayerDEF(index) + GetPlayerMAGI(index) + GetPlayerSPEED(index) + GetPlayerPOINTS(index)) * 25
+    GetPlayerNextLevel = Player(index).NextLevelExp
 End Function
 
 Function GetPlayerAccess(ByVal index As Long) As Long

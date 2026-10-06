@@ -335,6 +335,11 @@ Public Sub HandleData(ByVal Data As String)
         Case "playerexp"
             Call SetPlayerExp(MyIndex, Val(Parse(1)))
             NextLevel = Val(Parse(2))
+            Player(MyIndex).NextLevelExp = NextLevel
+            If UBound(Parse) >= 3 Then Call SetPlayerLevel(MyIndex, Val(Parse(3)))
+            If UBound(Parse) >= 4 Then Call SetPlayerPOINTS(MyIndex, Val(Parse(4)))
+            If UBound(Parse) >= 5 Then Call SetPlayerClass(MyIndex, Val(Parse(5)))
+
             Dim experience As Double, remainingExperience As Double, experienceRatio As Double
             experience = GetPlayerExp(MyIndex)
             If NextLevel > 0 Then
@@ -344,13 +349,17 @@ Public Sub HandleData(ByVal Data As String)
                 If experienceRatio < 0 Then experienceRatio = 0
                 If experienceRatio > 1 Then experienceRatio = 1
                 frmMainGame.shpEXP.Width = StatusBarWidth(experience, NextLevel)
-                frmMainGame.lblExperience.Caption = Format$(experience, "#,##0") & Format$(remainingExperience, "#,##0")
+                frmMainGame.lblExperience.Caption = Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0")
                 frmMainGame.lblExperience.ToolTipText = "Experience: " & Format$(experience, "#,##0") & " / " & Format$(NextLevel, "#,##0") & "; TNL: " & Format$(remainingExperience, "#,##0")
             Else
                 frmMainGame.shpEXP.Width = 0
                 frmMainGame.lblExperience.Caption = Format$(experience, "#,##0")
                 frmMainGame.lblExperience.ToolTipText = "The server has not supplied a next-level target."
             End If
+            frmMainGame.lblLevel.Caption = CStr(GetPlayerLevel(MyIndex))
+            frmMainGame.lblEXP.Caption = CStr(GetPlayerExp(MyIndex))
+            frmMainGame.lblTNL.Caption = CStr(remainingExperience)
+            frmMainGame.RefreshCharacterDetails
             Exit Sub
 
         ' :::::::::::::::::::::::::

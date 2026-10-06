@@ -796,7 +796,7 @@ Sub SendExp(ByVal Index As Long)
     Dim Packet As String
     Dim N, f As Byte
 
-    Packet = "PLAYEREXP" & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & END_CHAR
+    Packet = "PLAYEREXP" & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & SEP_CHAR & GetPlayerLevel(Index) & SEP_CHAR & GetPlayerPOINTS(Index) & SEP_CHAR & GetPlayerClass(Index) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 

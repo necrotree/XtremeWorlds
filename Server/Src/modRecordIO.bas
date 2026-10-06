@@ -447,7 +447,7 @@ Public Sub ResetItemRec(ByRef value As ItemRec)
     value.Data2 = 0
     value.Data3 = 0
     value.ClassReq = 0
-    value.LevelReq = 0
+    value.LevelReq = 1
     value.GuildReq = 0
     value.Sound = 0
 End Sub
@@ -674,7 +674,7 @@ Public Sub ResetSpellRec(ByRef value As SpellRec)
     Dim i0 As Long, i1 As Long, count As Long, capacity As Long
     value.Name = vbNullString
     value.ClassReq = 0
-    value.LevelReq = 0
+    value.LevelReq = 1
     value.MPReq = 0
     value.Type = 0
     value.Data1 = 0

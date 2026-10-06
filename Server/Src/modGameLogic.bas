@@ -2091,35 +2091,16 @@ Function GetNpcHPRegen(ByVal NpcNum As Long)
 End Function
 
 Sub CheckPlayerLevelUp(ByVal Index As Long)
-    Dim I As Long
-    Dim N, f As Byte
-    Dim ExtraEXP As Long
-    
-    ' Check if attacker got a level up
-    If GetPlayerExp(Index) >= GetPlayerNextLevel(Index) Then
+    Dim previousLevel As Long
+
+    While GetPlayerExp(Index) >= GetPlayerNextLevel(Index)
+        If GetPlayerNextLevel(Index) <= 0 Then Exit Sub
+        previousLevel = GetPlayerLevel(Index)
         MyScript.ExecuteScriptStatement "\scripts\Main.as", "OnLevelUp " & Index
-' Call SetPlayerLevel(Index, GetPlayerLevel(Index) + 1)
-
-' If GetPlayerExp(Player) > GetPlayerNextLevel(Player) Then
-' ExtraEXP = (GetPlayerExp(Player) - GetPlayerNextLevel(Player))
-' Else
-' ExtraEXP = 0
-' End If
-
-' Get the ammount of skill points to add
-' I = Int(GetPlayerSPEED(Index) / 10)
-' If I < 1 Then I = 1
-' If I > 3 Then I = 3
-' If I > 5 Then I = 4
-' If I > 9 Then I = 5
-
-        ' Call SetPlayerPOINTS(Index, GetPlayerPOINTS(Index) + I)
-        ' Call SetPlayerExp(Index, ExtraEXP)
         Call SendExp(Index)
-
-    ' Call GlobalMsg(GetPlayerName(Index) & " has gained a level!", Brown)
-    ' Call PlayerMsg(Index, "You have gained a level!  You now have " & GetPlayerPOINTS(Index) & " stat points to distribute.", BrightBlue)
-    End If
+        ' Stop if a failed or customized script did not advance the level.
+        If GetPlayerLevel(Index) <= previousLevel Then Exit Sub
+    Wend
 End Sub
 
 Public Sub ApplySpellEffect(ByVal Index As Long, ByVal SpellNum As Long, ByVal HitType As Long, ByVal N As Long)
@@ -2812,7 +2793,14 @@ Sub SetPlayerLevel(ByVal Index As Long, ByVal Level As Long)
 End Sub
 
 Function GetPlayerNextLevel(ByVal Index As Long) As Long
-    GetPlayerNextLevel = (GetPlayerLevel(Index) + 1) * (GetPlayerSTR(Index) + GetPlayerDEF(Index) + GetPlayerMAGI(Index) + GetPlayerSPEED(Index) + GetPlayerPOINTS(Index)) * 25
+    Dim statTotal As Double, target As Double
+    statTotal = CDbl(GetPlayerSTR(Index)) + GetPlayerDEF(Index) + GetPlayerMAGI(Index) + GetPlayerSPEED(Index) + GetPlayerPOINTS(Index)
+    ' Empty class stats must not produce a zero experience requirement.
+    If statTotal < 1 Then statTotal = 1
+    target = (CDbl(GetPlayerLevel(Index)) + 1) * statTotal * 25
+    If target < 1 Then target = 1
+    If target > 2147483647# Then target = 2147483647#
+    GetPlayerNextLevel = CLng(target)
 End Function
 
 Function GetPlayerExp(ByVal Index As Long) As Long

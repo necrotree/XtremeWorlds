@@ -161,7 +161,7 @@ Sub SetPlayerLevel(ByVal Index As Long, ByVal Level As Long)
 End Sub
 
 Function GetPlayerNextLevel(ByVal Index As Long) As Long
-    GetPlayerNextLevel = (GetPlayerLevel(Index) + 1) * (GetPlayerSTR(Index) + GetPlayerDEF(Index) + GetPlayerMAGI(Index) + GetPlayerSPEED(Index) + GetPlayerPOINTS(Index)) * 25
+    GetPlayerNextLevel = modGameLogic.GetPlayerNextLevel(Index)
 End Function
 
 Function GetPlayerExp(ByVal Index As Long) As Long
@@ -327,7 +327,7 @@ End Function
 Sub SendExp(ByVal Index As Long)
     Dim Packet As String
 
-    Packet = "PLAYEREXP" & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & END_CHAR
+    Packet = "PLAYEREXP" & SEP_CHAR & GetPlayerExp(Index) & SEP_CHAR & GetPlayerNextLevel(Index) & SEP_CHAR & GetPlayerLevel(Index) & SEP_CHAR & GetPlayerPOINTS(Index) & SEP_CHAR & GetPlayerClass(Index) & END_CHAR
     Call SendDataTo(Index, Packet)
 End Sub
 

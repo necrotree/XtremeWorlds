@@ -73,6 +73,7 @@ Type PlayerRec
   Sprite As Integer
   Level As Long
   Exp As Long
+  NextLevelExp As Long
   Access As Byte
   PK As Byte
   Guild As Long

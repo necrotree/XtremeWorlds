@@ -10,6 +10,7 @@ Class frmMainMenu
     Attribute VB_Exposed = False
     Option Explicit
     Private mCharacterSprites(0 To 2) As Long
+    Private mCharacterOccupied(0 To 2) As Boolean
     Private mWebsitePolls As Long
     Private mMenus As Collection
     Private mActiveMenu As String
@@ -234,6 +235,7 @@ Unavailable:
     End Sub
     
     Private Sub picNewChar_Click()
+        If Not CanCreateCharacter Then Exit Sub
         Call MenuState(MENU_STATE_NEWCHAR)
     End Sub
     
@@ -315,15 +317,30 @@ Unavailable:
         label.Caption = name
         If Len(name) = 0 Then label.Caption = "Empty"
         label.ToolTipText = label.Caption
+        mCharacterOccupied(slot) = (Len(Trim$(name)) > 0)
+        picNewChar.Enabled = CanCreateCharacter
         mCharacterSprites(slot) = sprite
         Set preview.Picture = Nothing
         If Len(name) > 0 Then Set preview.Picture = MenuSpritePicture(sprite)
+    End Sub
+
+    Public Function CanCreateCharacter() As Boolean
+        Dim slot As Long
+        slot = lstChars.ListIndex
+        If slot < 0 Or slot > 2 Then Exit Function
+        If slot >= lstChars.ListCount Then Exit Function
+        CanCreateCharacter = Not mCharacterOccupied(slot)
+    End Function
+
+    Private Sub lstChars_Click()
+        picNewChar.Enabled = CanCreateCharacter
     End Sub
 
     Public Sub SelectCharacterSlot(ByVal slot As Long)
         Dim i As Long, label As Object
         If slot < 0 Or slot >= lstChars.ListCount Then Exit Sub
         lstChars.ListIndex = slot
+        picNewChar.Enabled = CanCreateCharacter
         For i = 0 To 2
             Set label = Me.Controls("lblCharacter" & i)
             label.ForeColor = RGB(191, 205, 128)

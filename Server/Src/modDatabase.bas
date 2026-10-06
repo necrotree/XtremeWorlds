@@ -156,8 +156,6 @@ Sub AddAccount(ByVal Index As Long, ByVal Name As String, ByVal Password As Stri
 
     For I = 1 To MAX_CHARS
         Call ClearChar(Index, I)
-        Player(Index).Char(I).Level = 1
-        Player(Index).Char(I).Exp = 0
     Next I
 
     Call SavePlayer(Index)
@@ -167,6 +165,7 @@ Sub AddChar(ByVal Index As Long, ByVal Name As String, ByVal Sex As Byte, ByVal 
     Dim f As Long
 
     If Trim$(Player(Index).Char(CharNum).Name) = vbNullString Then
+        Call ClearChar(Index, CharNum)
         Player(Index).CharNum = CharNum
 
         Player(Index).Char(CharNum).Name = Name
@@ -178,8 +177,6 @@ Sub AddChar(ByVal Index As Long, ByVal Name As String, ByVal Sex As Byte, ByVal 
         Else
             Player(Index).Char(CharNum).Sprite = Class(ClassNum).FSprite
         End If
-
-        Player(Index).Char(CharNum).Level = 1
 
         Player(Index).Char(CharNum).STR = Class(ClassNum).STR
         Player(Index).Char(CharNum).DEF = Class(ClassNum).DEF
