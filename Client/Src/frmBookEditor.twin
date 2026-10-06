@@ -126,10 +126,10 @@ Class frmBookEditor
         If Not BookEditorOpen Then Exit Sub
         If CLng(Val(parts(1))) <> Current Then Exit Sub
 
-        txtBookTitle.Text = DecodeBookText(parts(2))
-        txtBookHeader.Text = DecodeBookText(parts(3))
-        txtPage1.Text = DecodeBookText(parts(4))
-        txtPage2.Text = DecodeBookText(parts(5))
+        txtBookTitle.Text = parts(2)
+        txtBookHeader.Text = parts(3)
+        txtPage1.Text = parts(4)
+        txtPage2.Text = parts(5)
 
         bookId = CLng(Val(parts(6)))
         questId = CLng(Val(parts(7)))
@@ -143,6 +143,12 @@ Class frmBookEditor
         Me.Show vbModeless, frmMainGame
         Me.ZOrder 0
     End Sub
+
+    Private Function CleanBookEditorText(ByVal value As String) As String
+        value = Replace(value, SEP_CHAR, " ")
+        value = Replace(value, END_CHAR, " ")
+        CleanBookEditorText = value
+    End Function
 
     Private Sub cmdOk_Click()
         If Saving Then Exit Sub
@@ -160,7 +166,7 @@ Class frmBookEditor
         Saving = True
 
         cmdOk.Enabled = False
-        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & EncodeBookText(txtBookTitle.Text) & SEP_CHAR & EncodeBookText(txtBookHeader.Text) & SEP_CHAR & EncodeBookText(txtPage1.Text) & SEP_CHAR & EncodeBookText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
+        frmMainGame.Socket.SendData "savebook" & SEP_CHAR & Current & SEP_CHAR & CleanBookEditorText(txtBookTitle.Text) & SEP_CHAR & CleanBookEditorText(txtBookHeader.Text) & SEP_CHAR & CleanBookEditorText(txtPage1.Text) & SEP_CHAR & CleanBookEditorText(txtPage2.Text) & SEP_CHAR & BookIds(cmbBook.ListIndex) & SEP_CHAR & QuestIds(cmbQuest.ListIndex) & END_CHAR
     End Sub
 
     Public Sub Saved(ByVal id As Long)
