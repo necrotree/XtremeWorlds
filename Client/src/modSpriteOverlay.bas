@@ -49,6 +49,7 @@ Public Sub InitSpriteOverlays()
 End Sub
 
 Public Sub DestroySpriteOverlays()
+    DestroyPlayerEmotes
     Set BubbleSurface = Nothing
     Set BarsSurface = Nothing
     Set QuestSurface = Nothing
@@ -160,6 +161,7 @@ Private Function DrawEntityTarget(ByVal kind As Long, ByVal index As Long, ByVal
 End Function
 
 Public Sub ClearSpriteOverlay(ByVal index As Long)
+    ClearPlayerEmote index
     Player(index).BubbleText = vbNullString
     Player(index).BubbleStarted = 0
     Player(index).BubbleMap = 0

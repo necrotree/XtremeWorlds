@@ -193,4 +193,7 @@ Class frmAdminPanel
         End If
     End Sub
 
+    Private Sub cmdEmoticonEditor_Click()
+        OpenEmoteEditor
+    End Sub
 End Class

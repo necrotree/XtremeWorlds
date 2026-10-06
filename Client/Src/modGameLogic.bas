@@ -308,6 +308,7 @@ Public Sub GameLoop()
                                 Call DrawPlayerGuildName(i)
                             End If
                         End If
+                        DrawPlayerEmote i
                     End If
                 Next i
 
@@ -411,6 +412,7 @@ Public Sub GameLoop()
 
                 ' Release DC
                 Call DD_BackBuffer.ReleaseDC(TexthDC)
+                BltPlayerEmotes
 
             Else
                 ' Lock the backbuffer so we can draw text and names
@@ -633,6 +635,11 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
             Exit Sub
         End If
 
+        If LCase$(Trim$(MyText)) = "/emoteeditor" Or LCase$(Trim$(MyText)) = "/emoticoneditor" Then
+            If GetPlayerAccess(MyIndex) >= ADMIN_DEVELOPER Then OpenEmoteEditor
+            MyText = vbNullString
+            Exit Sub
+        End If
         ' // Commands //
         ' Help
         If LCase$(Trim$(MyText)) = "/bookeditor" Then
@@ -1529,3 +1536,9 @@ Public Function TileBlocksPlayer(ByRef tile As TileRec) As Boolean
         If tile.Data21 <> 0 Or (tile.Data21 = 0 And tile.Data22 = 0 And tile.Data23 = 0) Then TileBlocksPlayer = True
     End If
 End Function
+
+Public Sub OpenEmoteEditor()
+    If Not InGame Or Not IsConnected Then Exit Sub
+    If GetPlayerAccess(MyIndex) < ADMIN_DEVELOPER Then Exit Sub
+    SendData "emoticonindex" & END_CHAR
+End Sub

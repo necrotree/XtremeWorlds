@@ -20,7 +20,13 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
                 End If
         End Select
     End If
+    If IsPlaying(Index) And UBound(Parse) = 1 Then
+        If LCase$(Parse(0)) = "saymsg" Or LCase$(Parse(0)) = "emotemsg" Then
+            If TryPlayerEmote(Index, Parse(1)) Then Exit Sub
+        End If
+    End If
     Select Case LCase$(Parse(0))
+        Case "emoticonindex", "editemoticon", "saveemoticon": HandleEmoticonEditor Index, Parse
         Case "moderation": HandleModeration Index, Parse
         Case "guildrank": HandleGuildRank Index, Parse
         Case "guilddetails": SendGuildDetails Index
@@ -5605,4 +5611,77 @@ Private Function CheckClientVersion(ByVal Index As Long, ByRef parts() As String
     Exit Function
 InvalidVersion:
     AlertMsg Index, "Client version unsupported. Version " & App.Major & "." & App.Minor & "." & App.Revision & " or newer is required. Please visit " & GAME_WEBSITE
+End Function
+
+Private Sub HandleEmoticonEditor(ByVal Index As Long, ByRef parts() As String)
+    Dim entry As Long, sprite As Long, command As String, file As String, i As Long
+    If Not IsPlaying(Index) Then Exit Sub
+    If GetPlayerAccess(Index) < ADMIN_DEVELOPER Then Exit Sub
+    If LCase$(parts(0)) = "emoticonindex" Then
+        file = App.Path & "\data\emoticons.ini"
+        SendDataTo Index, "EMOTICONINDEXBEGIN" & END_CHAR
+        For i = 1 To 50
+            command = GetVar(file, CStr(i), "Command")
+            If Len(command) = 0 Then command = ""
+            SendDataTo Index, "EMOTICONINDEXROW" & SEP_CHAR & i & SEP_CHAR & command & END_CHAR
+        Next i
+        SendDataTo Index, "EMOTICONINDEXREADY" & END_CHAR
+        Exit Sub
+    End If
+    If UBound(parts) < 1 Then Exit Sub
+    If Not IsNumeric(parts(1)) Then Exit Sub
+    If Val(parts(1)) < 1 Or Val(parts(1)) > 50 Or Val(parts(1)) <> Fix(Val(parts(1))) Then Exit Sub
+    entry = CLng(Val(parts(1)))
+    file = App.Path & "\data\emoticons.ini"
+    If LCase$(parts(0)) = "editemoticon" Then
+        If UBound(parts) <> 1 Then Exit Sub
+        SendDataTo Index, "EDITEMOTICON" & SEP_CHAR & entry & SEP_CHAR & GetVar(file, CStr(entry), "Command") & SEP_CHAR & Val(GetVar(file, CStr(entry), "Sprite")) & END_CHAR
+        Exit Sub
+    End If
+    If UBound(parts) <> 3 Then Exit Sub
+    If Not IsNumeric(parts(3)) Then Exit Sub
+    If Val(parts(3)) < 0 Or Val(parts(3)) > 30 Or Val(parts(3)) <> Fix(Val(parts(3))) Then Exit Sub
+    sprite = CLng(Val(parts(3)))
+    command = Trim$(parts(2))
+    If Len(command) < 2 Or Left$(command, 1) <> "/" Then
+        SendDataTo Index, "EMOTICONSAVED" & SEP_CHAR & "Enter a command starting with /, such as /smile." & END_CHAR
+        Exit Sub
+    End If
+    If Len(command) > 32 Or InStr(command, vbCr) > 0 Or InStr(command, vbLf) > 0 Then Exit Sub
+    If Len(command) > 0 And sprite = 0 Then Exit Sub
+    If Len(command) > 0 Then
+        For i = 1 To 50
+            If i <> entry And StrComp(GetVar(file, CStr(i), "Command"), command, vbTextCompare) = 0 Then
+                SendDataTo Index, "EMOTICONSAVED" & SEP_CHAR & "That command is already assigned to another emoticon." & END_CHAR
+                Exit Sub
+            End If
+        Next i
+    Else
+        sprite = 0
+    End If
+    PutVar file, CStr(entry), "Command", command
+    PutVar file, CStr(entry), "Sprite", CStr(sprite)
+    If GetVar(file, CStr(entry), "Command") <> command Or Val(GetVar(file, CStr(entry), "Sprite")) <> sprite Then
+        SendDataTo Index, "EMOTICONSAVED" & SEP_CHAR & "The emoticon could not be saved." & END_CHAR
+        Exit Sub
+    End If
+    AddLog Trim$(GetPlayerName(Index)) & " saved emoticon #" & entry & ".", ADMIN_LOG
+    SendDataTo Index, "EMOTICONSAVED" & SEP_CHAR & "Emoticon saved." & END_CHAR
+End Sub
+Private Function TryPlayerEmote(ByVal Index As Long, ByVal text As String) As Boolean
+    Dim entry As Long, command As String, sprite As Long, file As String
+    file = App.Path & "\data\emoticons.ini"
+    text = Trim$(text)
+    If Len(text) < 2 Or Len(text) > 32 Or Left$(text, 1) <> "/" Then Exit Function
+    For entry = 1 To 50
+        command = GetVar(file, CStr(entry), "Command")
+        If Len(command) > 0 And StrComp(command, text, vbTextCompare) = 0 Then
+            sprite = Val(GetVar(file, CStr(entry), "Sprite"))
+            If sprite >= 1 And sprite <= 30 Then
+                SendDataToMap GetPlayerMap(Index), "PLAYEREMOTE" & SEP_CHAR & Index & SEP_CHAR & GetPlayerMap(Index) & SEP_CHAR & sprite & END_CHAR
+                TryPlayerEmote = True
+                Exit Function
+            End If
+        End If
+    Next entry
 End Function

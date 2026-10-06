@@ -1,5 +1,11 @@
 Attribute VB_Name = "modText"
 Option Explicit
+Private EmoteSprite() As Long
+Private EmoteMap() As Long
+Private EmoteStarted() As Long
+Private EmoteCapacity As Long
+Private EmoteBounds() As RECT
+Private EmoteSurface(1 To 30) As clsDX11Surface
 
 Private Const SPRITE_DRAW_OFFSET_X As Long = 8
 Private Const SPRITE_DRAW_OFFSET_Y As Long = 16
@@ -200,4 +206,91 @@ Sub DrawMapNPCName(ByVal index As Long)
     TextY = SpriteY - CLng(NPCNameSize.Height) - NAME_GAP
 
     Call DrawText(TexthDC, TextX, TextY, NPCName, QBColor(Brown))
+End Sub
+
+Public Sub ReceivePlayerEmote(ByRef parts() As String)
+    Dim index As Long, mapNum As Long, sprite As Long
+    If Not OverlayInteger(parts(1), MAX_PLAYERS, index) Then Exit Sub
+    If Not OverlayInteger(parts(2), 32767, mapNum) Then Exit Sub
+    If Not OverlayInteger(parts(3), 30, sprite) Then Exit Sub
+    If index < 1 Or sprite < 1 Or MyIndex < 1 Then Exit Sub
+    If mapNum <> GetPlayerMap(MyIndex) Then Exit Sub
+    If EmoteCapacity <> MAX_PLAYERS Then
+        ReDim EmoteSprite(1 To MAX_PLAYERS)
+        ReDim EmoteMap(1 To MAX_PLAYERS)
+        ReDim EmoteStarted(1 To MAX_PLAYERS)
+        ReDim EmoteBounds(1 To MAX_PLAYERS)
+        EmoteCapacity = MAX_PLAYERS
+    End If
+    EmoteSprite(index) = sprite
+    EmoteMap(index) = mapNum
+    EmoteStarted(index) = GetTickCount
+End Sub
+
+Public Sub ClearPlayerEmote(ByVal index As Long)
+    If index < 1 Or index > EmoteCapacity Then Exit Sub
+    EmoteSprite(index) = 0
+End Sub
+
+Public Sub DestroyPlayerEmotes()
+    Dim sprite As Long
+    For sprite = 1 To 30
+        Set EmoteSurface(sprite) = Nothing
+    Next sprite
+    Erase EmoteSprite: Erase EmoteMap: Erase EmoteStarted: Erase EmoteBounds
+    EmoteCapacity = 0
+End Sub
+
+Public Sub DrawPlayerEmote(ByVal index As Long)
+    Dim elapsed As Double, sprite As Long, X As Long, Y As Long
+    Dim nameSize As TextSize, guildSize As TextSize, source As RECT, destination As RECT
+    If index < 1 Or index > EmoteCapacity Then Exit Sub
+    sprite = EmoteSprite(index)
+    If sprite = 0 Then Exit Sub
+    elapsed = CDbl(GetTickCount) - CDbl(EmoteStarted(index))
+    If elapsed < 0 Then elapsed = elapsed + 4294967296#
+    If elapsed >= 3000 Or EmoteMap(index) <> GetPlayerMap(index) Then
+        EmoteSprite(index) = 0
+        Exit Sub
+    End If
+    GetPlayerSpriteDrawPosition index, X, Y
+    nameSize = getSize(TexthDC, GetPlayerName(index))
+    Y = Y - CLng(nameSize.Height) - NAME_GAP
+    If Player(index).Guild > 0 And Player(index).Guild <= MAX_GUILDS Then
+        guildSize = getSize(TexthDC, Trim$(Guild(Player(index).Guild).Abbreviation))
+        Y = Y - CLng(guildSize.Height) - NAME_GAP
+    End If
+    destination.Left = X + (CLng(GameData.SpriteWidth) + 16) \ 2 - 16
+    destination.Top = Y - 34
+    destination.Right = destination.Left + 32
+    destination.Bottom = destination.Top + 32
+    EmoteBounds(index) = destination
+End Sub
+' Only called after the text device context has been released.
+Public Sub BltPlayerEmotes()
+    Dim index As Long
+    For index = 1 To EmoteCapacity
+        If EmoteSprite(index) > 0 Then
+            If IsPlaying(index) And EmoteMap(index) = GetPlayerMap(MyIndex) Then BltPreparedEmote index
+        End If
+    Next index
+End Sub
+
+Private Sub BltPreparedEmote(ByVal index As Long)
+    Dim sprite As Long, source As RECT
+    On Error GoTo MissingImage
+    sprite = EmoteSprite(index)
+    If EmoteBounds(index).Right = 0 Then Exit Sub
+    If EmoteSurface(sprite) Is Nothing Then
+        Set EmoteSurface(sprite) = New clsDX11Surface
+        EmoteSurface(sprite).LoadFromFile App.Path & "\Gfx\emoticons\" & sprite & ".png"
+        EmoteSurface(sprite).UseAlpha = True
+    End If
+    source.Right = EmoteSurface(sprite).Width
+    source.Bottom = EmoteSurface(sprite).Height
+    DD_BackBuffer.Blt EmoteBounds(index), EmoteSurface(sprite), source, True
+    Exit Sub
+MissingImage:
+    EmoteSprite(index) = 0
+    Set EmoteSurface(sprite) = Nothing
 End Sub

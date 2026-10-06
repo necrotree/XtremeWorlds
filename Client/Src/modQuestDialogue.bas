@@ -53,6 +53,7 @@ Public Sub ClearQuestChat()
 End Sub
 
 Public Sub ResetEditorIndexState()
+    InEmoteEditor = False
     InItemsEditor = False
     InNpcEditor = False
     InShopEditor = False

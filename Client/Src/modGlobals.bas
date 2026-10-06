@@ -165,3 +165,5 @@ Public SpellAnim As Byte
 Public SpellVar As Byte
 Public SpellAnimTimer As Long
 
+
+Public InEmoteEditor As Boolean

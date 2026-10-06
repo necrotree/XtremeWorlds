@@ -1,4 +1,4 @@
-﻿Attribute VB_Name = "modGeneral"
+Attribute VB_Name = "modGeneral"
 Option Explicit
 
 Private QuestNpcStatus() As Byte

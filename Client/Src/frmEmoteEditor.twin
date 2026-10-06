@@ -1,0 +1,97 @@
+[FormDesignerId("956E36C1-8BA5-4B78-A76A-5E9E9A0C09B3")]
+Class frmEmoticonEditor
+    Attribute VB_Name = "frmEmoticonEditor"
+    Attribute VB_GlobalNameSpace = False
+    Attribute VB_Creatable = False
+    Attribute VB_PredeclaredId = True
+    Attribute VB_Exposed = False
+    Option Explicit
+    Private busy As Boolean
+    Private saving As Boolean
+    Private mEntry As Long
+    Private returning As Boolean
+
+    Private Sub Form_Load()
+        cmdOk.Enabled = False
+    End Sub
+
+    Public Sub ReceiveEntry(ByVal entry As Long, ByVal command As String, ByVal sprite As Long)
+        mEntry = entry
+        Me.Caption = "Emote Editor - " & entry
+        busy = True
+        txtCommand.Text = command
+        scrlSprite.Value = sprite
+        busy = False
+        cmdOk.Enabled = True
+        DrawPreview
+    End Sub
+
+    Private Sub scrlSprite_Change()
+        If Not busy Then DrawPreview
+    End Sub
+
+    Private Sub DrawPreview()
+        Dim surface As clsDX11Surface, source As RECT, destination As RECT
+        lblSprite.Caption = CStr(scrlSprite.Value)
+        picIcon.Cls
+        If scrlSprite.Value = 0 Then Exit Sub
+        Set surface = New clsDX11Surface
+        surface.LoadFromFile App.Path & "\Gfx\emoticons\" & scrlSprite.Value & ".png"
+        surface.UseAlpha = True
+        source.Right = surface.Width: source.Bottom = surface.Height
+        destination.Right = picIcon.ScaleWidth: destination.Bottom = picIcon.ScaleHeight
+        surface.BltToDC picIcon.hDC, source, destination
+        picIcon.Refresh
+    End Sub
+
+    Private Sub cmdOk_Click()
+        Dim command As String
+        command = Trim$(txtCommand.Text)
+        If Len(command) < 2 Or Left$(command, 1) <> "/" Then
+            lblStatus.Caption = "Enter a command starting with /, such as /smile."
+            Exit Sub
+        End If
+        If InStr(command, SEP_CHAR) > 0 Or InStr(command, END_CHAR) > 0 Or InStr(command, vbCr) > 0 Or InStr(command, vbLf) > 0 Then Exit Sub
+        If Len(command) > 0 And scrlSprite.Value = 0 Then
+            lblStatus.Caption = "Choose an emoticon for this command."
+            Exit Sub
+        End If
+        saving = True
+        txtCommand.Enabled = False
+        scrlSprite.Enabled = False
+        cmdCancel.Enabled = False
+        cmdOk.Enabled = False
+        SendData "saveemoticon" & SEP_CHAR & mEntry & SEP_CHAR & command & SEP_CHAR & scrlSprite.Value & END_CHAR
+    End Sub
+
+    Public Sub SaveComplete(ByVal message As String)
+        saving = False
+        txtCommand.Enabled = True
+        scrlSprite.Enabled = True
+        cmdCancel.Enabled = True
+        cmdOk.Enabled = True
+        If message = "Emoticon saved." Then
+            ReturnToIndex
+        Else
+            lblStatus.Caption = message
+        End If
+    End Sub
+
+    Private Sub ReturnToIndex()
+        returning = True
+        OpenEmoteEditor
+        Unload Me
+    End Sub
+
+    Private Sub Form_Unload(Cancel As Integer)
+        If saving Then
+            Cancel = 1
+            Exit Sub
+        End If
+        If Not returning And InGame Then OpenEmoteEditor
+    End Sub
+
+    Private Sub cmdCancel_Click()
+        Unload Me
+    End Sub
+End Class

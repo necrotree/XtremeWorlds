@@ -48,6 +48,35 @@ Public Sub HandleData(ByVal Data As String)
 
     ' Get the packet
     Select Case LCase$(Parse$(0))
+        Case "playeremote"
+            If UBound(Parse) = 3 Then ReceivePlayerEmote Parse
+            Exit Sub
+        Case "emoticonindexbegin"
+            ResetEditorIndexState
+            InEmoteEditor = True
+            frmIndex.Caption = "Emote Editor"
+            frmIndex.lstIndex.Clear
+            Exit Sub
+        Case "emoticonindexrow"
+            If UBound(Parse) = 2 Then frmIndex.lstIndex.AddItem Parse(1) & ": " & Parse(2)
+            Exit Sub
+        Case "emoticonindexready"
+            If EditorIndex >= 1 And EditorIndex <= frmIndex.lstIndex.ListCount Then
+                frmIndex.lstIndex.ListIndex = EditorIndex - 1
+            ElseIf frmIndex.lstIndex.ListCount > 0 Then
+                frmIndex.lstIndex.ListIndex = 0
+            End If
+            frmIndex.Show vbModeless
+            Exit Sub
+        Case "editemoticon"
+            If UBound(Parse) = 3 Then
+                frmEmoticonEditor.ReceiveEntry CLng(Val(Parse(1))), Parse(2), CLng(Val(Parse(3)))
+                frmEmoticonEditor.Show vbModeless
+            End If
+            Exit Sub
+        Case "emoticonsaved"
+            If UBound(Parse) = 1 Then frmEmoticonEditor.SaveComplete Parse(1)
+            Exit Sub
         Case "guilddetailsbegin"
             If UBound(Parse) = 2 Then frmMainGame.BeginGuildDetails Parse(1), Parse(2)
             Exit Sub
