@@ -15,23 +15,6 @@ Public BookEditorOpen As Boolean
 Public BookPreviewOpen As Boolean
 Public LinkedBookId As Long
 
-Public Function EncodeBookText(ByVal value As String) As String
-    Dim i As Long
-    For i = 1 To Len(value)
-        EncodeBookText = EncodeBookText & Right$("0000" & Hex$(AscW(Mid$(value, i, 1)) And &HFFFF&), 4)
-    Next i
-End Function
-
-Public Function DecodeBookText(ByVal value As String) As String
-    Dim i As Long, code As Long
-    If Len(value) Mod 4 <> 0 Then Exit Function
-    For i = 1 To Len(value) Step 4
-        code = CLng("&H" & Mid$(value, i, 4))
-        If code > 32767 Then code = code - 65536
-        DecodeBookText = DecodeBookText & ChrW$(code)
-    Next i
-End Function
-
 Public Sub HandleBookEditorPacket(ByRef parts() As String)
     Select Case LCase$(parts(0))
         Case "bookeditorbegin"
