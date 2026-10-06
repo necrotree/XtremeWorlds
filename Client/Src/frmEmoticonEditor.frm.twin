@@ -36,9 +36,10 @@ Class frmEmoticonEditor
         picIcon.Cls
         If scrlSprite.Value = 0 Then Exit Sub
         Set surface = New clsDX11Surface
-        surface.LoadFromFile App.Path & "\Gfx\emoticons\" & scrlSprite.Value & ".png"
+        surface.LoadFromFile App.Path & "\Gfx\emote.png"
+        surface.ColorKey = RGB(0, 0, 0)
         surface.UseAlpha = True
-        source.Right = surface.Width: source.Bottom = surface.Height
+        GetEmoteFrameRect scrlSprite.Value, source
         destination.Right = picIcon.ScaleWidth: destination.Bottom = picIcon.ScaleHeight
         surface.BltToDC picIcon.hDC, source, destination
         picIcon.Refresh

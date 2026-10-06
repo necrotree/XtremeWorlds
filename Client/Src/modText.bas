@@ -5,7 +5,7 @@ Private EmoteMap() As Long
 Private EmoteStarted() As Long
 Private EmoteCapacity As Long
 Private EmoteBounds() As RECT
-Private EmoteSurface(1 To 30) As clsDX11Surface
+Private EmoteSheet As clsDX11Surface
 
 Private Const SPRITE_DRAW_OFFSET_X As Long = 8
 Private Const SPRITE_DRAW_OFFSET_Y As Long = 16
@@ -233,10 +233,7 @@ Public Sub ClearPlayerEmote(ByVal index As Long)
 End Sub
 
 Public Sub DestroyPlayerEmotes()
-    Dim sprite As Long
-    For sprite = 1 To 30
-        Set EmoteSurface(sprite) = Nothing
-    Next sprite
+    Set EmoteSheet = Nothing
     Erase EmoteSprite: Erase EmoteMap: Erase EmoteStarted: Erase EmoteBounds
     EmoteCapacity = 0
 End Sub
@@ -281,18 +278,19 @@ Private Sub BltPreparedEmote(ByVal index As Long)
     On Error GoTo MissingImage
     sprite = EmoteSprite(index)
     If EmoteBounds(index).Right = 0 Then Exit Sub
-    If EmoteSurface(sprite) Is Nothing Then
-        Set EmoteSurface(sprite) = New clsDX11Surface
-        EmoteSurface(sprite).LoadFromFile App.Path & "\Gfx\emoticons\" & sprite & ".png"
-        EmoteSurface(sprite).UseAlpha = True
+    If EmoteSheet Is Nothing Then
+        Set EmoteSheet = New clsDX11Surface
+        EmoteSheet.LoadFromFile App.Path & "\Gfx\emote.png"
+        EmoteSheet.ColorKey = RGB(0, 0, 0)
+        EmoteSheet.UseAlpha = True
+        If EmoteSheet.Width <> 192 Or EmoteSheet.Height <> 160 Then Err.Raise 5, "Emotes", "emote.png must be 192 x 160."
     End If
-    source.Right = EmoteSurface(sprite).Width
-    source.Bottom = EmoteSurface(sprite).Height
-    DD_BackBuffer.Blt EmoteBounds(index), EmoteSurface(sprite), source, True
+    GetEmoteFrameRect sprite, source
+    DD_BackBuffer.Blt EmoteBounds(index), EmoteSheet, source, True
     Exit Sub
 MissingImage:
     EmoteSprite(index) = 0
-    Set EmoteSurface(sprite) = Nothing
+    Set EmoteSheet = Nothing
 End Sub
 Public Function ConvertCurrency(ByVal Amount As Double) As String
     If Amount < 10000 Then
@@ -315,3 +313,9 @@ Public Function CurrencyColor(ByVal Amount As Double) As Long
         CurrencyColor = QBColor(BrightGreen)
     End If
 End Function
+Public Sub GetEmoteFrameRect(ByVal sprite As Long, ByRef source As RECT)
+    source.Left = ((sprite - 1) Mod 6) * 32
+    source.Top = ((sprite - 1) \ 6) * 32
+    source.Right = source.Left + 32
+    source.Bottom = source.Top + 32
+End Sub
