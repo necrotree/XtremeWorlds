@@ -20,6 +20,17 @@ Public Ban() As BanRec
 Public Arrow() As ArrowRec
 Public Book() As BookRec
 
+Type BookRec
+  Signature As Long
+  Version As Long
+  PageCount As Long
+  NextBook As Long
+  Quest As Long
+  Name As String * 64
+  Header As String * 64
+  Pages(1 To 64) As String * 2000
+End Type
+
 Type PlayerInvRec
   Num As Long
   Value As Long
