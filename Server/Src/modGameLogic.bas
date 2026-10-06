@@ -1448,6 +1448,9 @@ Sub PlayerWarp(ByVal Index As Long, ByVal MapNum As Long, ByVal X As Long, ByVal
         Exit Sub
     End If
 
+    ApplyJailWarp Index, MapNum, X, y
+    If MapNum < 1 Or MapNum > MAX_MAPS_SET Or X < 0 Or X > MAX_MAPX Or y < 0 Or y > MAX_MAPY Then Exit Sub
+
     ' Check if there was an npc on the map the player is leaving, and if so say goodbye
     ShopNum = Map(GetPlayerMap(Index)).Shop
     If ShopNum > 0 Then
@@ -3330,4 +3333,105 @@ Public Sub HandleGuiPotion(ByVal Index As Long, ByRef parts() As String)
         SetPlayerMP Index, current + amount
         SendMP Index
     End If
+End Sub
+
+Private Function ModerationFile() As String
+    ModerationFile = App.Path & "\data\moderation.ini"
+End Function
+
+Private Function ModerationSection(ByVal Index As Long) As String
+    ModerationSection = "Character:" & Trim$(GetPlayerName(Index))
+End Function
+
+Public Function IsPlayerMuted(ByVal Index As Long) As Boolean
+    If Not IsPlaying(Index) Then Exit Function
+    IsPlayerMuted = Val(GetVar(ModerationFile(), ModerationSection(Index), "Muted")) = 1
+End Function
+
+Public Function IsPlayerJailed(ByVal Index As Long) As Boolean
+    If Not IsPlaying(Index) Then Exit Function
+    IsPlayerJailed = Val(GetVar(ModerationFile(), ModerationSection(Index), "Jailed")) = 1
+End Function
+
+Public Sub ApplyJailWarp(ByVal Index As Long, ByRef MapNum As Long, ByRef X As Long, ByRef Y As Long)
+    Dim section As String
+    If Not IsPlayerJailed(Index) Then Exit Sub
+    section = ModerationSection(Index)
+    MapNum = Val(GetVar(ModerationFile(), section, "JailMap"))
+    X = Val(GetVar(ModerationFile(), section, "JailX"))
+    Y = Val(GetVar(ModerationFile(), section, "JailY"))
+End Sub
+
+Public Sub HandleModeration(ByVal Index As Long, ByRef parts() As String)
+    Dim action As String, target As Long, section As String, file As String
+    Dim jailMap As Long, jailX As Long, jailY As Long
+    If Not IsPlaying(Index) Then Exit Sub
+    If GetPlayerAccess(Index) < ADMIN_MONITER Then Exit Sub
+    If UBound(parts) <> 2 Then Exit Sub
+    action = LCase$(parts(1))
+    file = ModerationFile()
+    If action = "setjail" Then
+        If GetPlayerAccess(Index) < ADMIN_MAPPER Then Exit Sub
+        PutVar file, "Jail", "Map", CStr(GetPlayerMap(Index))
+        PutVar file, "Jail", "X", CStr(GetPlayerX(Index))
+        PutVar file, "Jail", "Y", CStr(GetPlayerY(Index))
+        PlayerMsg Index, "Jail location set to your current tile.", BrightGreen
+        AddLog GetPlayerName(Index) & " set the jail location.", ADMIN_LOG
+        Exit Sub
+    End If
+    Select Case action
+        Case "mute", "unmute", "jail", "unjail"
+        Case Else: Exit Sub
+    End Select
+    target = FindPlayer(Trim$(parts(2)))
+    If target < 1 Or target > MAX_PLAYERS Then
+        PlayerMsg Index, "That player is not online.", BrightRed
+        Exit Sub
+    End If
+    If Not IsPlaying(target) Then Exit Sub
+    If target = Index Or GetPlayerAccess(target) >= GetPlayerAccess(Index) Then
+        PlayerMsg Index, "You cannot moderate yourself or a player of equal or higher access.", BrightRed
+        Exit Sub
+    End If
+    section = ModerationSection(target)
+    Select Case action
+        Case "mute": PutVar file, section, "Muted", "1"
+        Case "unmute": PutVar file, section, "Muted", "0"
+        Case "jail"
+            jailMap = Val(GetVar(file, "Jail", "Map"))
+            jailX = Val(GetVar(file, "Jail", "X"))
+            jailY = Val(GetVar(file, "Jail", "Y"))
+            If jailMap < 1 Or jailMap > MAX_MAPS_SET Or jailX < 0 Or jailX > MAX_MAPX Or jailY < 0 Or jailY > MAX_MAPY Then
+                PlayerMsg Index, "Set a jail location first with /setjail.", BrightRed
+                Exit Sub
+            End If
+            If Not IsPlayerJailed(target) Then
+                PutVar file, section, "ReturnMap", CStr(GetPlayerMap(target))
+                PutVar file, section, "ReturnX", CStr(GetPlayerX(target))
+                PutVar file, section, "ReturnY", CStr(GetPlayerY(target))
+            End If
+            PutVar file, section, "JailMap", CStr(jailMap)
+            PutVar file, section, "JailX", CStr(jailX)
+            PutVar file, section, "JailY", CStr(jailY)
+            PutVar file, section, "Jailed", "1"
+            PlayerWarp target, jailMap, jailX, jailY
+        Case "unjail"
+            If Not IsPlayerJailed(target) Then
+                PlayerMsg Index, "That player is not jailed.", BrightRed
+                Exit Sub
+            End If
+            jailMap = Val(GetVar(file, section, "ReturnMap"))
+            jailX = Val(GetVar(file, section, "ReturnX"))
+            jailY = Val(GetVar(file, section, "ReturnY"))
+            If jailMap < 1 Or jailMap > MAX_MAPS_SET Or jailX < 0 Or jailX > MAX_MAPX Or jailY < 0 Or jailY > MAX_MAPY Then
+                jailMap = Class(GetPlayerClass(target)).Map
+                jailX = Class(GetPlayerClass(target)).X
+                jailY = Class(GetPlayerClass(target)).Y
+            End If
+            PutVar file, section, "Jailed", "0"
+            PlayerWarp target, jailMap, jailX, jailY
+    End Select
+    PlayerMsg target, "Moderation: " & action & " applied by " & Trim$(GetPlayerName(Index)) & ".", BrightRed
+    PlayerMsg Index, action & " applied to " & Trim$(GetPlayerName(target)) & ".", BrightGreen
+    AddLog Trim$(GetPlayerName(Index)) & " used " & action & " on " & Trim$(GetPlayerName(target)) & ".", ADMIN_LOG
 End Sub

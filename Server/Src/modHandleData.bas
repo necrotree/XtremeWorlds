@@ -6,7 +6,22 @@ Public Sub HandleData(ByVal Index As Long, ByVal Data As String)
     On Error GoTo ErrorHandle
     If Index < 1 Or Index > MAX_PLAYERS Then Exit Sub
     Parse = Split(Data, SEP_CHAR)
+    If IsPlaying(Index) Then
+        Select Case LCase$(Parse(0))
+            Case "saymsg", "emotemsg", "broadcastmsg", "globalmsg", "adminmsg", "playermsg", "guildmsg", "partymsg"
+                If IsPlayerMuted(Index) Then
+                    PlayerMsg Index, "You are muted.", BrightRed
+                    Exit Sub
+                End If
+            Case "attack", "cast", "useitem"
+                If IsPlayerJailed(Index) Then
+                    PlayerMsg Index, "You cannot do that while jailed.", BrightRed
+                    Exit Sub
+                End If
+        End Select
+    End If
     Select Case LCase$(Parse(0))
+        Case "moderation": HandleModeration Index, Parse
         Case "guilddetails": SendGuildDetails Index
         Case "bookeditor", "editbook", "savebook": HandleBookEditor Index, Parse
         Case "requesteditquest": ServerPacket_requesteditquest Index, Data, Parse

@@ -564,6 +564,24 @@ Sub HandleKeypresses(ByVal KeyAscii As Integer)
 
     ' Handle when the player presses the return key
     If (KeyAscii = vbKeyReturn) Then
+        Dim moderationText As String, moderationAction As String, moderationTarget As String, moderationSpace As Long
+        moderationText = Trim$(MyText)
+        moderationSpace = InStr(moderationText, " ")
+        moderationAction = LCase$(moderationText)
+        If moderationSpace > 0 Then
+            moderationAction = LCase$(Left$(moderationText, moderationSpace - 1))
+            moderationTarget = Trim$(Mid$(moderationText, moderationSpace + 1))
+        End If
+        Select Case moderationAction
+            Case "/mute", "/unmute", "/jail", "/unjail", "/setjail"
+                If moderationAction <> "/setjail" And Len(moderationTarget) = 0 Then
+                    AddText "Usage: " & moderationAction & " playername", BrightRed
+                Else
+                    SendData "moderation" & SEP_CHAR & Mid$(moderationAction, 2) & SEP_CHAR & moderationTarget & END_CHAR
+                End If
+                MyText = vbNullString
+                Exit Sub
+        End Select
         ' If frmMainGame.Width = 13275 Then
         ' Exit Sub
         ' Else

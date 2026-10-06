@@ -132,3 +132,13 @@ Separate pages with a line containing `[PAGE]`. Use Windows ANSI text, with up t
 ## License
 
 XtremeWorlds is released under the **BSD 2-Clause License**. See [`LICENSE`](LICENSE) for the full terms.
+
+## Jail and mute commands
+
+Moderators (access 1 or higher) can use `/mute playername`, `/unmute playername`, `/jail playername`, and `/unjail playername`. The target must be online and have lower access than the moderator. Names containing spaces are supported.
+
+Before jailing anyone, a mapper or higher (access 2+) must stand on the intended jail tile and run `/setjail`. Use a dedicated jail map. Jailed characters may walk within that map, but warps return them to the jail tile, and attacks, spellcasting, and item use are blocked. Unjailing restores their location before imprisonment.
+
+Mutes block public chat, whispers, and emotes. Jail and mute state is saved per character in `Server/data/moderation.ini` and survives logout and server restarts. Penalties last until removed with `/unmute` or `/unjail`.
+
+Rebuild both twinBASIC projects before using these commands.

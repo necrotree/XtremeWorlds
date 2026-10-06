@@ -899,6 +899,36 @@ ConfirmationFailed:
         Call SendRequestEditSpell
     End Sub
     
+    Private Sub SendAdminModeration(ByVal action As String)
+        Dim targetName As String
+        targetName = Trim$(txtPlayerName.Text)
+        If action <> "setjail" And Len(targetName) = 0 Then
+            GameMsgBox "Enter a player name first."
+            Exit Sub
+        End If
+        SendData "moderation" & SEP_CHAR & action & SEP_CHAR & targetName & END_CHAR
+    End Sub
+
+    Private Sub cmdJail_Click()
+        SendAdminModeration "jail"
+    End Sub
+
+    Private Sub cmdUnjail_Click()
+        SendAdminModeration "unjail"
+    End Sub
+
+    Private Sub cmdMute_Click()
+        SendAdminModeration "mute"
+    End Sub
+
+    Private Sub cmdUnmute_Click()
+        SendAdminModeration "unmute"
+    End Sub
+
+    Private Sub cmdSetJail_Click()
+        SendAdminModeration "setjail"
+    End Sub
+
     Private Sub cmdKick_Click()
         If LenB(Trim$(txtPlayerName.Text)) = 0 Then
             Call GameMsgBox("You must first enter a playername to kick.")
