@@ -18,6 +18,8 @@ namespace Server
         public int MaxGuilds { get; set; } = 255;
         public int MaxGuildMembers { get; set; } = 255;
         public int MaxQuests { get; set; } = 255;
+        public int MaxBooks { get; set; } = 255;
+        public int MaxEmotes { get; set; } = 100;
         public int MaxArrows { get; set; } = 100;
         public int MaxClasses { get; set; } = 50;
         public int MaxQuestPlayers { get; set; } = 255;

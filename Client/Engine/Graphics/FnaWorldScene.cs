@@ -28,6 +28,7 @@ public sealed class FnaSceneMap
 
 public sealed class FnaSceneTile
 {
+    public List<int> LayerTileset { get; set; } = new();
     public int Anim { get; set; }
     public int M2Anim { get; set; }
     public int FAnim { get; set; }

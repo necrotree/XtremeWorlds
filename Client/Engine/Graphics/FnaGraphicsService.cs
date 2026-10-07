@@ -534,6 +534,12 @@ public sealed class FnaGraphicsService : IDisposable
             {
                 if (_previousKeyboard.IsKeyDown(key)) continue;
 
+                if (key == Keys.F2)
+                {
+                    _action("ShowAdminPanel", Array.Empty<object>());
+                    continue;
+                }
+
                 if (key == Keys.Escape)
                 {
                     if (_activePanel != MainGamePanel.None)
@@ -762,28 +768,30 @@ public sealed class FnaGraphicsService : IDisposable
             bool animated = ((int)(_renderSeconds / 0.25) & 1) != 0;
             if (!upper)
             {
-                DrawSceneLayer(map, 0, tile => tile.Ground, true);
-                DrawSceneLayer(map, 1, tile => animated && tile.Anim > 0 ? tile.Anim : tile.DoorOpen ? 0 : tile.Mask, false);
-                DrawSceneLayer(map, 2, tile => animated && tile.M2Anim > 0 ? tile.M2Anim : tile.Mask2, false);
+                DrawSceneLayer(map, 0, tile => (tile.Ground, 0), true);
+                DrawSceneLayer(map, 1, tile => animated && tile.Anim > 0 ? (tile.Anim, 2) : (tile.DoorOpen ? 0 : tile.Mask, 1), false);
+                DrawSceneLayer(map, 2, tile => animated && tile.M2Anim > 0 ? (tile.M2Anim, 4) : (tile.Mask2, 3), false);
             }
             else
             {
-                DrawSceneLayer(map, 3, tile => animated && tile.FAnim > 0 ? tile.FAnim : tile.Fringe, false);
-                DrawSceneLayer(map, 4, tile => animated && tile.F2Anim > 0 ? tile.F2Anim : tile.Fringe2, false);
+                DrawSceneLayer(map, 3, tile => animated && tile.FAnim > 0 ? (tile.FAnim, 6) : (tile.Fringe, 5), false);
+                DrawSceneLayer(map, 4, tile => animated && tile.F2Anim > 0 ? (tile.F2Anim, 8) : (tile.Fringe2, 7), false);
             }
         }
 
-        private void DrawSceneLayer(FnaSceneMap map, int layer, Func<FnaSceneTile, int> select, bool ground)
+        private void DrawSceneLayer(FnaSceneMap map, int layer, Func<FnaSceneTile, (int Tile, int SourceLayer)> select, bool ground)
         {
-            int tileset = layer < map.LayerTileset.Count && map.LayerTileset[layer] > 0 ? map.LayerTileset[layer] : map.Tileset;
-            if (tileset <= 0) return;
-            var texture = GetWorldTexture($"tiles{tileset}.png", ground ? null : Color.Black);
+            int inherited = layer < map.LayerTileset.Count && map.LayerTileset[layer] > 0 ? map.LayerTileset[layer] : map.Tileset;
             for (int i = 0; i < Math.Min(map.Tiles.Count, 16 * 12); i++)
             {
-                int tile = select(map.Tiles[i]);
-                if (tile < 0 || (!ground && tile == 0)) continue;
+                var cell = map.Tiles[i];
+                var selected = select(cell);
+                int tileset = selected.SourceLayer < cell.LayerTileset.Count && cell.LayerTileset[selected.SourceLayer] > 0
+                    ? cell.LayerTileset[selected.SourceLayer] : inherited;
+                if (tileset <= 0 || selected.Tile < 0 || (!ground && selected.Tile == 0)) continue;
+                var texture = GetWorldTexture($"tiles{tileset}.png", ground ? null : Color.Black);
                 DrawWorldSprite(texture, new Rectangle(i % 16 * 32, i / 16 * 32, 32, 32),
-                    new Rectangle(tile % 12 * 32, tile / 12 * 32, 32, 32), Color.White);
+                    new Rectangle(selected.Tile % 12 * 32, selected.Tile / 12 * 32, 32, 32), Color.White);
             }
         }
 

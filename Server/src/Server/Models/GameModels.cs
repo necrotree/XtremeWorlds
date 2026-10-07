@@ -68,9 +68,14 @@ namespace Server
         public short Fringe2 { get; set; }
         public short F2Anim { get; set; }
         public byte Type { get; set; }
-        public short Data1 { get; set; }
-        public short Data2 { get; set; }
-        public short Data3 { get; set; }
+        public byte Type2 { get; set; }
+        public int Data21 { get; set; }
+        public int Data22 { get; set; }
+        public int Data23 { get; set; }
+        public List<int> LayerTileset { get; set; } = new();
+        public int Data1 { get; set; }
+        public int Data2 { get; set; }
+        public int Data3 { get; set; }
     }
 
     public class MapDefinition
@@ -114,9 +119,9 @@ namespace Server
         public string Name { get; set; } = "";
         public short Pic { get; set; }
         public byte Type { get; set; }
-        public short Data1 { get; set; }
-        public short Data2 { get; set; }
-        public short Data3 { get; set; }
+        public int Data1 { get; set; }
+        public int Data2 { get; set; }
+        public int Data3 { get; set; }
         public short ClassReq { get; set; }
         public short LevelReq { get; set; }
         public short GuildReq { get; set; }
@@ -136,7 +141,7 @@ namespace Server
         public byte Range { get; set; }
         public short DropChance { get; set; }
         public int DropItem { get; set; }
-        public short DropItemValue { get; set; }
+        public int DropItemValue { get; set; }
         public short Strength { get; set; }
         public short Defense { get; set; }
         public short Speed { get; set; }
@@ -165,14 +170,17 @@ namespace Server
 
     public class SpellDefinition
     {
+        public int DeliveryMode { get; set; }
+        public int Arrow { get; set; }
+        public int CastRange { get; set; } = 32;
         public string Name { get; set; } = "";
         public byte ClassReq { get; set; }
         public short LevelReq { get; set; }
         public int MPReq { get; set; }
         public byte Type { get; set; }
-        public short Data1 { get; set; }
-        public short Data2 { get; set; }
-        public short Data3 { get; set; }
+        public int Data1 { get; set; }
+        public int Data2 { get; set; }
+        public int Data3 { get; set; }
         public short Graphic { get; set; }
         public short Sound { get; set; }
     }

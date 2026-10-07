@@ -154,6 +154,13 @@ namespace Server
             await _client.CallReducerAsync("upsert_ban", new[] { key, ban.BannedIP, ban.BannedCharacter, ban.BannedBy, ban.BannedHardwareId });
         }
 
+        public async Task ClearBansAsync()
+        {
+            using var doc = await _client.SqlAsync("SELECT ban_key FROM ban");
+            foreach (var row in Rows(doc))
+                await _client.CallReducerAsync("delete_ban", new[] { row[0].GetString() ?? string.Empty });
+        }
+
         private static bool HasRows(JsonDocument doc)
         {
             return Rows(doc).Any();

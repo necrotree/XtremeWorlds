@@ -56,7 +56,9 @@ public static partial class Module
     [SpacetimeDB.Reducer]
     public static void UpsertContent(ReducerContext ctx, string key, string kind, int numericId, string displayName, string json, int revision)
     {
-        ctx.Db.Content.Key.Update(new Content { Key = key, Kind = kind, NumericId = numericId, DisplayName = displayName, Json = json, Revision = revision });
+        var row = new Content { Key = key, Kind = kind, NumericId = numericId, DisplayName = displayName, Json = json, Revision = revision };
+        if (ctx.Db.Content.Key.Find(key) is null) ctx.Db.Content.Insert(row);
+        else ctx.Db.Content.Key.Update(row);
     }
 
     [SpacetimeDB.Reducer]
@@ -83,7 +85,9 @@ public static partial class Module
     [SpacetimeDB.Reducer]
     public static void UpsertBan(ReducerContext ctx, string banKey, string ip, string characterName, string bannedBy, string hardwareId)
     {
-        ctx.Db.Ban.BanKey.Update(new Ban { BanKey = banKey, Ip = ip, CharacterName = characterName, BannedBy = bannedBy, HardwareId = hardwareId });
+        var row = new Ban { BanKey = banKey, Ip = ip, CharacterName = characterName, BannedBy = bannedBy, HardwareId = hardwareId };
+        if (ctx.Db.Ban.BanKey.Find(banKey) is null) ctx.Db.Ban.Insert(row);
+        else ctx.Db.Ban.BanKey.Update(row);
     }
 
     [SpacetimeDB.Reducer]

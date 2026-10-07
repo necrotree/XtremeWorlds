@@ -20,6 +20,7 @@ namespace XtremeWorlds.Client.Engine.Runtime;
 public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 {
     private readonly MirrorTcpClient _network = new();
+    private readonly XtremeWorlds.Client.Tools.ToolController _tools;
     private readonly UITimer _networkTimer = new() { Interval = 0.02 };
     private readonly FnaAudioService _audio = new();
     private readonly FnaGraphicsService _graphics = new();
@@ -61,6 +62,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     public EngineGameClientRuntime()
     {
+        _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
         _network.DataReceived += OnNetworkData;
@@ -303,34 +305,52 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 SendPacket("SETSPRITE", Arg(arguments, 0));
                 break;
             case "PlayerSprite":
-                SendPacket("PLAYERSPRITE", 0, Arg(arguments, 0));
+                SendPacket("PLAYERSPRITE", Arg(arguments, 1), Arg(arguments, 0));
                 break;
             case "Location":
                 SendPacket("REQUESTLOCATION");
                 break;
             case "ItemEditor":
-                SendPacket("REQUESTEDITITEM");
+                Ui(() => _tools.Open("item"));
                 break;
             case "NpcEditor":
-                SendPacket("REQUESTEDITNPC");
+                Ui(() => _tools.Open("npc"));
                 break;
             case "ShopEditor":
-                SendPacket("REQUESTEDITSHOP");
+                Ui(() => _tools.Open("shop"));
                 break;
             case "SpellEditor":
-                SendPacket("REQUESTEDITSPELL");
+                Ui(() => _tools.Open("spell"));
                 break;
             case "MapEditor":
-                SendPacket("REQUESTEDITMAP");
+                Ui(() => _tools.Open("map"));
                 break;
             case "SignEditor":
-                SendPacket("REQUESTEDITSIGN");
+                Ui(() => _tools.Open("sign"));
                 break;
             case "ArrowEditor":
-                SendPacket("REQUESTEDITARROW");
+                Ui(() => _tools.Open("arrow"));
                 break;
             case "ClassEditor":
-                SendPacket("REQUESTEDITCLASS");
+                Ui(() => _tools.Open("class"));
+                break;
+            case "BookEditor":
+                Ui(() => _tools.Open("book"));
+                break;
+            case "QuestEditor":
+                Ui(() => _tools.Open("quest"));
+                break;
+            case "EmoteEditor":
+                Ui(() => _tools.Open("emote"));
+                break;
+            case "ShowAdminPanel":
+                Ui(_tools.OpenAdmin);
+                break;
+            case "MapReport":
+                SendPacket("mapreport");
+                break;
+            case "SetJail":
+                SendPacket("moderation", "setjail", "");
                 break;
             case "PromptServerIp":
                 PromptServerIp();
@@ -366,6 +386,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         string trimmed = text.Trim();
         int separator = trimmed.IndexOf(' ');
         string command = (separator < 0 ? trimmed : trimmed[..separator]).ToLowerInvariant();
+        if (command is "/admin" or "/bookeditor" or "/questeditor" or "/emoteeditor" or "/mapeditor")
+        {
+            MainGameAction(command switch { "/admin" => "ShowAdminPanel", "/bookeditor" => "BookEditor", "/questeditor" => "QuestEditor", "/emoteeditor" => "EmoteEditor", _ => "MapEditor" });
+            return;
+        }
         if (command is "/mute" or "/unmute" or "/jail" or "/unjail")
         {
             string player = separator < 0 ? string.Empty : trimmed[(separator + 1)..].Trim();
@@ -404,6 +429,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         if (fields.Count == 0) return;
 
         var command = fields[0].Trim().ToLowerInvariant();
+        if (command is "toolaccess" or "toolindex" or "toolrecord" or "toolsaved" or "toolerror")
+        {
+            Ui(() => _tools.HandlePacket(fields));
+            return;
+        }
         switch (command)
         {
             case "alertmsg":
@@ -427,6 +457,9 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "worldstate":
                 var scene = System.Text.Json.JsonSerializer.Deserialize<FnaWorldScene>(Field(fields, 1));
                 if (scene is not null) _graphics.SetWorldScene(scene);
+                break;
+            case "playermsg":
+                _graphics.AddChatMessage("System", Field(fields, 1));
                 break;
             case "maperror":
                 _graphics.AddChatMessage("System", Field(fields, 2));
@@ -557,6 +590,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // A kick, ban, server shutdown, or other forced disconnect must tear
         // down the FNA game window and restore the Eto login screen.
         _graphics.Stop();
+        _tools.Reset();
         _networkTimer.Start();
 
         if (Application.Instance.MainForm is frmMainMenu menu)
@@ -622,6 +656,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _disposed = true;
         Ui(() =>
         {
+            _tools.Dispose();
             foreach (var form in _editForms.ToArray())
             {
                 form.PreviewRequested -= OnEditorPreview;

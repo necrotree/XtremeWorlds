@@ -1,0 +1,117 @@
+{
+  "start": "083d15d6e1055b91301d674898363694799bce00",
+  "master": "7e85d1462af14f1fda24fd2fb793eba8b75a4e6f",
+  "language": "VB.NET",
+  "ui": "Eto.Forms",
+  "designers": [
+    {
+      "form": "frmAdminPanel",
+      "source": "Client/Src/frmAdminPanel.frm.tbform",
+      "blob": "f7bb163f34f01bc1564b02723221cf173baf838d"
+    },
+    {
+      "form": "frmArrowEditor",
+      "source": "Client/Src/frmArrowEditor.frm.tbform",
+      "blob": "0ccf6b20627987bbf1e83ed2b0c9c882a5192afd"
+    },
+    {
+      "form": "frmBookEditor",
+      "source": "Client/Src/frmBookEditor.tbform",
+      "blob": "7731432ec9d025493b6e514217edd6602670cd80"
+    },
+    {
+      "form": "frmQuestEditor",
+      "source": "Client/Src/frmQuestEditor.tbform",
+      "blob": "516c29eaf27c6aac84d7592cfc578cd4f39d6c92"
+    },
+    {
+      "form": "frmSpellEditor",
+      "source": "Client/Src/frmSpellEditor.frm.tbform",
+      "blob": "7be9a09013be1783f1d2a7e4f690c5c15d6c9c85"
+    },
+    {
+      "form": "frmEmoticonEditor",
+      "source": "Client/Src/frnEmoteEditor.tbform",
+      "blob": "ffc0e57730487ed28967aa1bd5663abc3cb1cb85"
+    },
+    {
+      "form": "frmIndex",
+      "source": "Client/src/frmIndex.frm.tbform",
+      "blob": "185fa271344ca648039897b1a9f5b4d748028fab"
+    },
+    {
+      "form": "frmItemEditor",
+      "source": "Client/src/frmItemEditor.frm.tbform",
+      "blob": "d84a556a318532b398881bffd5394404fa768b95"
+    },
+    {
+      "form": "frmNpcEditor",
+      "source": "Client/src/frmNpcEditor.frm.tbform",
+      "blob": "3721d9bdaf3bbc89f80c6f2d0d457059505ec59e"
+    },
+    {
+      "form": "frmShopEditor",
+      "source": "Client/src/frmShopEditor.frm.tbform",
+      "blob": "d6f2f3e9e4e7e5e286c39c7841820afa6fc9d677"
+    },
+    {
+      "form": "frmSignEditor",
+      "source": "Client/src/frmSignEditor.frm.tbform",
+      "blob": "6bc7fb6d1c619a0f7a699169706e91223142a708"
+    }
+  ],
+  "logic": [
+    {
+      "source": "Client/Src/modGameEditors.bas",
+      "blob": "6853afe9ba47d473c0712085e8db244b51e3a3d3"
+    },
+    {
+      "source": "Client/Src/modBooks.bas",
+      "blob": "648e4344fca41ba6c21d9be60b9f654ed269258d"
+    },
+    {
+      "source": "Client/Src/modQuestDialogue.bas",
+      "blob": "bdff46414e84931abbef38ee40f4858c2ca165a2"
+    },
+    {
+      "source": "Client/Src/modProjectiles.bas",
+      "blob": "a35097a48a726c6cb6ff19b1409fc12306b4c724"
+    },
+    {
+      "source": "Client/Src/frmAdminPanel.frm.twin",
+      "blob": "307fb7bf2dbed288546106dbeede2373e8f6c9d9"
+    },
+    {
+      "source": "Client/Src/frmBookEditor.twin",
+      "blob": "e961940bda2e8ed8851d1a142c5604657e9c76b8"
+    },
+    {
+      "source": "Client/Src/frmQuestEditor.twin",
+      "blob": "696893a82fa01285bc823d2c48240e94d3c5cc13"
+    },
+    {
+      "source": "Client/Src/frmEmoteEditor.twin",
+      "blob": "15bfb7697bd4a45e7f81d4db33fd5e81d63abbd6"
+    },
+    {
+      "source": "Client/Src/frmArrowEditor.frm.twin",
+      "blob": "461df9840a0342777c6991f05b058cd628ad0a5a"
+    },
+    {
+      "source": "Client/src/frmItemEditor.frm.twin",
+      "blob": "1439468ce378b1e5be5235956ae94b80cf6ca5fa"
+    },
+    {
+      "source": "Client/src/frmNpcEditor.frm.twin",
+      "blob": "398b533a8d94c85366c83290b3f7040910c448d4"
+    },
+    {
+      "source": "Client/Src/frmSpellEditor.frm.twin",
+      "blob": "bf217f70398413479c3b6d8db66fdb196f29aab7"
+    },
+    {
+      "source": "Client/src/frmIndex.frm.twin",
+      "blob": "82f029cc94e6bb3f12087c4b7999f6bffe537eb4"
+    }
+  ]
+}
