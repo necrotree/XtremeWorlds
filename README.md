@@ -4,6 +4,9 @@ XtremeWorlds is a free 2D MMORPG maker based on the classic PlayerWorlds develop
 
 The project includes **twinBASIC projects** alongside legacy **Visual Basic 6 projects** and exported source files. Some project metadata still uses the Playerworlds Lite name.
 
+The programming language is Visual Basic 6 with TwinBasic IDE:
+https://twinbasic.com/
+
 ## Project layout
 
 ```text
