@@ -5,7 +5,7 @@
 <PageTitle>XtremeWorlds — frmMirage</PageTitle>
 <section class="mirage" aria-label="Game window">
     <div class="game-frame">
-        <div class="game-overlay-header"><div class="character-card"><b>Adventurer</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">Desert Waystone</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="Session.Disconnect">X</button></div></div>
+        <div class="game-overlay-header"><div class="character-card"><b>Adventurer</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="Session.Disconnect">X</button></div></div>
     <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus; type to chat and press Enter to send."></canvas>
         @if (!editorOpen && Session.ShowPreviewPlayer)
         {
@@ -21,6 +21,8 @@
 
 @code {
     private bool editorOpen;
+    private string CurrentMapName => string.IsNullOrWhiteSpace(Session.LatestWorld?.Map?.Name) ? "Map" : Session.LatestWorld.Map.Name;
+    private string lastMapName = "";
     private async Task ToggleEditor()
     {
         editorOpen = !editorOpen;
@@ -41,6 +43,7 @@
         module = await JS.InvokeAsync<IJSObjectReference>("import", "./game-stream.js?v=3");
         reference = DotNetObjectReference.Create(this);
         await module.InvokeVoidAsync("attach", canvas, reference, $"/game-frames/{Session.Renderer.StreamId}");
+        lastMapName = CurrentMapName;
         polling = PollAsync();
     }
     [JSInvokable] public void Click(int x, int y) { if (!editorOpen) Session.Renderer.Click(x, y); }
@@ -56,7 +59,12 @@
                 {
                     var status = Session.Status;
                     Session.Poll();
-                    if (status != Session.Status) StateHasChanged();
+                    var mapName = CurrentMapName;
+                    if (status != Session.Status || lastMapName != mapName)
+                    {
+                        lastMapName = mapName;
+                        StateHasChanged();
+                    }
                 });
         }
         catch (OperationCanceledException) { }
