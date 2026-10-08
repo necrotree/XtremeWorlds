@@ -16,6 +16,41 @@ namespace Server
         private long _serverTick;
         private int _snapshotPhase;
         private readonly ConcurrentDictionary<int, MapDefinition> _mapCache = new();
+        // Editable game definitions are stored as plain JSON text in SpacetimeDB.
+        // All definitions are loaded before the TCP listener accepts clients.
+        private IReadOnlyDictionary<int, ItemDefinition> _items = new Dictionary<int, ItemDefinition>();
+        private IReadOnlyDictionary<int, NpcDefinition> _npcs = new Dictionary<int, NpcDefinition>();
+        private IReadOnlyDictionary<int, ShopDefinition> _shops = new Dictionary<int, ShopDefinition>();
+        private IReadOnlyDictionary<int, SpellDefinition> _spells = new Dictionary<int, SpellDefinition>();
+        private IReadOnlyDictionary<int, SignDefinition> _signs = new Dictionary<int, SignDefinition>();
+        private IReadOnlyDictionary<int, GuildDefinition> _guilds = new Dictionary<int, GuildDefinition>();
+        private IReadOnlyDictionary<int, QuestDefinition> _quests = new Dictionary<int, QuestDefinition>();
+        private IReadOnlyDictionary<int, ArrowDefinition> _arrows = new Dictionary<int, ArrowDefinition>();
+        private IReadOnlyDictionary<int, ClassDefinition> _classes = new Dictionary<int, ClassDefinition>();
+
+        public async Task LoadDefinitionsAsync()
+        {
+            var maps = await _db.LoadContentAsync<MapDefinition>("map");
+            foreach (var (id, map) in maps) _mapCache[id] = map;
+            if (maps.Count == 0)
+            {
+                // Seed only an absent world, never replace existing administrator edits.
+                var first = CreateEmptyMap(1);
+                await _db.UpsertContentAsync("map", 1, first.Name, first);
+                _mapCache[1] = first;
+            }
+            _items = await _db.LoadContentAsync<ItemDefinition>("item");
+            _npcs = await _db.LoadContentAsync<NpcDefinition>("npc");
+            _shops = await _db.LoadContentAsync<ShopDefinition>("shop");
+            _spells = await _db.LoadContentAsync<SpellDefinition>("spell");
+            _signs = await _db.LoadContentAsync<SignDefinition>("sign");
+            _guilds = await _db.LoadContentAsync<GuildDefinition>("guild");
+            _quests = await _db.LoadContentAsync<QuestDefinition>("quest");
+            _arrows = await _db.LoadContentAsync<ArrowDefinition>("arrow");
+            _classes = await _db.LoadContentAsync<ClassDefinition>("class");
+            _log?.Invoke($"Loaded game data from SpacetimeDB (JSON): {_mapCache.Count} maps, {_items.Count} items, {_npcs.Count} NPCs, {_shops.Count} shops, {_spells.Count} spells, {_signs.Count} signs, {_guilds.Count} guilds, {_quests.Count} quests, {_arrows.Count} arrows, {_classes.Count} classes.");
+        }
+
         private readonly ServerSettings _settings;
         private readonly MirrorTcpHost _network;
         private readonly SpacetimeRepository _db;
