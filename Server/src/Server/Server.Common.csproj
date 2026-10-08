@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../Network/NetworkState/NetworkState.csproj" />
     <ProjectReference Include="..\..\..\Tools\ToolProtocol\ToolProtocol.csproj" />
     <PackageReference Include="com.MirrorNetworking.Telepathy" Version="1.0.0" />
   </ItemGroup>

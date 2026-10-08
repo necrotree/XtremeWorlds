@@ -75,9 +75,7 @@ namespace Server
 
         public void Dispose()
         {
-            Debugger.Break();/* TODO ERROR: Skipped SkippedTokensTrivia
-(*//* TODO ERROR: Skipped SkippedTokensTrivia
-)*/
+            Stop();
         }
     }
 }

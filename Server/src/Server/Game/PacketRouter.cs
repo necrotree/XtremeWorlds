@@ -1,3 +1,5 @@
+using XtremeWorlds.Networking;
+using System.Threading;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +12,9 @@ namespace Server
 
     public sealed class PacketRouter
     {
+        private long _serverTick;
+        private int _snapshotPhase;
+        private readonly ConcurrentDictionary<int, MapDefinition> _mapCache = new();
         private readonly ServerSettings _settings;
         private readonly MirrorTcpHost _network;
         private readonly SpacetimeRepository _db;
@@ -37,10 +42,14 @@ namespace Server
                 {
                     if (!_sessions.TryGetValue(changed.ConnectionId, out var target) || target.Character is not { } character
                         || character.Name != changed.Name) return;
-                    character.Access = (byte)changed.Access; character.Sprite = (short)changed.Sprite;
-                    target.IsMuted = changed.IsMuted; target.IsJailed = changed.IsJailed;
-                    character.Map = (short)changed.Map; character.X = (byte)changed.X; character.Y = (byte)changed.Y;
-                    character.PixelX = changed.X * 32; character.PixelY = changed.Y * 32;
+                    lock (target)
+                    {
+                        character.Access = (byte)changed.Access; character.Sprite = (short)changed.Sprite;
+                        target.IsMuted = changed.IsMuted; target.IsJailed = changed.IsJailed;
+                        character.Map = (short)changed.Map; character.X = (byte)changed.X; character.Y = (byte)changed.Y;
+                        character.PixelX = changed.X * 32; character.PixelY = changed.Y * 32;
+                        target.NetworkState.Begin(Pose(character), Interlocked.Read(ref _serverTick), NetworkClock.Seconds);
+                    }
                     await _db.SaveCharacterAsync(target.Login, target.CharacterSlot, character);
                     await SendCurrentMapAsync(target.ConnectionId);
                 },
@@ -58,7 +67,7 @@ namespace Server
                     if (kind == "map")
                     {
                         var map = System.Text.Json.JsonSerializer.Deserialize<MapDefinition>(definition.ToJsonString());
-                        if (map is not null) SendWorldSnapshot(slot, map);
+                        if (map is not null) { _mapCache[slot] = map; SendWorldSnapshot(slot, map); }
                     }
                 },
                 (id, command, arguments) => _network.SendText(id, PacketCodec.Compose(command, arguments)),
@@ -76,6 +85,7 @@ namespace Server
             if (p.Length == 0)
                 return;
             string command = (p[0] ?? string.Empty).Trim().ToLowerInvariant();
+            if (command is "netping" or "netresync") { HandleNetworkControl(connectionId, p, command == "netresync"); return; }
             if (_sessions.TryGetValue(connectionId, out var session) &&
                 ModerationPolicy.Rejection(session, command) is string rejection)
             {
@@ -188,12 +198,17 @@ namespace Server
                 return;
             }
             string action;
-            switch (command)
+            lock (target)
             {
-                case "muteplayer": target.IsMuted = true; action = "muted"; break;
-                case "unmuteplayer": target.IsMuted = false; action = "unmuted"; break;
-                case "jailplayer": target.IsJailed = true; action = "jailed"; break;
-                default: target.IsJailed = false; action = "released from jail"; break;
+                switch (command)
+                {
+                    case "muteplayer": target.IsMuted = true; action = "muted"; break;
+                    case "unmuteplayer": target.IsMuted = false; action = "unmuted"; break;
+                    case "jailplayer": target.IsJailed = true; action = "jailed"; break;
+                    default: target.IsJailed = false; action = "released from jail"; break;
+                }
+                if (command is "jailplayer" or "unjailplayer")
+                    target.NetworkState.Begin(Pose(target.Character!), Interlocked.Read(ref _serverTick), NetworkClock.Seconds);
             }
             string message = $"{target.Character.Name} has been {action} by {actor.Character.Name}.";
             Reply(message);
@@ -204,6 +219,28 @@ namespace Server
         public void Tick()
         {
             _legacy.Tick();
+            long tick = Interlocked.Increment(ref _serverTick);
+            double now = NetworkClock.Seconds;
+            foreach (var session in _sessions.Values)
+            {
+                bool disconnect = false;
+                lock (session)
+                {
+                    if (!session.IsPlaying || session.Character == null) continue;
+                    var state = session.NetworkState;
+                    if (state.IsInactive(now, 2) && !state.Frozen) Restore(session, state.Rollback(tick));
+                    disconnect = state.IsInactive(now, 10);
+                }
+                if (disconnect) _network.Disconnect(session.ConnectionId);
+            }
+            int tickRate = Math.Clamp(_settings.TickRate, 1, 240);
+            _snapshotPhase += Math.Clamp(_settings.SnapshotRate, 1, tickRate);
+            if (_snapshotPhase >= tickRate)
+            {
+                _snapshotPhase -= tickRate;
+                foreach (var mapId in _sessions.Values.Where(s => s.IsPlaying && s.Character != null).Select(s => (int)s.Character!.Map).Distinct())
+                    SendSnapshot(mapId, null);
+            }
         }
 
         private async Task NewAccountAsync(int id, string[] p)
@@ -345,7 +382,7 @@ namespace Server
 
             session.CharacterSlot = slot;
             session.Character = selected.Character;
-            session.IsPlaying = true;
+            session.IsPlaying = false;
             var player = selected.Character;
             var maps = await _db.LoadContentAsync<MapDefinition>("map");
             if (!maps.TryGetValue(player.Map, out var map) || map is null)
@@ -364,6 +401,9 @@ namespace Server
                     player.Sprite = player.Sex == 1 ? definition.MaleSprite : definition.FemaleSprite;
             }
 
+            if (!_sessions.TryGetValue(id, out var currentSession) || !ReferenceEquals(currentSession, session)) return;
+            _mapCache[player.Map] = map;
+            lock (session) { session.NetworkState.Begin(Pose(player), Interlocked.Read(ref _serverTick), NetworkClock.Seconds); session.IsPlaying = true; }
             _network.SendText(id, PacketCodec.Compose("ingame"));
             SendWorldSnapshot(player.Map, map);
             _network.SendText(id, PacketCodec.Compose("playerdata",
@@ -372,32 +412,49 @@ namespace Server
 
         private async Task MoveAsync(int id, string[] fields)
         {
-            if (!_sessions.TryGetValue(id, out var session) || !session.IsPlaying || session.Character is not { } player
-                || fields.Length < 2 || !byte.TryParse(fields[1], out var direction) || direction > 3) return;
+            if (!_sessions.TryGetValue(id, out var session) || !session.IsPlaying || session.Character is not { } player) return;
             var mapId = player.Map;
-            var map = await _db.GetContentAsync<MapDefinition>("map", mapId) ?? CreateEmptyMap(mapId);
-            if (!session.IsPlaying || session.Character != player || player.Map != mapId) return;
-            double x = player.PixelX ?? player.X * 32;
-            double y = player.PixelY ?? player.Y * 32;
-            x += direction == 2 ? -4 : direction == 3 ? 4 : 0;
-            y += direction == 0 ? -4 : direction == 1 ? 4 : 0;
-            int tileX = (int)Math.Floor(x / 32.0), tileY = (int)Math.Floor(y / 32.0);
-            player.Direction = direction;
-            if (tileX >= 0 && tileX <= GameLimits.MaxMapX && tileY >= 0 && tileY <= GameLimits.MaxMapY)
+            var map = await GetMapAsync(mapId);
+            int warpMap = 0, warpX = 0, warpY = 0;
+            bool rolledBack = false;
+            lock (session)
             {
-                var tile = map.Tiles.ElementAtOrDefault(tileY * (GameLimits.MaxMapX + 1) + tileX);
-                if (tile?.Type != 1)
+                if (!_sessions.TryGetValue(id, out var current) || !ReferenceEquals(current, session)
+                    || !session.IsPlaying || session.Character != player || player.Map != mapId) return;
+                if (session.NetworkState.Epoch.Length == 0)
+                    session.NetworkState.Begin(Pose(player), Interlocked.Read(ref _serverTick), NetworkClock.Seconds);
+                int direction = fields.Length >= 2 && int.TryParse(fields[1], out var parsedDirection) ? parsedDirection : -1;
+                if (fields.Length != 2)
                 {
-                    player.PixelX = x; player.PixelY = y;
-                    player.X = (byte)tileX; player.Y = (byte)tileY;
-                    if (tile?.Type == 2 && tile.Data1 > 0)
+                    InputAcceptance acceptance = InputAcceptance.Rejected;
+                    if (fields.Length == 7 && long.TryParse(fields[2], out var sequence)
+                        && long.TryParse(fields[3], out var clientTick) && long.TryParse(fields[4], out var ackTick)
+                        && long.TryParse(fields[5], out var ackSequence))
+                        acceptance = session.NetworkState.Accept(new(sequence, clientTick, direction, ackTick, ackSequence, fields[6]), NetworkClock.Seconds);
+                    if (acceptance is InputAcceptance.Duplicate or InputAcceptance.StaleEpoch) return;
+                    if (acceptance == InputAcceptance.Rejected)
                     {
-                        await SetPositionAsync(session, tile.Data1, tile.Data2, tile.Data3);
-                        return;
+                        Restore(session, session.NetworkState.Rollback(Interlocked.Read(ref _serverTick)));
+                        rolledBack = true;
+                    }
+                }
+                else if (session.NetworkState.ProtocolEnabled || direction is < 0 or > 3) return;
+                if (!rolledBack)
+                {
+                    var moved = Pose(player).Move(direction);
+                    int tileX = (int)(moved.X / 32), tileY = (int)(moved.Y / 32);
+                    var tile = map.Tiles.ElementAtOrDefault(tileY * (GameLimits.MaxMapX + 1) + tileX);
+                    player.Direction = (byte)direction;
+                    if (tile?.Type != 1)
+                    {
+                        Restore(session, moved);
+                        if (tile?.Type == 2 && tile.Data1 > 0) { warpMap = tile.Data1; warpX = tile.Data2; warpY = tile.Data3; }
                     }
                 }
             }
-            SendWorldSnapshot(mapId, map);
+            if (warpMap > 0) { await SetPositionAsync(session, warpMap, warpX, warpY); return; }
+            // Modern clients receive lightweight snapshots at the server snapshot rate.
+            if (rolledBack || !session.NetworkState.ProtocolEnabled) SendSnapshot(mapId, null);
         }
 
         private async Task TeleportAsync(int id, string command, string[] fields)
@@ -432,17 +489,84 @@ namespace Server
         {
             if (map <= 0 || map > Math.Min(_settings.MaxMaps, short.MaxValue) || x < 0 || x > GameLimits.MaxMapX || y < 0 || y > GameLimits.MaxMapY
                 || session.Character is not { } player) return;
-            player.Map = (short)map; player.X = (byte)x; player.Y = (byte)y;
-            player.PixelX = x * 32; player.PixelY = y * 32;
+            lock (session) {
+                player.Map = (short)map; player.X = (byte)x; player.Y = (byte)y;
+                player.PixelX = x * 32; player.PixelY = y * 32;
+                session.NetworkState.Begin(Pose(player), Interlocked.Read(ref _serverTick), NetworkClock.Seconds);
+            }
             await SendCurrentMapAsync(session.ConnectionId);
         }
-        private void SendWorldSnapshot(int mapId, MapDefinition map)
+        private static MovementState Pose(PlayerCharacter player) => new(player.Map, player.PixelX ?? player.X * 32.0,
+            player.PixelY ?? player.Y * 32.0, player.Direction);
+        private static void Restore(PlayerSession session, MovementState pose)
+        {
+            if (session.Character is not { } player) return;
+            player.Map = (short)pose.Map; player.PixelX = pose.X; player.PixelY = pose.Y;
+            player.X = (byte)(pose.X / 32); player.Y = (byte)(pose.Y / 32); player.Direction = (byte)pose.Direction;
+        }
+        private async Task<MapDefinition> GetMapAsync(int id)
+        {
+            if (_mapCache.TryGetValue(id, out var cached)) return cached;
+            var loaded = await _db.GetContentAsync<MapDefinition>("map", id) ?? CreateEmptyMap(id);
+            return _mapCache.GetOrAdd(id, loaded);
+        }
+        public void RollbackConnection(int id)
+        {
+            if (!_sessions.TryGetValue(id, out var session)) return;
+            lock (session)
+                if (session.IsPlaying && session.Character != null && session.NetworkState.Epoch.Length > 0)
+                    Restore(session, session.NetworkState.Rollback(Interlocked.Read(ref _serverTick)));
+        }
+        private void HandleNetworkControl(int id, string[] fields, bool resync)
+        {
+            if (!_sessions.TryGetValue(id, out var session) || !session.IsPlaying || session.Character == null) return;
+            int mapId;
+            lock (session)
+            {
+                var state = session.NetworkState;
+                if (state.Epoch.Length == 0) return;
+                mapId = session.Character.Map;
+                // Old queued heartbeats cannot roll back a new connection epoch.
+                if (fields.Length >= 2 && fields[1] != state.Epoch) return;
+                bool valid = fields.Length == 5 && long.TryParse(fields[2], out var tick)
+                    && long.TryParse(fields[3], out var sequence) && long.TryParse(fields[4], out var clientTick)
+                    && clientTick >= 0 && state.Acknowledge(fields[1], tick, sequence, NetworkClock.Seconds);
+                if (!valid || resync) Restore(session, state.Rollback(Interlocked.Read(ref _serverTick)));
+            }
+            if (resync || session.NetworkState.Frozen) SendSnapshot(mapId, null);
+        }
+        private void SendWorldSnapshot(int mapId, MapDefinition map) => SendSnapshot(mapId, map);
+        private void SendSnapshot(int mapId, MapDefinition? map)
         {
             var viewers = _sessions.Values.Where(s => s.IsPlaying && s.Character?.Map == mapId).ToArray();
-            var players = viewers.Select(s => s.Character!).ToArray();
+            var actors = new Dictionary<int, object>();
+            foreach (var session in viewers)
+                lock (session)
+                    if (session.IsPlaying && session.Character is { } player && player.Map == mapId)
+                        actors[session.ConnectionId] = new { player.Name, player.Sprite, player.X, player.Y, player.Direction,
+                            PixelX = player.PixelX ?? player.X * 32.0, PixelY = player.PixelY ?? player.Y * 32.0 };
             foreach (var viewer in viewers)
-                _network.SendText(viewer.ConnectionId, PacketCodec.Compose("worldstate",
-                    System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = viewer.Character, Players = players })));
+            {
+                string payload;
+                lock (viewer)
+                {
+                    if (!viewer.IsPlaying || viewer.Character?.Map != mapId || !actors.ContainsKey(viewer.ConnectionId)) continue;
+                    long tick = Interlocked.Read(ref _serverTick);
+                    // Re-capture the viewer under its lock, matching the history pose to the serialized pose.
+                    var player = viewer.Character;
+                    var local = new { player.Name, player.Sprite, player.X, player.Y, player.Direction,
+                        PixelX = player.PixelX ?? player.X * 32.0, PixelY = player.PixelY ?? player.Y * 32.0 };
+                    if (viewer.NetworkState.Epoch.Length == 0) viewer.NetworkState.Begin(Pose(player), tick, NetworkClock.Seconds);
+                    viewer.NetworkState.Record(tick, Pose(player));
+                    payload = System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = local,
+                        Players = actors.Where(p => p.Key != viewer.ConnectionId).Select(p => p.Value).Append(local).ToArray(),
+                        ServerTick = tick, AckInputSequence = viewer.NetworkState.LastInputSequence,
+                        NetworkEpoch = viewer.NetworkState.Epoch, TickRate = Math.Clamp(_settings.TickRate, 1, 240),
+                        NetworkFrozen = viewer.NetworkState.Frozen || viewer.IsJailed });
+                    // Capture and enqueue under the same lock so async map sends cannot arrive behind a newer tick.
+                    _network.SendText(viewer.ConnectionId, PacketCodec.Compose(map == null ? "worldtick" : "worldstate", payload));
+                }
+            }
         }
         private static MapDefinition CreateEmptyMap(int mapId)
         {
@@ -468,7 +592,7 @@ namespace Server
             // The session determines the map; clients cannot request unrelated maps.
             var player = session.Character;
             int mapId = player.Map;
-            var map = await _db.GetContentAsync<MapDefinition>("map", mapId) ?? CreateEmptyMap(mapId);
+            var map = await GetMapAsync(mapId);
             if (!_sessions.TryGetValue(id, out var current) || !ReferenceEquals(current, session)
                 || !session.IsPlaying || !ReferenceEquals(session.Character, player) || player.Map != mapId)
                 return;

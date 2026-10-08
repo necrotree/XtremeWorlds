@@ -1,3 +1,4 @@
+using XtremeWorlds.Networking;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -83,7 +84,7 @@ public sealed class ServerHost : IDisposable
         _network.Start();
         Log($"Mirror Telepathy TCP host active. TCPNoDelay={_settings.TcpNoDelay}");
 
-        var tickLength = TimeSpan.FromSeconds(1.0d / Math.Max(1, _settings.TickRate));
+        var tickLength = TimeSpan.FromSeconds(1.0d / Math.Clamp(_settings.TickRate, 1, 240));
         var sw = new Stopwatch();
         while (!_stop.IsCancellationRequested && !externalToken.IsCancellationRequested)
         {
@@ -242,6 +243,8 @@ public sealed class ServerHost : IDisposable
         Log($"Server broadcast: {message}");
     }
 
+    private readonly ConcurrentDictionary<int, OrderedPacketQueue> _packetQueues = new();
+
     private void OnConnected(int connectionId, string address)
     {
         if (_sessions.Count >= _settings.MaxPlayers)
@@ -251,6 +254,7 @@ public sealed class ServerHost : IDisposable
             return;
         }
         _sessions[connectionId] = new PlayerSession { ConnectionId = connectionId, IpAddress = address };
+        _packetQueues[connectionId] = new OrderedPacketQueue(error: ex => Log($"[{connectionId}] packet handler: {ex.Message}"));
         Log($"[{connectionId}] connected from {address}");
         RaiseSessionEvents();
     }
@@ -258,7 +262,14 @@ public sealed class ServerHost : IDisposable
     private void OnData(int connectionId, ReadOnlyMemory<byte> payload)
     {
         string text = PacketCodec.Decode(payload.Span);
-        _ = HandleAndRefreshAsync(connectionId, text);
+        if (_packetQueues.TryGetValue(connectionId, out var queue) && !queue.TryEnqueue(async () =>
+        {
+            if (_sessions.ContainsKey(connectionId)) await HandleAndRefreshAsync(connectionId, text);
+        }))
+        {
+            _router.RollbackConnection(connectionId);
+            _network.Disconnect(connectionId);
+        }
     }
 
     private async Task HandleAndRefreshAsync(int connectionId, string text)
@@ -269,7 +280,9 @@ public sealed class ServerHost : IDisposable
 
     private void OnDisconnected(int connectionId)
     {
-        _sessions.TryRemove(connectionId, out _);
+        if (_packetQueues.TryRemove(connectionId, out var queue)) queue.Dispose();
+        _router.RollbackConnection(connectionId);
+        if (_sessions.TryRemove(connectionId, out var session)) lock (session) session.IsPlaying = false;
         Log($"[{connectionId}] disconnected");
         RaiseSessionEvents();
     }
@@ -318,6 +331,7 @@ public sealed class ServerHost : IDisposable
 
     public void Dispose()
     {
+        foreach (var queue in _packetQueues.Values) queue.Dispose();
         _network.Dispose();
         _database.Dispose();
         _spacetimeProcess.Dispose();

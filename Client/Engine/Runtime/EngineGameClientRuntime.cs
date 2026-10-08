@@ -1,3 +1,4 @@
+using XtremeWorlds.Networking;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,6 +29,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private string _serverHost = "127.0.0.1";
     private int _serverPort = 7234;
     private bool _disposed;
+    private double _nextHeartbeat;
+    private bool _resyncRequested;
     private readonly HashSet<EditForm> _editForms = new();
     public void ShowEditForm(EditForm form)
     {
@@ -69,6 +72,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
         _network.Disconnected += (_, _) =>
         {
+            _graphics.NetworkState.Rollback();
             Request("Disconnected");
 
             if (_disposed)
@@ -80,7 +84,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // Telepathy queues received messages until Tick() runs. Pump continuously
         // while the menu is active so a response to Register cannot sit queued
         // until the next Login click and appear to be a login response.
-        _networkTimer.Elapsed += (_, _) => _network.Tick();
+        _networkTimer.Elapsed += (_, _) => PumpNetwork();
 
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
 
@@ -245,7 +249,10 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 SendChat(Arg(arguments, 1));
                 break;
             case "MovePlayer":
-                SendPacket("playermove", IntArg(arguments, 0));
+                if (_network.IsConnected && !_graphics.NetworkState.IsInactive(NetworkClock.Seconds, 2)
+                    && _graphics.NetworkState.TryInput(IntArg(arguments, 0), (long)(NetworkClock.Seconds * 60), out var input))
+                    _network.SendText(PacketCodec.Build("playermove", new object?[] { input.Direction, input.Sequence,
+                        input.ClientTick, input.AckTick, input.AckSequence, input.Epoch }));
                 break;
             case "SendChat":
                 SendChat(Arg(arguments, 0));
@@ -370,6 +377,32 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         MainGameAction(actionName, arguments);
     }
 
+    private void PumpNetwork()
+    {
+        _network.Tick();
+        double now = NetworkClock.Seconds;
+        if (!_network.IsConnected || _graphics.NetworkState.Latest == null) return;
+        if (_graphics.NetworkState.IsInactive(now, 2)) RequestNetworkResync();
+        if (now >= _nextHeartbeat)
+        {
+            _nextHeartbeat = now + 0.25;
+            SendNetworkControl("netping");
+        }
+    }
+    private void RequestNetworkResync()
+    {
+        _graphics.NetworkState.Rollback();
+        if (_resyncRequested || !_network.IsConnected) return;
+        _resyncRequested = true;
+        SendNetworkControl("netresync");
+    }
+    private void SendNetworkControl(string command)
+    {
+        if (_graphics.NetworkState.Latest is not { } latest) return;
+        _network.SendText(PacketCodec.Build(command, new object?[] { latest.Epoch, latest.Tick,
+            latest.AckSequence, (long)(NetworkClock.Seconds * 60) }));
+    }
+
     private bool EnsureConnected()
     {
         if (_network.IsConnected) return true;
@@ -455,8 +488,14 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 HandleClasses(fields);
                 break;
             case "worldstate":
-                var scene = System.Text.Json.JsonSerializer.Deserialize<FnaWorldScene>(Field(fields, 1));
-                if (scene is not null) _graphics.SetWorldScene(scene);
+            case "worldtick":
+                try
+                {
+                    var scene = System.Text.Json.JsonSerializer.Deserialize<FnaWorldScene>(Field(fields, 1));
+                    if (scene is null) throw new System.Text.Json.JsonException("Missing world state.");
+                    if (_graphics.SetWorldScene(scene) && _graphics.NetworkState.IsActive) _resyncRequested = false;
+                }
+                catch (System.Text.Json.JsonException) { RequestNetworkResync(); }
                 break;
             case "playermsg":
                 _graphics.AddChatMessage("System", Field(fields, 1));
@@ -465,6 +504,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 _graphics.AddChatMessage("System", Field(fields, 2));
                 break;
             case "ingame":
+                _graphics.ResetNetworkState();
                 _graphics.SetWorldScene(new FnaWorldScene());
                 Ui(ShowMainGame);
                 SendPacket("needmap");
@@ -590,6 +630,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // A kick, ban, server shutdown, or other forced disconnect must tear
         // down the FNA game window and restore the Eto login screen.
         _graphics.Stop();
+        _graphics.ResetNetworkState();
+        _resyncRequested = false;
         _tools.Reset();
         _networkTimer.Start();
 

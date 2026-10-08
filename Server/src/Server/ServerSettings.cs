@@ -26,6 +26,7 @@ namespace Server
         public int MaxMessageSize { get; set; } = 1024 * 1024;
         public bool TcpNoDelay { get; set; } = true;
         public int TickRate { get; set; } = 60;
+        public int SnapshotRate { get; set; } = 20;
         public string Website { get; set; } = "https://xtremeworlds.com";
         public string SpacetimeUri { get; set; } = "http://127.0.0.1:3000";
         public string SpacetimeDatabase { get; set; } = "xtremeworlds";

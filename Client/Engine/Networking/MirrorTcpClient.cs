@@ -14,7 +14,7 @@ public sealed class MirrorTcpClient : IDisposable
 {
     private readonly Telepathy.Client _client;
     private readonly ConcurrentQueue<byte[]> _received = new();
-    private bool _connected;
+    private volatile bool _connected;
 
     public MirrorTcpClient(int maxMessageSize = 1024 * 1024)
     {
@@ -31,6 +31,8 @@ public sealed class MirrorTcpClient : IDisposable
         {
             var copy = segment.ToArray();
             _received.Enqueue(copy);
+            // Event consumers do not drain TryDequeue; retain only bounded diagnostic history.
+            while (_received.Count > 128) _received.TryDequeue(out _);
             DataReceived?.Invoke(this, new NetworkDataEventArgs(copy));
         };
         _client.OnDisconnected = () =>
@@ -88,6 +90,7 @@ public sealed class MirrorTcpClient : IDisposable
     {
         _client.Disconnect();
         _connected = false;
+        while (_received.TryDequeue(out _)) { }
     }
 
     public void Dispose()

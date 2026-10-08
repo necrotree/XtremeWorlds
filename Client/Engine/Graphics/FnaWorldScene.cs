@@ -6,6 +6,12 @@ namespace XtremeWorlds.Client.Engine.Graphics;
 // Matches the map definition stored by the server, delivered as JSON in worldstate.
 public sealed class FnaWorldScene
 {
+    public int MapId { get; set; }
+    public long ServerTick { get; set; }
+    public long AckInputSequence { get; set; }
+    public int TickRate { get; set; } = 60;
+    public string NetworkEpoch { get; set; } = string.Empty;
+    public bool NetworkFrozen { get; set; }
     public FnaSceneMap? Map { get; set; }
     public FnaScenePlayer Player { get; set; } = new();
     public List<FnaScenePlayer> Players { get; set; } = new();
@@ -29,6 +35,7 @@ public sealed class FnaSceneMap
 public sealed class FnaSceneTile
 {
     public List<int> LayerTileset { get; set; } = new();
+    public int Type { get; set; }
     public int Anim { get; set; }
     public int M2Anim { get; set; }
     public int FAnim { get; set; }

@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using XtremeWorlds.Networking;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -63,7 +65,52 @@ public enum FnaVital
 public sealed class FnaGraphicsService : IDisposable
 {
     private readonly ConcurrentQueue<FnaWorldScene> _scenes = new();
-    public void SetWorldScene(FnaWorldScene scene) => _scenes.Enqueue(scene);
+    public ClientTickSynchronizer NetworkState { get; } = new();
+    private FnaSceneMap? _networkMap;
+    private int _networkMapId = -1;
+    public bool SetWorldScene(FnaWorldScene scene)
+    {
+        if (scene.NetworkEpoch == null || scene.Player == null || scene.Players == null
+            || scene.Players.Any(p => p == null || p.Name == null) || scene.Player.Name == null
+            || (scene.Map != null && scene.Map.Tiles == null))
+            throw new System.Text.Json.JsonException("Incomplete network scene.");
+        if (scene.NetworkEpoch.Length == 0) { _scenes.Enqueue(scene); return true; }
+        var poses = scene.Players.Append(scene.Player).Where(p => p.Name.Length > 0)
+            .GroupBy(p => p.Name).ToDictionary(g => g.Key, g => {
+                var p = g.Last();
+                return new MovementState(scene.MapId, p.PixelX ?? p.X * 32.0, p.PixelY ?? p.Y * 32.0, p.Direction);
+            });
+        if (scene.NetworkEpoch.Length > 64 || scene.ServerTick < 0 || scene.AckInputSequence < 0
+            || scene.TickRate is < 1 or > 240 || scene.Player.Name.Length == 0 || poses.Any(p => !p.Value.IsValid))
+            throw new System.Text.Json.JsonException("Invalid tick snapshot.");
+        if (!NetworkState.Receive(new(scene.NetworkEpoch, scene.ServerTick, scene.AckInputSequence, scene.TickRate,
+            scene.Player.Name, poses, scene.NetworkFrozen), NetworkClock.Seconds))
+        {
+            var latest = NetworkState.Latest;
+            // A map editor save can replace tiles without changing movement tick/sequence.
+            if (scene.Map == null || latest == null || latest.Epoch != scene.NetworkEpoch
+                || latest.Tick != scene.ServerTick || latest.AckSequence != scene.AckInputSequence
+                || poses.Any(p => !p.Value.IsValid)) return false;
+        }
+        if (scene.Map != null) { _networkMap = scene.Map; _networkMapId = scene.MapId; }
+        else if (_networkMapId == scene.MapId) scene.Map = _networkMap;
+        var collisionMap = scene.Map;
+        NetworkState.CanMove = moved => collisionMap?.Tiles.ElementAtOrDefault((int)(moved.Y / 32) * 16 + (int)(moved.X / 32))?.Type != 1;
+        _scenes.Enqueue(scene);
+        while (_scenes.Count > 64) _scenes.TryDequeue(out _);
+        return true;
+    }
+    public void ResetNetworkState()
+    {
+        NetworkState.Reset(); _networkMap = null; _networkMapId = -1;
+        while (_scenes.TryDequeue(out _)) { }
+    }
+    private readonly ConcurrentQueue<(int X, int Y)> _browserClicks = new();
+    private readonly ConcurrentQueue<string> _browserKeys = new();
+    private readonly ConcurrentQueue<(string Key, bool Down)> _browserMovement = new();
+    public void BrowserClick(int x, int y) => _browserClicks.Enqueue((x, y));
+    public void BrowserKey(string key) => _browserKeys.Enqueue(key);
+    public void BrowserMovement(string key, bool down) => _browserMovement.Enqueue((key, down));
     public const int InterfaceWidth = 950;
     public const int InterfaceHeight = 700;
     private readonly ConcurrentQueue<FnaSpriteCommand> _commands = new();
@@ -86,7 +133,7 @@ public sealed class FnaGraphicsService : IDisposable
 
     public bool IsRunning => _thread is { IsAlive: true };
 
-    public void Start(int width = InterfaceWidth, int height = InterfaceHeight)
+    public void Start(int width = InterfaceWidth, int height = InterfaceHeight, Action<byte[]>? frameReady = null)
     {
         if (IsRunning) return;
         _stopRequested = false;
@@ -97,6 +144,7 @@ public sealed class FnaGraphicsService : IDisposable
             {
                 using var game = new FnaClientGame(
                     _scenes,
+                    NetworkState,
                     _commands,
                     _worldCommands,
                     _worldTextCommands,
@@ -104,7 +152,7 @@ public sealed class FnaGraphicsService : IDisposable
                     width,
                     height,
                     () => _stopRequested,
-                    RaiseMainGameAction);
+                    RaiseMainGameAction, frameReady, _browserClicks, _browserKeys, _browserMovement);
                 _game = game;
                 game.Run();
             }
@@ -177,6 +225,9 @@ public sealed class FnaGraphicsService : IDisposable
         if (_thread is { IsAlive: true } && Thread.CurrentThread != _thread)
             _thread.Join();
         if (_thread is not { IsAlive: true }) _thread = null;
+        while (_browserClicks.TryDequeue(out _)) { }
+        while (_browserKeys.TryDequeue(out _)) { }
+        while (_browserMovement.TryDequeue(out _)) { }
     }
 
     public void Dispose() => Stop();
@@ -296,8 +347,22 @@ public sealed class FnaGraphicsService : IDisposable
         private FnaWorldScene? _scene;
         private double _renderSeconds;
 
+        private readonly ClientTickSynchronizer _networkState;
+        private readonly Action<byte[]>? _frameReady;
+        private readonly ConcurrentQueue<(int X, int Y)> _browserClicks;
+        private readonly ConcurrentQueue<string> _browserKeys;
+        private readonly ConcurrentQueue<(string Key, bool Down)> _browserMovement;
+        private readonly HashSet<string> _heldBrowserKeys = new();
+        private RenderTarget2D? _captureTarget;
+        private TimeSpan _lastCapture;
+        private bool _streamWindowHidden;
+        [DllImport("SDL3", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool SDL_HideWindow(IntPtr window);
+
         public FnaClientGame(
             ConcurrentQueue<FnaWorldScene> scenes,
+            ClientTickSynchronizer networkState,
             ConcurrentQueue<FnaSpriteCommand> incoming,
             ConcurrentQueue<FnaWorldCommand> worldIncoming,
             ConcurrentQueue<FnaWorldTextCommand> worldTextIncoming,
@@ -305,11 +370,20 @@ public sealed class FnaGraphicsService : IDisposable
             int width,
             int height,
             Func<bool> shouldStop,
-            Action<string, object[]> action)
+            Action<string, object[]> action,
+            Action<byte[]>? frameReady,
+            ConcurrentQueue<(int X, int Y)> browserClicks,
+            ConcurrentQueue<string> browserKeys,
+            ConcurrentQueue<(string Key, bool Down)> browserMovement)
         {
             _scenes = scenes;
+            _networkState = networkState;
             _shouldStop = shouldStop;
             _action = action;
+            _frameReady = frameReady;
+            _browserClicks = browserClicks;
+            _browserKeys = browserKeys;
+            _browserMovement = browserMovement;
             _incoming = incoming;
             _worldIncoming = worldIncoming;
             _worldTextIncoming = worldTextIncoming;
@@ -330,6 +404,11 @@ public sealed class FnaGraphicsService : IDisposable
             Window.Title = "XtremeWorlds";
             Window.AllowUserResizing = true;
             IsMouseVisible = true;
+            if (frameReady != null)
+            {
+                Window.AllowUserResizing = false;
+                InactiveSleepTime = TimeSpan.Zero;
+            }
         }
 
         public void RequestExit() => _exitRequested = true;
@@ -380,6 +459,13 @@ public sealed class FnaGraphicsService : IDisposable
             _previousKeyboard = Keyboard.GetState();
         }
 
+        protected override void UnloadContent()
+        {
+            _captureTarget?.Dispose();
+            _captureTarget = null;
+            base.UnloadContent();
+        }
+
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -390,6 +476,11 @@ public sealed class FnaGraphicsService : IDisposable
 
         protected override void Update(GameTime gameTime)
         {
+            if (_frameReady != null && !_streamWindowHidden)
+            {
+                if (!SDL_HideWindow(Window.Handle)) throw new InvalidOperationException("Unable to hide the streaming window.");
+                _streamWindowHidden = true;
+            }
             if (_exitRequested || _shouldStop())
             {
                 Exit();
@@ -397,6 +488,16 @@ public sealed class FnaGraphicsService : IDisposable
             }
 
             while (_scenes.TryDequeue(out var scene)) _scene = scene;
+            if (_scene != null)
+            {
+                var poses = _networkState.Sample(NetworkClock.Seconds);
+                foreach (var actor in _scene.Players.Append(_scene.Player))
+                    if (poses.TryGetValue(actor.Name, out var pose))
+                    {
+                        actor.PixelX = pose.X; actor.PixelY = pose.Y;
+                        actor.X = (int)(pose.X / 32); actor.Y = (int)(pose.Y / 32); actor.Direction = pose.Direction;
+                    }
+            }
 
             if (_incoming.TryDequeue(out var command))
             {
@@ -422,7 +523,30 @@ public sealed class FnaGraphicsService : IDisposable
             while (_chatIncoming.TryDequeue(out var line))
                 AddChatLine(ParseChannel(line.Channel), line.Text);
 
-            if (IsActive)
+            while (_browserClicks.TryDequeue(out var click)) HandleLogicalClick(click.X, click.Y);
+            while (_browserKeys.TryDequeue(out var key))
+            {
+                if (key == "Enter") SendChat();
+                else if (key == "Escape")
+                {
+                    if (_activePanel != MainGamePanel.None) _activePanel = MainGamePanel.None;
+                    else _action("Logout", Array.Empty<object>());
+                }
+                else if (key == "Backspace") { if (_chatInput.Length > 0) _chatInput = _chatInput[..^1]; }
+                else if (key.Length == 1 && _chatInput.Length < 96) _chatInput += key;
+            }
+            while (_browserMovement.TryDequeue(out var input))
+            {
+                if (input.Down) _heldBrowserKeys.Add(input.Key);
+                else _heldBrowserKeys.Remove(input.Key);
+            }
+            if (_frameReady != null && _scene?.Map != null && gameTime.TotalGameTime.TotalSeconds >= _nextMove)
+            {
+                int direction = _heldBrowserKeys.Contains("ArrowUp") ? 0 : _heldBrowserKeys.Contains("ArrowDown") ? 1
+                    : _heldBrowserKeys.Contains("ArrowLeft") ? 2 : _heldBrowserKeys.Contains("ArrowRight") ? 3 : -1;
+                if (direction >= 0) { _nextMove = gameTime.TotalGameTime.TotalSeconds + .03; _action("MovePlayer", new object[] { direction }); }
+            }
+            if (IsActive && _frameReady == null)
             {
                 _renderSeconds = gameTime.TotalGameTime.TotalSeconds;
                 HandleMouse();
@@ -467,6 +591,14 @@ public sealed class FnaGraphicsService : IDisposable
 
             if (leftPressed && TryScreenToLogical(mouse.X, mouse.Y, out var x, out var y))
             {
+                HandleLogicalClick(x, y);
+            }
+
+            _previousMouse = mouse;
+        }
+
+        private void HandleLogicalClick(int x, int y)
+        {
                 if (StatsButton.Contains(x, y)) TogglePanel(MainGamePanel.Character);
                 else if (InventoryButton.Contains(x, y)) TogglePanel(MainGamePanel.Inventory);
                 else if (GuildButton.Contains(x, y)) TogglePanel(MainGamePanel.Guild);
@@ -486,9 +618,6 @@ public sealed class FnaGraphicsService : IDisposable
                 else if (GlobalChannelButton.Contains(x, y)) ToggleChatChannel(ChatChannel.Global);
                 else if (GuildChannelButton.Contains(x, y)) ToggleChatChannel(ChatChannel.Guild);
                 else if (PmChannelButton.Contains(x, y)) ToggleChatChannel(ChatChannel.PM);
-            }
-
-            _previousMouse = mouse;
         }
 
         private static bool TryGetInventorySlot(int x, int y, out int slot)
@@ -642,6 +771,11 @@ public sealed class FnaGraphicsService : IDisposable
 
         protected override void Draw(GameTime gameTime)
         {
+            if (_frameReady != null)
+            {
+                _captureTarget ??= new RenderTarget2D(GraphicsDevice, LogicalWidth, LogicalHeight);
+                GraphicsDevice.SetRenderTarget(_captureTarget);
+            }
             GraphicsDevice.Clear(Color.Black);
             if (_spriteBatch is null) return;
 
@@ -685,6 +819,17 @@ public sealed class FnaGraphicsService : IDisposable
             DrawChat();
             _spriteBatch.End();
 
+            if (_captureTarget != null)
+            {
+                GraphicsDevice.SetRenderTarget(null);
+                if (gameTime.TotalGameTime - _lastCapture >= TimeSpan.FromMilliseconds(100))
+                {
+                    using var stream = new MemoryStream();
+                    _captureTarget.SaveAsPng(stream, LogicalWidth, LogicalHeight);
+                    _frameReady!(stream.ToArray());
+                    _lastCapture = gameTime.TotalGameTime;
+                }
+            }
             base.Draw(gameTime);
         }
 
@@ -915,6 +1060,7 @@ public sealed class FnaGraphicsService : IDisposable
 
         private Rectangle GetViewportScissor()
         {
+            if (_frameReady != null) return GameViewport;
             var bounds = Window.ClientBounds;
             var scale = Math.Min(bounds.Width / (float)LogicalWidth, bounds.Height / (float)LogicalHeight);
             if (scale <= 0f) scale = 1f;
@@ -929,6 +1075,7 @@ public sealed class FnaGraphicsService : IDisposable
 
         private Matrix GetUiTransform()
         {
+            if (_frameReady != null) return Matrix.Identity;
             var bounds = Window.ClientBounds;
             var scale = Math.Min(bounds.Width / (float)LogicalWidth, bounds.Height / (float)LogicalHeight);
             if (scale <= 0f) scale = 1f;
@@ -1146,8 +1293,17 @@ public sealed class FnaGraphicsService : IDisposable
             }
         }
 
-        private Texture2D? GetMainGameTexture(string assetName) =>
-            GetTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "frmMainGame", assetName));
+        private Texture2D? GetMainGameTexture(string assetName)
+        {
+            var original = GetTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "frmMainGame", assetName));
+            if (original != null) return original;
+            string? current = assetName.ToLowerInvariant() switch {
+                "game.jpg" => "frmMainGame.jpg", "character.jpg" => "imgCharacter.jpg",
+                "inventory.jpg" => "imgInventory.jpg", "skills.jpg" => "imgSkills.jpg",
+                "train-plus.png" => "imgTraining.png", _ => null
+            };
+            return current == null ? null : GetTexture(Path.Combine(AppContext.BaseDirectory, "Assets", "frmMainGame", current));
+        }
 
         private Texture2D? GetGaugeTexture(string assetName) =>
             GetTexture(Path.Combine(AppContext.BaseDirectory, "gfx", "Gauges", assetName));

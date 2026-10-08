@@ -3,6 +3,7 @@ namespace Server
 {
     public class PlayerSession
     {
+        public XtremeWorlds.Networking.TickAuthority NetworkState { get; } = new();
         public int ConnectionId { get; set; }
         public string IpAddress { get; set; } = "";
         public string Login { get; set; } = "";

@@ -26,12 +26,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Tools", "Client\Tool
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolProtocol", "Tools\ToolProtocol\ToolProtocol.csproj", "{C0B1060E-1771-0341-0FAC-B7A478C49DBF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkState", "Network\NetworkState\NetworkState.csproj", "{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9292A579-8E59-09EA-113D-92FE09706108}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9292A579-8E59-09EA-113D-92FE09706108}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9292A579-8E59-09EA-113D-92FE09706108}.Release|Any CPU.ActiveCfg = Release|Any CPU
