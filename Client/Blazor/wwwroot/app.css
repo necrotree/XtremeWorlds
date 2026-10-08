@@ -34,3 +34,10 @@ html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.m
 .connection-actions{display:flex;justify-content:end;gap:12px}
 .connection-actions button{margin:0;background:#684629;color:#fff0c4;border:1px solid #b48b51}
 .connection-actions button:first-child{background:#356642}
+
+.connection-modal{max-height:90dvh;overflow:auto}
+.graphics-manager{border-top:1px solid #876339;margin-top:18px;padding-top:12px}
+.graphics-manager h3{margin:4px 0;color:#ffe3a4}
+.graphics-manager select{width:100%;padding:8px;background:#e9d7ad;color:#241b0c;border:1px solid #b48b51}
+.graphics-manager input[type=file]{width:100%;font-size:12px;background:#3e2c1b;color:#fff0c4}
+.graphics-manager .connection-actions button{background:#356642}
