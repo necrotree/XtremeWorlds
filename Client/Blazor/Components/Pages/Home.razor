@@ -4,20 +4,7 @@
 
 @if (Session.InGame)
 {
-    @if (Session.GameReady)
-    {
-        <Client.Blazor.Components.Forms.FrmMirage />
-    }
-    else
-    {
-        <main class="world-loading" role="status" aria-live="polite">
-            <div class="world-loading-panel">
-                <h1>XTREMEWORLDS</h1>
-                <p>Loading world map…</p>
-                <button @onclick="Session.Disconnect">Cancel</button>
-            </div>
-        </main>
-    }
+    <Client.Blazor.Components.Forms.FrmMirage />
 }
 else
 {
