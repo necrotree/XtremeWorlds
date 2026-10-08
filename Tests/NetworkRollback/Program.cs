@@ -1,3 +1,6 @@
+using System.Text.Json;
+using XtremeWorlds.Client.Engine.Graphics;
+using XtremeWorlds.Client.Engine.Networking;
 using XtremeWorlds.Networking;
 int checks = 0;
 void Check(bool passed, string name) { if (!passed) throw new Exception(name); checks++; }
@@ -79,5 +82,24 @@ disposeQueue.TryEnqueue(async () => await blocked.Task);
 disposeQueue.TryEnqueue(() => { order.Add(5); return Task.CompletedTask; });
 disposeQueue.Dispose(); blocked.SetResult(); await disposeQueue.Completion;
 Check(order[^1] == 4 && !disposeQueue.TryEnqueue(() => Task.CompletedTask), "disconnected queue skips remaining packets");
+using (var graphics = new FnaGraphicsService())
+using (var shared = new GameClientConnection(graphics))
+{
+    int menuPackets = 0;
+    shared.PacketReceived += _ => menuPackets++;
+    shared.Receive(new[] { "allchars", "self" });
+    var scene = new FnaWorldScene {
+        MapId = 1, ServerTick = 1, NetworkEpoch = "shared", Player = new() { Name = "self", X = 1, Y = 1 }
+    };
+    shared.Receive(new[] { "worldstate", JsonSerializer.Serialize(scene) });
+    Check(graphics.NetworkState.Latest?.Epoch == "shared" && menuPackets == 1,
+        "shared controller routes world snapshots and separates menu packets");
+    shared.Receive(new[] { "worldtick", "{invalid" });
+    Check(!graphics.NetworkState.IsActive, "shared controller freezes prediction on malformed world packets");
+    Check(shared.HandleAction("MovePlayer", new object[] { 3 }) && graphics.NetworkState.PendingCount == 0,
+        "shared controller rejects movement while disconnected");
+    shared.Receive(new[] { "ingame" });
+    Check(graphics.NetworkState.Latest == null && menuPackets == 2, "shared controller resets history when entering game");
+}
 await WireChecks.Run(Check);
 Console.WriteLine($"Passed {checks} network interpolation and rollback checks.");

@@ -18,30 +18,25 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        module = await JS.InvokeAsync<IJSObjectReference>("import", "./game-stream.js");
+        module = await JS.InvokeAsync<IJSObjectReference>("import", "./game-stream.js?v=3");
         reference = DotNetObjectReference.Create(this);
-        await module.InvokeVoidAsync("attach", canvas, reference);
+        await module.InvokeVoidAsync("attach", canvas, reference, $"/game-frames/{Session.Renderer.StreamId}");
         polling = PollAsync();
     }
     [JSInvokable] public void Click(int x, int y) => Session.Renderer.Click(x, y);
     [JSInvokable] public void Key(string key) => Session.Renderer.Key(key);
+    [JSInvokable] public void Movement(string key, bool down) => Session.Renderer.Movement(key, down);
     private async Task PollAsync()
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
-        byte[]? previous = null;
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(20));
         try
         {
             while (await timer.WaitForNextTickAsync(cancellation.Token))
-                await InvokeAsync(async () =>
+                await InvokeAsync(() =>
                 {
+                    var status = Session.Status;
                     Session.Poll();
-                    var frame = Session.Renderer.Frame;
-                    if (frame is not null && !ReferenceEquals(frame, previous))
-                    {
-                        previous = frame;
-                        await module!.InvokeVoidAsync("draw", canvas, frame);
-                    }
-                    StateHasChanged();
+                    if (status != Session.Status) StateHasChanged();
                 });
         }
         catch (OperationCanceledException) { }

@@ -20,7 +20,8 @@ namespace XtremeWorlds.Client.Engine.Runtime;
 /// </summary>
 public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 {
-    private readonly MirrorTcpClient _network = new();
+    private readonly GameClientConnection _connection;
+    private MirrorTcpClient _network => _connection.Transport;
     private readonly XtremeWorlds.Client.Tools.ToolController _tools;
     private readonly UITimer _networkTimer = new() { Interval = 0.02 };
     private readonly FnaAudioService _audio = new();
@@ -29,8 +30,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private string _serverHost = "127.0.0.1";
     private int _serverPort = 7234;
     private bool _disposed;
-    private double _nextHeartbeat;
-    private bool _resyncRequested;
     private readonly HashSet<EditForm> _editForms = new();
     public void ShowEditForm(EditForm form)
     {
@@ -65,10 +64,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     public EngineGameClientRuntime()
     {
+        _connection = new GameClientConnection(_graphics);
+        _connection.PacketReceived += OnNetworkPacket;
         _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
-        _network.DataReceived += OnNetworkData;
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
         _network.Disconnected += (_, _) =>
         {
@@ -84,7 +84,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // Telepathy queues received messages until Tick() runs. Pump continuously
         // while the menu is active so a response to Register cannot sit queued
         // until the next Login click and appear to be a login response.
-        _networkTimer.Elapsed += (_, _) => PumpNetwork();
+        _networkTimer.Elapsed += (_, _) => _connection.Tick();
 
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
 
@@ -212,23 +212,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     public void MainGameAction(string actionName, params object[] arguments)
     {
         actionName ??= string.Empty;
+        if (_connection.HandleAction(actionName, arguments)) { Request(actionName, arguments); return; }
         switch (actionName)
         {
             case "Form_Load":
                 _graphics.Start(FnaGraphicsService.InterfaceWidth, FnaGraphicsService.InterfaceHeight);
-                break;
-            case "ToggleInventory":
-                SendPacket("getinv");
-                break;
-            case "ToggleSpells":
-                SendPacket("spells");
-                break;
-            case "ToggleStats":
-            case "ToggleTrain":
-                SendPacket("getlivestats");
-                break;
-            case "SendWhosOnline":
-                SendPacket("whosonline");
                 break;
             case "ToggleGuild":
                 Request("GuildInfo");
@@ -248,23 +236,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "SendChatChannel":
                 SendChat(Arg(arguments, 1));
                 break;
-            case "MovePlayer":
-                if (_network.IsConnected && !_graphics.NetworkState.IsInactive(NetworkClock.Seconds, 2)
-                    && _graphics.NetworkState.TryInput(IntArg(arguments, 0), (long)(NetworkClock.Seconds * 60), out var input))
-                    _network.SendText(PacketCodec.Build("playermove", new object?[] { input.Direction, input.Sequence,
-                        input.ClientTick, input.AckTick, input.AckSequence, input.Epoch }));
-                break;
             case "SendChat":
                 SendChat(Arg(arguments, 0));
-                break;
-            case "UseInventoryItem":
-                SendPacket("USEITEM", IntArg(arguments, 0) + 1);
-                break;
-            case "CastSpell":
-                SendPacket("cast", IntArg(arguments, 0) + 1);
-                break;
-            case "ForgetSpell":
-                SendPacket("forgetspell", IntArg(arguments, 0) + 1);
                 break;
             case "PlaySound":
                 _audio.PlaySound(Arg(arguments, 0));
@@ -377,32 +350,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         MainGameAction(actionName, arguments);
     }
 
-    private void PumpNetwork()
-    {
-        _network.Tick();
-        double now = NetworkClock.Seconds;
-        if (!_network.IsConnected || _graphics.NetworkState.Latest == null) return;
-        if (_graphics.NetworkState.IsInactive(now, 2)) RequestNetworkResync();
-        if (now >= _nextHeartbeat)
-        {
-            _nextHeartbeat = now + 0.25;
-            SendNetworkControl("netping");
-        }
-    }
-    private void RequestNetworkResync()
-    {
-        _graphics.NetworkState.Rollback();
-        if (_resyncRequested || !_network.IsConnected) return;
-        _resyncRequested = true;
-        SendNetworkControl("netresync");
-    }
-    private void SendNetworkControl(string command)
-    {
-        if (_graphics.NetworkState.Latest is not { } latest) return;
-        _network.SendText(PacketCodec.Build(command, new object?[] { latest.Epoch, latest.Tick,
-            latest.AckSequence, (long)(NetworkClock.Seconds * 60) }));
-    }
-
     private bool EnsureConnected()
     {
         if (_network.IsConnected) return true;
@@ -455,12 +402,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _network.SendText(PacketCodec.Build(command, values));
     }
 
-    private void OnNetworkData(object? sender, NetworkDataEventArgs e)
+    private void OnNetworkPacket(IReadOnlyList<string> fields)
     {
-        var text = Encoding.UTF8.GetString(e.Data);
-        var fields = PacketCodec.Parse(text);
-        if (fields.Count == 0) return;
-
         var command = fields[0].Trim().ToLowerInvariant();
         if (command is "toolaccess" or "toolindex" or "toolrecord" or "toolsaved" or "toolerror")
         {
@@ -487,16 +430,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "classesdata":
                 HandleClasses(fields);
                 break;
-            case "worldstate":
-            case "worldtick":
-                try
-                {
-                    var scene = System.Text.Json.JsonSerializer.Deserialize<FnaWorldScene>(Field(fields, 1));
-                    if (scene is null) throw new System.Text.Json.JsonException("Missing world state.");
-                    if (_graphics.SetWorldScene(scene) && _graphics.NetworkState.IsActive) _resyncRequested = false;
-                }
-                catch (System.Text.Json.JsonException) { RequestNetworkResync(); }
-                break;
             case "playermsg":
                 _graphics.AddChatMessage("System", Field(fields, 1));
                 break;
@@ -504,10 +437,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
                 _graphics.AddChatMessage("System", Field(fields, 2));
                 break;
             case "ingame":
-                _graphics.ResetNetworkState();
                 _graphics.SetWorldScene(new FnaWorldScene());
                 Ui(ShowMainGame);
-                SendPacket("needmap");
                 break;
             default:
                 Request("PacketReceived", fields.ToArray());
@@ -630,8 +561,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // A kick, ban, server shutdown, or other forced disconnect must tear
         // down the FNA game window and restore the Eto login screen.
         _graphics.Stop();
-        _graphics.ResetNetworkState();
-        _resyncRequested = false;
+        _connection.Reset();
         _tools.Reset();
         _networkTimer.Start();
 
@@ -710,6 +640,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _networkTimer.Stop();
         _graphics.Dispose();
         _audio.Dispose();
-        _network.Dispose();
+        _connection.Dispose();
     }
 }

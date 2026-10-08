@@ -11,10 +11,16 @@ public sealed class BrowserFnaRenderer : IDisposable
     private readonly FnaGraphicsService graphics = new();
     private readonly ConcurrentQueue<(string Action, object[] Args)> actions = new();
     private byte[]? frame;
+    public event Action<byte[]>? FrameReady;
     private string? failure;
     private bool ownsLease;
+    private CancellationTokenSource? streamCancellation;
+    public string? StreamId { get; private set; }
     private (string Name, int Level)? character;
     private readonly ConcurrentQueue<(string Channel, string Text)> chat = new();
+    public FnaGraphicsService Graphics => graphics;
+    public XtremeWorlds.Networking.ClientTickSynchronizer NetworkState => graphics.NetworkState;
+    public bool World(FnaWorldScene scene) => graphics.SetWorldScene(scene);
     public byte[]? Frame => Volatile.Read(ref frame);
     public string? Failure => Volatile.Read(ref failure);
 
@@ -35,13 +41,16 @@ public sealed class BrowserFnaRenderer : IDisposable
         }
         ownsLease = true;
         failure = null;
-        graphics.Start(frameReady: bytes => Volatile.Write(ref frame, bytes));
+        streamCancellation = new CancellationTokenSource();
+        StreamId = BrowserFrameStream.Register(() => Frame, handler => FrameReady += handler, handler => FrameReady -= handler, graphics.RequestStreamKeyframe, streamCancellation.Token);
+        graphics.Start(frameReady: bytes => { if (bytes[0] == 137) Volatile.Write(ref frame, bytes); FrameReady?.Invoke(bytes); });
         return true;
     }
 
     public bool TryAction(out (string Action, object[] Args) action) => actions.TryDequeue(out action);
     public void Click(int x, int y) { if (ownsLease && x is >= 0 and < 950 && y is >= 0 and < 700) graphics.BrowserClick(x, y); }
     public void Key(string key) { if (ownsLease && key.Length <= 16) graphics.BrowserKey(key); }
+    public void Movement(string key, bool down) { if (ownsLease && (key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight")) graphics.BrowserMovement(key, down); }
     public void Chat(string channel, string text) => chat.Enqueue((channel, text));
     public void Character(string name, int level) => character = (name, level);
     public void Update()
@@ -57,7 +66,13 @@ public sealed class BrowserFnaRenderer : IDisposable
     }
     public void Stop()
     {
+        BrowserFrameStream.Remove(StreamId);
+        StreamId = null;
+        streamCancellation?.Cancel();
+        streamCancellation?.Dispose();
+        streamCancellation = null;
         graphics.Stop();
+        graphics.ResetNetworkState();
         frame = null;
         character = null;
         while (chat.TryDequeue(out _)) { }

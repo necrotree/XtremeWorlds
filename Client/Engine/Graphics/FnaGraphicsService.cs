@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using XtremeWorlds.Networking;
 using System;
@@ -92,7 +94,7 @@ public sealed class FnaGraphicsService : IDisposable
                 || latest.Tick != scene.ServerTick || latest.AckSequence != scene.AckInputSequence
                 || poses.Any(p => !p.Value.IsValid)) return false;
         }
-        if (scene.Map != null) { _networkMap = scene.Map; _networkMapId = scene.MapId; }
+        if (scene.Map != null) { RequestStreamKeyframe(); _networkMap = scene.Map; _networkMapId = scene.MapId; }
         else if (_networkMapId == scene.MapId) scene.Map = _networkMap;
         var collisionMap = scene.Map;
         NetworkState.CanMove = moved => collisionMap?.Tiles.ElementAtOrDefault((int)(moved.Y / 32) * 16 + (int)(moved.X / 32))?.Type != 1;
@@ -111,6 +113,9 @@ public sealed class FnaGraphicsService : IDisposable
     public void BrowserClick(int x, int y) => _browserClicks.Enqueue((x, y));
     public void BrowserKey(string key) => _browserKeys.Enqueue(key);
     public void BrowserMovement(string key, bool down) => _browserMovement.Enqueue((key, down));
+    public void RequestStreamKeyframe() => _game?.RequestStreamKeyframe();
+    public double StreamEncodeMilliseconds => _game?.StreamEncodeMilliseconds ?? 0;
+    public const int StreamFrameRate = 60;
     public const int InterfaceWidth = 950;
     public const int InterfaceHeight = 700;
     private readonly ConcurrentQueue<FnaSpriteCommand> _commands = new();
@@ -349,6 +354,8 @@ public sealed class FnaGraphicsService : IDisposable
 
         private readonly ClientTickSynchronizer _networkState;
         private readonly Action<byte[]>? _frameReady;
+        private readonly LatestPngEncoder? _frameEncoder;
+        private readonly RasterizerState _worldRasterizer = new() { ScissorTestEnable = true };
         private readonly ConcurrentQueue<(int X, int Y)> _browserClicks;
         private readonly ConcurrentQueue<string> _browserKeys;
         private readonly ConcurrentQueue<(string Key, bool Down)> _browserMovement;
@@ -381,6 +388,7 @@ public sealed class FnaGraphicsService : IDisposable
             _shouldStop = shouldStop;
             _action = action;
             _frameReady = frameReady;
+            if (frameReady != null) _frameEncoder = new LatestPngEncoder(LogicalWidth, LogicalHeight, frameReady);
             _browserClicks = browserClicks;
             _browserKeys = browserKeys;
             _browserMovement = browserMovement;
@@ -411,6 +419,8 @@ public sealed class FnaGraphicsService : IDisposable
             }
         }
 
+        public void RequestStreamKeyframe() => _frameEncoder?.RequestKeyframe();
+        public double StreamEncodeMilliseconds => _frameEncoder?.LastEncodeMilliseconds ?? 0;
         public void RequestExit() => _exitRequested = true;
 
         public void SetVital(FnaVital vital, int current, int maximum)
@@ -523,6 +533,7 @@ public sealed class FnaGraphicsService : IDisposable
             while (_chatIncoming.TryDequeue(out var line))
                 AddChatLine(ParseChannel(line.Channel), line.Text);
 
+            _renderSeconds = gameTime.TotalGameTime.TotalSeconds;
             while (_browserClicks.TryDequeue(out var click)) HandleLogicalClick(click.X, click.Y);
             while (_browserKeys.TryDequeue(out var key))
             {
@@ -548,7 +559,6 @@ public sealed class FnaGraphicsService : IDisposable
             }
             if (IsActive && _frameReady == null)
             {
-                _renderSeconds = gameTime.TotalGameTime.TotalSeconds;
                 HandleMouse();
                 HandleKeyboard();
                 var keys = Keyboard.GetState();
@@ -822,12 +832,16 @@ public sealed class FnaGraphicsService : IDisposable
             if (_captureTarget != null)
             {
                 GraphicsDevice.SetRenderTarget(null);
-                if (gameTime.TotalGameTime - _lastCapture >= TimeSpan.FromMilliseconds(100))
+                if (gameTime.TotalGameTime - _lastCapture >= TimeSpan.FromSeconds(1.0 / StreamFrameRate))
                 {
-                    using var stream = new MemoryStream();
-                    _captureTarget.SaveAsPng(stream, LogicalWidth, LogicalHeight);
-                    _frameReady!(stream.ToArray());
-                    _lastCapture = gameTime.TotalGameTime;
+                    int length = LogicalWidth * LogicalHeight * 4;
+                    var pixels = ArrayPool<byte>.Shared.Rent(length);
+                    try { _captureTarget.GetData<byte>(0, null, pixels, 0, length); }
+                    catch { ArrayPool<byte>.Shared.Return(pixels); throw; }
+                    _frameEncoder!.Submit(pixels);
+                    // Keep the fractional remainder; the 15 ms simulation step is not an exact capture-rate divisor.
+                    long intervalTicks = TimeSpan.FromSeconds(1.0 / StreamFrameRate).Ticks;
+                    _lastCapture = TimeSpan.FromTicks(gameTime.TotalGameTime.Ticks - (gameTime.TotalGameTime.Ticks - _lastCapture.Ticks) % intervalTicks);
                 }
             }
             base.Draw(gameTime);
@@ -842,7 +856,7 @@ public sealed class FnaGraphicsService : IDisposable
             // coordinates. Keep backwards compatibility by drawing them into the
             // same clipped 640x480 picScreen viewport as the classic client.
             var oldScissor = GraphicsDevice.ScissorRectangle;
-            using var rasterizer = new RasterizerState { ScissorTestEnable = true };
+            var rasterizer = _worldRasterizer;
             GraphicsDevice.ScissorRectangle = GetViewportScissor();
 
             _spriteBatch.Begin(
@@ -885,7 +899,7 @@ public sealed class FnaGraphicsService : IDisposable
             if (_spriteBatch is null) return;
 
             var oldScissor = GraphicsDevice.ScissorRectangle;
-            using var rasterizer = new RasterizerState { ScissorTestEnable = true };
+            var rasterizer = _worldRasterizer;
             GraphicsDevice.ScissorRectangle = GetViewportScissor();
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, rasterizer, null, transform);
@@ -1013,10 +1027,10 @@ public sealed class FnaGraphicsService : IDisposable
         private Texture2D? GetWorldTexture(string filename, Color? colorKey)
         {
             string path = Path.Combine(AppContext.BaseDirectory, "gfx", filename);
-            if (!File.Exists(path)) return null;
             if (colorKey is null) return GetTexture(path);
             string cacheKey = path + "#" + colorKey.Value.PackedValue;
             if (_textures.TryGetValue(cacheKey, out var cached)) return cached;
+            if (!File.Exists(path)) return null;
             using var stream = File.OpenRead(path);
             var texture = Texture2D.FromStream(GraphicsDevice, stream);
             var pixels = new Color[texture.Width * texture.Height];
@@ -1310,8 +1324,8 @@ public sealed class FnaGraphicsService : IDisposable
 
         private Texture2D? GetTexture(string path)
         {
-            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
             if (_textures.TryGetValue(path, out var texture)) return texture;
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
 
             using var stream = File.OpenRead(path);
             texture = Texture2D.FromStream(GraphicsDevice, stream);
@@ -1323,6 +1337,8 @@ public sealed class FnaGraphicsService : IDisposable
         {
             if (disposing)
             {
+                _frameEncoder?.Dispose();
+                _worldRasterizer.Dispose();
                 _pixel?.Dispose();
                 _spriteBatch?.Dispose();
                 foreach (var texture in _textures.Values) texture.Dispose();

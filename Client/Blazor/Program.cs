@@ -1,3 +1,4 @@
+using Microsoft.Extensions.FileProviders;
 using Client.Blazor.Components;
 using Client.Blazor.Services;
 
@@ -21,8 +22,14 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+app.UseWebSockets();
 app.UseAntiforgery();
 
+// FNA and the browser share the copied artwork; expose it independently of generated static asset manifests.
+app.UseStaticFiles(new StaticFileOptions {
+    FileProvider = new PhysicalFileProvider(Path.Combine(AppContext.BaseDirectory, "Assets")), RequestPath = "/assets"
+});
+app.MapGet("/game-frames/{id}", (HttpContext context, string id) => BrowserFrameStream.ServeAsync(context, id));
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

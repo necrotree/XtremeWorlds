@@ -3,12 +3,12 @@
 
 <PageTitle>XtremeWorlds Client</PageTitle>
 <main class="menu-scene">
-    <img class="menu-logo" src="assets/frmMainMenu/logo.png" alt="XtremeWorlds" />
+    <img class="menu-logo" src="assets/frmMainMenu/imgLogo.png" alt="XtremeWorlds" />
     <section class="menu-stage" aria-label="Account menu">
     @if (page == "create")
     {
         <form class="art-panel creation-panel" @onsubmit="CreateCharacter" @onsubmit:preventDefault>
-            <img src="assets/frmMainMenu/newchar.png" alt="Character Creation" />
+            <img src="assets/frmMainMenu/imgNewChar.png" alt="Character Creation" />
             <input class="character-name" aria-label="Character name" @bind="characterName" maxlength="20" required />
             <button type="button" class="hotspot male" aria-label="Male" aria-pressed="@(sex == 0)" @onclick="() => sex = 0"></button>
             <button type="button" class="hotspot female" aria-label="Female" aria-pressed="@(sex == 1)" @onclick="() => sex = 1"></button>
@@ -16,7 +16,7 @@
             <button type="button" class="hotspot creation-back" aria-label="Back to characters" @onclick='() => page = "characters"'></button>
         </form>
         <div class="class-picker" aria-label="Character class">
-            <img src="assets/frmMainMenu/classselection.png" alt="Fighter, Wizard, Celestial, Guardian, Assassin" />
+            <img src="assets/frmMainMenu/imgClassSelection.png" alt="Fighter, Wizard, Celestial, Guardian, Assassin" />
             @for (var i = 0; i < 5; i++)
             {
                 var choice = i;
@@ -27,7 +27,7 @@
     else if (Session.Characters.Length > 0)
     {
         <div class="art-panel characters-panel">
-            <img src="assets/frmMainMenu/characters.png" alt="Characters" />
+            <img src="assets/frmMainMenu/imgCharacters.png" alt="Characters" />
             @for (var i = 0; i < Math.Min(3, Session.Characters.Length); i++)
             {
                 var slot = i;
@@ -49,7 +49,7 @@
     else if (page == "main")
     {
         <nav class="art-panel main-panel" aria-label="Main menu">
-            <img src="assets/frmMainMenu/main.png" alt="" />
+            <img src="assets/frmMainMenu/imgMainMenu.png" alt="" />
             <button class="hotspot main-login" aria-label="Login" @onclick='() => page = "login"'></button>
             <button class="hotspot main-register" aria-label="Register" @onclick='() => page = "register"'></button>
         </nav>
@@ -57,7 +57,7 @@
     else
     {
         <form class="art-panel @(page == "register" ? "register-panel" : "login-panel")" @onsubmit="Login" @onsubmit:preventDefault>
-            <img src="assets/frmMainMenu/@(page == "register" ? "register.png" : "login.png")" alt="@(page == "register" ? "Register" : "Login")" />
+            <img src="assets/frmMainMenu/@(page == "register" ? "imgRegister.png" : "imgLogin.png")" alt="@(page == "register" ? "Register" : "Login")" />
             <input class="username" aria-label="Username" @bind="username" autocomplete="username" maxlength="64" required />
             <input class="password" aria-label="Password" @bind="password" type="password" autocomplete="@(page == "register" ? "new-password" : "current-password")" maxlength="128" required />
             @if (page == "register")

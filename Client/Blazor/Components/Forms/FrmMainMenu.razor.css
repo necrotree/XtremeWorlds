@@ -1,4 +1,4 @@
-.menu-scene { width: 100%; max-width: none; min-height: 100svh; box-sizing: border-box; margin: 0; padding: 24px 12px; display: flex; flex-direction: column; align-items: center; background: url('assets/frmMainMenu/background.png') center / cover fixed; font-family: Georgia, serif; color: #f3d48a; }
+.menu-scene { width: 100%; max-width: none; min-height: 100svh; box-sizing: border-box; margin: 0; padding: 24px 12px; display: flex; flex-direction: column; align-items: center; background: url('/assets/frmMainMenu/imgBackground.png') center / cover fixed; font-family: Georgia, serif; color: #f3d48a; }
 .menu-logo { width: min(745px, 90vw); height: auto; margin: 12px 0 36px; }
 .menu-stage { width: 100%; min-height: 390px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; }
 .art-panel { position: relative; flex: none; margin: 0; display: block; width: min(399px, 94vw); line-height: 0; }
