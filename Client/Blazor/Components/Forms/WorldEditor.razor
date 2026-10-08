@@ -35,7 +35,7 @@
               var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
               <button class="editor-map-cell @(cell.Blocked?"blocked":"") @(ev is not null?"event-cell":"")" title="@($"({px},{py})")"
                 style="@CellBackground(cell)" @onmousedown="(e) => BeginPaint(px,py,e)" @onmouseenter="() => ContinuePaint(px,py)" @onmouseup="StopPaint" @onmousedown:preventDefault @oncontextmenu:preventDefault>
-                @if(ev is not null){<span class="event-indicator">!</span>}
+                @if(ev is not null){<span class="event-indicator" style="@EventGraphicStyle(ev)">@(ev.Graphic == 0 ? "!" : "")</span>}
               </button>
             }}
 
@@ -54,6 +54,12 @@
           <h3>Edit Event</h3>
           <label>Name <input @bind="selected.Name" /></label>
           <div class="two-fields"><label>X <input type="number" min="0" max="@(map.Width-1)" @bind="selected.X" /></label><label>Y <input type="number" min="0" max="@(map.Height-1)" @bind="selected.Y" /></label></div>
+          <h3>Event Graphic</h3>
+          <label>Sheet <select @bind="selected.GraphicSheet"><option>npcs.png</option><option>sprites.png</option><option>items.png</option><option>spells.png</option></select></label>
+          <label>Graphic ID (0 = none) <input type="number" min="0" @bind="selected.Graphic" /></label>
+          <label>Frame width <input type="number" min="1" @bind="selected.FrameWidth" /></label>
+          <label>Frame height <input type="number" min="1" @bind="selected.FrameHeight" /></label>
+          <div class="event-graphic-preview" style="@EventGraphicStyle(selected)"></div>
           <label>Trigger <select @bind="selected.Trigger"><option>Action</option><option>Player Touch</option><option>Autorun</option><option>Parallel</option></select></label>
           <label>Command <select @bind="selected.Command"><option>Show Message</option><option>Warp</option><option>Run Script</option></select></label>
           @if(selected.Command=="Run Script") {
@@ -191,6 +197,12 @@
       _=>$"Log({target}.{field})"
     };
   }
+  private static string EventGraphicStyle(MapEvent ev) {
+    if(ev.Graphic <= 0) return "";
+    int width=Math.Clamp(ev.FrameWidth,1,256), height=Math.Clamp(ev.FrameHeight,1,256);
+    int index=ev.Graphic-1, columns=ev.GraphicSheet=="sprites.png" ? 4 : 12;
+    return $"background-image:url('/gfx/{ev.GraphicSheet}');background-position:-{index%columns*width}px -{index/columns*height}px;background-repeat:no-repeat;image-rendering:pixelated";
+  }
   private void SelectEvent(MapEvent ev){selected=ev;tool="Events";}
   private void DeleteEvent(){if(selected is null)return;map.Events.Remove(selected);selected=null;}
   private void Resize(){
@@ -245,6 +257,10 @@
     public string Name{get;set;}="New Event";
     public int X{get;set;}
     public int Y{get;set;}
+    public string GraphicSheet{get;set;}="npcs.png";
+    public int Graphic{get;set;}
+    public int FrameWidth{get;set;}=32;
+    public int FrameHeight{get;set;}=32;
     public string Trigger{get;set;}="Action";
     public string Command{get;set;}="Show Message";
     public string Text{get;set;}="";
