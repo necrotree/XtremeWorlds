@@ -12,3 +12,7 @@ canvas:focus-visible { outline: 2px solid #95d5bf; }
 .live-chat-history{flex:1;overflow-y:auto;min-height:0}.live-chat-history p{margin:4px 0;overflow-wrap:anywhere}
 .live-chat form{display:flex;gap:6px;margin:6px 0 0}.live-chat input{flex:1;min-width:0;padding:7px;background:#e9d7ad;color:#25190f}.live-chat button{padding:7px;background:#356642;color:#fff1cb;border:1px solid #b48b51}
 @media(max-width:700px){.live-chat{width:90%;right:5%;height:160px}}
+
+.live-chat .chat-channel-bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.live-chat .chat-channel-bar select{width:auto;max-width:55%;min-width:0;padding:3px;background:#30291b;color:#f3dfaf;border:1px solid #987440;font:inherit}
+.live-chat .chat-recipient{width:100%;box-sizing:border-box;margin:5px 0 0;padding:5px;background:#e9d7ad;color:#25190f}
