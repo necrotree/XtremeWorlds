@@ -28,7 +28,6 @@
     <Compile Include="Security\**\*.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ServerForm.cs" />
-    <Compile Include="ScriptEditorForm.cs" />
     <Compile Include="WpfServerSkin.cs" />
     <Compile Include="ServerHost.cs" />
     <Compile Include="ServerSettings.cs" />
