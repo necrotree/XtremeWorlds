@@ -17,7 +17,6 @@
   <ItemGroup>
     <Compile Include="..\..\src\Server\Program.cs" Link="Program.cs" />
     <Compile Include="..\..\src\Server\ServerForm.cs" Link="ServerForm.cs" />
-    <Compile Include="..\..\src\Server\ScriptEditorForm.cs" Link="ScriptEditorForm.cs" />
     <Compile Include="..\..\src\Server\WpfServerSkin.cs" Link="WpfServerSkin.cs" />
   </ItemGroup>
   <ItemGroup>
