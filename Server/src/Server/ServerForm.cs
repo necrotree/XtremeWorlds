@@ -107,19 +107,9 @@ public sealed class ServerForm : Window
         file.Items.Add(exit);
 
         var database = new MenuItem { Header = "Database" };
-        var scriptEditor = new MenuItem { Header = "Script Editor..." };
-        scriptEditor.Click += (_, _) =>
-        {
-            var editor = new ScriptEditorForm { Owner = this };
-            editor.Show();
-        };
         var reloadClasses = new MenuItem { Header = "Reload Classes" };
         reloadClasses.Click += (_, _) => AppendServerLog("All classes reloaded.");
-        var reloadScripts = new MenuItem { Header = "Reload Scripts" };
-        reloadScripts.Click += (_, _) => AppendServerLog("Scripts reload requested.");
-        database.Items.Add(scriptEditor);
         database.Items.Add(reloadClasses);
-        database.Items.Add(reloadScripts);
 
         var log = new MenuItem { Header = "Log" };
         var serverLog = new MenuItem { Header = "Server Log", IsCheckable = true, IsChecked = true };
