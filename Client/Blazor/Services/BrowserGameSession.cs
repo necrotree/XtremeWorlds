@@ -21,32 +21,6 @@ public sealed class BrowserGameSession : IDisposable
         if (message.Length > 240) message = message[..240];
         network.SendText(PacketCodec.Build("saymsg", message));
     }
-    public string[] AvailableGraphics { get; private set; } = [];
-    public void RequestGraphicsList()
-    {
-        if (!InGame || !network.IsConnected) throw new InvalidOperationException("Enter the world to browse graphics.");
-        GraphicsError = null;
-        network.SendText(PacketCodec.Build("gfxlist"));
-    }
-    public string? GraphicsError { get; private set; }
-    public string? GraphicsSaved { get; private set; }
-    public string? DownloadedGraphicsName { get; private set; }
-    public byte[]? DownloadedGraphics { get; private set; }
-    public void UploadGraphic(string name, byte[] png)
-    {
-        if (!InGame || !network.IsConnected) throw new InvalidOperationException("Enter the world before managing graphics.");
-        if (png.Length > 4194304) throw new ArgumentException("PNG exceeds 4 MiB.");
-        GraphicsSaved = GraphicsError = null;
-        network.SendText(PacketCodec.Build("gfxput", name, Convert.ToBase64String(png)));
-    }
-    public void DownloadGraphic(string name)
-    {
-        if (!InGame || !network.IsConnected) throw new InvalidOperationException("Enter the world before managing graphics.");
-        DownloadedGraphicsName = null;
-        DownloadedGraphics = null;
-        GraphicsError = null;
-        network.SendText(PacketCodec.Build("gfxget", name));
-    }
     public string ServerHost { get; private set; } = "127.0.0.1";
     public int ServerPort { get; private set; } = 7234;
     public void ConfigureServer(string host, int port)
@@ -224,31 +198,6 @@ public sealed class BrowserGameSession : IDisposable
             }
             switch (fields[0].ToLowerInvariant())
             {
-                case "gfxlist":
-                    AvailableGraphics = fields.Count > 1 && !string.IsNullOrEmpty(fields[1])
-                        ? fields[1].Split(',', StringSplitOptions.RemoveEmptyEntries) : [];
-                    Changed?.Invoke();
-                    break;
-                case "gfxsaved":
-                    GraphicsSaved = fields.Count > 1 ? fields[1] : "Graphic saved.";
-                    Changed?.Invoke();
-                    break;
-                case "gfxerror":
-                    GraphicsError = fields.Count > 1 ? fields[1] : "Graphic operation failed.";
-                    Changed?.Invoke();
-                    break;
-                case "gfxdata":
-                    if (fields.Count > 2)
-                    {
-                        try
-                        {
-                            DownloadedGraphics = Convert.FromBase64String(fields[2]);
-                            DownloadedGraphicsName = fields[1];
-                            Changed?.Invoke();
-                        }
-                        catch (FormatException) { GraphicsError = "Invalid graphic data received."; Changed?.Invoke(); }
-                    }
-                    break;
                 case "alertmsg":
                     Status = fields.Count > 1 ? fields[1] : "Server alert";
                     break;
