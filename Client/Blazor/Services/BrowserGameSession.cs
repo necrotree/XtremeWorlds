@@ -19,10 +19,25 @@ public sealed class BrowserGameSession : IDisposable
         this.renderer = renderer;
         connection = new GameClientConnection(renderer.Graphics);
         connection.PacketReceived += HandlePacket;
-        connection.WorldSceneReceived += world => LatestWorld = world;
+        connection.WorldSceneReceived += world =>
+        {
+            if (world.Map is { Tiles.Count: 192 })
+            {
+                LatestWorld = world;
+                MapLoaded = true;
+                if (InGame) Changed?.Invoke();
+            }
+            else if (world.Map is null && LatestWorld is not null)
+            {
+                world.Map = LatestWorld.Map;
+                LatestWorld = world;
+            }
+        };
         connection.WorldSceneTransform = ApplyEditorMap;
     }
     public FnaWorldScene? LatestWorld { get; private set; }
+    public bool MapLoaded { get; private set; }
+    public bool GameReady => InGame && MapLoaded;
     public int PreviewX { get; private set; } = 8;
     public int PreviewY { get; private set; } = 6;
     public int PreviewDirection { get; private set; }
@@ -89,6 +104,7 @@ public sealed class BrowserGameSession : IDisposable
             Player = new FnaScenePlayer { Name = "Adventurer", Sprite = 0, X = 8, Y = 6, Direction = 0 }
         };
         LatestWorld = scene;
+        MapLoaded = true;
         InGame = renderer.Start();
         if (InGame) renderer.World(scene);
         Status = InGame ? "Offline world" : renderer.Failure ?? "Unable to start renderer.";
@@ -177,6 +193,8 @@ public sealed class BrowserGameSession : IDisposable
                     Status = "Choose a character.";
                     break;
                 case "ingame":
+                    MapLoaded = false;
+                    LatestWorld = null;
                     InGame = renderer.Start();
                     Status = InGame ? "Starting the game renderer..." : renderer.Failure ?? "Unable to start the renderer.";
                     if (!InGame) network.Disconnect();
@@ -226,6 +244,7 @@ public sealed class BrowserGameSession : IDisposable
         InGame = false;
         OfflineMode = false;
         LatestWorld = null;
+        MapLoaded = false;
         editorPatch = null;
         connection.Reset();
         renderer.Stop();
