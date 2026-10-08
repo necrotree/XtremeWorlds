@@ -27,7 +27,8 @@
         </div></div>
       </aside>
       <main class="world-editor-map">
-        <div class="editor-map-viewport" @onmouseup="StopPaint" @onmouseleave="StopPaint">
+        <div class="editor-play-toolbar"><button type="button" @onclick="FocusPreview">Control character (WASD / Arrows)</button><span>Player: @playerX, @playerY</span></div>
+        <div class="editor-map-viewport" tabindex="0" @ref="mapViewport" @onkeydown="MovePreviewPlayer" @onkeydown:preventDefault @onmouseup="StopPaint" @onmouseleave="StopPaint">
           <div class="editor-map-grid" style="@($"grid-template-columns:repeat({map.Width},32px);width:{map.Width*32}px")" @oncontextmenu:preventDefault>
             @for (var y=0;y<map.Height;y++) {for(var x=0;x<map.Width;x++) {
               var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
@@ -36,6 +37,7 @@
                 @if(ev is not null){<span class="event-indicator">!</span>}
               </button>
             }}
+            <div class="editor-preview-character" aria-label="Player sprite" style="@($"left:{playerX*32-8}px;top:{playerY*32-32}px;background-position:-{playerDirection*144}px 0")"></div>
           </div>
         </div>
         <p class="editor-help">Drag a rectangle in the palette to select multiple tiles, then paint with that brush. Right-click erases. Events have their own layer and can be edited on the right.</p>
@@ -64,6 +66,23 @@
   [Parameter] public EventCallback OnClose {get;set;}
   private MapDocument map=new();
   private MapEvent? selected;
+  private ElementReference mapViewport;
+  private int playerX=8, playerY=6, playerDirection;
+  private async Task FocusPreview() => await mapViewport.FocusAsync();
+  private void MovePreviewPlayer(KeyboardEventArgs e){
+    int dx=0,dy=0;
+    switch(e.Key.ToLowerInvariant()){
+      case "w":case "arrowup":dy=-1;playerDirection=3;break;
+      case "s":case "arrowdown":dy=1;playerDirection=0;break;
+      case "a":case "arrowleft":dx=-1;playerDirection=1;break;
+      case "d":case "arrowright":dx=1;playerDirection=2;break;
+      default:return;
+    }
+    int nx=playerX+dx,ny=playerY+dy;
+    if(nx<0||ny<0||nx>=map.Width||ny>=map.Height)return;
+    if(map.Tiles[ny*map.Width+nx].Blocked)return;
+    playerX=nx;playerY=ny;
+  }
   private string tool="Tiles",layer="Ground",message="Local editor. Export a JSON file to keep a backup.";
   private int tileset=1,brush,requestedWidth=16,requestedHeight=12;
   private int brushAnchor,brushWidth=1,brushHeight=1;
@@ -126,6 +145,7 @@
           if(loaded.Width==16 && loaded.Height==12 && Session.InGame)
             Session.ApplyMapDraft(json);
           map=loaded;
+          playerX=Math.Clamp(playerX,0,map.Width-1);playerY=Math.Clamp(playerY,0,map.Height-1);
           requestedWidth=map.Width;
           requestedHeight=map.Height;
           selected=null;
@@ -160,6 +180,7 @@
     var old=map.Tiles;var next=new List<MapCell>(width*height);
     for(var y=0;y<height;y++)for(var x=0;x<width;x++)next.Add(x<map.Width&&y<map.Height&&y*map.Width+x<old.Count?old[y*map.Width+x]:new MapCell());
     map.Tiles=next;map.Width=width;map.Height=height;
+    playerX=Math.Clamp(playerX,0,width-1);playerY=Math.Clamp(playerY,0,height-1);
     map.Events.RemoveAll(e=>e.X<0||e.Y<0||e.X>=width||e.Y>=height);
     if(selected is not null&&!map.Events.Contains(selected))selected=null;
   }
