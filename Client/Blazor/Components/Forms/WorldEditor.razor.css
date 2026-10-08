@@ -95,3 +95,109 @@
 }
 .world-editor .editor-play-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;background:#302519;color:#eacf91}
 .world-editor .editor-play-toolbar button{font-size:12px;padding:5px 8px}
+.editor-shade{position:absolute;inset:0;z-index:20;background:#130e0bc9;padding:20px;display:flex;align-items:stretch;justify-content:center}.world-editor{width:100%;height:100%;display:flex;flex-direction:column;color:#f0e5c7;background:#231e16;border:3px double #ae874e;box-shadow:0 10px 40px #000b;font:13px Georgia,serif}.world-editor *{box-sizing:border-box}.world-editor button,.world-editor input,.world-editor select,.world-editor textarea{font:inherit}.world-editor button{color:#f0e5c7;background:#59402a;border:1px solid #ac874f;padding:6px 9px;cursor:pointer}.world-editor button:hover{filter:brightness(1.15)}.world-editor button.active{outline:2px solid #ffd36f;background:#735132}.world-editor button.danger{background:#8f2827}.world-editor-header{display:flex;gap:20px;align-items:center;justify-content:space-between;padding:10px;border-bottom:2px solid #997447;background:#312719}.world-editor-header strong{font-size:18px}.world-editor-header>div{display:flex;gap:6px}.world-editor-columns{display:grid;grid-template-columns:225px minmax(320px,1fr) 235px;min-height:0;flex:1}.world-editor-side{overflow:auto;padding:10px;border-right:1px solid #685035}.world-editor-side:last-child{border-right:none;border-left:1px solid #685035}.world-editor h3{font-size:15px;color:#eed38f;margin:10px 0}.world-editor label{display:grid;gap:4px;margin:8px 0}.world-editor input,.world-editor select,.world-editor textarea{width:100%;min-width:0;color:#20190c;background:#e6d4a8;border:1px solid #9e7e47;padding:5px}.world-editor .two-fields{display:grid;grid-template-columns:1fr 1fr;gap:5px}.editor-mode{display:flex;gap:2px}.editor-mode button{font-size:11px;padding:5px}.palette-viewport{height:310px;overflow:auto;background:#10100b}.editor-palette{display:grid;grid-template-columns:repeat(12,32px);width:384px;--tilesheet:none}.editor-palette .palette-cell{height:32px;width:32px;padding:0;border:1px solid #ffffff24;background-image:var(--tilesheet);border-radius:0}.world-editor-map{min-width:0;display:flex;flex-direction:column;padding:10px;overflow:auto}.editor-map-toolbar{display:flex;gap:12px;justify-content:space-between;margin-bottom:10px}.editor-map-viewport{overflow:auto;background:#17130e;border:1px solid #9e7d4f;min-height:200px;flex:1}.editor-map-grid{display:grid;grid-auto-rows:32px;width:max-content}.editor-map-cell{width:32px;height:32px;padding:0!important;border:1px solid #ffffff20!important;position:relative;background-repeat:no-repeat}.editor-map-cell.blocked{box-shadow:inset 0 0 0 4px #bb332b9c}.editor-map-cell.event-cell{border:2px solid #ffd36f!important}.event-indicator{display:inline-block;background:#8e3424;color:#fff;border-radius:100%;width:18px;height:18px;line-height:18px;font-weight:bold}.event-list{display:grid;gap:3px;max-height:140px;overflow:auto}.event-list button{text-align:left}.event-list small{float:right}.editor-help{font:12px/1.4 Georgia,serif;color:#cbbb9d}.editor-message{color:#f0d28b;margin-top:auto}@media(max-width:850px){.world-editor-columns{grid-template-columns:170px minmax(200px,1fr) 190px}.editor-shade{padding:4px}}
+/* Tile pixels must be contiguous: global button styling adds padding/borders,
+   while box sizing previously shrank the sprite backgrounds. */
+.world-editor .editor-palette { gap:0!important; grid-auto-rows:32px; }
+.world-editor .editor-map-grid { gap:0!important; }
+.world-editor .editor-palette .palette-cell,
+.world-editor .editor-map-grid .editor-map-cell {
+  display:block; box-sizing:border-box; min-width:32px; max-width:32px;
+  min-height:32px; max-height:32px; margin:0; padding:0!important;
+  border:0!important; outline:0; border-radius:0!important;
+  background-color:transparent; background-repeat:no-repeat;
+  appearance:none; box-shadow:none;
+}
+.world-editor .editor-palette .palette-cell:hover,
+.world-editor .editor-map-grid .editor-map-cell:hover { filter:none; }
+.world-editor .editor-palette .palette-cell.active { outline:2px solid #ffdf78!important; outline-offset:-2px; }
+.world-editor .editor-map-grid .editor-map-cell.blocked { box-shadow:inset 0 0 0 3px #ba332aaa; }
+.world-editor .editor-map-grid .editor-map-cell.event-cell { outline:2px solid #ffd36f!important; outline-offset:-2px; }
+
+/* Keep the close button inside the header at narrow viewport widths. */
+.world-editor-header { min-width:0; width:100%; box-sizing:border-box; gap:10px; }
+.world-editor-header > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; text-align:center; }
+.world-editor-header > div { flex:0 0 auto; align-items:center; margin-right:4px; }
+.world-editor-header > div button { flex:0 0 auto; white-space:nowrap; }
+.world-editor-header > div button.danger { width:32px; min-width:32px; padding:5px 0; text-align:center; }
+
+/* Keep editor controls accessible on a 950px game viewport. */
+.editor-shade{padding:6px;overflow:auto}
+.world-editor{min-height:420px;min-width:0}
+.world-editor-header{flex-wrap:wrap;align-items:center}
+.world-editor-header>strong{flex:1 1 180px}
+.world-editor-header>.editor-header-actions{display:flex;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;margin-right:0;gap:5px}
+.world-editor-header .editor-save{background:#346842;border-color:#e5ba71;font-weight:bold}
+.world-editor-columns{grid-template-columns:minmax(145px,220px) minmax(250px,1fr) minmax(145px,210px)}
+.world-editor-map{min-height:0}
+.editor-map-viewport{display:block;min-height:260px;overflow:auto}
+.editor-map-grid{display:grid!important;grid-auto-flow:row;grid-auto-rows:32px;width:max-content;gap:0}
+@media(max-width:850px){.world-editor-columns{grid-template-columns:165px minmax(220px,1fr)}.world-editor-side:last-child{grid-column:1/-1;max-height:190px;border-top:1px solid #685035}.world-editor-header{gap:5px}}
+
+/* Center the close control independently of the Save/Export/Import group. */
+.world-editor-header>.editor-header-actions{padding-right:12px;align-items:center}
+.world-editor-header .editor-close{display:flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;text-align:center!important;padding:0!important;width:34px!important;height:34px!important;min-width:34px!important;margin:0!important;position:relative;right:0}
+
+/* Match the client's square, gold-bordered close control, not a floating red badge. */
+.world-editor-header .game-style-close {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  padding:0!important;
+  margin:0!important;
+  border:2px solid #b28a55!important;
+  border-radius:0!important;
+  background:#8f2827!important;
+  color:#fff0c4!important;
+  font:700 14px Georgia,serif!important;
+  line-height:1!important;
+}
+
+/* Pixel-perfect centered close mark, independent of font glyph alignment. */
+.world-editor-header .game-style-close{position:relative!important;display:grid!important;place-items:center!important;width:34px!important;height:34px!important;padding:0!important;border-radius:0!important}
+.world-editor-header .close-cross{position:relative;display:block;width:14px;height:14px;margin:0!important;padding:0!important}
+.world-editor-header .close-cross::before,.world-editor-header .close-cross::after{content:"";position:absolute;top:6px;left:-1px;width:16px;height:2px;background:#fff0c4;transform-origin:center;border-radius:1px}
+.world-editor-header .close-cross::before{transform:rotate(45deg)}
+.world-editor-header .close-cross::after{transform:rotate(-45deg)}
+
+/* Fixed 32px tile grid: viewport scrolls instead of expanding sprites. */
+.world-editor-map{padding:0!important;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.world-editor-map .editor-map-viewport{display:block;flex:1 1 auto;width:100%;min-height:384px;overflow:auto;background:#17130e;border:0}
+.world-editor-map .editor-map-grid{display:grid!important;grid-auto-flow:row;grid-auto-rows:32px!important;gap:0!important;min-height:384px;width:max-content}
+.world-editor-map .editor-map-grid .editor-map-cell{display:block;width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;max-height:32px!important;image-rendering:pixelated;background-repeat:no-repeat}
+.world-editor-map .editor-help,.world-editor-map .editor-message{padding:0 12px}
+
+/* One rectangular selection outline spanning the complete brush. */
+.world-editor .editor-palette{position:relative}
+.world-editor .brush-selection-rectangle{
+  position:absolute;
+  z-index:3;
+  box-sizing:border-box;
+  border:2px solid #ffdc70;
+  box-shadow:0 0 0 1px #4c3412, inset 0 0 0 1px #4c3412;
+  pointer-events:none;
+}
+.world-editor .editor-palette .palette-cell.active{outline:none!important}
+
+/* Keyboard-controlled character preview layered over editable map tiles. */
+.world-editor .editor-map-grid{position:relative}
+.world-editor .editor-map-viewport:focus-visible{outline:2px solid #edc678;outline-offset:-2px}
+.world-editor .editor-preview-character{
+ position:absolute;z-index:5;width:48px;height:64px;
+ background-image:url('/gfx/sprites.png');background-repeat:no-repeat;
+ image-rendering:pixelated;pointer-events:none;
+}
+.world-editor .editor-play-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;background:#302519;color:#eacf91}
+.world-editor .editor-play-toolbar button{font-size:12px;padding:5px 8px}
+
+/* Larger 48px editor cells, 1.5x zoom with nearest-neighbor artwork. */
+.world-editor .world-editor-map .editor-map-grid{grid-auto-rows:48px!important;min-height:576px!important}
+.world-editor .world-editor-map .editor-map-grid .editor-map-cell{width:48px!important;height:48px!important;min-width:48px!important;max-width:48px!important;min-height:48px!important;max-height:48px!important;background-repeat:no-repeat!important;image-rendering:pixelated}
+.world-editor .world-editor-map .editor-map-viewport{min-height:440px;overflow:scroll!important;background:#090807!important}
+.world-editor .world-editor-columns{grid-template-columns:minmax(190px,245px) minmax(420px,1fr) minmax(165px,220px)!important}
+.world-editor .world-editor-map{min-width:0;flex:1;align-items:stretch}
+.world-editor .editor-map-grid .editor-preview-character{transform:scale(1.5);transform-origin:top left}
+@media(max-width:950px){.world-editor .world-editor-columns{grid-template-columns:180px minmax(300px,1fr)!important}.world-editor .world-editor-side:last-child{grid-column:1/-1}}
