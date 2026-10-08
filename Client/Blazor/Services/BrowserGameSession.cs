@@ -77,7 +77,7 @@ public sealed class BrowserGameSession : IDisposable
     public string Status { get; private set; } = "Disconnected";
     public string[] Characters { get; private set; } = [];
     public bool Connected => OfflineMode || network.IsConnected;
-    public bool OfflineMode { get; private set; };
+    public bool OfflineMode { get; private set; }
     public void StartOffline()
     {
         if (InGame) return;
