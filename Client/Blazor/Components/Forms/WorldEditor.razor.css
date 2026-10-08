@@ -23,3 +23,16 @@
 .world-editor-header > div { flex:0 0 auto; align-items:center; margin-right:4px; }
 .world-editor-header > div button { flex:0 0 auto; white-space:nowrap; }
 .world-editor-header > div button.danger { width:32px; min-width:32px; padding:5px 0; text-align:center; }
+
+/* Keep editor controls accessible on a 950px game viewport. */
+.editor-shade{padding:6px;overflow:auto}
+.world-editor{min-height:420px;min-width:0}
+.world-editor-header{flex-wrap:wrap;align-items:center}
+.world-editor-header>strong{flex:1 1 180px}
+.world-editor-header>.editor-header-actions{display:flex;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;margin-right:0;gap:5px}
+.world-editor-header .editor-save{background:#346842;border-color:#e5ba71;font-weight:bold}
+.world-editor-columns{grid-template-columns:minmax(145px,220px) minmax(250px,1fr) minmax(145px,210px)}
+.world-editor-map{min-height:0}
+.editor-map-viewport{display:block;min-height:260px;overflow:auto}
+.editor-map-grid{display:grid!important;grid-auto-flow:row;grid-auto-rows:32px;width:max-content;gap:0}
+@media(max-width:850px){.world-editor-columns{grid-template-columns:165px minmax(220px,1fr)}.world-editor-side:last-child{grid-column:1/-1;max-height:190px;border-top:1px solid #685035}.world-editor-header{gap:5px}}
