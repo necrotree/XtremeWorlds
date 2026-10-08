@@ -41,3 +41,9 @@ html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.m
 .graphics-manager select{width:100%;padding:8px;background:#e9d7ad;color:#241b0c;border:1px solid #b48b51}
 .graphics-manager input[type=file]{width:100%;font-size:12px;background:#3e2c1b;color:#fff0c4}
 .graphics-manager .connection-actions button{background:#356642}
+
+.graphics-file-browser{margin-top:14px;border:1px solid #94734b;padding:10px;max-height:260px;overflow:auto;background:#1d1913}
+.graphics-file-browser h4{margin:0 0 8px}
+.graphics-file-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px;border-bottom:1px solid #5e4c35}
+.graphics-file-row span{overflow-wrap:anywhere}
+.graphics-file-row button{padding:5px 10px;background:#356642;color:#fff2cb;border:1px solid #a8905e}
