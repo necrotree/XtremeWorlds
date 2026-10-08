@@ -40,3 +40,21 @@
 /* Center the close control independently of the Save/Export/Import group. */
 .world-editor-header>.editor-header-actions{padding-right:12px;align-items:center}
 .world-editor-header .editor-close{display:flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;text-align:center!important;padding:0!important;width:34px!important;height:34px!important;min-width:34px!important;margin:0!important;position:relative;right:0}
+
+/* Match the client's square, gold-bordered close control, not a floating red badge. */
+.world-editor-header .game-style-close {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  padding:0!important;
+  margin:0!important;
+  border:2px solid #b28a55!important;
+  border-radius:0!important;
+  background:#8f2827!important;
+  color:#fff0c4!important;
+  font:700 14px Georgia,serif!important;
+  line-height:1!important;
+}
