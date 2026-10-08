@@ -20,8 +20,6 @@ namespace Server
         private readonly SpacetimeRepository _db;
         private readonly ConcurrentDictionary<int, PlayerSession> _sessions;
         private readonly LegacyGameService _legacy;
-        private readonly XtremeWorlds.Tools.ToolService _tools;
-        private readonly XtremeWorlds.Tools.AdminToolsService _adminTools;
         private readonly Action<string>? _log;
 
         public PacketRouter(ServerSettings settings, MirrorTcpHost network, SpacetimeRepository db, ConcurrentDictionary<int, PlayerSession> sessions, Action<string>? log = null, Action<BugReportInfo>? bugReport = null)
@@ -32,51 +30,6 @@ namespace Server
             _sessions = sessions;
             _log = log;
             _legacy = new LegacyGameService(settings, network, db, sessions, log, bugReport);
-            _adminTools = new XtremeWorlds.Tools.AdminToolsService(
-                () => _sessions.Values.Where(s => s.IsPlaying && s.Character is not null).Select(s => new XtremeWorlds.Tools.AdminPlayer {
-                    ConnectionId = s.ConnectionId, Name = s.Character!.Name, Login = s.Login, Access = s.Character.Access,
-                    Sprite = s.Character.Sprite, Map = s.Character.Map, X = s.Character.X, Y = s.Character.Y,
-                    IpAddress = s.IpAddress, HardwareId = s.HardwareId, IsMuted = s.IsMuted, IsJailed = s.IsJailed
-                }).ToArray(),
-                async changed =>
-                {
-                    if (!_sessions.TryGetValue(changed.ConnectionId, out var target) || target.Character is not { } character
-                        || character.Name != changed.Name) return;
-                    lock (target)
-                    {
-                        character.Access = (byte)changed.Access; character.Sprite = (short)changed.Sprite;
-                        target.IsMuted = changed.IsMuted; target.IsJailed = changed.IsJailed;
-                        character.Map = (short)changed.Map; character.X = (byte)changed.X; character.Y = (byte)changed.Y;
-                        character.PixelX = changed.X * 32; character.PixelY = changed.Y * 32;
-                        target.NetworkState.Begin(Pose(character), Interlocked.Read(ref _serverTick), NetworkClock.Seconds);
-                    }
-                    await _db.SaveCharacterAsync(target.Login, target.CharacterSlot, character);
-                    await SendCurrentMapAsync(target.ConnectionId);
-                },
-                (actor, target) => _db.AddBanAsync(new BanDefinition { BannedIP = target.IpAddress, BannedCharacter = target.Name, BannedBy = actor.Name, BannedHardwareId = target.HardwareId }),
-                _db.ClearBansAsync, _network.Disconnect,
-                (id, message) => _network.SendText(id, PacketCodec.Compose("playermsg", message, 15)),
-                SendCurrentMapAsync);
-            _network.Disconnected += _adminTools.ForgetPlayer;
-            _tools = new XtremeWorlds.Tools.ToolService(
-                id => _sessions.TryGetValue(id, out var actor) && actor.IsPlaying && actor.Character is not null ? actor.Character.Access : 0,
-                kind => _db.LoadContentAsync<System.Text.Json.Nodes.JsonObject>(kind),
-                async (kind, slot, definition) =>
-                {
-                    await _db.UpsertContentAsync(kind, slot, XtremeWorlds.Tools.ToolSchema.Text(definition, kind == "emote" ? "Command" : "Name"), definition);
-                    if (kind == "map")
-                    {
-                        var map = System.Text.Json.JsonSerializer.Deserialize<MapDefinition>(definition.ToJsonString());
-                        if (map is not null) { _mapCache[slot] = map; SendWorldSnapshot(slot, map); }
-                    }
-                },
-                (id, command, arguments) => _network.SendText(id, PacketCodec.Compose(command, arguments)),
-                new Dictionary<string, int> {
-                    ["item"] = settings.MaxItems, ["npc"] = settings.MaxNpcs, ["shop"] = settings.MaxShops,
-                    ["spell"] = settings.MaxSpells, ["sign"] = settings.MaxSigns, ["arrow"] = settings.MaxArrows,
-                    ["class"] = settings.MaxClasses, ["quest"] = settings.MaxQuests, ["book"] = settings.MaxBooks,
-                    ["emote"] = settings.MaxEmotes, ["map"] = settings.MaxMaps
-                });
         }
 
         public async Task HandleAsync(int connectionId, string data)
@@ -94,16 +47,6 @@ namespace Server
             }
             try
             {
-                if (XtremeWorlds.Tools.AdminToolsService.Recognizes(command))
-                {
-                    await _adminTools.HandleAsync(connectionId, p);
-                    return;
-                }
-                if (XtremeWorlds.Tools.ToolService.Recognizes(command))
-                {
-                    await _tools.HandleAsync(connectionId, p);
-                    return;
-                }
                 switch (command)
                 {
                     case "muteplayer":

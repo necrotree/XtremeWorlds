@@ -10,7 +10,6 @@
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
     <PackageReference Include="Eto.Forms" Version="2.12.0" />
-    <ProjectReference Include="../../Tools/ToolProtocol/ToolProtocol.csproj" />
     <EmbeddedResource Include="Designers/*.tbform" />
     <Content Include="../Assets/gfx/emote.png;../Assets/gfx/arrows.png;../Assets/gfx/items.png;../Assets/gfx/spells.png;../Assets/gfx/sprites.png;../Assets/gfx/tiles*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

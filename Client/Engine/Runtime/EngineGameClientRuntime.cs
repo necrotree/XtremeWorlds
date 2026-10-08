@@ -22,7 +22,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 {
     private readonly GameClientConnection _connection;
     private MirrorTcpClient _network => _connection.Transport;
-    private readonly XtremeWorlds.Client.Tools.ToolController _tools;
     private readonly UITimer _networkTimer = new() { Interval = 0.02 };
     private readonly FnaAudioService _audio = new();
     private readonly FnaGraphicsService _graphics = new();
@@ -66,7 +65,10 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     {
         _connection = new GameClientConnection(_graphics);
         _connection.PacketReceived += OnNetworkPacket;
+<<<<<<< Updated upstream
         _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
+=======
+>>>>>>> Stashed changes
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
@@ -81,11 +83,14 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             Ui(ReturnToLogin);
         };
 
+<<<<<<< Updated upstream
         // Telepathy queues received messages until Tick() runs. Pump continuously
         // while the menu is active so a response to Register cannot sit queued
         // until the next Login click and appear to be a login response.
         _networkTimer.Elapsed += (_, _) => _connection.Tick();
 
+=======
+>>>>>>> Stashed changes
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
 
         // Preserve the five current menu choices until the server sends class data.
@@ -290,42 +295,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "Location":
                 SendPacket("REQUESTLOCATION");
                 break;
-            case "ItemEditor":
-                Ui(() => _tools.Open("item"));
-                break;
-            case "NpcEditor":
-                Ui(() => _tools.Open("npc"));
-                break;
-            case "ShopEditor":
-                Ui(() => _tools.Open("shop"));
-                break;
-            case "SpellEditor":
-                Ui(() => _tools.Open("spell"));
-                break;
-            case "MapEditor":
-                Ui(() => _tools.Open("map"));
-                break;
-            case "SignEditor":
-                Ui(() => _tools.Open("sign"));
-                break;
-            case "ArrowEditor":
-                Ui(() => _tools.Open("arrow"));
-                break;
-            case "ClassEditor":
-                Ui(() => _tools.Open("class"));
-                break;
-            case "BookEditor":
-                Ui(() => _tools.Open("book"));
-                break;
-            case "QuestEditor":
-                Ui(() => _tools.Open("quest"));
-                break;
-            case "EmoteEditor":
-                Ui(() => _tools.Open("emote"));
-                break;
-            case "ShowAdminPanel":
-                Ui(_tools.OpenAdmin);
-                break;
             case "MapReport":
                 SendPacket("mapreport");
                 break;
@@ -405,11 +374,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     private void OnNetworkPacket(IReadOnlyList<string> fields)
     {
         var command = fields[0].Trim().ToLowerInvariant();
-        if (command is "toolaccess" or "toolindex" or "toolrecord" or "toolsaved" or "toolerror")
-        {
-            Ui(() => _tools.HandlePacket(fields));
-            return;
-        }
         switch (command)
         {
             case "alertmsg":
@@ -562,7 +526,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // down the FNA game window and restore the Eto login screen.
         _graphics.Stop();
         _connection.Reset();
-        _tools.Reset();
         _networkTimer.Start();
 
         if (Application.Instance.MainForm is frmMainMenu menu)
@@ -628,7 +591,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _disposed = true;
         Ui(() =>
         {
-            _tools.Dispose();
             foreach (var form in _editForms.ToArray())
             {
                 form.PreviewRequested -= OnEditorPreview;
