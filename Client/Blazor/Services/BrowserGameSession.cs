@@ -14,12 +14,14 @@ public sealed class BrowserGameSession : IDisposable
     private readonly GameClientConnection connection;
     private MirrorTcpClient network => connection.Transport;
     public List<string> ChatMessages { get; } = new();
-    public void SendChat(string message)
+    public void SendChat(string message, string channel = "Map", string recipient = "")
     {
         message = message.Trim();
         if (!InGame || !network.IsConnected || message.Length == 0) return;
         if (message.Length > 240) message = message[..240];
-        network.SendText(PacketCodec.Build("saymsg", message));
+        string command = channel switch { "Global" => "globalmsg", "Guild" => "guildmsg", "Party" => "partymsg", "Private" => "privatemsg", _ => "saymsg" };
+        if (command == "privatemsg" && string.IsNullOrWhiteSpace(recipient)) return;
+        network.SendText(command == "privatemsg" ? PacketCodec.Build(command, recipient.Trim(), message) : PacketCodec.Build(command, message));
     }
     public string ServerHost { get; private set; } = "127.0.0.1";
     public int ServerPort { get; private set; } = 7234;
@@ -225,11 +227,15 @@ public sealed class BrowserGameSession : IDisposable
                 case "globalmsg":
                 case "broadcastmsg":
                 case "guildmsg":
+                case "partymsg":
+                case "privatemsg":
                 case "playermsg":
                     if (fields.Count > 1)
                     {
                         renderer.Chat(fields[0], fields[1]);
-                        ChatMessages.Add(fields[1]);
+                        string channelName = fields[0].ToLowerInvariant() switch { "globalmsg" => "Global", "guildmsg" => "Guild", "partymsg" => "Party", "privatemsg" => "Private", "playermsg" => "System", _ => "Map" };
+                        string line = fields.Count > 2 ? fields[1] + ": " + fields[2] : fields[1];
+                        ChatMessages.Add("[" + channelName + "] " + line);
                         if (ChatMessages.Count > 100) ChatMessages.RemoveAt(0);
                         Changed?.Invoke();
                     }
