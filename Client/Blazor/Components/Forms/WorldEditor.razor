@@ -1,11 +1,11 @@
 @using System.Text.Json
 @inject IJSRuntime JS
+@inject Client.Blazor.Services.BrowserGameSession Session
 <div class="editor-shade">
   <section class="world-editor" aria-label="Map and event editor">
     <header class="world-editor-header">
       <strong>Map &amp; Event Editor</strong>
-      <span>@map.Name</span>
-      <div><button @onclick="Save">Save draft</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger" @onclick="Close">X</button></div>
+      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger" @onclick="Close">X</button></div>
     </header>
     <div class="world-editor-columns">
       <aside class="world-editor-side">
@@ -95,11 +95,30 @@
     if(index<0){index=cell.Ground;sheet=cell.GroundTileset;}
     return $"background-image:url('/gfx/tiles{sheet}.png');{Background(index)}";
   }
+  protected override void OnInitialized(){
+    LoadWorldMap();
+  }
+  private void LoadWorldMap(){
+    var source=Session.LatestWorld?.Map;
+    if(source is null)return;
+    var document=new MapDocument {Name=source.Name,Width=16,Height=12};
+    document.Normalize();
+    for(int i=0;i<Math.Min(document.Tiles.Count,source.Tiles.Count);i++){
+      var src=source.Tiles[i]; var dst=document.Tiles[i];
+      dst.Ground=src.Ground;dst.Mask=src.Mask;dst.Fringe=src.Fringe;
+      dst.GroundTileset=src.LayerTileset.Count>0?src.LayerTileset[0]:Math.Max(1,source.Tileset);
+      dst.MaskTileset=src.LayerTileset.Count>1?src.LayerTileset[1]:dst.GroundTileset;
+      dst.FringeTileset=src.LayerTileset.Count>5?src.LayerTileset[5]:dst.GroundTileset;
+      dst.Blocked=src.Type==1;
+    }
+    map=document;requestedWidth=16;requestedHeight=12;
+    message="Loaded current server map into the editor. Save stores a local draft.";
+  }
   protected override async Task OnAfterRenderAsync(bool firstRender){
     if(!firstRender)return;
     try{
       var json=await JS.InvokeAsync<string?>("worldEditor.load");
-      if(!string.IsNullOrEmpty(json)){var loaded=JsonSerializer.Deserialize<MapDocument>(json);if(loaded is not null){map=loaded;map.Normalize();requestedWidth=map.Width;requestedHeight=map.Height;message="Restored local editor draft.";StateHasChanged();}}
+      if(Session.LatestWorld?.Map is null && !string.IsNullOrEmpty(json)){var loaded=JsonSerializer.Deserialize<MapDocument>(json);if(loaded is not null){map=loaded;map.Normalize();requestedWidth=map.Width;requestedHeight=map.Height;message="Restored local editor draft.";StateHasChanged();}}
     }catch(JSException ex){message=ex.Message;StateHasChanged();}
   }
   private void ClickCell(int x,int y,bool erase){
