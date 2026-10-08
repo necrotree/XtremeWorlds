@@ -13,6 +13,14 @@ public sealed class BrowserGameSession : IDisposable
     private readonly BrowserFnaRenderer renderer;
     private readonly GameClientConnection connection;
     private MirrorTcpClient network => connection.Transport;
+    public List<string> ChatMessages { get; } = new();
+    public void SendChat(string message)
+    {
+        message = message.Trim();
+        if (!InGame || !network.IsConnected || message.Length == 0) return;
+        if (message.Length > 240) message = message[..240];
+        network.SendText(PacketCodec.Build("saymsg", message));
+    }
     public string[] AvailableGraphics { get; private set; } = [];
     public void RequestGraphicsList()
     {
@@ -269,7 +277,13 @@ public sealed class BrowserGameSession : IDisposable
                 case "broadcastmsg":
                 case "guildmsg":
                 case "playermsg":
-                    if (fields.Count > 1) renderer.Chat(fields[0], fields[1]);
+                    if (fields.Count > 1)
+                    {
+                        renderer.Chat(fields[0], fields[1]);
+                        ChatMessages.Add(fields[1]);
+                        if (ChatMessages.Count > 100) ChatMessages.RemoveAt(0);
+                        Changed?.Invoke();
+                    }
                     break;
             }
     }
