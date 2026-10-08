@@ -67,7 +67,12 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _connection = new GameClientConnection(_graphics);
         _connection.PacketReceived += OnNetworkPacket;
         _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
-        _tools.MapEditorActiveChanged += active => _graphics.MapEditorActive = active;
+        _tools.MapEditorActiveChanged += active =>
+        {
+            // Eto owns editor controls; FNA only reads this state and emits messages.
+            _graphics.ClearMapPaintRequests();
+            _graphics.MapEditorActive = active;
+        };
         _tools.MapBrushSelected += _graphics.FocusGameWindow;
         _tools.MapPreviewChanged += (mapId, json) => _graphics.SetMapEditorPreview(mapId, json);
         Website = "https://www.xtremeworlds.com";
@@ -87,7 +92,13 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         // Telepathy queues received messages until Tick() runs. Pump continuously
         // while the menu is active so a response to Register cannot sit queued
         // until the next Login click and appear to be a login response.
-        _networkTimer.Elapsed += (_, _) => _connection.Tick();
+        _networkTimer.Elapsed += (_, _) =>
+        {
+            _connection.Tick();
+            // UITimer runs on Eto's UI thread. Never mutate Eto controls from FNA.
+            while (_graphics.TryDequeueMapPaint(out var paint))
+                _tools.PaintMapTile(paint.X, paint.Y, paint.Erase);
+        };
 
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
 
@@ -218,10 +229,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         if (_connection.HandleAction(actionName, arguments)) { Request(actionName, arguments); return; }
         switch (actionName)
         {
-            case "PaintMapTile":
-                if (arguments.Length >= 3 && arguments[0] is int paintX && arguments[1] is int paintY && arguments[2] is bool erase)
-                    Ui(() => _tools.PaintMapTile(paintX, paintY, erase));
-                return;
             case "Form_Load":
                 _graphics.Start(FnaGraphicsService.InterfaceWidth, FnaGraphicsService.InterfaceHeight);
                 break;
