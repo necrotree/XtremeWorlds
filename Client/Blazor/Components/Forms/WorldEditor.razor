@@ -5,7 +5,7 @@
   <section class="world-editor" aria-label="Map and event editor">
     <header class="world-editor-header">
       <strong>Map &amp; Event Editor</strong>
-      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger editor-close" @onclick="Close">X</button></div>
+      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger editor-close game-style-close" @onclick="Close">X</button></div>
     </header>
     <div class="world-editor-columns">
       <aside class="world-editor-side">
@@ -119,7 +119,18 @@
     if(!firstRender)return;
     try{
       var json=await JS.InvokeAsync<string?>("worldEditor.load");
-      if(Session.LatestWorld?.Map is null && !string.IsNullOrEmpty(json)){var loaded=JsonSerializer.Deserialize<MapDocument>(json);if(loaded is not null){map=loaded;map.Normalize();requestedWidth=map.Width;requestedHeight=map.Height;message="Restored local editor draft.";StateHasChanged();}}
+      if(!string.IsNullOrWhiteSpace(json)){
+        var loaded=JsonSerializer.Deserialize<MapDocument>(json);
+        if(loaded is not null){
+          loaded.Normalize();
+          map=loaded;
+          requestedWidth=map.Width;
+          requestedHeight=map.Height;
+          selected=null;
+          message="Restored saved browser map. Changes are local until server saving is connected.";
+          StateHasChanged();
+        }
+      }
     }catch(JSException ex){message=ex.Message;StateHasChanged();}
   }
   private void ClickCell(int x,int y,bool erase){
@@ -150,7 +161,13 @@
     map.Events.RemoveAll(e=>e.X<0||e.Y<0||e.X>=width||e.Y>=height);
     if(selected is not null&&!map.Events.Contains(selected))selected=null;
   }
-  private async Task Save(){await JS.InvokeVoidAsync("worldEditor.save",JsonSerializer.Serialize(map));message="Draft saved in this browser.";}
+  private async Task Save(){
+    try{
+      map.Normalize();
+      await JS.InvokeVoidAsync("worldEditor.save",JsonSerializer.Serialize(map));
+      message="Map saved locally. Reopen Edit to continue; server world saving is not connected yet.";
+    }catch(JSException ex){message="Could not save map: "+ex.Message;}
+  }
   private async Task Export(){await JS.InvokeVoidAsync("worldEditor.export",map.Name+".json",JsonSerializer.Serialize(map,new JsonSerializerOptions{WriteIndented=true}));message="Exported editor JSON.";}
   private async Task Import(){
     try{var json=await JS.InvokeAsync<string?>("worldEditor.import");if(string.IsNullOrWhiteSpace(json))return;var loaded=JsonSerializer.Deserialize<MapDocument>(json);if(loaded is null)throw new JsonException("Invalid map.");loaded.Normalize();map=loaded;requestedWidth=map.Width;requestedHeight=map.Height;selected=null;message="Imported editor JSON.";}
