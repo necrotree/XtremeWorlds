@@ -1,3 +1,5 @@
 .mirage { max-width: 950px; margin: auto; }
 canvas { display: block; width: 100%; height: auto; background: black; image-rendering: pixelated; }
 canvas:focus-visible { outline: 2px solid #95d5bf; }
+
+.game-frame{position:relative;border:5px double #a77943;background:#47291c;box-shadow:0 0 0 3px #1b1710,0 10px 30px #0008}.game-overlay-header{position:absolute;inset:15px 15px auto 15px;display:flex;align-items:flex-start;justify-content:space-between;z-index:2;pointer-events:none;color:#f1e2ba;font-family:Georgia,serif}.game-overlay-header button{pointer-events:auto;background:#77502e;border:2px solid #b28a55;color:#fff0c4;padding:5px 10px;cursor:pointer}.game-menu{display:flex;gap:8px}.character-card{background:#201e14;border:2px solid #8b6f42;padding:7px;width:190px;font-size:11px}.character-card div{margin-top:3px;padding:2px 5px}.character-card .hp{background:#a32e2c}.character-card .mp{background:#326599}.character-card .xp{background:#938139}.map-name{background:#201e14;border:1px solid #b28a55;padding:6px 12px;box-shadow:0 2px 8px #0009}.mirage{max-width:1350px}.mirage canvas{width:100%;height:auto}
