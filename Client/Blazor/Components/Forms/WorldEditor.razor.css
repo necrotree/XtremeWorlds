@@ -36,3 +36,7 @@
 .editor-map-viewport{display:block;min-height:260px;overflow:auto}
 .editor-map-grid{display:grid!important;grid-auto-flow:row;grid-auto-rows:32px;width:max-content;gap:0}
 @media(max-width:850px){.world-editor-columns{grid-template-columns:165px minmax(220px,1fr)}.world-editor-side:last-child{grid-column:1/-1;max-height:190px;border-top:1px solid #685035}.world-editor-header{gap:5px}}
+
+/* Center the close control independently of the Save/Export/Import group. */
+.world-editor-header>.editor-header-actions{padding-right:12px;align-items:center}
+.world-editor-header .editor-close{display:flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;text-align:center!important;padding:0!important;width:34px!important;height:34px!important;min-width:34px!important;margin:0!important;position:relative;right:0}
