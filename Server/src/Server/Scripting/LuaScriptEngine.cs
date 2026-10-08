@@ -29,8 +29,7 @@ public sealed class LuaScriptEngine : IDisposable
         Directory.CreateDirectory(_scriptsPath);
     }
 
-    public string MainScriptPath => Path.Combine(_scriptsPath, "Main.lua");
-    public string ColorsScriptPath => Path.Combine(_scriptsPath, "colors.lua");
+    // Scripts belong to events; no standalone Main.lua or colors.lua files are created.
 
     public IReadOnlyList<string> ScriptFiles => Directory.Exists(_scriptsPath)
         ? Directory.EnumerateFiles(_scriptsPath, "*.lua").OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase).ToArray()
@@ -42,24 +41,14 @@ public sealed class LuaScriptEngine : IDisposable
         {
             try
             {
-                EnsureDefaultScripts();
 
                 var script = new Script(CoreModules.Preset_Complete);
                 InstallApi(script);
 
-                var files = Directory.EnumerateFiles(_scriptsPath, "*.lua")
-                    .OrderBy(path => LoadOrder(Path.GetFileName(path)))
-                    .ThenBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
-                    .ToArray();
-
-                foreach (var path in files)
-                    script.DoString(File.ReadAllText(path), codeFriendlyName: path);
+                var files = Array.Empty<string>();
 
                 _script = script;
 
-                var serverSet = script.Globals.Get("ServerSet");
-                if (serverSet.Type is DataType.Function or DataType.ClrFunction)
-                    script.Call(serverSet);
 
                 _log($"Lua scripts loaded: {string.Join(", ", files.Select(Path.GetFileName))}");
                 return true;
@@ -138,46 +127,20 @@ public sealed class LuaScriptEngine : IDisposable
         script.Globals["GetServerName"] = (Func<string>)(() => _settings.GameName);
     }
 
-    private static int LoadOrder(string? fileName)
+    public bool RunEvent(string code, IReadOnlyDictionary<string, object?> properties)
     {
-        if (string.Equals(fileName, "colors.lua", StringComparison.OrdinalIgnoreCase)) return 0;
-        if (string.Equals(fileName, "Main.lua", StringComparison.OrdinalIgnoreCase)) return 2;
-        return 1;
-    }
-
-    private void EnsureDefaultScripts()
-    {
-        if (!File.Exists(ColorsScriptPath))
+        lock (_sync)
         {
-            File.WriteAllText(ColorsScriptPath, """
-BLACK = 0
-BLUE = 1
-GREEN = 2
-CYAN = 3
-RED = 4
-MAGENTA = 5
-BROWN = 6
-GREY = 7
-DARKGREY = 8
-BRIGHTBLUE = 9
-BRIGHTGREEN = 10
-BRIGHTCYAN = 11
-BRIGHTRED = 12
-PINK = 13
-YELLOW = 14
-WHITE = 15
-NO = 0
-YES = 1
-""");
-        }
-
-        if (!File.Exists(MainScriptPath))
-        {
-            File.WriteAllText(MainScriptPath, """
-function ServerSet()
-    Log("Lua scripting initialized.")
-end
-""");
+            try
+            {
+                var script = new Script(CoreModules.Preset_SoftSandbox);
+                foreach (var (name, value) in properties)
+                    if (!string.IsNullOrWhiteSpace(name)) script.Globals[name] = DynValue.FromObject(script, value);
+                script.DoString(code);
+                return true;
+            }
+            catch (InterpreterException ex) { _log($"Event Lua error: {ex.DecoratedMessage}"); return false; }
+            catch (Exception ex) { _log($"Event Lua error: {ex.Message}"); return false; }
         }
     }
 
