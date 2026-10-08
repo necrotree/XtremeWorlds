@@ -97,7 +97,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             _connection.Tick();
             // UITimer runs on Eto's UI thread. Never mutate Eto controls from FNA.
             while (_graphics.TryDequeueMapPaint(out var paint))
-                _tools.PaintMapTile(paint.X, paint.Y, paint.Erase);
+            {
+                var updated = _tools.PaintMapTile(paint.X, paint.Y, paint.Erase);
+                if (updated is { } map)
+                    _graphics.PaintMapTile(map.MapId, map.Json);
+            }
         };
 
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
