@@ -76,13 +76,31 @@ public sealed class BrowserGameSession : IDisposable
     }
     public string Status { get; private set; } = "Disconnected";
     public string[] Characters { get; private set; } = [];
-    public bool Connected => network.IsConnected;
+    public bool Connected => OfflineMode || network.IsConnected;
+    public bool OfflineMode { get; private set; };
+    public void StartOffline()
+    {
+        if (InGame) return;
+        OfflineMode = true;
+        var scene = new FnaWorldScene {
+            MapId = 0,
+            Map = new FnaSceneMap { Name = "Local World", Tileset = 1,
+                Tiles = Enumerable.Range(0, 16 * 12).Select(_ => new FnaSceneTile()).ToList() },
+            Player = new FnaScenePlayer { Name = "Adventurer", Sprite = 0, X = 8, Y = 6, Direction = 0 }
+        };
+        LatestWorld = scene;
+        InGame = renderer.Start();
+        if (InGame) renderer.World(scene);
+        Status = InGame ? "Offline world" : renderer.Failure ?? "Unable to start renderer.";
+        Changed?.Invoke();
+    }
     public bool InGame { get; private set; }
     public BrowserFnaRenderer Renderer => renderer;
     public event Action? Changed;
 
     public void Authenticate(string username, string password, bool register)
     {
+        OfflineMode = false;
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrEmpty(password))
         {
             Status = "Enter a username and password.";
@@ -121,7 +139,7 @@ public sealed class BrowserGameSession : IDisposable
                 case "OpenWebsite": Status = "Website: https://www.xtremeworlds.com"; break;
             }
         }
-        if (InGame && (renderer.Failure is not null || !Connected))
+        if (InGame && (renderer.Failure is not null || (!OfflineMode && !network.IsConnected)))
         {
             var error = renderer.Failure ?? "The game server disconnected.";
             Disconnect();
@@ -206,6 +224,7 @@ public sealed class BrowserGameSession : IDisposable
     public void Disconnect()
     {
         InGame = false;
+        OfflineMode = false;
         LatestWorld = null;
         editorPatch = null;
         connection.Reset();
