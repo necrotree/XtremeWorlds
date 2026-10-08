@@ -17,7 +17,6 @@
   <ItemGroup>
     <Compile Include="..\..\src\Server\Program.cs" Link="Program.cs" />
     <Compile Include="..\..\src\Server\ServerForm.cs" Link="ServerForm.cs" />
-    <Compile Include="..\..\src\Server\ScriptEditorForm.cs" Link="ScriptEditorForm.cs" />
     <Compile Include="..\..\src\Server\WpfServerSkin.cs" Link="WpfServerSkin.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -27,10 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\spacetimedb\**\*"
-          Link="spacetimedb\%(RecursiveDir)%(Filename)%(Extension)"
-          CopyToOutputDirectory="Always"
-          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\spacetimedb\**\*" Link="spacetimedb\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Always" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 
@@ -39,8 +35,7 @@
     <ItemGroup>
       <_SpacetimeModuleFiles Include="$(MSBuildProjectDirectory)\..\..\spacetimedb\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(_SpacetimeModuleFiles)"
-          DestinationFiles="@(_SpacetimeModuleFiles->'$(MSBuildProjectDirectory)\..\..\src\Server\spacetimedb\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(_SpacetimeModuleFiles)" DestinationFiles="@(_SpacetimeModuleFiles->'$(MSBuildProjectDirectory)\..\..\src\Server\spacetimedb\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
 </Project>
