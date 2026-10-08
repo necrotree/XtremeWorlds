@@ -85,6 +85,13 @@ namespace Server
             {
                 switch (command)
                 {
+                    case "saymsg":
+                    case "globalmsg":
+                    case "guildmsg":
+                    case "partymsg":
+                    case "privatemsg":
+                        SendChatMessage(connectionId, command, p);
+                        break;
                     case "muteplayer":
                     case "unmuteplayer":
                     case "jailplayer":
@@ -148,6 +155,35 @@ namespace Server
                 string clientMessage = ex is System.Net.Http.HttpRequestException ? "Database service is unavailable. Please try again after SpacetimeDB is started." : "Server error handling packet.";
                 _network.SendText(connectionId, PacketCodec.Compose("alertmsg", clientMessage));
             }
+        }
+
+        private void SendChatMessage(int id, string channel, string[] fields)
+        {
+            if (!_sessions.TryGetValue(id, out var sender) || !sender.IsPlaying || sender.Character is not { } player) return;
+            string recipient = channel == "privatemsg" && fields.Length > 1 ? fields[1].Trim() : "";
+            string message = (channel == "privatemsg" ? fields.ElementAtOrDefault(2) : fields.ElementAtOrDefault(1))?.Trim() ?? "";
+            if (message.Length == 0) return;
+            if (message.Length > 240) message = message[..240];
+            if (channel == "partymsg")
+            {
+                _network.SendText(id, PacketCodec.Compose("playermsg", "Party chat requires an active party."));
+                return;
+            }
+            var receivers = _sessions.Values.Where(other => other.IsPlaying && other.Character != null &&
+                (channel switch
+                {
+                    "saymsg" => other.Character.Map == player.Map,
+                    "guildmsg" => player.Guild > 0 && other.Character.Guild == player.Guild,
+                    "privatemsg" => other.ConnectionId == id || string.Equals(other.Character.Name, recipient, StringComparison.OrdinalIgnoreCase),
+                    _ => true
+                })).ToArray();
+            if (channel == "guildmsg" && player.Guild <= 0 || channel == "privatemsg" && receivers.Length < 2)
+            {
+                _network.SendText(id, PacketCodec.Compose("playermsg", channel == "guildmsg" ? "You are not in a guild." : "Player not found."));
+                return;
+            }
+            foreach (var receiver in receivers)
+                _network.SendText(receiver.ConnectionId, PacketCodec.Compose(channel, player.Name, message));
         }
 
         private void ModeratePlayer(int id, string command, string[] fields)
