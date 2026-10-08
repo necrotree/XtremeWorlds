@@ -4,7 +4,6 @@ using System.IO;
 using System.Text.Json.Nodes;
 using Eto.Drawing;
 using Eto.Forms;
-using Microsoft.VisualBasic.CompilerServices;
 using XtremeWorlds.Tools;
 
 namespace XtremeWorlds.Client.Tools
@@ -47,7 +46,7 @@ namespace XtremeWorlds.Client.Tools
             attributeLayer.Items.Add("Attributes 1");
             attributeLayer.Items.Add("Attributes 2");
             attributeLayer.SelectedIndex = 0;
-            palette = new TileCanvas(this, true) { Size = new Size(384, 1024) };
+            palette = new TileCanvas(this) { Size = new Size(384, 1024) };
             var scroll = new Scrollable() { Content = palette, Size = new Size(408, 400) };
             layout.AddRow(new Label() { Text = "Name" }, name, new Label() { Text = "Tileset" }, tileset);
             layout.AddRow(new Label() { Text = "Layer" }, layer, mode, attributeLayer);
@@ -55,7 +54,14 @@ namespace XtremeWorlds.Client.Tools
             layout.AddRow(scroll);
             layout.AddRow(new Label() { Text = "Select tiles here, then left-drag to paint or right-drag to erase in the game window." });
             var fill = new Button() { Text = "Fill layer" };
-            fill.Click += (sender, args) => { for (int y = 0; y <= MapEditing.Height - 1; y++) { for (int x = 0; x <= MapEditing.Width - 1; x++) PaintAt(x, y, false, true); } };
+            fill.Click += (sender, args) =>
+            {
+                if (working is null) return;
+                for (int y = 0; y < MapEditing.Height; y++)
+                    for (int x = 0; x < MapEditing.Width; x++)
+                        PaintAt(x, y, false, true, false);
+                NotifyPreview();
+            };
             var ok = new Button() { Text = "Save" };
             var cancel = new Button() { Text = "Cancel" };
             RegisterControl("cmdOk", ok);
@@ -82,9 +88,9 @@ namespace XtremeWorlds.Client.Tools
             if (working["LayerTileset"] is not null)
                 data["LayerTileset"] = working["LayerTileset"].DeepClone();
         }
-        public void PaintAt(int x, int y, bool isErase, bool fill = false)
+        public void PaintAt(int x, int y, bool isErase, bool fill = false, bool publish = true)
         {
-            if (working is null)
+            if (working is null || x < 0 || y < 0 || x >= MapEditing.Width || y >= MapEditing.Height)
                 return;
             if (mode.SelectedIndex == 0)
             {
@@ -94,8 +100,10 @@ namespace XtremeWorlds.Client.Tools
             {
                 MapEditing.Attribute(working, x, y, attributeLayer.SelectedIndex + 1, isErase ? 0 : mode.SelectedIndex - 1, isErase ? 0 : (int)Math.Round(data1.Value), isErase ? 0 : (int)Math.Round(data2.Value), isErase ? 0 : (int)Math.Round(data3.Value));
             }
-            canvas.Invalidate();
+            if (publish) NotifyPreview();
         }
+        public void PublishPreview() => NotifyPreview();
+
         private void NotifyPreview()
         {
             if (working is not null && Definition is not null)
@@ -107,7 +115,7 @@ namespace XtremeWorlds.Client.Tools
             private readonly frmMapEditor owner;
             private readonly Dictionary<int, Bitmap> sheets = new Dictionary<int, Bitmap>();
             private int paletteSheet;
-            public TileCanvas(frmMapEditor owner, bool isPalette)
+            public TileCanvas(frmMapEditor owner)
             {
                 this.owner = owner;
                 MouseDown += Down;
@@ -163,7 +171,6 @@ namespace XtremeWorlds.Client.Tools
                     return;
                 int x = (int)Math.Round(Math.Floor((double)(args.Location.X / 32f)));
                 int y = (int)Math.Round(Math.Floor((double)(args.Location.Y / 32f)));
-                if (isPalette)
                 {
                     if (!owner.selecting)
                         return;
@@ -185,7 +192,6 @@ namespace XtremeWorlds.Client.Tools
                 base.OnPaint(e);
                 e.Graphics.ImageInterpolation = ImageInterpolation.None;
                 e.Graphics.FillRectangle(Colors.Black, new RectangleF(0f, 0f, Width, Height));
-                if (isPalette)
                 {
                     var bitmap = Sheet(paletteSheet);
                     if (bitmap is not null)
