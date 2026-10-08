@@ -67,6 +67,14 @@ public enum FnaVital
 public sealed class FnaGraphicsService : IDisposable
 {
     private readonly ConcurrentQueue<FnaWorldScene> _scenes = new();
+    private readonly ConcurrentQueue<(int MapId, string? Json)> _editorMapChanges = new();
+    private volatile bool _mapEditorActive;
+    public bool MapEditorActive
+    {
+        get => _mapEditorActive;
+        set => _mapEditorActive = value;
+    }
+    public void SetMapEditorPreview(int mapId, string? json) => _editorMapChanges.Enqueue((mapId, json));
     public ClientTickSynchronizer NetworkState { get; } = new();
     private FnaSceneMap? _networkMap;
     private int _networkMapId = -1;
@@ -149,6 +157,8 @@ public sealed class FnaGraphicsService : IDisposable
             {
                 using var game = new FnaClientGame(
                     _scenes,
+                    _editorMapChanges,
+                    () => _mapEditorActive,
                     NetworkState,
                     _commands,
                     _worldCommands,
@@ -349,6 +359,12 @@ public sealed class FnaGraphicsService : IDisposable
         private double _nextMove;
 
         private readonly ConcurrentQueue<FnaWorldScene> _scenes;
+        private readonly ConcurrentQueue<(int MapId, string? Json)> _editorMapChanges;
+        private readonly Func<bool> _mapEditorActive;
+        private FnaSceneMap? _editorMapPreview;
+        private int _editorMapId = -1;
+        private int _lastEditedX = -1, _lastEditedY = -1;
+        private bool _lastEditedErase;
         private FnaWorldScene? _scene;
         private double _renderSeconds;
 
@@ -369,6 +385,8 @@ public sealed class FnaGraphicsService : IDisposable
 
         public FnaClientGame(
             ConcurrentQueue<FnaWorldScene> scenes,
+            ConcurrentQueue<(int MapId, string? Json)> editorMapChanges,
+            Func<bool> mapEditorActive,
             ClientTickSynchronizer networkState,
             ConcurrentQueue<FnaSpriteCommand> incoming,
             ConcurrentQueue<FnaWorldCommand> worldIncoming,
@@ -384,6 +402,8 @@ public sealed class FnaGraphicsService : IDisposable
             ConcurrentQueue<(string Key, bool Down)> browserMovement)
         {
             _scenes = scenes;
+            _editorMapChanges = editorMapChanges;
+            _mapEditorActive = mapEditorActive;
             _networkState = networkState;
             _shouldStop = shouldStop;
             _action = action;
@@ -498,6 +518,25 @@ public sealed class FnaGraphicsService : IDisposable
             }
 
             while (_scenes.TryDequeue(out var scene)) _scene = scene;
+            while (_editorMapChanges.TryDequeue(out var change))
+            {
+                if (string.IsNullOrEmpty(change.Json))
+                {
+                    _editorMapPreview = null;
+                    _editorMapId = -1;
+                    continue;
+                }
+                try
+                {
+                    _editorMapPreview = System.Text.Json.JsonSerializer.Deserialize<FnaSceneMap>(change.Json);
+                    _editorMapId = change.MapId;
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    _editorMapPreview = null;
+                    _editorMapId = -1;
+                }
+            }
             if (_scene != null)
             {
                 var poses = _networkState.Sample(NetworkClock.Seconds);
@@ -564,7 +603,7 @@ public sealed class FnaGraphicsService : IDisposable
                 var keys = Keyboard.GetState();
                 int direction = keys.IsKeyDown(Keys.Up) ? 0 : keys.IsKeyDown(Keys.Down) ? 1
                     : keys.IsKeyDown(Keys.Left) ? 2 : keys.IsKeyDown(Keys.Right) ? 3 : -1;
-                if (_scene?.Map != null && direction >= 0 && gameTime.TotalGameTime.TotalSeconds >= _nextMove)
+                if (!_mapEditorActive() && _scene?.Map != null && direction >= 0 && gameTime.TotalGameTime.TotalSeconds >= _nextMove)
                 {
                     _nextMove = gameTime.TotalGameTime.TotalSeconds + 0.03;
                     _action("MovePlayer", new object[] { direction });
@@ -581,6 +620,35 @@ public sealed class FnaGraphicsService : IDisposable
                               _previousMouse.LeftButton == ButtonState.Released;
             var rightPressed = mouse.RightButton == ButtonState.Pressed &&
                                _previousMouse.RightButton == ButtonState.Released;
+            if (_mapEditorActive())
+            {
+                bool painting = mouse.LeftButton == ButtonState.Pressed;
+                bool erasing = mouse.RightButton == ButtonState.Pressed;
+                if ((painting || erasing) && TryScreenToLogical(mouse.X, mouse.Y, out var editX, out var editY)
+                    && GameViewport.Contains(editX, editY))
+                {
+                    int tileX = (editX - GameViewport.X) / 32;
+                    int tileY = (editY - GameViewport.Y) / 32;
+                    bool erase = erasing;
+                    if (tileX is >= 0 and < 16 && tileY is >= 0 and < 12 &&
+                        (tileX != _lastEditedX || tileY != _lastEditedY || erase != _lastEditedErase))
+                    {
+                        _lastEditedX = tileX;
+                        _lastEditedY = tileY;
+                        _lastEditedErase = erase;
+                        _action("PaintMapTile", new object[] { tileX, tileY, erase });
+                    }
+                }
+                else
+                {
+                    _lastEditedX = -1;
+                    _lastEditedY = -1;
+                }
+                _previousMouse = mouse;
+                return;
+            }
+            _lastEditedX = -1;
+            _lastEditedY = -1;
             var keyboard = Keyboard.GetState();
             if (rightPressed && (keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift)) &&
                 _scene?.Map is not null && TryScreenToLogical(mouse.X, mouse.Y, out var mapX, out var mapY) &&
@@ -903,7 +971,8 @@ public sealed class FnaGraphicsService : IDisposable
             GraphicsDevice.ScissorRectangle = GetViewportScissor();
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, rasterizer, null, transform);
-            var map = _scene?.Map;
+            var map = _mapEditorActive() && _scene?.MapId == _editorMapId && _editorMapPreview is not null
+                ? _editorMapPreview : _scene?.Map;
             if (map is not null) DrawSceneLayers(map, false);
             BltMap();
             BltMask();
