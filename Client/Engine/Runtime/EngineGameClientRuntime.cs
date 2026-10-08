@@ -15,7 +15,7 @@ namespace XtremeWorlds.Client.Engine.Runtime;
 
 /// <summary>
 /// Concrete client runtime replacing the old WinSock/BASS/DX11 integration.
-/// Eto owns menus/editors, FNA owns game rendering, FAudio is used by FNA's
+/// The native runtime owns menu orchestration, FNA owns rendering, FAudio is used by FNA's
 /// Audio/Media namespaces, and Mirror's Telepathy transport owns TCP.
 /// </summary>
 public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
@@ -65,10 +65,6 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
     {
         _connection = new GameClientConnection(_graphics);
         _connection.PacketReceived += OnNetworkPacket;
-<<<<<<< Updated upstream
-        _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
-=======
->>>>>>> Stashed changes
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
@@ -83,14 +79,11 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             Ui(ReturnToLogin);
         };
 
-<<<<<<< Updated upstream
         // Telepathy queues received messages until Tick() runs. Pump continuously
         // while the menu is active so a response to Register cannot sit queued
         // until the next Login click and appear to be a login response.
         _networkTimer.Elapsed += (_, _) => _connection.Tick();
 
-=======
->>>>>>> Stashed changes
         _graphics.MainGameActionRequested += OnFnaMainGameAction;
 
         // Preserve the five current menu choices until the server sends class data.
