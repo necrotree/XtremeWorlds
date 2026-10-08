@@ -58,3 +58,10 @@
   font:700 14px Georgia,serif!important;
   line-height:1!important;
 }
+
+/* Pixel-perfect centered close mark, independent of font glyph alignment. */
+.world-editor-header .game-style-close{position:relative!important;display:grid!important;place-items:center!important;width:34px!important;height:34px!important;padding:0!important;border-radius:0!important}
+.world-editor-header .close-cross{position:relative;display:block;width:14px;height:14px;margin:0!important;padding:0!important}
+.world-editor-header .close-cross::before,.world-editor-header .close-cross::after{content:"";position:absolute;top:6px;left:-1px;width:16px;height:2px;background:#fff0c4;transform-origin:center;border-radius:1px}
+.world-editor-header .close-cross::before{transform:rotate(45deg)}
+.world-editor-header .close-cross::after{transform:rotate(-45deg)}
