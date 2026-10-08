@@ -1,6 +1,7 @@
 @page "/"
 @inject Client.Blazor.Services.BrowserGameSession Session
-@implements IDisposable
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 @if (Session.InGame)
 {
@@ -10,9 +11,67 @@ else
 {
     <Client.Blazor.Components.Forms.FrmMainMenu />
 }
+@if (showSettings)
+{
+    <div class="connection-modal-backdrop">
+        <section class="connection-modal" role="dialog" aria-modal="true" aria-label="Client connection settings">
+            <h2>Connection Settings</h2>
+            <p>Choose the game server before signing in.</p>
+            <label>IP address or hostname <input @bind="host" disabled="@Session.Connected" /></label>
+            <label>Port <input type="number" min="1" max="65535" @bind="port" disabled="@Session.Connected" /></label>
+            @if (!string.IsNullOrEmpty(error)) { <p role="alert">@error</p> }
+            <div class="connection-actions">
+                <button disabled="@Session.Connected" @onclick="SaveSettings">Save</button>
+                <button @onclick="() => showSettings=false">Close</button>
+            </div>
+        </section>
+    </div>
+}
 
 @code {
-    protected override void OnInitialized() => Session.Changed += Refresh;
+    private bool showSettings;
+    private string host = "";
+    private int port;
+    private string error = "";
+    private IJSObjectReference? shortcuts;
+    private DotNetObjectReference<Home>? receiver;
+    protected override void OnInitialized()
+    {
+        Session.Changed += Refresh;
+        host = Session.ServerHost;
+        port = Session.ServerPort;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        shortcuts = await JS.InvokeAsync<IJSObjectReference>("import", "./client-settings.js");
+        receiver = DotNetObjectReference.Create(this);
+        await shortcuts.InvokeVoidAsync("install", receiver);
+    }
+    [JSInvokable]
+    public Task ToggleConnectionSettings()
+    {
+        showSettings = !showSettings;
+        host = Session.ServerHost;
+        port = Session.ServerPort;
+        error = "";
+        return InvokeAsync(StateHasChanged);
+    }
+    private void SaveSettings()
+    {
+        try { Session.ConfigureServer(host, port); showSettings = false; error = ""; }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException) { error = ex.Message; }
+    }
     private void Refresh() => _ = InvokeAsync(StateHasChanged);
-    public void Dispose() { Session.Changed -= Refresh; Session.Disconnect(); }
+    public async ValueTask DisposeAsync()
+    {
+        Session.Changed -= Refresh;
+        if (shortcuts is not null)
+        {
+            try { await shortcuts.InvokeVoidAsync("uninstall"); await shortcuts.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+        receiver?.Dispose();
+        Session.Disconnect();
+    }
 }

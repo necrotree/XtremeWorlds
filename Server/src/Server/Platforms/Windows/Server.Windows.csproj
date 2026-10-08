@@ -13,7 +13,8 @@
     <LangVersion>latest</LangVersion>
     <ApplicationIcon>..\..\src\Server\Icon.ico</ApplicationIcon>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="..\..\src\Server\Server.Common.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Content Include="..\\..\\..\\..\\..\\Client\\Assets\\gfx\\**\\*.png" Link="gfx\\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /><ProjectReference Include="..\..\src\Server\Server.Common.csproj" /></ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\src\Server\Program.cs" Link="Program.cs" />
     <Compile Include="..\..\src\Server\ServerForm.cs" Link="ServerForm.cs" />

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Server
@@ -15,6 +16,41 @@ namespace Server
         private long _serverTick;
         private int _snapshotPhase;
         private readonly ConcurrentDictionary<int, MapDefinition> _mapCache = new();
+        // Editable game definitions are stored as plain JSON text in SpacetimeDB.
+        // All definitions are loaded before the TCP listener accepts clients.
+        private IReadOnlyDictionary<int, ItemDefinition> _items = new Dictionary<int, ItemDefinition>();
+        private IReadOnlyDictionary<int, NpcDefinition> _npcs = new Dictionary<int, NpcDefinition>();
+        private IReadOnlyDictionary<int, ShopDefinition> _shops = new Dictionary<int, ShopDefinition>();
+        private IReadOnlyDictionary<int, SpellDefinition> _spells = new Dictionary<int, SpellDefinition>();
+        private IReadOnlyDictionary<int, SignDefinition> _signs = new Dictionary<int, SignDefinition>();
+        private IReadOnlyDictionary<int, GuildDefinition> _guilds = new Dictionary<int, GuildDefinition>();
+        private IReadOnlyDictionary<int, QuestDefinition> _quests = new Dictionary<int, QuestDefinition>();
+        private IReadOnlyDictionary<int, ArrowDefinition> _arrows = new Dictionary<int, ArrowDefinition>();
+        private IReadOnlyDictionary<int, ClassDefinition> _classes = new Dictionary<int, ClassDefinition>();
+
+        public async Task LoadDefinitionsAsync()
+        {
+            var maps = await _db.LoadContentAsync<MapDefinition>("map");
+            foreach (var (id, map) in maps) _mapCache[id] = map;
+            if (maps.Count == 0)
+            {
+                // Seed only an absent world, never replace existing administrator edits.
+                var first = CreateEmptyMap(1);
+                await _db.UpsertContentAsync("map", 1, first.Name, first);
+                _mapCache[1] = first;
+            }
+            _items = await _db.LoadContentAsync<ItemDefinition>("item");
+            _npcs = await _db.LoadContentAsync<NpcDefinition>("npc");
+            _shops = await _db.LoadContentAsync<ShopDefinition>("shop");
+            _spells = await _db.LoadContentAsync<SpellDefinition>("spell");
+            _signs = await _db.LoadContentAsync<SignDefinition>("sign");
+            _guilds = await _db.LoadContentAsync<GuildDefinition>("guild");
+            _quests = await _db.LoadContentAsync<QuestDefinition>("quest");
+            _arrows = await _db.LoadContentAsync<ArrowDefinition>("arrow");
+            _classes = await _db.LoadContentAsync<ClassDefinition>("class");
+            _log?.Invoke($"Loaded game data from SpacetimeDB (JSON): {_mapCache.Count} maps, {_items.Count} items, {_npcs.Count} NPCs, {_shops.Count} shops, {_spells.Count} spells, {_signs.Count} signs, {_guilds.Count} guilds, {_quests.Count} quests, {_arrows.Count} arrows, {_classes.Count} classes.");
+        }
+
         private readonly ServerSettings _settings;
         private readonly MirrorTcpHost _network;
         private readonly SpacetimeRepository _db;
@@ -49,6 +85,13 @@ namespace Server
             {
                 switch (command)
                 {
+                    case "saymsg":
+                    case "globalmsg":
+                    case "guildmsg":
+                    case "partymsg":
+                    case "privatemsg":
+                        SendChatMessage(connectionId, command, p);
+                        break;
                     case "muteplayer":
                     case "unmuteplayer":
                     case "jailplayer":
@@ -112,6 +155,35 @@ namespace Server
                 string clientMessage = ex is System.Net.Http.HttpRequestException ? "Database service is unavailable. Please try again after SpacetimeDB is started." : "Server error handling packet.";
                 _network.SendText(connectionId, PacketCodec.Compose("alertmsg", clientMessage));
             }
+        }
+
+        private void SendChatMessage(int id, string channel, string[] fields)
+        {
+            if (!_sessions.TryGetValue(id, out var sender) || !sender.IsPlaying || sender.Character is not { } player) return;
+            string recipient = channel == "privatemsg" && fields.Length > 1 ? fields[1].Trim() : "";
+            string message = (channel == "privatemsg" ? fields.ElementAtOrDefault(2) : fields.ElementAtOrDefault(1))?.Trim() ?? "";
+            if (message.Length == 0) return;
+            if (message.Length > 240) message = message[..240];
+            if (channel == "partymsg")
+            {
+                _network.SendText(id, PacketCodec.Compose("playermsg", "Party chat requires an active party."));
+                return;
+            }
+            var receivers = _sessions.Values.Where(other => other.IsPlaying && other.Character != null &&
+                (channel switch
+                {
+                    "saymsg" => other.Character.Map == player.Map,
+                    "guildmsg" => player.Guild > 0 && other.Character.Guild == player.Guild,
+                    "privatemsg" => other.ConnectionId == id || string.Equals(other.Character.Name, recipient, StringComparison.OrdinalIgnoreCase),
+                    _ => true
+                })).ToArray();
+            if (channel == "guildmsg" && player.Guild <= 0 || channel == "privatemsg" && receivers.Length < 2)
+            {
+                _network.SendText(id, PacketCodec.Compose("playermsg", channel == "guildmsg" ? "You are not in a guild." : "Player not found."));
+                return;
+            }
+            foreach (var receiver in receivers)
+                _network.SendText(receiver.ConnectionId, PacketCodec.Compose(channel, player.Name, message));
         }
 
         private void ModeratePlayer(int id, string command, string[] fields)
@@ -334,7 +406,6 @@ namespace Server
                 // an administrator enter the world and open the map editor instead
                 // of being blocked because the content database has no map row yet.
                 map = CreateEmptyMap(player.Map);
-                _log?.Invoke($"[{id}] Map {player.Map} has no map data in the server database; sending an empty editable map.");
             }
 
             if (player.Sprite <= 0)

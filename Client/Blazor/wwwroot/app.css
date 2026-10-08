@@ -24,3 +24,45 @@ html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.m
 :root{--xtremeworlds-ui-font:"OPTITimes-Roman","Times New Roman",Georgia,serif}
 .realm-dialog,.world-editor,.game-overlay-header,.mirage>p,.mirage>button,.world-loading-panel{font-family:var(--xtremeworlds-ui-font)!important}
 .realm-dialog button,.realm-dialog input,.realm-dialog select,.world-editor button,.world-editor input,.world-editor select,.world-editor textarea,.game-overlay-header button{font-family:var(--xtremeworlds-ui-font)!important}
+
+.connection-modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#100d09d9;padding:20px}
+.connection-modal{box-sizing:border-box;width:min(440px,100%);padding:24px;background:#2b2118;color:#ffe8bb;border:3px double #bb9356;box-shadow:0 14px 50px #0009;font-family:var(--xtremeworlds-ui-font,Georgia,serif)}
+.connection-modal h2{margin:0 0 14px;color:#ffe3a4;font-size:22px}
+.connection-modal p{color:#e7cfaa}
+.connection-modal label{display:grid;gap:5px;margin:12px 0}
+.connection-modal input{width:100%;box-sizing:border-box;background:#e9d7ad;color:#20170c;border:1px solid #b48b51}
+.connection-actions{display:flex;justify-content:end;gap:12px}
+.connection-actions button{margin:0;background:#684629;color:#fff0c4;border:1px solid #b48b51}
+.connection-actions button:first-child{background:#356642}
+
+.connection-modal{max-height:90dvh;overflow:auto}
+.graphics-manager{border-top:1px solid #876339;margin-top:18px;padding-top:12px}
+.graphics-manager h3{margin:4px 0;color:#ffe3a4}
+.graphics-manager select{width:100%;padding:8px;background:#e9d7ad;color:#241b0c;border:1px solid #b48b51}
+.graphics-manager input[type=file]{width:100%;font-size:12px;background:#3e2c1b;color:#fff0c4}
+.graphics-manager .connection-actions button{background:#356642}
+
+.graphics-file-browser{margin-top:14px;border:1px solid #94734b;padding:10px;max-height:260px;overflow:auto;background:#1d1913}
+.graphics-file-browser h4{margin:0 0 8px}
+.graphics-file-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px;border-bottom:1px solid #5e4c35}
+.graphics-file-row span{overflow-wrap:anywhere}
+.graphics-file-row button{padding:5px 10px;background:#356642;color:#fff2cb;border:1px solid #a8905e}
+
+/* Graphics panel: prevent inherited form/input/button dimensions from overlapping. */
+.graphics-popover,.graphics-popover *{box-sizing:border-box}
+.graphics-popover{width:min(520px,calc(100% - 24px));max-width:calc(100% - 24px);right:12px;overflow-x:hidden}
+.graphics-popover>button{float:none;display:block;margin:0 0 12px auto;position:relative}
+.graphics-popover .graphics-manager{clear:both;display:flex;flex-direction:column;gap:12px;min-width:0;max-width:100%;margin:0;border:0;padding:0}
+.graphics-manager label{display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:0;min-width:0;width:100%;line-height:1.25}
+.graphics-manager input,.graphics-manager select{display:block;position:static;max-width:100%;min-width:0;width:100%;margin:0;font-size:16px}
+.graphics-manager input[type=number]{height:42px;padding:6px 12px;background:#e9d7ad;color:#25190f;border:1px solid #a88a5d}
+.graphics-manager input[type=file]{min-height:50px;height:auto;padding:8px;font-size:14px;overflow:hidden}
+.graphics-manager input[type=file]::file-selector-button{max-width:100%;padding:7px 10px;margin-right:8px}
+.graphics-manager .connection-actions{display:flex;justify-content:stretch;margin:0;width:100%}
+.graphics-manager .connection-actions button{width:100%;min-width:0;white-space:normal;margin:0;padding:10px 12px}
+.graphics-file-browser{width:100%;max-width:100%;min-width:0;overflow-x:hidden;margin:0}
+.graphics-file-browser>button{margin:0 0 10px}
+.graphics-file-row{min-width:0}
+.graphics-file-row span{min-width:0;overflow-wrap:anywhere}
+.graphics-file-row button{flex:0 0 auto;margin:0}
+.graphics-manager p{margin:0;overflow-wrap:anywhere}

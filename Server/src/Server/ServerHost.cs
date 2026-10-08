@@ -81,6 +81,14 @@ public sealed class ServerHost : IDisposable
             Log($"SpacetimeDB is unavailable at {_settings.SpacetimeUri}; the TCP game server will continue running, but database-backed actions will be unavailable.");
         }
 
+        if (spacetimeReady)
+        {
+            try { await _router.LoadDefinitionsAsync().ConfigureAwait(false); }
+            catch (Exception ex) when (!_settings.RequireSpacetimeDb)
+            {
+                Log($"Game definitions could not be preloaded: {ex.Message}");
+            }
+        }
         _network.Start();
         Log($"Mirror Telepathy TCP host active. TCPNoDelay={_settings.TcpNoDelay}");
 

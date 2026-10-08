@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\\..\\..\\Client\\Assets\\gfx\\**\\*.png" Link="gfx\\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <PackageReference Include="com.MirrorNetworking.Telepathy" Version="1.0.0" />
   </ItemGroup>
 

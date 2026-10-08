@@ -13,9 +13,33 @@ public sealed class BrowserGameSession : IDisposable
     private readonly BrowserFnaRenderer renderer;
     private readonly GameClientConnection connection;
     private MirrorTcpClient network => connection.Transport;
+    public List<string> ChatMessages { get; } = new();
+    public void SendChat(string message, string channel = "Map", string recipient = "")
+    {
+        message = message.Trim();
+        if (!InGame || !network.IsConnected || message.Length == 0) return;
+        if (message.Length > 240) message = message[..240];
+        string command = channel switch { "Global" => "globalmsg", "Guild" => "guildmsg", "Party" => "partymsg", "Private" => "privatemsg", _ => "saymsg" };
+        if (command == "privatemsg" && string.IsNullOrWhiteSpace(recipient)) return;
+        network.SendText(command == "privatemsg" ? PacketCodec.Build(command, recipient.Trim(), message) : PacketCodec.Build(command, message));
+    }
+    public string ServerHost { get; private set; } = "127.0.0.1";
+    public int ServerPort { get; private set; } = 7234;
+    public void ConfigureServer(string host, int port)
+    {
+        if (string.IsNullOrWhiteSpace(host) || host.Length > 253 || host.Any(char.IsWhiteSpace))
+            throw new ArgumentException("Enter a valid server IP or hostname.");
+        if (port is < 1 or > 65535) throw new ArgumentException("Invalid port.");
+        if (network.IsConnected || InGame) throw new InvalidOperationException("Disconnect before changing servers.");
+        ServerHost = host.Trim();
+        ServerPort = port;
+        Changed?.Invoke();
+    }
     public BrowserGameSession(IConfiguration configuration, BrowserFnaRenderer renderer)
     {
         this.configuration = configuration;
+        ServerHost = configuration["GameServer:Host"] ?? "127.0.0.1";
+        ServerPort = configuration.GetValue("GameServer:Port", 7234);
         this.renderer = renderer;
         connection = new GameClientConnection(renderer.Graphics);
         connection.PacketReceived += HandlePacket;
@@ -124,8 +148,7 @@ public sealed class BrowserGameSession : IDisposable
             Status = "Credentials contain unsupported characters.";
             return;
         }
-        if (!network.ConnectAndWait(configuration["GameServer:Host"] ?? "127.0.0.1",
-            configuration.GetValue("GameServer:Port", 7234), TimeSpan.FromSeconds(3)))
+        if (!network.ConnectAndWait(ServerHost, ServerPort, TimeSpan.FromSeconds(3)))
         {
             Disconnect();
             Status = "Unable to connect to the game server.";
@@ -204,8 +227,18 @@ public sealed class BrowserGameSession : IDisposable
                 case "globalmsg":
                 case "broadcastmsg":
                 case "guildmsg":
+                case "partymsg":
+                case "privatemsg":
                 case "playermsg":
-                    if (fields.Count > 1) renderer.Chat(fields[0], fields[1]);
+                    if (fields.Count > 1)
+                    {
+                        renderer.Chat(fields[0], fields[1]);
+                        string channelName = fields[0].ToLowerInvariant() switch { "globalmsg" => "Global", "guildmsg" => "Guild", "partymsg" => "Party", "privatemsg" => "Private", "playermsg" => "System", _ => "Map" };
+                        string line = fields.Count > 2 ? fields[1] + ": " + fields[2] : fields[1];
+                        ChatMessages.Add("[" + channelName + "] " + line);
+                        if (ChatMessages.Count > 100) ChatMessages.RemoveAt(0);
+                        Changed?.Invoke();
+                    }
                     break;
             }
     }
