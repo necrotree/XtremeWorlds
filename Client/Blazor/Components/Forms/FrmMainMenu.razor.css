@@ -5,3 +5,6 @@
 .realm-heading .close-cross::before,.realm-heading .close-cross::after{content:"";position:absolute;top:6px;left:-1px;width:16px;height:2px;background:#fff0c4;border-radius:1px;transform-origin:center}
 .realm-heading .close-cross::before{transform:rotate(45deg)}
 .realm-heading .close-cross::after{transform:rotate(-45deg)}
+
+.menu-scene{margin:0!important;max-width:none!important;width:100%!important;min-height:100dvh!important;padding:24px!important;box-sizing:border-box;background-size:cover;background-position:center}
+.realm-actions .offline-button{width:100%;flex:1;background:#5a4029;border:1px solid #c49d68;color:#fff0c9;cursor:pointer;font-weight:bold;padding:11px}
