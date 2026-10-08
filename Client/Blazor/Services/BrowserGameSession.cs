@@ -13,9 +13,23 @@ public sealed class BrowserGameSession : IDisposable
     private readonly BrowserFnaRenderer renderer;
     private readonly GameClientConnection connection;
     private MirrorTcpClient network => connection.Transport;
+    public string ServerHost { get; private set; } = "127.0.0.1";
+    public int ServerPort { get; private set; } = 7234;
+    public void ConfigureServer(string host, int port)
+    {
+        if (string.IsNullOrWhiteSpace(host) || host.Length > 253 || host.Any(char.IsWhiteSpace))
+            throw new ArgumentException("Enter a valid server IP or hostname.");
+        if (port is < 1 or > 65535) throw new ArgumentException("Invalid port.");
+        if (network.IsConnected || InGame) throw new InvalidOperationException("Disconnect before changing servers.");
+        ServerHost = host.Trim();
+        ServerPort = port;
+        Changed?.Invoke();
+    }
     public BrowserGameSession(IConfiguration configuration, BrowserFnaRenderer renderer)
     {
         this.configuration = configuration;
+        ServerHost = configuration["GameServer:Host"] ?? "127.0.0.1";
+        ServerPort = configuration.GetValue("GameServer:Port", 7234);
         this.renderer = renderer;
         connection = new GameClientConnection(renderer.Graphics);
         connection.PacketReceived += HandlePacket;
@@ -124,8 +138,7 @@ public sealed class BrowserGameSession : IDisposable
             Status = "Credentials contain unsupported characters.";
             return;
         }
-        if (!network.ConnectAndWait(configuration["GameServer:Host"] ?? "127.0.0.1",
-            configuration.GetValue("GameServer:Port", 7234), TimeSpan.FromSeconds(3)))
+        if (!network.ConnectAndWait(ServerHost, ServerPort, TimeSpan.FromSeconds(3)))
         {
             Disconnect();
             Status = "Unable to connect to the game server.";
