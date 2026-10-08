@@ -4,8 +4,9 @@
 @implements IDisposable
 
 <section class="graphics-manager">
-    <h3>Graphics</h3>
-    <p>Import/export PNG graphics stored on the game server. Administrator access level 9 required.</p>
+    <h3>@(TilesetNumber > 0 ? "Tileset Graphics" : "Event Graphics")</h3>
+    <p>Manage graphics on the game server (administrator access level 9).</p>
+    @if (TilesetNumber == 0) {
     <label>Graphic <select @bind="assetType">
         <option value="sprites.png">Player sprites</option>
         <option value="items.png">Items</option>
@@ -13,7 +14,8 @@
         <option value="spells.png">Spells</option>
         <option value="tiles">Tileset</option>
     </select></label>
-    @if(assetType=="tiles")
+    }
+    @if(TilesetNumber == 0 && assetType=="tiles")
     {
         <label>Tileset number <input type="number" min="1" max="999" @bind="tileset" /></label>
     }
@@ -42,12 +44,13 @@
 </section>
 
 @code {
+    [Parameter] public int TilesetNumber { get; set; }
     private bool browsing;
     private string assetType="sprites.png";
     private int tileset=1;
     private string status="";
     private byte[]? lastExport;
-    private string CurrentName => assetType=="tiles" ? $"tiles{Math.Clamp(tileset,1,999)}.png" : assetType;
+    private string CurrentName => TilesetNumber > 0 ? $"tiles{Math.Clamp(TilesetNumber,1,999)}.png" : assetType=="tiles" ? $"tiles{Math.Clamp(tileset,1,999)}.png" : assetType;
     protected override void OnInitialized() => Session.Changed += Update;
     private void Update() => _ = InvokeAsync(StateHasChanged);
     private async Task ImportGraphic(InputFileChangeEventArgs args)
