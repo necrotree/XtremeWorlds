@@ -54,7 +54,28 @@
           <div class="two-fields"><label>X <input type="number" min="0" max="@(map.Width-1)" @bind="selected.X" /></label><label>Y <input type="number" min="0" max="@(map.Height-1)" @bind="selected.Y" /></label></div>
           <label>Trigger <select @bind="selected.Trigger"><option>Action</option><option>Player Touch</option><option>Autorun</option><option>Parallel</option></select></label>
           <label>Command <select @bind="selected.Command"><option>Show Message</option><option>Warp</option><option>Run Script</option></select></label>
-          <label>Text / Script <textarea rows="4" @bind="selected.Text"></textarea></label>
+          @if(selected.Command=="Run Script") {
+            <div class="lua-event-fields">
+              <h3>Lua Event Properties</h3>
+              <label>Target <select @bind="selected.ScriptTarget"><option>Player</option><option>NPC</option></select></label>
+              <label>Property <select @bind="selected.ScriptProperty">
+                <option>Name</option><option>Level</option><option>Health</option><option>MaxHealth</option>
+                <option>Mana</option><option>MaxMana</option><option>MapId</option><option>X</option>
+                <option>Y</option><option>Direction</option><option>Sprite</option>
+              </select></label>
+              <label>Operation <select @bind="selected.ScriptOperation">
+                <option>Read</option><option>Set</option><option>Add</option><option>Subtract</option>
+              </select></label>
+              @if(selected.ScriptOperation!="Read") {
+                <label>Value <input @bind="selected.ScriptValue" placeholder="Number or text" /></label>
+              }
+              <button type="button" @onclick="GenerateLua">Insert Lua Template</button>
+              <p class="editor-help">Player and NPC refer to the actor involved in this event. These fields are saved with the event; live execution needs server event dispatch integration.</p>
+            </div>
+            <label>Event Lua <textarea rows="9" @bind="selected.Text" spellcheck="false"></textarea></label>
+          } else {
+            <label>Message <textarea rows="4" @bind="selected.Text"></textarea></label>
+          }
           @if(selected.Command=="Warp"){<label>Target Map <input @bind="selected.TargetMap" /></label><div class="two-fields"><label>Target X <input type="number" @bind="selected.TargetX" /></label><label>Target Y <input type="number" @bind="selected.TargetY" /></label></div>}
           <button class="danger" @onclick="DeleteEvent">Delete event</button>
         }else{<p class="editor-help">Choose Events, then click a map tile to create an event, or select an existing event.</p>}
@@ -155,6 +176,19 @@
       switch(layer){case "Mask":target.Mask=value;if(!erase)target.MaskTileset=tileset;break;case "Fringe":target.Fringe=value;if(!erase)target.FringeTileset=tileset;break;default:target.Ground=value;if(!erase)target.GroundTileset=tileset;break;}
     }
   }
+  private void GenerateLua(){
+    if(selected is null)return;
+    var target=selected.ScriptTarget=="NPC"?"npc":"player";
+    var field=selected.ScriptProperty;
+    var value=selected.ScriptValue.Replace("\\","\\\\").Replace("\"","\\\"");
+    var expression=double.TryParse(value,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out _) ? value : $"\\\"{value}\\\"";
+    selected.Text=selected.ScriptOperation switch {
+      "Set"=>$"{target}.{field} = {expression}",
+      "Add"=>$"{target}.{field} = {target}.{field} + {expression}",
+      "Subtract"=>$"{target}.{field} = {target}.{field} - {expression}",
+      _=>$"Log({target}.{field})"
+    };
+  }
   private void SelectEvent(MapEvent ev){selected=ev;tool="Events";}
   private void DeleteEvent(){if(selected is null)return;map.Events.Remove(selected);selected=null;}
   private void Resize(){
@@ -212,6 +246,10 @@
     public string Trigger{get;set;}="Action";
     public string Command{get;set;}="Show Message";
     public string Text{get;set;}="";
+    public string ScriptTarget{get;set;}="Player";
+    public string ScriptProperty{get;set;}="Health";
+    public string ScriptOperation{get;set;}="Read";
+    public string ScriptValue{get;set;}="";
     public string TargetMap{get;set;}="";
     public int TargetX{get;set;}
     public int TargetY{get;set;}
