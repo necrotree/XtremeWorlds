@@ -4,10 +4,9 @@
 @implements IDisposable
 
 <section class="graphics-manager">
-    <h3>@(TilesetNumber > 0 ? "Tileset Graphics" : "Event Graphics")</h3>
+    <h3>@(TilesetNumber > 0 ? "Tileset Graphics" : EventMode ? "Event Graphics" : "Graphics")</h3>
     <p>Manage graphics on the game server (administrator access level 9).</p>
-    @if (TilesetNumber == 0) {
-    @if(TilesetNumber == 0)
+    @if (TilesetNumber == 0)
     {
     <label>Graphic <select @bind="assetType">
         <option value="sprites.png">Player sprites</option>
@@ -46,7 +45,6 @@
 </section>
 
 @code {
-    [Parameter] public int TilesetNumber { get; set; }
     [Parameter] public int TilesetNumber { get; set; }
     [Parameter] public bool EventMode { get; set; }
     private bool browsing;
