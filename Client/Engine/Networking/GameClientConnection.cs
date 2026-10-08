@@ -11,8 +11,6 @@ public sealed class GameClientConnection : IDisposable
     private readonly FnaGraphicsService _graphics;
     private double _nextHeartbeat;
     private bool _resyncRequested;
-    private bool _waitingForMap;
-    private double _nextMapRequest;
     public MirrorTcpClient Transport { get; } = new();
     public event Action<IReadOnlyList<string>>? PacketReceived;
     public event Action<FnaWorldScene>? WorldSceneReceived;
@@ -36,25 +34,18 @@ public sealed class GameClientConnection : IDisposable
                     var scene = JsonSerializer.Deserialize<FnaWorldScene>(fields.Count > 1 ? fields[1] : "");
                     if (scene == null) throw new JsonException("Missing world state.");
                     if (WorldSceneTransform is not null) scene = WorldSceneTransform(scene);
-                    // Incremental ticks cannot initialize an empty renderer. Keep requesting
-                    // the full map until the first complete scene is accepted.
-                    if (scene.Map is null && _waitingForMap)
+                    if (_graphics.SetWorldScene(scene))
                     {
-                        RequestMap();
-                        return;
+                        if (_graphics.NetworkState.IsActive) _resyncRequested = false;
+                        WorldSceneReceived?.Invoke(scene);
                     }
-                    if (!_graphics.SetWorldScene(scene)) return;
-                    if (scene.Map is { Tiles.Count: > 0 }) _waitingForMap = false;
-                    if (_graphics.NetworkState.IsActive) _resyncRequested = false;
-                    WorldSceneReceived?.Invoke(scene);
                 }
                 catch (JsonException) { Resync(); }
                 return;
             case "ingame":
                 Reset();
                 PacketReceived?.Invoke(fields);
-                _waitingForMap = true;
-                RequestMap();
+                if (Transport.IsConnected) Transport.SendText(PacketCodec.Build("needmap"));
                 return;
         }
         PacketReceived?.Invoke(fields);
@@ -62,7 +53,6 @@ public sealed class GameClientConnection : IDisposable
     public void Tick()
     {
         Transport.Tick(128);
-        if (_waitingForMap) RequestMap();
         while (Transport.TryDequeue(out _)) { }
         double now = NetworkClock.Seconds;
         if (!Transport.IsConnected || _graphics.NetworkState.Latest == null) return;
@@ -93,12 +83,6 @@ public sealed class GameClientConnection : IDisposable
         else Transport.SendText(PacketCodec.Build(command));
         return true;
     }
-    private void RequestMap()
-    {
-        if (!Transport.IsConnected || NetworkClock.Seconds < _nextMapRequest) return;
-        _nextMapRequest = NetworkClock.Seconds + 1.0;
-        Transport.SendText(PacketCodec.Build("needmap"));
-    }
     private void Resync()
     {
         _graphics.NetworkState.Rollback();
@@ -111,6 +95,6 @@ public sealed class GameClientConnection : IDisposable
         if (_graphics.NetworkState.Latest is not { } latest) return;
         Transport.SendText(PacketCodec.Build(command, latest.Epoch, latest.Tick, latest.AckSequence, (long)(NetworkClock.Seconds * 60)));
     }
-    public void Reset() { _graphics.ResetNetworkState(); _resyncRequested = false; _waitingForMap = false; _nextMapRequest = 0; _nextHeartbeat = 0; }
+    public void Reset() { _graphics.ResetNetworkState(); _resyncRequested = false; _nextHeartbeat = 0; }
     public void Dispose() { Transport.Dispose(); Reset(); }
 }
