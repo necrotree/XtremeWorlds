@@ -23,6 +23,17 @@ public sealed class BrowserGameSession : IDisposable
         connection.WorldSceneTransform = ApplyEditorMap;
     }
     public FnaWorldScene? LatestWorld { get; private set; }
+    public int PreviewX { get; private set; } = 8;
+    public int PreviewY { get; private set; } = 6;
+    public int PreviewDirection { get; private set; }
+    public bool ShowPreviewPlayer => LatestWorld?.Player is not { Name: { Length: > 0 }, Sprite: >= 0 };
+    public void SetPreviewPlayer(int x, int y, int direction)
+    {
+        PreviewX = x;
+        PreviewY = y;
+        PreviewDirection = direction;
+        Changed?.Invoke();
+    }
     private EditorMapPatch? editorPatch;
     public void ApplyMapDraft(string json)
     {
