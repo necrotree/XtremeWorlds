@@ -72,10 +72,10 @@
   private void MovePreviewPlayer(KeyboardEventArgs e){
     int dx=0,dy=0;
     switch(e.Key.ToLowerInvariant()){
-      case "w":case "arrowup":dy=-1;playerDirection=3;break;
-      case "s":case "arrowdown":dy=1;playerDirection=0;break;
-      case "a":case "arrowleft":dx=-1;playerDirection=1;break;
-      case "d":case "arrowright":dx=1;playerDirection=2;break;
+      case "w":case "arrowup":dy=-1;playerDirection=2;break;
+      case "s":case "arrowdown":dy=1;playerDirection=3;break;
+      case "a":case "arrowleft":dx=-1;playerDirection=0;break;
+      case "d":case "arrowright":dx=1;playerDirection=1;break;
       default:return;
     }
     int nx=playerX+dx,ny=playerY+dy;
