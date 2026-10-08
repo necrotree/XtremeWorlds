@@ -68,6 +68,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _connection.PacketReceived += OnNetworkPacket;
         _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
         _tools.MapEditorActiveChanged += active => _graphics.MapEditorActive = active;
+        _tools.MapBrushSelected += _graphics.FocusGameWindow;
         _tools.MapPreviewChanged += (mapId, json) => _graphics.SetMapEditorPreview(mapId, json);
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
