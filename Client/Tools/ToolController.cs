@@ -21,11 +21,17 @@ namespace XtremeWorlds.Client.Tools
         public event Action<bool>? MapEditorActiveChanged;
         public event Action? MapBrushSelected;
 
-        public void PaintMapTile(int x, int y, bool erase)
+        // Eto owns editor state. Return a snapshot to the runtime so it can
+        // explicitly post the painted result to FNA, without sharing controls.
+        public (int MapId, string Json)? PaintMapTile(int x, int y, bool erase)
         {
-            if (disposed) return;
+            if (disposed) return null;
             var mapEditor = editors.Values.OfType<frmMapEditor>().FirstOrDefault(editor => editor.Visible);
-            mapEditor?.PaintAt(x, y, erase);
+            if (mapEditor is null || mapEditor.Saving || mapEditor.MapId < 1)
+                return null;
+            mapEditor.PaintAt(x, y, erase, publish: false);
+            var snapshot = mapEditor.CaptureMapSnapshot();
+            return snapshot is null ? null : (mapEditor.MapId, snapshot);
         }
 
         private string latestList;
