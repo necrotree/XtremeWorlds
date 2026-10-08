@@ -30,7 +30,7 @@ public sealed class EtoServerForm : Form
     {
         _settings = settings;
         Title = $"{settings.GameName} :: Server";
-        var iconPath = Path.Combine(AppContext.BaseDirectory, "knight-icon.png");
+        var iconPath = Path.Combine(AppContext.BaseDirectory, "Icon.ico");
         if (File.Exists(iconPath)) Icon = new Eto.Drawing.Icon(iconPath);
         ClientSize = new Size(980, 620);
         MinimumSize = new Size(800, 480);
