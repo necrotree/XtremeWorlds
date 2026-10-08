@@ -438,7 +438,6 @@ namespace Server
                 // an administrator enter the world and open the map editor instead
                 // of being blocked because the content database has no map row yet.
                 map = CreateEmptyMap(player.Map);
-                _log?.Invoke($"[{id}] Map {player.Map} has no map data in the server database; sending an empty editable map.");
             }
 
             if (player.Sprite <= 0)
