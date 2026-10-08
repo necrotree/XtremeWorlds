@@ -65,3 +65,10 @@
 .world-editor-header .close-cross::before,.world-editor-header .close-cross::after{content:"";position:absolute;top:6px;left:-1px;width:16px;height:2px;background:#fff0c4;transform-origin:center;border-radius:1px}
 .world-editor-header .close-cross::before{transform:rotate(45deg)}
 .world-editor-header .close-cross::after{transform:rotate(-45deg)}
+
+/* Responsive full-width map canvas. One tile retains a square pixel-art footprint. */
+.world-editor-map{padding:0!important;overflow:hidden;min-width:0;--editor-cell:max(32px,calc((100cqw - 2px) / var(--map-columns,16)));container-type:inline-size}
+.world-editor-map .editor-map-viewport{width:100%;height:100%;flex:1 1 auto;min-height:0;overflow:auto;border:0!important;overscroll-behavior:contain}
+.world-editor-map .editor-map-grid{width:max-content!important;grid-auto-rows:var(--editor-cell)!important;gap:0!important;align-content:start}
+.world-editor-map .editor-map-grid .editor-map-cell{width:var(--editor-cell)!important;min-width:var(--editor-cell)!important;max-width:var(--editor-cell)!important;height:var(--editor-cell)!important;min-height:var(--editor-cell)!important;max-height:var(--editor-cell)!important;image-rendering:pixelated}
+.world-editor-map .editor-help,.world-editor-map .editor-message{padding:0 12px}
