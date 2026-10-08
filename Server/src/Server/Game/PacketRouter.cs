@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Server
@@ -95,6 +96,10 @@ namespace Server
                     case "warptome":
                         await TeleportAsync(connectionId, command, p);
                         break;
+                    case "gfxget":
+                    case "gfxput":
+                        TransferGraphics(connectionId, command, p);
+                        break;
                     case "needmap":
                     case "requestnewmap":
                         await SendCurrentMapAsync(connectionId);
@@ -184,6 +189,54 @@ namespace Server
                 foreach (var mapId in _sessions.Values.Where(s => s.IsPlaying && s.Character != null).Select(s => (int)s.Character!.Map).Distinct())
                     SendSnapshot(mapId, null);
             }
+        }
+
+        private void TransferGraphics(int id, string command, string[] fields)
+        {
+            void Error(string message) => _network.SendText(id, PacketCodec.Compose("gfxerror", message));
+            if (!_sessions.TryGetValue(id, out var session) || !session.IsPlaying ||
+                session.Character is not { Access: >= 9 })
+            {
+                Error("Graphic management requires administrator access level 9.");
+                return;
+            }
+            if (fields.Length < 2) { Error("Select a graphic."); return; }
+            string name = fields[1];
+            bool allowed = name is "sprites.png" or "items.png" or "npcs.png" or "spells.png"
+                || (name.StartsWith("tiles", StringComparison.Ordinal) &&
+                    name.EndsWith(".png", StringComparison.Ordinal) &&
+                    int.TryParse(name.AsSpan(5, name.Length - 9), out int sheet) && sheet is >= 1 and <= 999);
+            if (!allowed) { Error("Unsupported graphic filename."); return; }
+            string folder = Path.Combine(AppContext.BaseDirectory, "gfx");
+            string path = Path.Combine(folder, name);
+            if (command == "gfxget")
+            {
+                if (!File.Exists(path)) { Error("Graphic not found on the server."); return; }
+                byte[] data = File.ReadAllBytes(path);
+                if (data.Length > 262144) { Error("Graphic exceeds 256 KiB."); return; }
+                _network.SendText(id, PacketCodec.Compose("gfxdata", name, Convert.ToBase64String(data)));
+                return;
+            }
+            if (fields.Length < 3) { Error("No graphic data supplied."); return; }
+            byte[] png;
+            try { png = Convert.FromBase64String(fields[2]); }
+            catch (FormatException) { Error("Invalid graphic data."); return; }
+            if (png.Length is < 24 or > 262144 ||
+                !png.AsSpan(0, 8).SequenceEqual(new byte[] {137,80,78,71,13,10,26,10}))
+            {
+                Error("Only PNG images up to 256 KiB are supported.");
+                return;
+            }
+            Directory.CreateDirectory(folder);
+            string temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                File.WriteAllBytes(temp, png);
+                File.Move(temp, path, true);
+            }
+            finally { if (File.Exists(temp)) File.Delete(temp); }
+            _network.SendText(id, PacketCodec.Compose("gfxsaved", name));
+            _log?.Invoke($"Administrator updated graphic {name}.");
         }
 
         private async Task NewAccountAsync(int id, string[] p)
