@@ -13,6 +13,13 @@ public sealed class BrowserGameSession : IDisposable
     private readonly BrowserFnaRenderer renderer;
     private readonly GameClientConnection connection;
     private MirrorTcpClient network => connection.Transport;
+    public string[] AvailableGraphics { get; private set; } = [];
+    public void RequestGraphicsList()
+    {
+        if (!InGame || !network.IsConnected) throw new InvalidOperationException("Enter the world to browse graphics.");
+        GraphicsError = null;
+        network.SendText(PacketCodec.Build("gfxlist"));
+    }
     public string? GraphicsError { get; private set; }
     public string? GraphicsSaved { get; private set; }
     public string? DownloadedGraphicsName { get; private set; }
@@ -209,6 +216,11 @@ public sealed class BrowserGameSession : IDisposable
             }
             switch (fields[0].ToLowerInvariant())
             {
+                case "gfxlist":
+                    AvailableGraphics = fields.Count > 1 && !string.IsNullOrEmpty(fields[1])
+                        ? fields[1].Split(',', StringSplitOptions.RemoveEmptyEntries) : [];
+                    Changed?.Invoke();
+                    break;
                 case "gfxsaved":
                     GraphicsSaved = fields.Count > 1 ? fields[1] : "Graphic saved.";
                     Changed?.Invoke();
