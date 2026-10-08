@@ -80,9 +80,7 @@ public sealed class EtoServerForm : Form
         var database = new ButtonMenuItem { Text = "Database" };
         var classes = new ButtonMenuItem { Text = "Reload Classes" };
         classes.Click += (_, _) => AppendLog("All classes reloaded.");
-        var reload = new ButtonMenuItem { Text = "Reload Scripts" };
-        reload.Click += (_, _) => AppendLog("Scripts reload requested.");
-        database.Items.Add(classes); database.Items.Add(reload);
+        database.Items.Add(classes);
 
         var logs = new ButtonMenuItem { Text = "Log" };
         var open = new ButtonMenuItem { Text = "Open Logs Folder" };
