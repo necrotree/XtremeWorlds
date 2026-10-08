@@ -3,79 +3,63 @@
 
 <PageTitle>XtremeWorlds Client</PageTitle>
 <main class="menu-scene">
-    <img class="menu-logo" src="assets/frmMainMenu/imgLogo.png" alt="XtremeWorlds" />
-    <section class="menu-stage" aria-label="Account menu">
+  <section class="realm-dialog" aria-label="XtremeWorlds account and character menu">
+    <header class="realm-heading">
+      <div><h1>XTREMEWORLDS</h1><strong>ENTER THE REALM</strong></div>
+      <button class="close-menu" type="button" @onclick="Back" aria-label="Back to main menu">X</button>
+    </header>
+    <div class="realm-separator"></div>
     @if (page == "create")
     {
-        <form class="art-panel creation-panel" @onsubmit="CreateCharacter" @onsubmit:preventDefault>
-            <img src="assets/frmMainMenu/imgNewChar.png" alt="Character Creation" />
-            <input class="character-name" aria-label="Character name" @bind="characterName" maxlength="20" required />
-            <button type="button" class="hotspot male" aria-label="Male" aria-pressed="@(sex == 0)" @onclick="() => sex = 0"></button>
-            <button type="button" class="hotspot female" aria-label="Female" aria-pressed="@(sex == 1)" @onclick="() => sex = 1"></button>
-            <button type="submit" class="hotspot create-character" aria-label="Create character"></button>
-            <button type="button" class="hotspot creation-back" aria-label="Back to characters" @onclick='() => page = "characters"'></button>
-        </form>
-        <div class="class-picker" aria-label="Character class">
-            <img src="assets/frmMainMenu/imgClassSelection.png" alt="Fighter, Wizard, Celestial, Guardian, Assassin" />
-            @for (var i = 0; i < 5; i++)
-            {
-                var choice = i;
-                <button class="class-choice" style="left: @(choice * 20)%" aria-label="@classNames[choice]" aria-pressed="@(selectedClass == choice)" @onclick="() => selectedClass = choice"></button>
-            }
-        </div>
+      <form class="realm-form" @onsubmit="CreateCharacter" @onsubmit:preventDefault>
+        <h2>Create Character</h2>
+        <label>Character name <input @bind="characterName" maxlength="20" required /></label>
+        <label>Gender <div class="choice-row"><button type="button" class="@(sex == 0 ? "selected" : "")" @onclick="() => sex = 0">Male</button><button type="button" class="@(sex == 1 ? "selected" : "")" @onclick="() => sex = 1">Female</button></div></label>
+        <label>Class <div class="class-grid">
+          @for (var i=0;i<classNames.Length;i++) {var choice=i;<button type="button" class="@(selectedClass == choice ? "selected" : "")" @onclick="() => selectedClass = choice">@classNames[choice]</button>}
+        </div></label>
+        <div class="realm-actions"><button class="primary" type="submit">Create Character</button><button class="secondary" type="button" @onclick='() => page = "characters"'>Cancel</button></div>
+      </form>
     }
     else if (Session.Characters.Length > 0)
     {
-        <div class="art-panel characters-panel">
-            <img src="assets/frmMainMenu/imgCharacters.png" alt="Characters" />
-            @for (var i = 0; i < Math.Min(3, Session.Characters.Length); i++)
-            {
-                var slot = i;
-                <button class="character-slot" style="left: @(12 + slot * 26.5)%" aria-pressed="@(selectedSlot == slot)" @onclick="() => selectedSlot = slot">@(string.IsNullOrWhiteSpace(Session.Characters[slot]) ? "Empty" : Session.Characters[slot])</button>
-            }
-            <button class="hotspot character-accept" aria-label="Enter world" disabled="@(!HasCharacter)" @onclick="() => Session.SelectCharacter(selectedSlot)"></button>
-            <button class="hotspot character-delete" aria-label="Delete character" disabled="@(!HasCharacter)" @onclick="() => confirmDelete = true"></button>
-            <button class="hotspot character-create" aria-label="Create character" disabled="@(Session.Characters.All(n => !string.IsNullOrWhiteSpace(n)))" @onclick="BeginCreate"></button>
-            <button class="hotspot character-back" aria-label="Back" @onclick="Back"></button>
-        </div>
-        @if (confirmDelete)
-        {
-            <div class="confirmation" role="alert">
-                Delete @Session.Characters[selectedSlot]?
-                <button @onclick="DeleteCharacter">Delete</button><button @onclick="() => confirmDelete = false">Cancel</button>
-            </div>
+      <h2>Choose Your Character</h2>
+      <div class="character-list">
+        @for(var i=0;i<Math.Min(3,Session.Characters.Length);i++){var slot=i;
+          <button class="character-entry @(selectedSlot==slot?"selected":"")" aria-pressed="@(selectedSlot==slot)" @onclick="() => selectedSlot=slot">
+            <span>Slot @(slot+1)</span><strong>@(string.IsNullOrWhiteSpace(Session.Characters[slot]) ? "Empty Slot" : Session.Characters[slot])</strong>
+          </button>
         }
+      </div>
+      <div class="realm-actions"><button class="primary" disabled="@(!HasCharacter)" @onclick="() => Session.SelectCharacter(selectedSlot)">Enter World</button><button class="secondary" disabled="@(Session.Characters.All(n => !string.IsNullOrWhiteSpace(n)))" @onclick="BeginCreate">New Character</button></div>
+      <div class="realm-actions"><button class="secondary" disabled="@(!HasCharacter)" @onclick="() => confirmDelete=true">Delete Character</button><button class="secondary" @onclick="Back">Log Out</button></div>
+      @if(confirmDelete)
+      {
+        <div class="confirm-box" role="alert"><p>Delete @Session.Characters[selectedSlot]?</p>
+          <div class="realm-actions"><button class="danger" @onclick="DeleteCharacter">Delete</button><button class="secondary" @onclick="() => confirmDelete=false">Cancel</button></div>
+        </div>
+      }
     }
     else if (page == "main")
     {
-        <nav class="art-panel main-panel" aria-label="Main menu">
-            <img src="assets/frmMainMenu/imgMainMenu.png" alt="" />
-            <button class="hotspot main-login" aria-label="Login" @onclick='() => page = "login"'></button>
-            <button class="hotspot main-register" aria-label="Register" @onclick='() => page = "register"'></button>
-        </nav>
+      <p class="intro">Begin your journey in XtremeWorlds.</p>
+      <div class="realm-actions"><button class="primary" @onclick='() => page="login"'>Login</button><button class="secondary" @onclick='() => page="register"'>Register</button></div>
     }
     else
     {
-        <form class="art-panel @(page == "register" ? "register-panel" : "login-panel")" @onsubmit="Login" @onsubmit:preventDefault>
-            <img src="assets/frmMainMenu/@(page == "register" ? "imgRegister.png" : "imgLogin.png")" alt="@(page == "register" ? "Register" : "Login")" />
-            <input class="username" aria-label="Username" @bind="username" autocomplete="username" maxlength="64" required />
-            <input class="password" aria-label="Password" @bind="password" type="password" autocomplete="@(page == "register" ? "new-password" : "current-password")" maxlength="128" required />
-            @if (page == "register")
-            {
-                <input class="verify" aria-label="Verify password" @bind="verify" type="password" autocomplete="new-password" maxlength="128" required />
-                <button type="submit" class="hotspot register-accept" aria-label="Create account"></button>
-                <button type="button" class="hotspot register-back" aria-label="Back" @onclick="Back"></button>
-            }
-            else
-            {
-                <button type="submit" class="hotspot login-accept" aria-label="Sign in"></button>
-                <button type="button" class="hotspot login-back" aria-label="Back" @onclick="Back"></button>
-            }
-        </form>
+      <form class="realm-form" @onsubmit="Login" @onsubmit:preventDefault>
+        <label>Account <input @bind="username" autocomplete="username" maxlength="64" required /></label>
+        <label>Password <input @bind="password" type="password" autocomplete="@(page=="register"?"new-password":"current-password")" maxlength="128" required /></label>
+        @if(page=="register")
+        {
+          <label>Confirm password <input @bind="verify" type="password" autocomplete="new-password" maxlength="128" required /></label>
+        }
+        <div class="realm-actions"><button class="primary" type="submit">@(page=="register"?"Register":"Enter")</button><button class="secondary" type="button" @onclick="Back">Cancel</button></div>
+      </form>
     }
-    </section>
-    <div class="menu-status"><p role="status" aria-live="polite">@Session.Status</p><p role="alert">@validation</p></div>
-    <a class="website" href="https://www.xtremeworlds.com" target="_blank" rel="noopener">Website</a>
+    <div class="realm-status"><p role="status" aria-live="polite">@Session.Status</p><p role="alert">@validation</p></div>
+  </section>
+  <a class="realm-website" href="https://www.xtremeworlds.com" target="_blank" rel="noopener">Website</a>
 </main>
 @code {
     private readonly string[] classNames = ["Fighter", "Wizard", "Celestial", "Guardian", "Assassin"];
