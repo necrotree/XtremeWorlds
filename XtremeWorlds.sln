@@ -17,8 +17,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Common", "Client\Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Blazor", "Client\Blazor\Client.Blazor.csproj", "{486D169A-56CF-76AD-4937-581236BD0D4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Tools", "Client\Tools\Client.Tools.csproj", "{9292A579-8E59-09EA-113D-92FE09706108}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkState", "Network\NetworkState\NetworkState.csproj", "{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}"
 EndProject
 Global
