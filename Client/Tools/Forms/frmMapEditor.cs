@@ -149,9 +149,8 @@ namespace XtremeWorlds.Client.Tools
             {
                 int x = (int)Math.Round(Math.Floor((double)(args.Location.X / 32f)));
                 int y = (int)Math.Round(Math.Floor((double)(args.Location.Y / 32f)));
-                {
-                    if ((args.Buttons & MouseButtons.Primary) == 0)
-                        return;
+                if ((args.Buttons & MouseButtons.Primary) == 0)
+                    return;
                     var bitmap = Sheet(paletteSheet);
                     if (bitmap is null || x < 0 || x >= 12 || y < 0 || y >= bitmap.Height / 32)
                         return;
@@ -163,8 +162,6 @@ namespace XtremeWorlds.Client.Tools
                     owner.brushHeight = 1;
                     owner.selecting = true;
                     Invalidate();
-                }
-
             }
             private void MovePointer(object sender, MouseEventArgs args)
             {
@@ -172,9 +169,8 @@ namespace XtremeWorlds.Client.Tools
                     return;
                 int x = (int)Math.Round(Math.Floor((double)(args.Location.X / 32f)));
                 int y = (int)Math.Round(Math.Floor((double)(args.Location.Y / 32f)));
-                {
-                    if (!owner.selecting)
-                        return;
+                if (!owner.selecting)
+                    return;
                     var bitmap = Sheet(paletteSheet);
                     if (bitmap is null)
                         return;
@@ -185,22 +181,16 @@ namespace XtremeWorlds.Client.Tools
                     owner.brushWidth = Math.Abs(x - owner.anchorX) + 1;
                     owner.brushHeight = Math.Abs(y - owner.anchorY) + 1;
                     Invalidate();
-                }
-
             }
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
                 e.Graphics.ImageInterpolation = ImageInterpolation.None;
                 e.Graphics.FillRectangle(Colors.Black, new RectangleF(0f, 0f, Width, Height));
-                {
-                    var bitmap = Sheet(paletteSheet);
-                    if (bitmap is not null)
-                        e.Graphics.DrawImage(bitmap, 0f, 0f);
-                    e.Graphics.DrawRectangle(Colors.Red, owner.brushX * 32, owner.brushY * 32, owner.brushWidth * 32, owner.brushHeight * 32);
-                    return;
-                }
-
+                var bitmap = Sheet(paletteSheet);
+                if (bitmap is not null)
+                    e.Graphics.DrawImage(bitmap, 0f, 0f);
+                e.Graphics.DrawRectangle(Colors.Red, owner.brushX * 32, owner.brushY * 32, owner.brushWidth * 32, owner.brushHeight * 32);
             }
             protected override void Dispose(bool disposing)
             {
