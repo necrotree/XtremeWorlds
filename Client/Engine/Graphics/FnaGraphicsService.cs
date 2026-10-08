@@ -380,6 +380,7 @@ public sealed class FnaGraphicsService : IDisposable
         private readonly Func<bool> _consumeFocusGameWindowRequest;
         private FnaSceneMap? _editorMapPreview;
         private int _editorMapId = -1;
+        private bool _editorTilesetCachePrepared;
         private int _lastEditedX = -1, _lastEditedY = -1;
         private bool _lastEditedErase;
         private FnaWorldScene? _scene;
@@ -545,24 +546,45 @@ public sealed class FnaGraphicsService : IDisposable
                 return;
             }
 
-            while (_scenes.TryDequeue(out var scene)) _scene = scene;
+            // Network scenes and editor snapshots are owned by FNA after dequeue.
+            // A completed server save must refresh the cached authoritative map.
+            while (_scenes.TryDequeue(out var scene))
+            {
+                if (scene.Map is not null && (_scene?.MapId != scene.MapId || !ReferenceEquals(_scene?.Map, scene.Map)))
+                {
+                    InvalidateTilesetTextures();
+                    RequestStreamKeyframe();
+                }
+                _scene = scene;
+            }
             while (_editorMapChanges.TryDequeue(out var change))
             {
                 if (string.IsNullOrEmpty(change.Json))
                 {
                     _editorMapPreview = null;
                     _editorMapId = -1;
+                    _editorTilesetCachePrepared = false;
+                    RequestStreamKeyframe();
                     continue;
                 }
                 try
                 {
-                    _editorMapPreview = System.Text.Json.JsonSerializer.Deserialize<FnaSceneMap>(change.Json);
+                    var editedMap = System.Text.Json.JsonSerializer.Deserialize<FnaSceneMap>(change.Json);
+                    if (editedMap is null || editedMap.Tiles is null) continue;
+                    // Eto owns the editable JSON; the render thread owns all GPU
+                    // textures. Refresh those resources only once per editor session.
+                    if (!_editorTilesetCachePrepared)
+                    {
+                        InvalidateTilesetTextures();
+                        _editorTilesetCachePrepared = true;
+                    }
+                    _editorMapPreview = editedMap;
                     _editorMapId = change.MapId;
+                    RequestStreamKeyframe();
                 }
                 catch (System.Text.Json.JsonException)
                 {
-                    _editorMapPreview = null;
-                    _editorMapId = -1;
+                    // Keep the last valid preview if a malformed update arrives.
                 }
             }
             if (_scene != null)
@@ -1125,9 +1147,31 @@ public sealed class FnaGraphicsService : IDisposable
             _spriteBatch.Draw(texture, destination, source, tint);
         }
 
+        // Only FNA may dispose or recreate Texture2D objects. This is called
+        // during FNA.Update, never on the Eto map editor's UI thread.
+        private void InvalidateTilesetTextures()
+        {
+            string tilesetFolder = Path.Combine(AppContext.BaseDirectory, "gfx") + Path.DirectorySeparatorChar;
+            string toolFolder = Path.Combine(AppContext.BaseDirectory, "tool-assets") + Path.DirectorySeparatorChar;
+            foreach (var cacheKey in _textures.Keys.ToArray())
+            {
+                var resourcePath = cacheKey.Split('#')[0];
+                bool isTileset = resourcePath.StartsWith(tilesetFolder, StringComparison.OrdinalIgnoreCase)
+                    || resourcePath.StartsWith(toolFolder, StringComparison.OrdinalIgnoreCase);
+                if (!isTileset || !Path.GetFileName(resourcePath).StartsWith("tiles", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (_textures.Remove(cacheKey, out var texture))
+                    texture.Dispose();
+            }
+        }
+
         private Texture2D? GetWorldTexture(string filename, Color? colorKey)
         {
             string path = Path.Combine(AppContext.BaseDirectory, "gfx", filename);
+            // The editor's tileset assets are also valid for FNA. Load them into
+            // FNA's own GPU textures rather than trying to share Eto Bitmaps.
+            if (!File.Exists(path) && filename.StartsWith("tiles", StringComparison.OrdinalIgnoreCase))
+                path = Path.Combine(AppContext.BaseDirectory, "tool-assets", filename);
             if (colorKey is null) return GetTexture(path);
             string cacheKey = path + "#" + colorKey.Value.PackedValue;
             if (_textures.TryGetValue(cacheKey, out var cached)) return cached;
