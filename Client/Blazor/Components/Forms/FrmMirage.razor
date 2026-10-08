@@ -21,7 +21,15 @@
 
 @code {
     private bool editorOpen;
-    private void ToggleEditor() => editorOpen = !editorOpen;
+    private async Task ToggleEditor()
+    {
+        editorOpen = !editorOpen;
+        if (!editorOpen && module is not null)
+        {
+            await InvokeAsync(StateHasChanged);
+            await module.InvokeVoidAsync("focusGame", canvas);
+        }
+    }
     private ElementReference canvas;
     private IJSObjectReference? module;
     private DotNetObjectReference<FrmMirage>? reference;
