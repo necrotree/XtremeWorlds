@@ -206,3 +206,11 @@
 .world-editor .lua-event-fields h3{margin:0 0 10px;color:#f0d28b}
 .world-editor .lua-event-fields button{width:100%;background:#346842}
 .world-editor textarea[spellcheck="false"]{font-family:Consolas,Monaco,monospace;font-size:12px;line-height:1.5}
+
+.world-editor .editor-graphics-tools{margin:10px 0;padding:8px;border:1px solid #8b7045;min-width:0;max-width:100%;background:#30271b}
+.world-editor .editor-graphics-tools summary{cursor:pointer;color:#f4d99f;font-weight:700;margin-bottom:6px}
+.world-editor .editor-graphics-tools .graphics-manager{display:grid;gap:10px;min-width:0;width:100%}
+.world-editor .editor-graphics-tools .graphics-manager label{display:grid;gap:5px;min-width:0}
+.world-editor .editor-graphics-tools .graphics-manager input,.world-editor .editor-graphics-tools .graphics-manager select{box-sizing:border-box;width:100%;max-width:100%;min-width:0}
+.world-editor .editor-graphics-tools .graphics-file-browser{max-height:200px;overflow:auto;min-width:0}
+.world-editor .editor-graphics-tools .graphics-file-row{display:flex;justify-content:space-between;gap:7px;align-items:center}
