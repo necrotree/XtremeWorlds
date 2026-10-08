@@ -87,3 +87,15 @@
   min-height:384px;
   background:#17130e;
 }
+
+/* One rectangular selection outline spanning the complete brush. */
+.world-editor .editor-palette{position:relative}
+.world-editor .brush-selection-rectangle{
+  position:absolute;
+  z-index:3;
+  box-sizing:border-box;
+  border:2px solid #ffdc70;
+  box-shadow:0 0 0 1px #4c3412, inset 0 0 0 1px #4c3412;
+  pointer-events:none;
+}
+.world-editor .editor-palette .palette-cell.active{outline:none!important}
