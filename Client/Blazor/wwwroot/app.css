@@ -13,3 +13,9 @@ input:focus-visible, button:focus-visible { outline: 2px solid #95d5bf; outline-
 #blazor-error-ui { display: none; background: #542626; padding: 1rem; position: fixed; bottom: 0; width: 100%; }
 
 html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.menu-scene{margin:0;max-width:none;width:100%;min-height:100dvh;padding:24px;box-sizing:border-box}
+
+.world-loading{margin:0!important;max-width:none!important;min-height:100dvh;display:grid;place-items:center;background:#74482d url('/assets/frmMainMenu/background.png') center/cover;color:#fff0c9;font-family:Georgia,serif}
+.world-loading-panel{width:min(420px,90vw);padding:30px;text-align:center;background:#3b2c1f;border:3px double #bd945a;box-shadow:0 12px 40px #0009}
+.world-loading-panel h1{font-size:26px;margin:0 0 14px}
+.world-loading-panel p{font-size:17px}
+.world-loading-panel button{background:#7c2929;border:1px solid #bd945a;color:#fff0c9}
