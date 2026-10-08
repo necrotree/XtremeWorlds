@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="../../Network/NetworkState/NetworkState.csproj" />
     <ProjectReference Include="..\Core\Client.Common.csproj" />
-    <ProjectReference Include="..\Tools\Client.Tools.csproj" />
     <PackageReference Include="FNA.NET" Version="2.2.11.2602" />
     <PackageReference Include="com.MirrorNetworking.Telepathy" Version="1.0.0" />
   </ItemGroup>
