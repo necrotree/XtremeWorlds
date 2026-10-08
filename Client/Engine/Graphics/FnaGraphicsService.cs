@@ -69,6 +69,8 @@ public sealed class FnaGraphicsService : IDisposable
     private readonly ConcurrentQueue<FnaWorldScene> _scenes = new();
     private readonly ConcurrentQueue<(int MapId, string? Json)> _editorMapChanges = new();
     private volatile bool _mapEditorActive;
+    private int _focusGameWindowRequested;
+    public void FocusGameWindow() => System.Threading.Interlocked.Exchange(ref _focusGameWindowRequested, 1);
     public bool MapEditorActive
     {
         get => _mapEditorActive;
@@ -159,6 +161,7 @@ public sealed class FnaGraphicsService : IDisposable
                     _scenes,
                     _editorMapChanges,
                     () => _mapEditorActive,
+                    () => System.Threading.Interlocked.Exchange(ref _focusGameWindowRequested, 0) != 0,
                     NetworkState,
                     _commands,
                     _worldCommands,
@@ -361,6 +364,7 @@ public sealed class FnaGraphicsService : IDisposable
         private readonly ConcurrentQueue<FnaWorldScene> _scenes;
         private readonly ConcurrentQueue<(int MapId, string? Json)> _editorMapChanges;
         private readonly Func<bool> _mapEditorActive;
+        private readonly Func<bool> _consumeFocusGameWindowRequest;
         private FnaSceneMap? _editorMapPreview;
         private int _editorMapId = -1;
         private int _lastEditedX = -1, _lastEditedY = -1;
@@ -382,11 +386,15 @@ public sealed class FnaGraphicsService : IDisposable
         [DllImport("SDL3", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SDL_HideWindow(IntPtr window);
+        [DllImport("SDL3", CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool SDL_RaiseWindow(IntPtr window);
 
         public FnaClientGame(
             ConcurrentQueue<FnaWorldScene> scenes,
             ConcurrentQueue<(int MapId, string? Json)> editorMapChanges,
             Func<bool> mapEditorActive,
+            Func<bool> consumeFocusGameWindowRequest,
             ClientTickSynchronizer networkState,
             ConcurrentQueue<FnaSpriteCommand> incoming,
             ConcurrentQueue<FnaWorldCommand> worldIncoming,
@@ -404,6 +412,7 @@ public sealed class FnaGraphicsService : IDisposable
             _scenes = scenes;
             _editorMapChanges = editorMapChanges;
             _mapEditorActive = mapEditorActive;
+            _consumeFocusGameWindowRequest = consumeFocusGameWindowRequest;
             _networkState = networkState;
             _shouldStop = shouldStop;
             _action = action;
@@ -506,6 +515,10 @@ public sealed class FnaGraphicsService : IDisposable
 
         protected override void Update(GameTime gameTime)
         {
+            // Only the FNA thread may interact with its SDL window. A brush
+            // selection in Eto queues a one-shot activation signal here.
+            if (_frameReady == null && _consumeFocusGameWindowRequest())
+                SDL_RaiseWindow(Window.Handle);
             if (_frameReady != null && !_streamWindowHidden)
             {
                 if (!SDL_HideWindow(Window.Handle)) throw new InvalidOperationException("Unable to hide the streaming window.");
