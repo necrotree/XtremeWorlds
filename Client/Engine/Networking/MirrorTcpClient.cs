@@ -16,7 +16,7 @@ public sealed class MirrorTcpClient : IDisposable
     private readonly ConcurrentQueue<byte[]> _received = new();
     private volatile bool _connected;
 
-    public MirrorTcpClient(int maxMessageSize = 1024 * 1024)
+    public MirrorTcpClient(int maxMessageSize = 8 * 1024 * 1024)
     {
         _client = new Telepathy.Client(maxMessageSize)
         {
