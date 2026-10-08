@@ -5,7 +5,7 @@
   <section class="world-editor" aria-label="Map and event editor">
     <header class="world-editor-header">
       <strong>Map &amp; Event Editor</strong>
-      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger" @onclick="Close">X</button></div>
+      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger editor-close" @onclick="Close">X</button></div>
     </header>
     <div class="world-editor-columns">
       <aside class="world-editor-side">
@@ -32,7 +32,7 @@
             @for (var y=0;y<map.Height;y++) {for(var x=0;x<map.Width;x++) {
               var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
               <button class="editor-map-cell @(cell.Blocked?"blocked":"") @(ev is not null?"event-cell":"")" title="@($"({px},{py})")"
-                style="@CellBackground(cell)" @onmousedown="(e) => BeginPaint(px,py,e)" @onmouseenter="() => ContinuePaint(px,py)" @onmouseup="StopPaint" @onmousedown:preventDefault @oncontextmenu="() => ClickCell(px,py,true)">
+                style="@CellBackground(cell)" @onmousedown="(e) => BeginPaint(px,py,e)" @onmouseenter="() => ContinuePaint(px,py)" @onmouseup="StopPaint" @onmousedown:preventDefault @oncontextmenu:preventDefault>
                 @if(ev is not null){<span class="event-indicator">!</span>}
               </button>
             }}
@@ -67,7 +67,7 @@
   private string tool="Tiles",layer="Ground",message="Local editor. Export a JSON file to keep a backup.";
   private int tileset=1,brush,requestedWidth=16,requestedHeight=12;
   private int brushAnchor,brushWidth=1,brushHeight=1;
-  private bool selectingBrush,painting;
+  private bool selectingBrush,painting,erasing;
   private void StartSelection(int index, MouseEventArgs e) {
     if(e.Button!=0)return;
     brushAnchor=index;brush=index;brushWidth=brushHeight=1;selectingBrush=true;
@@ -81,13 +81,14 @@
   private void StopSelection()=>selectingBrush=false;
   private bool InBrush(int index)=>index%12>=brush%12&&index%12<brush%12+brushWidth&&index/12>=brush/12&&index/12<brush/12+brushHeight;
   private void BeginPaint(int x,int y,MouseEventArgs e) {
-    if(e.Button!=0)return;
-    painting=true;ClickCell(x,y,false);
+    if(e.Button!=0 && e.Button!=2)return;
+    erasing=e.Button==2;
+    painting=true;ClickCell(x,y,erasing);
   }
   private void ContinuePaint(int x,int y) {
-    if(painting&&tool!="Events")ClickCell(x,y,false);
+    if(painting&&tool!="Events")ClickCell(x,y,erasing);
   }
-  private void StopPaint()=>painting=false;
+  private void StopPaint(){painting=false;erasing=false;}
   private string Background(int index)=>$"background-position:-{index%12*32}px -{index/12*32}px";
   private string CellBackground(MapCell cell){
     var index=layer switch {"Mask"=>cell.Mask,"Fringe"=>cell.Fringe,_=>cell.Ground};
@@ -130,8 +131,8 @@
       if(ev is not null)SelectEvent(ev);
       return;
     }
-    for(var dy=0;dy<(erase?1:brushHeight);dy++)
-    for(var dx=0;dx<(erase?1:brushWidth);dx++){
+    for(var dy=0;dy<brushHeight;dy++)
+    for(var dx=0;dx<brushWidth;dx++){
       var tx=x+dx;var ty=y+dy;
       if(tx>=map.Width||ty>=map.Height)continue;
       var target=map.Tiles[ty*map.Width+tx];
