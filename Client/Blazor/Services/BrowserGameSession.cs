@@ -27,7 +27,7 @@ public sealed class BrowserGameSession : IDisposable
     public void UploadGraphic(string name, byte[] png)
     {
         if (!InGame || !network.IsConnected) throw new InvalidOperationException("Enter the world before managing graphics.");
-        if (png.Length > 262144) throw new ArgumentException("PNG exceeds 256 KiB.");
+        if (png.Length > 4194304) throw new ArgumentException("PNG exceeds 4 MiB.");
         GraphicsSaved = GraphicsError = null;
         network.SendText(PacketCodec.Build("gfxput", name, Convert.ToBase64String(png)));
     }
