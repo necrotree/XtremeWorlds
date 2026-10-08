@@ -85,6 +85,9 @@ public sealed class FnaGraphicsService : IDisposable
         set => _mapEditorActive = value;
     }
     public void SetMapEditorPreview(int mapId, string? json) => _editorMapChanges.Enqueue((mapId, json));
+    // A paint completed on the Eto thread is explicitly delivered to the game
+    // window. Only the FNA render thread consumes and draws this snapshot.
+    public void PaintMapTile(int mapId, string json) => _editorMapChanges.Enqueue((mapId, json));
     public ClientTickSynchronizer NetworkState { get; } = new();
     private FnaSceneMap? _networkMap;
     private int _networkMapId = -1;
@@ -996,7 +999,11 @@ public sealed class FnaGraphicsService : IDisposable
             GraphicsDevice.ScissorRectangle = GetViewportScissor();
 
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, null, rasterizer, null, transform);
-            var map = _mapEditorActive() && _scene?.MapId == _editorMapId && _editorMapPreview is not null
+            // Paint directly in the game viewport. The editor's snapshot also
+            // renders when the authoritative scene has not supplied map tiles yet.
+            // Do not render an editor map over a different loaded map.
+            bool previewMatches = _scene is null || _scene.Map is null || _scene.MapId == _editorMapId;
+            var map = _mapEditorActive() && previewMatches && _editorMapPreview is not null
                 ? _editorMapPreview : _scene?.Map;
             if (map is not null) DrawSceneLayers(map, false);
             BltMap();
