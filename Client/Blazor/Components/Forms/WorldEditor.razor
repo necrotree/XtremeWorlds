@@ -5,7 +5,7 @@
   <section class="world-editor" aria-label="Map and event editor">
     <header class="world-editor-header">
       <strong>Map &amp; Event Editor</strong>
-      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger editor-close game-style-close" @onclick="Close">X</button></div>
+      <div class="editor-header-actions"><button class="editor-save" @onclick="Save">Save</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger editor-close game-style-close" @onclick="Close" aria-label="Close editor"><span class="close-cross" aria-hidden="true"></span></button></div>
     </header>
     <div class="world-editor-columns">
       <aside class="world-editor-side">
@@ -164,9 +164,11 @@
   private async Task Save(){
     try{
       map.Normalize();
-      await JS.InvokeVoidAsync("worldEditor.save",JsonSerializer.Serialize(map));
-      message="Map saved locally. Reopen Edit to continue; server world saving is not connected yet.";
-    }catch(JSException ex){message="Could not save map: "+ex.Message;}
+      var json=JsonSerializer.Serialize(map);
+      await JS.InvokeVoidAsync("worldEditor.save",json);
+      Session.ApplyMapDraft(json);
+      message="Saved locally and applied to this game session. Server persistence is not connected.";
+    }catch(Exception ex) when(ex is JSException or ArgumentException or JsonException){message="Could not apply map: "+ex.Message;}
   }
   private async Task Export(){await JS.InvokeVoidAsync("worldEditor.export",map.Name+".json",JsonSerializer.Serialize(map,new JsonSerializerOptions{WriteIndented=true}));message="Exported editor JSON.";}
   private async Task Import(){
