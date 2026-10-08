@@ -288,7 +288,7 @@ namespace XtremeWorlds.Client.Tools
                 if (editor is frmMapEditor mapEditor)
                 {
                     MapEditorActiveChanged?.Invoke(false);
-                    MapPreviewChanged?.Invoke(mapEditor.Definition?.Id ?? -1, null);
+                    MapPreviewChanged?.Invoke(mapEditor.MapId, null);
                 }
             };
             editor.Show();
