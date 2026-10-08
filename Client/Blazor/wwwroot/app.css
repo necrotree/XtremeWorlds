@@ -11,3 +11,5 @@ button:hover:enabled { background: #375550; }
 input:focus-visible, button:focus-visible { outline: 2px solid #95d5bf; outline-offset: 3px; }
 .note { color: #a6b5c5; margin-top: 40px; }
 #blazor-error-ui { display: none; background: #542626; padding: 1rem; position: fixed; bottom: 0; width: 100%; }
+
+html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.menu-scene{margin:0;max-width:none;width:100%;min-height:100dvh;padding:24px;box-sizing:border-box}
