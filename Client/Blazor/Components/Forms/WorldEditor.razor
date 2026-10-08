@@ -21,6 +21,7 @@
         </div>
         <label>Layer <select @bind="layer"><option>Ground</option><option>Mask</option><option>Fringe</option></select></label>
         <label>Tileset <select @bind="tileset"><option value="1">Tileset 1</option><option value="2">Tileset 2</option><option value="3">Tileset 3</option><option value="4">Tileset 4</option><option value="5">Tileset 5</option><option value="6">Tileset 6</option><option value="7">Tileset 7</option><option value="8">Tileset 8</option><option value="9">Tileset 9</option></select></label>
+        <details class="editor-graphics-tools"><summary>Import / Export Tileset Graphics</summary><GraphicsManager TilesetNumber="tileset" /></details>
         <div class="palette-viewport" @onmouseup="StopSelection" @onmouseleave="StopSelection"><div class="editor-palette" style="@($"--tilesheet:url('/gfx/tiles{tileset}.png')")">
           <div class="brush-selection-rectangle" style="@($"left:{brush%12*32}px;top:{brush/12*32}px;width:{brushWidth*32}px;height:{brushHeight*32}px")"></div>
             @for (var n=0;n<144;n++) {var tileIndex=n;<button title="@($"Tile {n}")" class="palette-cell" style="@Background(n)" @onmousedown="(e) => StartSelection(tileIndex,e)" @onmouseenter="() => ExtendSelection(tileIndex)" @onmouseup="StopSelection" @onmousedown:preventDefault></button>}
@@ -45,6 +46,7 @@
       </main>
       <aside class="world-editor-side">
         <h3>Events (@map.Events.Count)</h3>
+        <details class="editor-graphics-tools"><summary>Import / Export Event Graphics</summary><GraphicsManager EventMode="true" /></details>
         <div class="event-list">
           @foreach(var ev in map.Events){<button class="@(selected?.Id==ev.Id?"active":"")" @onclick="() => SelectEvent(ev)">@ev.Name <small>@ev.X, @ev.Y</small></button>}
         </div>
