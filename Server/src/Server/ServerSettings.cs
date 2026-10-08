@@ -23,7 +23,7 @@ namespace Server
         public int MaxArrows { get; set; } = 100;
         public int MaxClasses { get; set; } = 50;
         public int MaxQuestPlayers { get; set; } = 255;
-        public int MaxMessageSize { get; set; } = 1024 * 1024;
+        public int MaxMessageSize { get; set; } = 8 * 1024 * 1024;
         public bool TcpNoDelay { get; set; } = true;
         public int TickRate { get; set; } = 60;
         public int SnapshotRate { get; set; } = 20;
