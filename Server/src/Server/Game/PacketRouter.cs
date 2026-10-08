@@ -96,6 +96,7 @@ namespace Server
                     case "warptome":
                         await TeleportAsync(connectionId, command, p);
                         break;
+                    case "gfxlist":
                     case "gfxget":
                     case "gfxput":
                         TransferGraphics(connectionId, command, p);
@@ -191,6 +192,13 @@ namespace Server
             }
         }
 
+        private static bool IsAllowedGraphic(string name) =>
+            name is "sprites.png" or "items.png" or "npcs.png" or "spells.png"
+            || (name.StartsWith("tiles", StringComparison.Ordinal)
+                && name.EndsWith(".png", StringComparison.Ordinal)
+                && int.TryParse(name.AsSpan(5, name.Length - 9), out int sheet)
+                && sheet is >= 1 and <= 999);
+
         private void TransferGraphics(int id, string command, string[] fields)
         {
             void Error(string message) => _network.SendText(id, PacketCodec.Compose("gfxerror", message));
@@ -200,12 +208,20 @@ namespace Server
                 Error("Graphic management requires administrator access level 9.");
                 return;
             }
+            if (command == "gfxlist")
+            {
+                string directory = Path.Combine(AppContext.BaseDirectory, "gfx");
+                var names = Directory.Exists(directory)
+                    ? Directory.EnumerateFiles(directory, "*.png", SearchOption.TopDirectoryOnly)
+                        .Select(Path.GetFileName).Where(name => name is not null)
+                        .Select(name => name!).Where(IsAllowedGraphic).OrderBy(name => name).Take(1000).ToArray()
+                    : Array.Empty<string>();
+                _network.SendText(id, PacketCodec.Compose("gfxlist", string.Join(",", names)));
+                return;
+            }
             if (fields.Length < 2) { Error("Select a graphic."); return; }
             string name = fields[1];
-            bool allowed = name is "sprites.png" or "items.png" or "npcs.png" or "spells.png"
-                || (name.StartsWith("tiles", StringComparison.Ordinal) &&
-                    name.EndsWith(".png", StringComparison.Ordinal) &&
-                    int.TryParse(name.AsSpan(5, name.Length - 9), out int sheet) && sheet is >= 1 and <= 999);
+            bool allowed = IsAllowedGraphic(name);
             if (!allowed) { Error("Unsupported graphic filename."); return; }
             string folder = Path.Combine(AppContext.BaseDirectory, "gfx");
             string path = Path.Combine(folder, name);
