@@ -19,3 +19,8 @@ html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.m
 .world-loading-panel h1{font-size:26px;margin:0 0 14px}
 .world-loading-panel p{font-size:17px}
 .world-loading-panel button{background:#7c2929;border:1px solid #bd945a;color:#fff0c9}
+
+/* Unified UI font, with system serif fallback until OPTITimes-Roman webfont is provided. */
+:root{--xtremeworlds-ui-font:"OPTITimes-Roman","Times New Roman",Georgia,serif}
+.realm-dialog,.world-editor,.game-overlay-header,.mirage>p,.mirage>button,.world-loading-panel{font-family:var(--xtremeworlds-ui-font)!important}
+.realm-dialog button,.realm-dialog input,.realm-dialog select,.world-editor button,.world-editor input,.world-editor select,.world-editor textarea,.game-overlay-header button{font-family:var(--xtremeworlds-ui-font)!important}
