@@ -33,6 +33,8 @@
     private DotNetObjectReference<FrmMirage>? reference;
     private readonly CancellationTokenSource cancellation = new();
     private Task? polling;
+    private string? savedMapDraft;
+    private bool savedMapApplied;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -41,6 +43,8 @@
         await module.InvokeVoidAsync("attach", canvas, reference, $"/game-frames/{Session.Renderer.StreamId}");
         lastMapName = CurrentMapName;
         lastPlayerName = CurrentPlayerName;
+        try { savedMapDraft = await JS.InvokeAsync<string?>("worldEditor.load"); }
+        catch (JSException) { savedMapDraft = null; }
         polling = PollAsync();
     }
     [JSInvokable] public void Click(int x, int y) { if (!editorOpen) Session.Renderer.Click(x, y); }
@@ -56,6 +60,14 @@
                 {
                     var status = Session.Status;
                     Session.Poll();
+                    if (!savedMapApplied && !string.IsNullOrWhiteSpace(savedMapDraft)
+                        && Session.LatestWorld?.Map is { Tiles.Count: 192 })
+                    {
+                        savedMapApplied = true;
+                        try { Session.ApplyMapDraft(savedMapDraft); }
+                        catch (ArgumentException) { }
+                        catch (System.Text.Json.JsonException) { }
+                    }
                     var mapName = CurrentMapName;
                     if (status != Session.Status || lastMapName != mapName || lastPlayerName != CurrentPlayerName)
                     {
