@@ -72,3 +72,18 @@
 .world-editor-map .editor-map-grid{width:max-content!important;grid-auto-rows:var(--editor-cell)!important;gap:0!important;align-content:start}
 .world-editor-map .editor-map-grid .editor-map-cell{width:var(--editor-cell)!important;min-width:var(--editor-cell)!important;max-width:var(--editor-cell)!important;height:var(--editor-cell)!important;min-height:var(--editor-cell)!important;max-height:var(--editor-cell)!important;image-rendering:pixelated}
 .world-editor-map .editor-help,.world-editor-map .editor-message{padding:0 12px}
+
+/* Fix: --map-columns belongs to the grid, so the sizing variable must also
+   be calculated on the grid. Previously the parent inherited an undefined
+   value, invalidating cell widths and making the entire preview disappear. */
+.world-editor-map .editor-map-grid {
+  --editor-cell: max(32px, calc((100cqw - 2px) / var(--map-columns, 16)));
+  grid-template-columns:repeat(var(--map-columns, 16),var(--editor-cell))!important;
+  grid-auto-rows:var(--editor-cell)!important;
+  width:max-content!important;
+  min-height:384px;
+}
+.world-editor-map .editor-map-viewport {
+  min-height:384px;
+  background:#17130e;
+}
