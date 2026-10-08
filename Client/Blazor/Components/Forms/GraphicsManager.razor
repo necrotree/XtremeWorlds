@@ -1,0 +1,66 @@
+@using Microsoft.AspNetCore.Components.Forms
+@inject Client.Blazor.Services.BrowserGameSession Session
+@inject IJSRuntime JS
+@implements IDisposable
+
+<section class="graphics-manager">
+    <h3>Server Graphics</h3>
+    <p>Import/export PNG graphics stored on the game server. Administrator access level 9 required.</p>
+    <label>Graphic <select @bind="assetType">
+        <option value="sprites.png">Player sprites</option>
+        <option value="items.png">Items</option>
+        <option value="npcs.png">NPCs</option>
+        <option value="spells.png">Spells</option>
+        <option value="tiles">Tileset</option>
+    </select></label>
+    @if(assetType=="tiles")
+    {
+        <label>Tileset number <input type="number" min="1" max="999" @bind="tileset" /></label>
+    }
+    <label>Import PNG <InputFile OnChange="ImportGraphic" accept="image/png" /></label>
+    <div class="connection-actions">
+        <button type="button" @onclick="ExportGraphic">Export from server</button>
+    </div>
+    @if(!string.IsNullOrWhiteSpace(status)) { <p role="status">@status</p> }
+    @if(!string.IsNullOrWhiteSpace(Session.GraphicsError)) { <p role="alert">@Session.GraphicsError</p> }
+    @if(!string.IsNullOrWhiteSpace(Session.GraphicsSaved)) { <p role="status">Saved on game server: @Session.GraphicsSaved</p> }
+</section>
+
+@code {
+    private string assetType="sprites.png";
+    private int tileset=1;
+    private string status="";
+    private byte[]? lastExport;
+    private string CurrentName => assetType=="tiles" ? $"tiles{Math.Clamp(tileset,1,999)}.png" : assetType;
+    protected override void OnInitialized() => Session.Changed += Update;
+    private void Update() => _ = InvokeAsync(StateHasChanged);
+    private async Task ImportGraphic(InputFileChangeEventArgs args)
+    {
+        try
+        {
+            using var stream=args.File.OpenReadStream(262144);
+            using var memory=new MemoryStream();
+            await stream.CopyToAsync(memory);
+            var data=memory.ToArray();
+            if(data.Length<24 || !data.AsSpan(0,8).SequenceEqual(new byte[]{137,80,78,71,13,10,26,10}))
+                throw new ArgumentException("Select a PNG image.");
+            Session.UploadGraphic(CurrentName,data);
+            status="Uploading graphic to the game server...";
+        }
+        catch(Exception ex) when(ex is IOException or ArgumentException or InvalidOperationException)
+        { status=ex.Message; }
+    }
+    private void ExportGraphic()
+    {
+        try { lastExport=null; Session.DownloadGraphic(CurrentName); status="Requesting graphic from game server..."; }
+        catch(InvalidOperationException ex) { status=ex.Message; }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(Session.DownloadedGraphics is not { } data || ReferenceEquals(data,lastExport))return;
+        lastExport=data;
+        await JS.InvokeVoidAsync("downloadServerGraphic",Session.DownloadedGraphicsName ?? "graphic.png",Convert.ToBase64String(data));
+        status="Graphic exported.";
+    }
+    public void Dispose() => Session.Changed -= Update;
+}
