@@ -20,6 +20,7 @@ else
             <label>IP address or hostname <input @bind="host" disabled="@Session.Connected" /></label>
             <label>Port <input type="number" min="1" max="65535" @bind="port" disabled="@Session.Connected" /></label>
             @if (!string.IsNullOrEmpty(error)) { <p role="alert">@error</p> }
+            <Client.Blazor.Components.Forms.GraphicsManager />
             <div class="connection-actions">
                 <button disabled="@Session.Connected" @onclick="SaveSettings">Save</button>
                 <button @onclick="() => showSettings=false">Close</button>
