@@ -688,7 +688,6 @@ public sealed class FnaGraphicsService : IDisposable
                 var display = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
                 _graphics.PreferredBackBufferWidth = display.Width;
                 _graphics.PreferredBackBufferHeight = display.Height;
-                _graphics.HardwareModeSwitch = false;
                 _graphics.IsFullScreen = true;
             }
             else
