@@ -228,11 +228,9 @@ namespace Server
         }
 
         private static bool IsAllowedGraphic(string name) =>
-            name is "sprites.png" or "items.png" or "npcs.png" or "spells.png"
-            || (name.StartsWith("tiles", StringComparison.Ordinal)
-                && name.EndsWith(".png", StringComparison.Ordinal)
-                && int.TryParse(name.AsSpan(5, name.Length - 9), out int sheet)
-                && sheet is >= 1 and <= 999);
+            name.Length is > 4 and <= 100 &&
+            name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) &&
+            name[..^4].All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '-');
 
         private void TransferGraphics(int id, string command, string[] fields)
         {
