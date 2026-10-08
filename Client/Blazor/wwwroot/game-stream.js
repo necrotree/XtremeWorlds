@@ -6,7 +6,11 @@ export function attach(canvas, receiver, streamPath) {
         receiver.invokeMethodAsync('Click', Math.floor((event.clientX - rect.left) * 950 / rect.width), Math.floor((event.clientY - rect.top) * 700 / rect.height));
     };
     const held = new Set();
-    const movement = key => ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key);
+    const normalizeMovement = key => ({
+        w: "ArrowUp", W: "ArrowUp", s: "ArrowDown", S: "ArrowDown",
+        a: "ArrowLeft", A: "ArrowLeft", d: "ArrowRight", D: "ArrowRight"
+    })[key] || (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key) ? key : null);
+    const movement = key => normalizeMovement(key) !== null;
     const release = () => {
         for (const key of held) receiver.invokeMethodAsync('Movement', key, false);
         held.clear();
@@ -14,14 +18,16 @@ export function attach(canvas, receiver, streamPath) {
     const up = event => {
         if (!movement(event.key)) return;
         event.preventDefault();
-        held.delete(event.key);
-        receiver.invokeMethodAsync('Movement', event.key, false);
+        const direction = normalizeMovement(event.key);
+        held.delete(direction);
+        receiver.invokeMethodAsync('Movement', direction, false);
     };
     const key = event => {
         if (event.ctrlKey || event.metaKey || event.altKey || event.key === 'Tab') return;
         event.preventDefault();
         if (movement(event.key)) {
-            if (!held.has(event.key)) { held.add(event.key); receiver.invokeMethodAsync('Movement', event.key, true); }
+            const direction = normalizeMovement(event.key);
+            if (!held.has(direction)) { held.add(direction); receiver.invokeMethodAsync('Movement', direction, true); }
         } else if (!event.repeat) receiver.invokeMethodAsync('Key', event.key);
     };
     canvas.addEventListener('click', click);
@@ -83,6 +89,8 @@ export async function draw(canvas, bytes) {
     state.pending = bytes;
     await paintLatest(canvas, state);
 }
+
+export function focusGame(canvas) { canvas.focus({preventScroll:true}); }
 
 export function detach(canvas) {
     const binding = bindings.get(canvas);
