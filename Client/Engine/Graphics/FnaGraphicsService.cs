@@ -348,6 +348,9 @@ public sealed class FnaGraphicsService : IDisposable
         private MainGamePanel _activePanel;
         private string _chatInput = string.Empty;
         private double _nextMove;
+        private bool _fullscreen;
+        private int _windowedWidth;
+        private int _windowedHeight;
 
         private readonly ConcurrentQueue<FnaWorldScene> _scenes;
         private FnaWorldScene? _scene;
@@ -407,6 +410,9 @@ public sealed class FnaGraphicsService : IDisposable
                 PreferredBackBufferHeight = Math.Max(height, 480),
                 SynchronizeWithVerticalRetrace = true
             };
+
+            _windowedWidth = _graphics.PreferredBackBufferWidth;
+            _windowedHeight = _graphics.PreferredBackBufferHeight;
 
             IsFixedTimeStep = true;
             TargetElapsedTime = TimeSpan.FromMilliseconds(15);
@@ -672,6 +678,30 @@ public sealed class FnaGraphicsService : IDisposable
             return false;
         }
 
+        private void ToggleFullscreen()
+        {
+            // Preserve the windowed size when switching to borderless fullscreen.
+            if (!_fullscreen)
+            {
+                _windowedWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
+                _windowedHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
+                var display = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+                _graphics.PreferredBackBufferWidth = display.Width;
+                _graphics.PreferredBackBufferHeight = display.Height;
+                _graphics.HardwareModeSwitch = false;
+                _graphics.IsFullScreen = true;
+            }
+            else
+            {
+                _graphics.IsFullScreen = false;
+                _graphics.PreferredBackBufferWidth = _windowedWidth;
+                _graphics.PreferredBackBufferHeight = _windowedHeight;
+            }
+
+            _graphics.ApplyChanges();
+            _fullscreen = !_fullscreen;
+        }
+
         private void HandleKeyboard()
         {
             var keyboard = Keyboard.GetState();
@@ -681,6 +711,13 @@ public sealed class FnaGraphicsService : IDisposable
             foreach (var key in pressed)
             {
                 if (_previousKeyboard.IsKeyDown(key)) continue;
+
+                if (key == Keys.F11 || (key == Keys.Enter &&
+                    (keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt))))
+                {
+                    ToggleFullscreen();
+                    continue;
+                }
 
                 if (key == Keys.F2)
                 {
