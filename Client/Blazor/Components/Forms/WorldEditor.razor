@@ -123,6 +123,8 @@
         var loaded=JsonSerializer.Deserialize<MapDocument>(json);
         if(loaded is not null){
           loaded.Normalize();
+          if(loaded.Width==16 && loaded.Height==12 && Session.InGame)
+            Session.ApplyMapDraft(json);
           map=loaded;
           requestedWidth=map.Width;
           requestedHeight=map.Height;
