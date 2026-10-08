@@ -24,3 +24,13 @@ html,body,#app{width:100%;min-height:100%;margin:0}body{min-height:100dvh}main.m
 :root{--xtremeworlds-ui-font:"OPTITimes-Roman","Times New Roman",Georgia,serif}
 .realm-dialog,.world-editor,.game-overlay-header,.mirage>p,.mirage>button,.world-loading-panel{font-family:var(--xtremeworlds-ui-font)!important}
 .realm-dialog button,.realm-dialog input,.realm-dialog select,.world-editor button,.world-editor input,.world-editor select,.world-editor textarea,.game-overlay-header button{font-family:var(--xtremeworlds-ui-font)!important}
+
+.connection-modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#100d09d9;padding:20px}
+.connection-modal{box-sizing:border-box;width:min(440px,100%);padding:24px;background:#2b2118;color:#ffe8bb;border:3px double #bb9356;box-shadow:0 14px 50px #0009;font-family:var(--xtremeworlds-ui-font,Georgia,serif)}
+.connection-modal h2{margin:0 0 14px;color:#ffe3a4;font-size:22px}
+.connection-modal p{color:#e7cfaa}
+.connection-modal label{display:grid;gap:5px;margin:12px 0}
+.connection-modal input{width:100%;box-sizing:border-box;background:#e9d7ad;color:#20170c;border:1px solid #b48b51}
+.connection-actions{display:flex;justify-content:end;gap:12px}
+.connection-actions button{margin:0;background:#684629;color:#fff0c4;border:1px solid #b48b51}
+.connection-actions button:first-child{background:#356642}
