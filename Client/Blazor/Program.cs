@@ -29,6 +29,9 @@ app.UseAntiforgery();
 app.UseStaticFiles(new StaticFileOptions {
     FileProvider = new PhysicalFileProvider(Path.Combine(AppContext.BaseDirectory, "Assets")), RequestPath = "/assets"
 });
+app.UseStaticFiles(new StaticFileOptions {
+    FileProvider = new PhysicalFileProvider(Path.Combine(AppContext.BaseDirectory, "gfx")), RequestPath = "/gfx"
+});
 app.MapGet("/game-frames/{id}", (HttpContext context, string id) => BrowserFrameStream.ServeAsync(context, id));
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
