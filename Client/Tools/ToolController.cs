@@ -281,7 +281,8 @@ namespace XtremeWorlds.Client.Tools
                 timeoutTimer.Start();
                 send("savetool", new object[] { updated.Kind, updated.Id, ToolWire.Encode(updated), request });
             };
-            editor.ReturnRequested += (kind, id) => { if (!disposed) Open(kind, id); };
+            // Saving a map should close the editor, not reopen the slot picker.
+            editor.ReturnRequested += (kind, id) => { if (!disposed && kind != "map") Open(kind, id); };
             editor.Closed += (sender, args) =>
             {
                 editors.Remove(key);
