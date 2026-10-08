@@ -29,7 +29,7 @@
       <main class="world-editor-map">
         <div class="editor-play-toolbar"><button type="button" @onclick="FocusPreview">Control character (WASD / Arrows)</button><span>Player: @playerX, @playerY</span></div>
         <div class="editor-map-viewport" tabindex="0" @ref="mapViewport" @onkeydown="MovePreviewPlayer" @onkeydown:preventDefault @onmouseup="StopPaint" @onmouseleave="StopPaint">
-          <div class="editor-map-grid" style="@($"grid-template-columns:repeat({map.Width},32px);width:{map.Width*32}px")" @oncontextmenu:preventDefault>
+          <div class="editor-map-grid" style="@($"grid-template-columns:repeat({map.Width},48px);width:{map.Width*48}px")" @oncontextmenu:preventDefault>
             @for (var y=0;y<map.Height;y++) {for(var x=0;x<map.Width;x++) {
               var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
               <button class="editor-map-cell @(cell.Blocked?"blocked":"") @(ev is not null?"event-cell":"")" title="@($"({px},{py})")"
@@ -37,7 +37,7 @@
                 @if(ev is not null){<span class="event-indicator">!</span>}
               </button>
             }}
-            <div class="editor-preview-character" aria-label="Player sprite" style="@($"left:{playerX*32-8}px;top:{playerY*32-32}px;background-position:-{playerDirection*144}px 0")"></div>
+            <div class="editor-preview-character" aria-label="Player sprite" style="@($"left:{playerX*48}px;top:{playerY*48-16}px;background-position:-{playerDirection*144}px 0")"></div>
           </div>
         </div>
         <p class="editor-help">Drag a rectangle in the palette to select multiple tiles, then paint with that brush. Right-click erases. Events have their own layer and can be edited on the right.</p>
@@ -72,10 +72,10 @@
   private void MovePreviewPlayer(KeyboardEventArgs e){
     int dx=0,dy=0;
     switch(e.Key.ToLowerInvariant()){
-      case "w":case "arrowup":dy=-1;playerDirection=2;break;
-      case "s":case "arrowdown":dy=1;playerDirection=3;break;
-      case "a":case "arrowleft":dx=-1;playerDirection=0;break;
-      case "d":case "arrowright":dx=1;playerDirection=1;break;
+      case "w":case "arrowup":dy=-1;playerDirection=0;break;
+      case "s":case "arrowdown":dy=1;playerDirection=1;break;
+      case "a":case "arrowleft":dx=-1;playerDirection=2;break;
+      case "d":case "arrowright":dx=1;playerDirection=3;break;
       default:return;
     }
     int nx=playerX+dx,ny=playerY+dy;
@@ -114,7 +114,7 @@
     var index=layer switch {"Mask"=>cell.Mask,"Fringe"=>cell.Fringe,_=>cell.Ground};
     var sheet=layer switch {"Mask"=>cell.MaskTileset,"Fringe"=>cell.FringeTileset,_=>cell.GroundTileset};
     if(index<0){index=cell.Ground;sheet=cell.GroundTileset;}
-    return $"background-image:url('/gfx/tiles{sheet}.png');background-position:-{index%12*32}px -{index/12*32}px";
+    return $"background-image:url('/gfx/tiles{sheet}.png');background-size:576px auto;background-position:-{index%12*48}px -{index/12*48}px";
   }
   protected override void OnInitialized(){
     LoadWorldMap();
