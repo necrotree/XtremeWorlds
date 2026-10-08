@@ -20,6 +20,7 @@ namespace XtremeWorlds.Client.Tools
         private readonly NumericStepper data3 = new NumericStepper() { MinValue = 0d, MaxValue = int.MaxValue };
         private readonly TileCanvas palette;
         public event Action<int, string>? PreviewChanged;
+        public int MapId => Definition?.Id ?? -1;
         private int anchorX;
         private int anchorY;
         private int brushX;
