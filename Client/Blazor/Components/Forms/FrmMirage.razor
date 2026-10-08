@@ -7,6 +7,16 @@
     <div class="game-frame">
         <div class="game-overlay-header"><div class="character-card"><b>@CurrentPlayerName</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="Session.Disconnect">X</button></div></div>
     <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus; type to chat and press Enter to send."></canvas> 
+        <section class="live-chat">
+            <strong>Realm Chat</strong>
+            <div class="live-chat-history">
+                @foreach(var line in Session.ChatMessages.TakeLast(30)) { <p>@line</p> }
+            </div>
+            <form @onsubmit="SendChat" @onsubmit:preventDefault>
+                <input @bind="chatText" placeholder="Type a message..." maxlength="240" />
+                <button type="submit">Send</button>
+            </form>
+        </section>
         @if (editorOpen) { <WorldEditor OnClose="ToggleEditor" /> }
     </div>
     <p role="status">@Session.Status</p>
@@ -14,11 +24,14 @@
 </section>
 
 @code {
+    private string chatText = "";
+    private void SendChat() { Session.SendChat(chatText); chatText = ""; }
     private bool editorOpen;
     private string CurrentPlayerName => string.IsNullOrWhiteSpace(Session.LatestWorld?.Player?.Name) ? "Player" : Session.LatestWorld.Player.Name;
     private string lastPlayerName = "";
     private string CurrentMapName => string.IsNullOrWhiteSpace(Session.CurrentMapName) ? "Map" : Session.CurrentMapName;
     private string lastMapName = "";
+    private int lastChatCount;
     private async Task ToggleEditor()
     {
         editorOpen = !editorOpen;
@@ -69,8 +82,9 @@
                         catch (System.Text.Json.JsonException) { }
                     }
                     var mapName = CurrentMapName;
-                    if (status != Session.Status || lastMapName != mapName || lastPlayerName != CurrentPlayerName)
+                    if (status != Session.Status || lastMapName != mapName || lastPlayerName != CurrentPlayerName || lastChatCount != Session.ChatMessages.Count)
                     {
+                        lastChatCount = Session.ChatMessages.Count;
                         lastMapName = mapName;
                         lastPlayerName = CurrentPlayerName;
                         StateHasChanged();
