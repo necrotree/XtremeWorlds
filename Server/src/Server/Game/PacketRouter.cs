@@ -131,11 +131,6 @@ namespace Server
                     case "warptome":
                         await TeleportAsync(connectionId, command, p);
                         break;
-                    case "gfxlist":
-                    case "gfxget":
-                    case "gfxput":
-                        TransferGraphics(connectionId, command, p);
-                        break;
                     case "needmap":
                     case "requestnewmap":
                         await SendCurrentMapAsync(connectionId);
@@ -225,67 +220,6 @@ namespace Server
                 foreach (var mapId in _sessions.Values.Where(s => s.IsPlaying && s.Character != null).Select(s => (int)s.Character!.Map).Distinct())
                     SendSnapshot(mapId, null);
             }
-        }
-
-        private static bool IsAllowedGraphic(string name) =>
-            name.Length is > 4 and <= 100 &&
-            name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) &&
-            name[..^4].All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '-');
-
-        private void TransferGraphics(int id, string command, string[] fields)
-        {
-            void Error(string message) => _network.SendText(id, PacketCodec.Compose("gfxerror", message));
-            if (!_sessions.TryGetValue(id, out var session) || !session.IsPlaying ||
-                session.Character is not { Access: >= 9 })
-            {
-                Error("Graphic management requires administrator access level 9.");
-                return;
-            }
-            if (command == "gfxlist")
-            {
-                string directory = Path.Combine(AppContext.BaseDirectory, "gfx");
-                var names = Directory.Exists(directory)
-                    ? Directory.EnumerateFiles(directory, "*.png", SearchOption.TopDirectoryOnly)
-                        .Select(Path.GetFileName).Where(name => name is not null)
-                        .Select(name => name!).Where(IsAllowedGraphic).OrderBy(name => name).Take(1000).ToArray()
-                    : Array.Empty<string>();
-                _network.SendText(id, PacketCodec.Compose("gfxlist", string.Join(",", names)));
-                return;
-            }
-            if (fields.Length < 2) { Error("Select a graphic."); return; }
-            string name = fields[1];
-            bool allowed = IsAllowedGraphic(name);
-            if (!allowed) { Error("Unsupported graphic filename."); return; }
-            string folder = Path.Combine(AppContext.BaseDirectory, "gfx");
-            string path = Path.Combine(folder, name);
-            if (command == "gfxget")
-            {
-                if (!File.Exists(path)) { Error("Graphic not found on the server."); return; }
-                byte[] data = File.ReadAllBytes(path);
-                if (data.Length > 4194304) { Error("Graphic exceeds 4 MiB."); return; }
-                _network.SendText(id, PacketCodec.Compose("gfxdata", name, Convert.ToBase64String(data)));
-                return;
-            }
-            if (fields.Length < 3) { Error("No graphic data supplied."); return; }
-            byte[] png;
-            try { png = Convert.FromBase64String(fields[2]); }
-            catch (FormatException) { Error("Invalid graphic data."); return; }
-            if (png.Length is < 24 or > 4194304 ||
-                !png.AsSpan(0, 8).SequenceEqual(new byte[] {137,80,78,71,13,10,26,10}))
-            {
-                Error("Only PNG images up to 4 MiB are supported.");
-                return;
-            }
-            Directory.CreateDirectory(folder);
-            string temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            try
-            {
-                File.WriteAllBytes(temp, png);
-                File.Move(temp, path, true);
-            }
-            finally { if (File.Exists(temp)) File.Delete(temp); }
-            _network.SendText(id, PacketCodec.Compose("gfxsaved", name));
-            _log?.Invoke($"Administrator updated graphic {name}.");
         }
 
         private async Task NewAccountAsync(int id, string[] p)
