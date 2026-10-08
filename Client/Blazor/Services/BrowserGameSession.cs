@@ -26,7 +26,7 @@ public sealed class BrowserGameSession : IDisposable
     public int PreviewX { get; private set; } = 8;
     public int PreviewY { get; private set; } = 6;
     public int PreviewDirection { get; private set; }
-    public bool ShowPreviewPlayer => LatestWorld?.Player is not { Name: { Length: > 0 }, Sprite: >= 0 };
+    public bool ShowPreviewPlayer => !renderer.Graphics.HasDrawablePlayer;
     public void SetPreviewPlayer(int x, int y, int direction)
     {
         PreviewX = x;
