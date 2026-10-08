@@ -1,0 +1,148 @@
+@using System.Text.Json
+@inject IJSRuntime JS
+<div class="editor-shade">
+  <section class="world-editor" aria-label="Map and event editor">
+    <header class="world-editor-header">
+      <strong>Map &amp; Event Editor</strong>
+      <span>@map.Name</span>
+      <div><button @onclick="Save">Save draft</button><button @onclick="Export">Export</button><button @onclick="Import">Import</button><button class="danger" @onclick="Close">X</button></div>
+    </header>
+    <div class="world-editor-columns">
+      <aside class="world-editor-side">
+        <h3>Map</h3>
+        <label>Name <input @bind="map.Name" /></label>
+        <div class="two-fields"><label>Width <input type="number" min="1" max="64" @bind="requestedWidth" /></label><label>Height <input type="number" min="1" max="64" @bind="requestedHeight" /></label></div>
+        <button @onclick="Resize">Resize map</button>
+        <h3>Tools</h3>
+        <div class="editor-mode">
+          <button class="@(tool=="Tiles"?"active":"")" @onclick='() => tool="Tiles"'>Tiles</button>
+          <button class="@(tool=="Events"?"active":"")" @onclick='() => tool="Events"'>Events</button>
+          <button class="@(tool=="Collision"?"active":"")" @onclick='() => tool="Collision"'>Collision</button>
+        </div>
+        <label>Layer <select @bind="layer"><option>Ground</option><option>Mask</option><option>Fringe</option></select></label>
+        <label>Tileset <select @bind="tileset"><option value="1">Tileset 1</option><option value="2">Tileset 2</option><option value="3">Tileset 3</option><option value="4">Tileset 4</option><option value="5">Tileset 5</option><option value="6">Tileset 6</option><option value="7">Tileset 7</option><option value="8">Tileset 8</option><option value="9">Tileset 9</option></select></label>
+        <div class="palette-viewport"><div class="editor-palette" style="@($"--tilesheet:url('/gfx/tiles{tileset}.png')")">
+            @for (var n=0;n<144;n++) {var tileIndex=n;<button title="@($"Tile {n}")" class="palette-cell @(brush==n?"active":"")" style="@Background(n)" @onclick="() => brush=tileIndex"></button>}
+        </div></div>
+      </aside>
+      <main class="world-editor-map">
+        <div class="editor-map-toolbar"><strong>@map.Name</strong><span>@map.Width × @map.Height</span><span>@tool</span></div>
+        <div class="editor-map-viewport">
+          <div class="editor-map-grid" style="@($"grid-template-columns:repeat({map.Width},32px)")" @oncontextmenu:preventDefault>
+            @for (var y=0;y<map.Height;y++) {for(var x=0;x<map.Width;x++) {
+              var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
+              <button class="editor-map-cell @(cell.Blocked?"blocked":"") @(ev is not null?"event-cell":"")" title="@($"({px},{py})")"
+                style="@CellBackground(cell)" @onclick="() => ClickCell(px,py,false)" @oncontextmenu="() => ClickCell(px,py,true)">
+                @if(ev is not null){<span class="event-indicator">!</span>}
+              </button>
+            }}
+          </div>
+        </div>
+        <p class="editor-help">Select a tile on the left, then click the map to paint. Right-click erases. Events have their own layer and can be edited on the right.</p>
+        <p role="status" class="editor-message">@message</p>
+      </main>
+      <aside class="world-editor-side">
+        <h3>Events (@map.Events.Count)</h3>
+        <div class="event-list">
+          @foreach(var ev in map.Events){<button class="@(selected?.Id==ev.Id?"active":"")" @onclick="() => SelectEvent(ev)">@ev.Name <small>@ev.X, @ev.Y</small></button>}
+        </div>
+        @if(selected is not null){
+          <h3>Edit Event</h3>
+          <label>Name <input @bind="selected.Name" /></label>
+          <div class="two-fields"><label>X <input type="number" min="0" max="@(map.Width-1)" @bind="selected.X" /></label><label>Y <input type="number" min="0" max="@(map.Height-1)" @bind="selected.Y" /></label></div>
+          <label>Trigger <select @bind="selected.Trigger"><option>Action</option><option>Player Touch</option><option>Autorun</option><option>Parallel</option></select></label>
+          <label>Command <select @bind="selected.Command"><option>Show Message</option><option>Warp</option><option>Run Script</option></select></label>
+          <label>Text / Script <textarea rows="4" @bind="selected.Text"></textarea></label>
+          @if(selected.Command=="Warp"){<label>Target Map <input @bind="selected.TargetMap" /></label><div class="two-fields"><label>Target X <input type="number" @bind="selected.TargetX" /></label><label>Target Y <input type="number" @bind="selected.TargetY" /></label></div>}
+          <button class="danger" @onclick="DeleteEvent">Delete event</button>
+        }else{<p class="editor-help">Choose Events, then click a map tile to create an event, or select an existing event.</p>}
+      </aside>
+    </div>
+  </section>
+</div>
+@code {
+  [Parameter] public EventCallback OnClose {get;set;}
+  private MapDocument map=new();
+  private MapEvent? selected;
+  private string tool="Tiles",layer="Ground",message="Local editor. Export a JSON file to keep a backup.";
+  private int tileset=1,brush,requestedWidth=16,requestedHeight=12;
+  private string Background(int index)=>$"background-position:-{index%12*32}px -{index/12*32}px";
+  private string CellBackground(MapCell cell){
+    var index=layer switch {"Mask"=>cell.Mask,"Fringe"=>cell.Fringe,_=>cell.Ground};
+    var sheet=layer switch {"Mask"=>cell.MaskTileset,"Fringe"=>cell.FringeTileset,_=>cell.GroundTileset};
+    if(index<0){index=cell.Ground;sheet=cell.GroundTileset;}
+    return $"background-image:url('/gfx/tiles{sheet}.png');{Background(index)}";
+  }
+  protected override async Task OnAfterRenderAsync(bool firstRender){
+    if(!firstRender)return;
+    try{
+      var json=await JS.InvokeAsync<string?>("worldEditor.load");
+      if(!string.IsNullOrEmpty(json)){var loaded=JsonSerializer.Deserialize<MapDocument>(json);if(loaded is not null){map=loaded;map.Normalize();requestedWidth=map.Width;requestedHeight=map.Height;message="Restored local editor draft.";StateHasChanged();}}
+    }catch(JSException ex){message=ex.Message;StateHasChanged();}
+  }
+  private void ClickCell(int x,int y,bool erase){
+    var cell=map.Tiles[y*map.Width+x];
+    if(tool=="Collision"){cell.Blocked=!erase;return;}
+    if(tool=="Events"){
+      var ev=map.Events.FirstOrDefault(e=>e.X==x&&e.Y==y);
+      if(ev is null&&!erase){ev=new MapEvent{X=x,Y=y};map.Events.Add(ev);}
+      if(ev is not null)SelectEvent(ev);
+      return;
+    }
+    var value=erase?(layer=="Ground"?0:-1):brush;
+    switch(layer){case "Mask":cell.Mask=value;if(!erase)cell.MaskTileset=tileset;break;case "Fringe":cell.Fringe=value;if(!erase)cell.FringeTileset=tileset;break;default:cell.Ground=value;if(!erase)cell.GroundTileset=tileset;break;}
+  }
+  private void SelectEvent(MapEvent ev){selected=ev;tool="Events";}
+  private void DeleteEvent(){if(selected is null)return;map.Events.Remove(selected);selected=null;}
+  private void Resize(){
+    var width=Math.Clamp(requestedWidth,1,64);var height=Math.Clamp(requestedHeight,1,64);
+    var old=map.Tiles;var next=new List<MapCell>(width*height);
+    for(var y=0;y<height;y++)for(var x=0;x<width;x++)next.Add(x<map.Width&&y<map.Height&&y*map.Width+x<old.Count?old[y*map.Width+x]:new MapCell());
+    map.Tiles=next;map.Width=width;map.Height=height;
+    map.Events.RemoveAll(e=>e.X<0||e.Y<0||e.X>=width||e.Y>=height);
+    if(selected is not null&&!map.Events.Contains(selected))selected=null;
+  }
+  private async Task Save(){await JS.InvokeVoidAsync("worldEditor.save",JsonSerializer.Serialize(map));message="Draft saved in this browser.";}
+  private async Task Export(){await JS.InvokeVoidAsync("worldEditor.export",map.Name+".json",JsonSerializer.Serialize(map,new JsonSerializerOptions{WriteIndented=true}));message="Exported editor JSON.";}
+  private async Task Import(){
+    try{var json=await JS.InvokeAsync<string?>("worldEditor.import");if(string.IsNullOrWhiteSpace(json))return;var loaded=JsonSerializer.Deserialize<MapDocument>(json);if(loaded is null)throw new JsonException("Invalid map.");loaded.Normalize();map=loaded;requestedWidth=map.Width;requestedHeight=map.Height;selected=null;message="Imported editor JSON.";}
+    catch(Exception ex) when(ex is JSException or JsonException){message="Import failed: "+ex.Message;}
+  }
+  private Task Close()=>OnClose.InvokeAsync();
+  public sealed class MapDocument {
+    public string Name{get;set;}="Desert Waystone";
+    public int Width{get;set;}=16;
+    public int Height{get;set;}=12;
+    public List<MapCell> Tiles{get;set;}=Enumerable.Range(0,192).Select(_=>new MapCell()).ToList();
+    public List<MapEvent> Events{get;set;}=new();
+    public void Normalize(){
+      Width=Math.Clamp(Width,1,64);Height=Math.Clamp(Height,1,64);
+      Tiles??=new();Events??=new();
+      var count=Width*Height;
+      if(Tiles.Count>count)Tiles.RemoveRange(count,Tiles.Count-count);
+      while(Tiles.Count<count)Tiles.Add(new MapCell());
+      Events.RemoveAll(e=>e.X<0||e.Y<0||e.X>=Width||e.Y>=Height);
+    }
+  }
+  public sealed class MapCell {
+    public int Ground{get;set;}
+    public int Mask{get;set;}=-1;
+    public int Fringe{get;set;}=-1;
+    public int GroundTileset{get;set;}=1;
+    public int MaskTileset{get;set;}=1;
+    public int FringeTileset{get;set;}=1;
+    public bool Blocked{get;set;}
+  }
+  public sealed class MapEvent {
+    public string Id{get;set;}=Guid.NewGuid().ToString("N");
+    public string Name{get;set;}="New Event";
+    public int X{get;set;}
+    public int Y{get;set;}
+    public string Trigger{get;set;}="Action";
+    public string Command{get;set;}="Show Message";
+    public string Text{get;set;}="";
+    public string TargetMap{get;set;}="";
+    public int TargetX{get;set;}
+    public int TargetY{get;set;}
+  }
+}
