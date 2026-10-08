@@ -82,6 +82,7 @@
     if(nx<0||ny<0||nx>=map.Width||ny>=map.Height)return;
     if(map.Tiles[ny*map.Width+nx].Blocked)return;
     playerX=nx;playerY=ny;
+    Session.SetPreviewPlayer(playerX,playerY,playerDirection);
   }
   private string tool="Tiles",layer="Ground",message="Local editor. Export a JSON file to keep a backup.";
   private int tileset=1,brush,requestedWidth=16,requestedHeight=12;
