@@ -21,24 +21,24 @@
         </div>
         <label>Layer <select @bind="layer"><option>Ground</option><option>Mask</option><option>Fringe</option></select></label>
         <label>Tileset <select @bind="tileset"><option value="1">Tileset 1</option><option value="2">Tileset 2</option><option value="3">Tileset 3</option><option value="4">Tileset 4</option><option value="5">Tileset 5</option><option value="6">Tileset 6</option><option value="7">Tileset 7</option><option value="8">Tileset 8</option><option value="9">Tileset 9</option></select></label>
-        <div class="palette-viewport"><div class="editor-palette" style="@($"--tilesheet:url('/gfx/tiles{tileset}.png')")">
-            @for (var n=0;n<144;n++) {var tileIndex=n;<button title="@($"Tile {n}")" class="palette-cell @(brush==n?"active":"")" style="@Background(n)" @onclick="() => brush=tileIndex"></button>}
+        <div class="palette-viewport" @onmouseup="StopSelection" @onmouseleave="StopSelection"><div class="editor-palette" style="@($"--tilesheet:url('/gfx/tiles{tileset}.png')")">
+            @for (var n=0;n<144;n++) {var tileIndex=n;<button title="@($"Tile {n}")" class="palette-cell @(InBrush(n)?"active":"")" style="@Background(n)" @onmousedown="(e) => StartSelection(tileIndex,e)" @onmouseenter="() => ExtendSelection(tileIndex)" @onmouseup="StopSelection" @onmousedown:preventDefault></button>}
         </div></div>
       </aside>
       <main class="world-editor-map">
         <div class="editor-map-toolbar"><strong>@map.Name</strong><span>@map.Width × @map.Height</span><span>@tool</span></div>
-        <div class="editor-map-viewport">
+        <div class="editor-map-viewport" @onmouseup="StopPaint" @onmouseleave="StopPaint">
           <div class="editor-map-grid" style="@($"grid-template-columns:repeat({map.Width},32px)")" @oncontextmenu:preventDefault>
             @for (var y=0;y<map.Height;y++) {for(var x=0;x<map.Width;x++) {
               var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
               <button class="editor-map-cell @(cell.Blocked?"blocked":"") @(ev is not null?"event-cell":"")" title="@($"({px},{py})")"
-                style="@CellBackground(cell)" @onclick="() => ClickCell(px,py,false)" @oncontextmenu="() => ClickCell(px,py,true)">
+                style="@CellBackground(cell)" @onmousedown="(e) => BeginPaint(px,py,e)" @onmouseenter="() => ContinuePaint(px,py)" @onmouseup="StopPaint" @onmousedown:preventDefault @oncontextmenu="() => ClickCell(px,py,true)">
                 @if(ev is not null){<span class="event-indicator">!</span>}
               </button>
             }}
           </div>
         </div>
-        <p class="editor-help">Select a tile on the left, then click the map to paint. Right-click erases. Events have their own layer and can be edited on the right.</p>
+        <p class="editor-help">Drag a rectangle in the palette to select multiple tiles, then paint with that brush. Right-click erases. Events have their own layer and can be edited on the right.</p>
         <p role="status" class="editor-message">@message</p>
       </main>
       <aside class="world-editor-side">
@@ -66,6 +66,28 @@
   private MapEvent? selected;
   private string tool="Tiles",layer="Ground",message="Local editor. Export a JSON file to keep a backup.";
   private int tileset=1,brush,requestedWidth=16,requestedHeight=12;
+  private int brushAnchor,brushWidth=1,brushHeight=1;
+  private bool selectingBrush,painting;
+  private void StartSelection(int index, MouseEventArgs e) {
+    if(e.Button!=0)return;
+    brushAnchor=index;brush=index;brushWidth=brushHeight=1;selectingBrush=true;
+  }
+  private void ExtendSelection(int index) {
+    if(!selectingBrush)return;
+    int ax=brushAnchor%12,ay=brushAnchor/12,bx=index%12,by=index/12;
+    brush=Math.Min(ax,bx)+Math.Min(ay,by)*12;
+    brushWidth=Math.Abs(bx-ax)+1;brushHeight=Math.Abs(by-ay)+1;
+  }
+  private void StopSelection()=>selectingBrush=false;
+  private bool InBrush(int index)=>index%12>=brush%12&&index%12<brush%12+brushWidth&&index/12>=brush/12&&index/12<brush/12+brushHeight;
+  private void BeginPaint(int x,int y,MouseEventArgs e) {
+    if(e.Button!=0)return;
+    painting=true;ClickCell(x,y,false);
+  }
+  private void ContinuePaint(int x,int y) {
+    if(painting&&tool!="Events")ClickCell(x,y,false);
+  }
+  private void StopPaint()=>painting=false;
   private string Background(int index)=>$"background-position:-{index%12*32}px -{index/12*32}px";
   private string CellBackground(MapCell cell){
     var index=layer switch {"Mask"=>cell.Mask,"Fringe"=>cell.Fringe,_=>cell.Ground};
@@ -89,8 +111,14 @@
       if(ev is not null)SelectEvent(ev);
       return;
     }
-    var value=erase?(layer=="Ground"?0:-1):brush;
-    switch(layer){case "Mask":cell.Mask=value;if(!erase)cell.MaskTileset=tileset;break;case "Fringe":cell.Fringe=value;if(!erase)cell.FringeTileset=tileset;break;default:cell.Ground=value;if(!erase)cell.GroundTileset=tileset;break;}
+    for(var dy=0;dy<(erase?1:brushHeight);dy++)
+    for(var dx=0;dx<(erase?1:brushWidth);dx++){
+      var tx=x+dx;var ty=y+dy;
+      if(tx>=map.Width||ty>=map.Height)continue;
+      var target=map.Tiles[ty*map.Width+tx];
+      var value=erase?(layer=="Ground"?0:-1):brush+dx+dy*12;
+      switch(layer){case "Mask":target.Mask=value;if(!erase)target.MaskTileset=tileset;break;case "Fringe":target.Fringe=value;if(!erase)target.FringeTileset=tileset;break;default:target.Ground=value;if(!erase)target.GroundTileset=tileset;break;}
+    }
   }
   private void SelectEvent(MapEvent ev){selected=ev;tool="Events";}
   private void DeleteEvent(){if(selected is null)return;map.Events.Remove(selected);selected=null;}
