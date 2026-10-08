@@ -108,98 +108,27 @@ internal static class WpfServerSkin
 
     public static void StylePlayerContextMenu(ContextMenu menu)
     {
-        menu.Background = PanelAlt;
-        menu.Foreground = Gold;
-        menu.BorderBrush = Bronze;
+        // Keep WPF's native popup and MenuItem templates for reliable mouse,
+        // submenu and keyboard behavior. Use a clean, light menu palette that
+        // contrasts with the dark server window instead of bordered dark rows.
+        var surface = Brushes.White;
+        var text = Brush(32, 32, 36);
+        menu.Background = surface;
+        menu.Foreground = text;
+        menu.BorderBrush = Brush(206, 206, 211);
         menu.BorderThickness = new Thickness(1);
-        menu.Padding = new Thickness(2);
-        menu.FontFamily = new FontFamily("Rockwell");
+        menu.Padding = new Thickness(3);
+        menu.FontFamily = new FontFamily("Segoe UI");
+        menu.FontSize = 13;
 
-        // Replace WPF's stock ContextMenu chrome completely.  The default
-        // template reserves a check/icon gutter on the left and paints parts
-        // of the popup white.  XtremeWorlds does not use icons here, so the
-        // menu is a single full-width dark items host instead.
-        var menuTemplate = new ControlTemplate(typeof(ContextMenu));
-        var menuBorder = new FrameworkElementFactory(typeof(Border));
-        menuBorder.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
-        menuBorder.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
-        menuBorder.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
-        menuBorder.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
-
-        var menuHost = new FrameworkElementFactory(typeof(StackPanel));
-        menuHost.SetValue(System.Windows.Controls.Panel.IsItemsHostProperty, true);
-        menuBorder.AppendChild(menuHost);
-        menuTemplate.VisualTree = menuBorder;
-        menu.Template = menuTemplate;
-
-        menu.Resources[typeof(MenuItem)] = CreateFlatContextMenuItemStyle();
-    }
-
-    private static Style CreateFlatContextMenuItemStyle()
-    {
-        var style = new Style(typeof(MenuItem));
-        style.Setters.Add(new Setter(Control.BackgroundProperty, Button));
-        style.Setters.Add(new Setter(Control.ForegroundProperty, Gold));
-        style.Setters.Add(new Setter(Control.BorderBrushProperty, Bronze));
-        style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
-        style.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Rockwell")));
-        style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold));
-        style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 5, 10, 5)));
-        style.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(1)));
-        style.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Left));
-
-        var template = new ControlTemplate(typeof(MenuItem));
-        var root = new FrameworkElementFactory(typeof(Grid));
-
-        var border = new FrameworkElementFactory(typeof(Border));
-        border.Name = "ItemBorder";
-        border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
-        border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
-        border.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
-        border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
-
-        var headerGrid = new FrameworkElementFactory(typeof(Grid));
-        var header = new FrameworkElementFactory(typeof(ContentPresenter));
-        header.SetBinding(ContentPresenter.ContentProperty, new Binding("Header") { RelativeSource = RelativeSource.TemplatedParent });
-        header.SetBinding(ContentPresenter.ContentTemplateProperty, new Binding("HeaderTemplate") { RelativeSource = RelativeSource.TemplatedParent });
-        header.SetBinding(ContentPresenter.HorizontalAlignmentProperty, new Binding("HorizontalContentAlignment") { RelativeSource = RelativeSource.TemplatedParent });
-        header.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
-        headerGrid.AppendChild(header);
-        border.AppendChild(headerGrid);
-        root.AppendChild(border);
-
-        var popup = new FrameworkElementFactory(typeof(Popup));
-        popup.Name = "PART_Popup";
-        popup.SetValue(Popup.PlacementProperty, PlacementMode.Right);
-        popup.SetBinding(Popup.PlacementTargetProperty, new Binding { RelativeSource = RelativeSource.TemplatedParent });
-        popup.SetValue(Popup.AllowsTransparencyProperty, true);
-        popup.SetValue(UIElement.FocusableProperty, false);
-        popup.SetBinding(Popup.IsOpenProperty, new Binding("IsSubmenuOpen") { RelativeSource = RelativeSource.TemplatedParent });
-
-        var popupBorder = new FrameworkElementFactory(typeof(Border));
-        popupBorder.SetValue(Border.BackgroundProperty, PanelAlt);
-        popupBorder.SetValue(Border.BorderBrushProperty, Bronze);
-        popupBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-        popupBorder.SetValue(Border.PaddingProperty, new Thickness(2));
-
-        var host = new FrameworkElementFactory(typeof(StackPanel));
-        host.SetValue(System.Windows.Controls.Panel.IsItemsHostProperty, true);
-        popupBorder.AppendChild(host);
-        popup.AppendChild(popupBorder);
-        root.AppendChild(popup);
-
-        template.VisualTree = root;
-
-        var highlighted = new Trigger { Property = MenuItem.IsHighlightedProperty, Value = true };
-        highlighted.Setters.Add(new Setter(Border.BackgroundProperty, Selection, "ItemBorder"));
-        template.Triggers.Add(highlighted);
-
-        var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
-        disabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.55));
-        template.Triggers.Add(disabled);
-
-        style.Setters.Add(new Setter(Control.TemplateProperty, template));
-        return style;
+        var itemStyle = new Style(typeof(MenuItem));
+        itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, surface));
+        itemStyle.Setters.Add(new Setter(Control.ForegroundProperty, text));
+        itemStyle.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Segoe UI")));
+        itemStyle.Setters.Add(new Setter(Control.FontSizeProperty, 13.0));
+        itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(9, 5, 12, 5)));
+        itemStyle.Setters.Add(new Setter(Control.MinHeightProperty, 28.0));
+        menu.Resources[typeof(MenuItem)] = itemStyle;
     }
 
     public static void StyleTabs(TabControl tabs)

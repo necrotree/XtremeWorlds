@@ -27,6 +27,7 @@ public sealed class ServerForm : Window
     private CancellationTokenSource? _runCts;
     private Task? _runTask;
     private List<PlayerSessionInfo> _sessions = new();
+    private int? _contextPlayerConnectionId;
     private bool _serverLogEnabled = true;
 
     public ServerForm(ServerSettings settings)
@@ -278,7 +279,14 @@ public sealed class ServerForm : Window
     private void RefreshSessions()
     {
         _sessions = _host?.GetSessions().ToList() ?? new List<PlayerSessionInfo>();
+        var selectedConnectionId = SelectedPlayer()?.ConnectionId;
         _playersList.ItemsSource = _sessions;
+        if (selectedConnectionId is not null)
+        {
+            var matchingPlayer = _sessions.FirstOrDefault(p => p.ConnectionId == selectedConnectionId.Value);
+            if (matchingPlayer is not null)
+                _playersList.SelectedItem = matchingPlayer;
+        }
         _accountsList.ItemsSource = _sessions
             .Where(s => !string.IsNullOrWhiteSpace(s.Login))
             .Select(s => s.Login)
@@ -288,6 +296,27 @@ public sealed class ServerForm : Window
     }
 
     private PlayerSessionInfo? SelectedPlayer() => _playersList.SelectedItem as PlayerSessionInfo;
+
+    private PlayerSessionInfo? ContextPlayer()
+    {
+        if (_contextPlayerConnectionId is not int connectionId)
+            return SelectedPlayer();
+        return _sessions.FirstOrDefault(player => player.ConnectionId == connectionId);
+    }
+
+    private static UIElement MenuIcon(string symbol, Brush color)
+    {
+        return new TextBlock
+        {
+            Text = symbol,
+            FontFamily = new FontFamily("Segoe UI Symbol"),
+            FontSize = 15,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = color,
+            Width = 20,
+            TextAlignment = TextAlignment.Center
+        };
+    }
 
     private void InstallPlayerContextMenu()
     {
@@ -309,8 +338,11 @@ public sealed class ServerForm : Window
             Padding = new Thickness(2)
         };
         WpfServerSkin.StylePlayerContextMenu(menu);
+        menu.Opened += (_, _) => _contextPlayerConnectionId = SelectedPlayer()?.ConnectionId;
+        menu.Closed += (_, _) => Dispatcher.BeginInvoke(new Action(() => _contextPlayerConnectionId = null),
+            System.Windows.Threading.DispatcherPriority.Background);
 
-        var access = new MenuItem { Header = "Access" };
+        var access = new MenuItem { Header = "Access", Icon = MenuIcon("●", Brushes.DimGray) };
         for (byte i = 0; i <= 9; i++)
         {
             byte level = i;
@@ -324,18 +356,28 @@ public sealed class ServerForm : Window
             access.Items.Add(accessItem);
         }
 
-        var kick = new MenuItem { Header = "Kick" };
+        var kick = new MenuItem { Header = "Kick", Icon = MenuIcon("✖", Brushes.Firebrick) };
         kick.Click += (_, _) => KickSelectedPlayer();
-        var ban = new MenuItem { Header = "Ban" };
+        var ban = new MenuItem { Header = "Ban", Icon = MenuIcon("⊘", Brushes.Firebrick) };
         ban.Click += async (_, _) => await BanSelectedPlayerAsync();
 
         menu.Items.Add(access);
         foreach (var (label, mute, enabled) in new[] { ("Mute", true, true), ("Unmute", true, false), ("Jail", false, true), ("Release", false, false) })
         {
-            var item = new MenuItem { Header = label };
+            var item = new MenuItem
+            {
+                Header = label,
+                Icon = label switch
+                {
+                    "Mute" => MenuIcon("✕", Brushes.Firebrick),
+                    "Unmute" => MenuIcon("♪", Brushes.DimGray),
+                    "Jail" => MenuIcon("▥", Brushes.DimGray),
+                    _ => MenuIcon("🔓", Brushes.DimGray)
+                }
+            };
             item.Click += (_, _) =>
             {
-                var player = SelectedPlayer();
+                var player = ContextPlayer();
                 if (player is null || _host is null) return;
                 if (mute) _host.SetPlayerMuted(player.ConnectionId, enabled);
                 else _host.SetPlayerJailed(player.ConnectionId, enabled);
@@ -356,7 +398,7 @@ public sealed class ServerForm : Window
 
     private void KickSelectedPlayer()
     {
-        var player = SelectedPlayer();
+        var player = ContextPlayer();
         if (player is null || _host is null)
             return;
         _host.KickPlayer(player.ConnectionId);
@@ -364,7 +406,7 @@ public sealed class ServerForm : Window
 
     private async Task BanSelectedPlayerAsync()
     {
-        var player = SelectedPlayer();
+        var player = ContextPlayer();
         if (player is null || _host is null)
             return;
         if (MessageBox.Show(this, $"Ban {player.DisplayName}?", "Ban Player", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
@@ -373,7 +415,7 @@ public sealed class ServerForm : Window
 
     private async Task SetSelectedAccessAsync(byte access)
     {
-        var player = SelectedPlayer();
+        var player = ContextPlayer();
         if (player is null || _host is null)
             return;
         await _host.SetPlayerAccessAsync(player.ConnectionId, access);
