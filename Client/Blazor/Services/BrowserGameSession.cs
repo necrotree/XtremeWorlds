@@ -20,6 +20,7 @@ public sealed class BrowserGameSession : IDisposable
         connection = new GameClientConnection(renderer.Graphics);
         connection.PacketReceived += HandlePacket;
     }
+    public FnaWorldScene? LatestWorld { get; private set; }
     public string Status { get; private set; } = "Disconnected";
     public string[] Characters { get; private set; } = [];
     public bool Connected => network.IsConnected;
@@ -79,6 +80,17 @@ public sealed class BrowserGameSession : IDisposable
 
     private void HandlePacket(IReadOnlyList<string> fields)
     {
+            switch (fields[0].ToLowerInvariant())
+            {
+                case "worldstate":
+                case "worldtick":
+                    if (fields.Count > 1)
+                    {
+                        try { var world = JsonSerializer.Deserialize<FnaWorldScene>(fields[1]); if (world?.Map is not null) LatestWorld = world; }
+                        catch (JsonException) { }
+                    }
+                    break;
+            }
             switch (fields[0].ToLowerInvariant())
             {
                 case "alertmsg":
@@ -141,6 +153,7 @@ public sealed class BrowserGameSession : IDisposable
     public void Disconnect()
     {
         InGame = false;
+        LatestWorld = null;
         connection.Reset();
         renderer.Stop();
         network.Disconnect();
