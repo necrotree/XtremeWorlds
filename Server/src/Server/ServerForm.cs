@@ -41,7 +41,7 @@ public sealed class ServerForm : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         WpfServerSkin.Apply(this);
 
-        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Icon.ico");
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "knight-icon.png");
         if (System.IO.File.Exists(iconPath))
             Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri(iconPath));
 
