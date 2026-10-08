@@ -200,3 +200,9 @@
     outline:none!important;
     border:0!important;
 }
+
+/* Event script fields follow the server/client desert theme. */
+.world-editor .lua-event-fields{padding:10px;background:#30271b;border:1px solid #8b7045;margin:8px 0}
+.world-editor .lua-event-fields h3{margin:0 0 10px;color:#f0d28b}
+.world-editor .lua-event-fields button{width:100%;background:#346842}
+.world-editor textarea[spellcheck="false"]{font-family:Consolas,Monaco,monospace;font-size:12px;line-height:1.5}
