@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Engine", "Engine\Cli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Blazor", "Blazor\Client.Blazor.csproj", "{40427B2E-CBFB-CA39-40C7-0F8BD494E134}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Tools", "Tools\Client.Tools.csproj", "{20B62412-4201-461B-9365-58806BE755A8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolProtocol", "..\Tools\ToolProtocol\ToolProtocol.csproj", "{72958765-DB29-4CB0-8DF4-7DDA1A53A91F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkState", "..\Network\NetworkState\NetworkState.csproj", "{C3EB1E81-9041-4D1E-92F4-79D89B510CB2}"
