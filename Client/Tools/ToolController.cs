@@ -17,6 +17,16 @@ namespace XtremeWorlds.Client.Tools
         private frmAdminPanel admin;
         private readonly UITimer timeoutTimer = new UITimer() { Interval = 1d };
         private bool disposed;
+        public event Action<int, string?>? MapPreviewChanged;
+        public event Action<bool>? MapEditorActiveChanged;
+
+        public void PaintMapTile(int x, int y, bool erase)
+        {
+            if (disposed) return;
+            var mapEditor = editors.Values.OfType<frmMapEditor>().FirstOrDefault(editor => editor.Visible);
+            mapEditor?.PaintAt(x, y, erase);
+        }
+
         private string latestList;
         private int lastSelected = -1;
         private class Pending
@@ -258,6 +268,12 @@ namespace XtremeWorlds.Client.Tools
             }
             editor.LoadRecord(@record);
             editors[key] = editor;
+            if (editor is frmMapEditor mapEditor)
+            {
+                mapEditor.PreviewChanged += (id, json) => MapPreviewChanged?.Invoke(id, json);
+                MapEditorActiveChanged?.Invoke(true);
+                mapEditor.PublishPreview();
+            }
             editor.SaveRequested += updated =>
             {
                 string request = Guid.NewGuid().ToString("N");
@@ -266,7 +282,15 @@ namespace XtremeWorlds.Client.Tools
                 send("savetool", new object[] { updated.Kind, updated.Id, ToolWire.Encode(updated), request });
             };
             editor.ReturnRequested += (kind, id) => { if (!disposed) Open(kind, id); };
-            editor.Closed += (sender, args) => editors.Remove(key);
+            editor.Closed += (sender, args) =>
+            {
+                editors.Remove(key);
+                if (editor is frmMapEditor mapEditor)
+                {
+                    MapEditorActiveChanged?.Invoke(false);
+                    MapPreviewChanged?.Invoke(mapEditor.Definition?.Id ?? -1, null);
+                }
+            };
             editor.Show();
         }
         private void CheckTimeouts(object sender, EventArgs args)
@@ -290,6 +314,8 @@ namespace XtremeWorlds.Client.Tools
         }
         public void Reset()
         {
+            MapEditorActiveChanged?.Invoke(false);
+            MapPreviewChanged?.Invoke(-1, null);
             requests.Clear();
             timeoutTimer.Stop();
             index?.Close();
