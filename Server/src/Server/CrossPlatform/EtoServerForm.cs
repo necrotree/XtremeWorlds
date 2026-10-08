@@ -30,20 +30,34 @@ public sealed class EtoServerForm : Form
     {
         _settings = settings;
         Title = $"{settings.GameName} :: Server";
-        ClientSize = new Size(780, 420);
+        ClientSize = new Size(980, 620);
+        MinimumSize = new Size(800, 480);
         BackgroundColor = EtoServerSkin.Window;
         _port.Text = settings.Port.ToString();
         _ip.Text = "Detecting...";
         _online.Text = "0";
 
         Menu = BuildMenu();
-        Content = new TabControl
+        var tabs = new TabControl
         {
             Pages =
             {
                 new TabPage { Text = "Chat", Content = BuildChat() },
                 new TabPage { Text = "Bug Reports", Content = BuildBugs() },
                 new TabPage { Text = "Game Information", Content = BuildInfo() }
+            }
+        };
+
+        Content = new TableLayout
+        {
+            Padding = new Padding(18),
+            Spacing = new Size(10, 10),
+            BackgroundColor = EtoServerSkin.Panel,
+            Rows =
+            {
+                new TableRow(EtoServerSkin.Heading("XTREMEWORLDS"), null, EtoServerSkin.Subtitle("SERVER CONTROL PANEL")),
+                new TableRow(new Label { Text = "MANAGE THE REALM", TextColor = EtoServerSkin.Bronze }, null),
+                new TableRow(new TableCell(tabs, true)) { ScaleHeight = true }
             }
         };
 
@@ -86,7 +100,7 @@ public sealed class EtoServerForm : Form
 
     private Control BuildChat()
     {
-        var send = new Button { Text = "Send" };
+        var send = EtoServerSkin.Button("Send");
         send.Click += (_, _) => SendChat();
         _chat.KeyDown += (_, e) => { if (e.Key == Keys.Enter) { SendChat(); e.Handled = true; } };
         return new TableLayout
