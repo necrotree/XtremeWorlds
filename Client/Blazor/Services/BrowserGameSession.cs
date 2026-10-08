@@ -19,8 +19,50 @@ public sealed class BrowserGameSession : IDisposable
         this.renderer = renderer;
         connection = new GameClientConnection(renderer.Graphics);
         connection.PacketReceived += HandlePacket;
+        connection.WorldSceneReceived += world => LatestWorld = world;
+        connection.WorldSceneTransform = ApplyEditorMap;
     }
     public FnaWorldScene? LatestWorld { get; private set; }
+    private EditorMapPatch? editorPatch;
+    public void ApplyMapDraft(string json)
+    {
+        var patch = JsonSerializer.Deserialize<EditorMapPatch>(json) ?? throw new JsonException("Invalid map.");
+        if (patch.Tiles is null || patch.Width != 16 || patch.Height != 12 || patch.Tiles.Count != 192)
+            throw new ArgumentException("Current game world expects a 16 x 12 map.");
+        editorPatch = patch;
+        if (LatestWorld is { } world) renderer.World(ApplyEditorMap(world));
+    }
+    private FnaWorldScene ApplyEditorMap(FnaWorldScene scene)
+    {
+        if (editorPatch is not { } patch || scene.Map is not { } map || patch.Tiles is null || patch.Tiles.Count != map.Tiles.Count) return scene;
+        for (int i = 0; i < map.Tiles.Count; i++)
+        {
+            var t = map.Tiles[i]; var p = patch.Tiles[i];
+            t.Ground=p.Ground; t.Mask=p.Mask; t.Fringe=p.Fringe; t.Type=p.Blocked?1:0;
+            t.LayerTileset ??= new List<int>();
+            while(t.LayerTileset.Count<9)t.LayerTileset.Add(Math.Max(1,map.Tileset));
+            t.LayerTileset[0]=p.GroundTileset;
+            t.LayerTileset[1]=p.MaskTileset;
+            t.LayerTileset[5]=p.FringeTileset;
+        }
+        return scene;
+    }
+    public sealed class EditorMapPatch
+    {
+        public int Width {get;set;}
+        public int Height {get;set;}
+        public List<EditorTilePatch>? Tiles {get;set;}
+    }
+    public sealed class EditorTilePatch
+    {
+        public int Ground {get;set;}
+        public int Mask {get;set;}
+        public int Fringe {get;set;}
+        public int GroundTileset {get;set;}=1;
+        public int MaskTileset {get;set;}=1;
+        public int FringeTileset {get;set;}=1;
+        public bool Blocked {get;set;}
+    }
     public string Status { get; private set; } = "Disconnected";
     public string[] Characters { get; private set; } = [];
     public bool Connected => network.IsConnected;
@@ -154,6 +196,7 @@ public sealed class BrowserGameSession : IDisposable
     {
         InGame = false;
         LatestWorld = null;
+        editorPatch = null;
         connection.Reset();
         renderer.Stop();
         network.Disconnect();
