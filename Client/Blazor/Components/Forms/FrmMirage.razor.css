@@ -7,3 +7,8 @@ canvas:focus-visible { outline: 2px solid #95d5bf; }
 .graphics-popover{position:absolute;z-index:30;right:18px;top:62px;width:min(390px,calc(100% - 36px));max-height:calc(100% - 75px);overflow:auto;box-sizing:border-box;padding:18px;background:#2b2118;color:#ffe8bb;border:3px double #bb9356;box-shadow:0 12px 35px #000c;font-family:var(--xtremeworlds-ui-font,Georgia,serif)}
 .graphics-popover>button{float:right;padding:5px 12px;background:#822d2c;color:#fff0c4;border:1px solid #b48b51;cursor:pointer}
 .graphics-popover .graphics-manager{clear:both}
+
+.live-chat{position:absolute;z-index:3;right:18px;bottom:18px;width:min(400px,40%);height:200px;box-sizing:border-box;display:flex;flex-direction:column;padding:10px;background:#17170fe8;color:#f3dfaf;border:2px solid #987440;font:13px Georgia,serif}
+.live-chat-history{flex:1;overflow-y:auto;min-height:0}.live-chat-history p{margin:4px 0;overflow-wrap:anywhere}
+.live-chat form{display:flex;gap:6px;margin:6px 0 0}.live-chat input{flex:1;min-width:0;padding:7px;background:#e9d7ad;color:#25190f}.live-chat button{padding:7px;background:#356642;color:#fff1cb;border:1px solid #b48b51}
+@media(max-width:700px){.live-chat{width:90%;right:5%;height:160px}}
