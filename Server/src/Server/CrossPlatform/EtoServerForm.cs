@@ -78,13 +78,11 @@ public sealed class EtoServerForm : Form
         file.Items.Add(exit);
 
         var database = new ButtonMenuItem { Text = "Database" };
-        var scripts = new ButtonMenuItem { Text = "Script Editor..." };
-        scripts.Click += (_, _) => new EtoScriptEditorForm().Show();
         var classes = new ButtonMenuItem { Text = "Reload Classes" };
         classes.Click += (_, _) => AppendLog("All classes reloaded.");
         var reload = new ButtonMenuItem { Text = "Reload Scripts" };
         reload.Click += (_, _) => AppendLog("Scripts reload requested.");
-        database.Items.Add(scripts); database.Items.Add(classes); database.Items.Add(reload);
+        database.Items.Add(classes); database.Items.Add(reload);
 
         var logs = new ButtonMenuItem { Text = "Log" };
         var open = new ButtonMenuItem { Text = "Open Logs Folder" };
