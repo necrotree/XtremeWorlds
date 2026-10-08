@@ -5,10 +5,9 @@
 <PageTitle>XtremeWorlds — frmMirage</PageTitle>
 <section class="mirage" aria-label="Game window">
     <div class="game-frame">
-        <div class="game-overlay-header"><div class="character-card"><b>@CurrentPlayerName</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="ToggleGraphics">Graphics</button><button @onclick="Session.Disconnect">X</button></div></div>
+        <div class="game-overlay-header"><div class="character-card"><b>@CurrentPlayerName</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="Session.Disconnect">X</button></div></div>
     <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus; type to chat and press Enter to send."></canvas> 
         @if (editorOpen) { <WorldEditor OnClose="ToggleEditor" /> }
-        @if (graphicsOpen) { <div class="graphics-popover"><button @onclick="ToggleGraphics">Close</button><GraphicsManager /></div> }
     </div>
     <p role="status">@Session.Status</p>
     <button @onclick="Session.Disconnect">Return to main menu</button>
@@ -16,8 +15,6 @@
 
 @code {
     private bool editorOpen;
-    private bool graphicsOpen;
-    private void ToggleGraphics() => graphicsOpen = !graphicsOpen;
     private string CurrentPlayerName => string.IsNullOrWhiteSpace(Session.LatestWorld?.Player?.Name) ? "Player" : Session.LatestWorld.Player.Name;
     private string lastPlayerName = "";
     private string CurrentMapName => string.IsNullOrWhiteSpace(Session.CurrentMapName) ? "Map" : Session.CurrentMapName;
