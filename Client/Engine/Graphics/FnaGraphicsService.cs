@@ -137,6 +137,7 @@ public sealed class FnaGraphicsService : IDisposable
     public event Action<string, object[]>? MainGameActionRequested;
 
     public bool IsRunning => _thread is { IsAlive: true };
+    public bool HasDrawablePlayer => _game?.HasDrawablePlayer ?? false;
 
     public void Start(int width = InterfaceWidth, int height = InterfaceHeight, Action<byte[]>? frameReady = null)
     {
@@ -973,12 +974,16 @@ public sealed class FnaGraphicsService : IDisposable
                         new Rectangle(item.Picture % 6 * 32, item.Picture / 6 * 32, 32, 32), Color.White);
         }
 
+        public bool HasDrawablePlayer { get; private set; }
         private void DrawActors()
         {
             var draws = new List<(int Y, Action Draw)>();
             if (_scene is not null)
             {
                 var sprites = GetWorldTexture("sprites.png", Color.Black);
+                var player = _scene.Player;
+                HasDrawablePlayer = sprites is not null && player is { Sprite: >= 0 } && !string.IsNullOrWhiteSpace(player.Name)
+                    && player.Sprite * 64 + 64 <= sprites.Height && sprites.Width >= 576;
                 foreach (var actor in _scene.ActorsInDrawOrder())
                 {
                     if (actor.Sprite < 0) continue;
