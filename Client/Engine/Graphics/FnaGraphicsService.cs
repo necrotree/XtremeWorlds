@@ -68,6 +68,14 @@ public sealed class FnaGraphicsService : IDisposable
 {
     private readonly ConcurrentQueue<FnaWorldScene> _scenes = new();
     private readonly ConcurrentQueue<(int MapId, string? Json)> _editorMapChanges = new();
+    // FNA writes paint commands; Eto consumes them on its own UI thread.
+    private readonly ConcurrentQueue<(int X, int Y, bool Erase)> _editorPaintRequests = new();
+    public bool TryDequeueMapPaint(out (int X, int Y, bool Erase) paint) =>
+        _editorPaintRequests.TryDequeue(out paint);
+    public void ClearMapPaintRequests()
+    {
+        while (_editorPaintRequests.TryDequeue(out _)) { }
+    }
     private volatile bool _mapEditorActive;
     private int _focusGameWindowRequested;
     public void FocusGameWindow() => System.Threading.Interlocked.Exchange(ref _focusGameWindowRequested, 1);
@@ -160,6 +168,7 @@ public sealed class FnaGraphicsService : IDisposable
                 using var game = new FnaClientGame(
                     _scenes,
                     _editorMapChanges,
+                    _editorPaintRequests,
                     () => _mapEditorActive,
                     () => System.Threading.Interlocked.Exchange(ref _focusGameWindowRequested, 0) != 0,
                     NetworkState,
@@ -363,6 +372,7 @@ public sealed class FnaGraphicsService : IDisposable
 
         private readonly ConcurrentQueue<FnaWorldScene> _scenes;
         private readonly ConcurrentQueue<(int MapId, string? Json)> _editorMapChanges;
+        private readonly ConcurrentQueue<(int X, int Y, bool Erase)> _editorPaintRequests;
         private readonly Func<bool> _mapEditorActive;
         private readonly Func<bool> _consumeFocusGameWindowRequest;
         private FnaSceneMap? _editorMapPreview;
@@ -393,6 +403,7 @@ public sealed class FnaGraphicsService : IDisposable
         public FnaClientGame(
             ConcurrentQueue<FnaWorldScene> scenes,
             ConcurrentQueue<(int MapId, string? Json)> editorMapChanges,
+            ConcurrentQueue<(int X, int Y, bool Erase)> editorPaintRequests,
             Func<bool> mapEditorActive,
             Func<bool> consumeFocusGameWindowRequest,
             ClientTickSynchronizer networkState,
@@ -411,6 +422,7 @@ public sealed class FnaGraphicsService : IDisposable
         {
             _scenes = scenes;
             _editorMapChanges = editorMapChanges;
+            _editorPaintRequests = editorPaintRequests;
             _mapEditorActive = mapEditorActive;
             _consumeFocusGameWindowRequest = consumeFocusGameWindowRequest;
             _networkState = networkState;
@@ -649,7 +661,7 @@ public sealed class FnaGraphicsService : IDisposable
                         _lastEditedX = tileX;
                         _lastEditedY = tileY;
                         _lastEditedErase = erase;
-                        _action("PaintMapTile", new object[] { tileX, tileY, erase });
+                        _editorPaintRequests.Enqueue((tileX, tileY, erase));
                     }
                 }
                 else
