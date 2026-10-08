@@ -13,6 +13,8 @@ public sealed class GameClientConnection : IDisposable
     private bool _resyncRequested;
     public MirrorTcpClient Transport { get; } = new();
     public event Action<IReadOnlyList<string>>? PacketReceived;
+    public event Action<FnaWorldScene>? WorldSceneReceived;
+    public Func<FnaWorldScene, FnaWorldScene>? WorldSceneTransform { get; set; }
 
     public GameClientConnection(FnaGraphicsService graphics)
     {
@@ -31,7 +33,9 @@ public sealed class GameClientConnection : IDisposable
                 {
                     var scene = JsonSerializer.Deserialize<FnaWorldScene>(fields.Count > 1 ? fields[1] : "");
                     if (scene == null) throw new JsonException("Missing world state.");
+                    if (WorldSceneTransform is not null) scene = WorldSceneTransform(scene);
                     if (_graphics.SetWorldScene(scene) && _graphics.NetworkState.IsActive) _resyncRequested = false;
+                    WorldSceneReceived?.Invoke(scene);
                 }
                 catch (JsonException) { Resync(); }
                 return;
