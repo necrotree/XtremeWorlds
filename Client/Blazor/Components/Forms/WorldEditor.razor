@@ -22,7 +22,8 @@
         <label>Layer <select @bind="layer"><option>Ground</option><option>Mask</option><option>Fringe</option></select></label>
         <label>Tileset <select @bind="tileset"><option value="1">Tileset 1</option><option value="2">Tileset 2</option><option value="3">Tileset 3</option><option value="4">Tileset 4</option><option value="5">Tileset 5</option><option value="6">Tileset 6</option><option value="7">Tileset 7</option><option value="8">Tileset 8</option><option value="9">Tileset 9</option></select></label>
         <div class="palette-viewport" @onmouseup="StopSelection" @onmouseleave="StopSelection"><div class="editor-palette" style="@($"--tilesheet:url('/gfx/tiles{tileset}.png')")">
-            @for (var n=0;n<144;n++) {var tileIndex=n;<button title="@($"Tile {n}")" class="palette-cell @(InBrush(n)?"active":"")" style="@Background(n)" @onmousedown="(e) => StartSelection(tileIndex,e)" @onmouseenter="() => ExtendSelection(tileIndex)" @onmouseup="StopSelection" @onmousedown:preventDefault></button>}
+          <div class="brush-selection-rectangle" style="@($"left:{brush%12*32}px;top:{brush/12*32}px;width:{brushWidth*32}px;height:{brushHeight*32}px")"></div>
+            @for (var n=0;n<144;n++) {var tileIndex=n;<button title="@($"Tile {n}")" class="palette-cell" style="@Background(n)" @onmousedown="(e) => StartSelection(tileIndex,e)" @onmouseenter="() => ExtendSelection(tileIndex)" @onmouseup="StopSelection" @onmousedown:preventDefault></button>}
         </div></div>
       </aside>
       <main class="world-editor-map">
