@@ -304,6 +304,20 @@ public sealed class ServerForm : Window
         return _sessions.FirstOrDefault(player => player.ConnectionId == connectionId);
     }
 
+    private static UIElement MenuIcon(string symbol, Brush color)
+    {
+        return new TextBlock
+        {
+            Text = symbol,
+            FontFamily = new FontFamily("Segoe UI Symbol"),
+            FontSize = 15,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = color,
+            Width = 20,
+            TextAlignment = TextAlignment.Center
+        };
+    }
+
     private void InstallPlayerContextMenu()
     {
         _playersList.PreviewMouseRightButtonDown += (_, e) =>
@@ -328,7 +342,7 @@ public sealed class ServerForm : Window
         menu.Closed += (_, _) => Dispatcher.BeginInvoke(new Action(() => _contextPlayerConnectionId = null),
             System.Windows.Threading.DispatcherPriority.Background);
 
-        var access = new MenuItem { Header = "Access" };
+        var access = new MenuItem { Header = "Access", Icon = MenuIcon("●", Brushes.DimGray) };
         for (byte i = 0; i <= 9; i++)
         {
             byte level = i;
@@ -342,15 +356,25 @@ public sealed class ServerForm : Window
             access.Items.Add(accessItem);
         }
 
-        var kick = new MenuItem { Header = "Kick" };
+        var kick = new MenuItem { Header = "Kick", Icon = MenuIcon("✖", Brushes.Firebrick) };
         kick.Click += (_, _) => KickSelectedPlayer();
-        var ban = new MenuItem { Header = "Ban" };
+        var ban = new MenuItem { Header = "Ban", Icon = MenuIcon("⊘", Brushes.Firebrick) };
         ban.Click += async (_, _) => await BanSelectedPlayerAsync();
 
         menu.Items.Add(access);
         foreach (var (label, mute, enabled) in new[] { ("Mute", true, true), ("Unmute", true, false), ("Jail", false, true), ("Release", false, false) })
         {
-            var item = new MenuItem { Header = label };
+            var item = new MenuItem
+            {
+                Header = label,
+                Icon = label switch
+                {
+                    "Mute" => MenuIcon("✕", Brushes.Firebrick),
+                    "Unmute" => MenuIcon("♪", Brushes.DimGray),
+                    "Jail" => MenuIcon("▥", Brushes.DimGray),
+                    _ => MenuIcon("🔓", Brushes.DimGray)
+                }
+            };
             item.Click += (_, _) =>
             {
                 var player = ContextPlayer();
