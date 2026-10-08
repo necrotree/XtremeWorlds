@@ -20,6 +20,9 @@ namespace XtremeWorlds.Client.Tools
         private readonly NumericStepper data3 = new NumericStepper() { MinValue = 0d, MaxValue = int.MaxValue };
         private readonly TileCanvas palette;
         public event Action<int, string>? PreviewChanged;
+        // Signals the runtime to activate the separate FNA game window once the
+        // user finishes choosing a brush in this Eto window.
+        public event Action? BrushSelected;
         public int MapId => Definition?.Id ?? -1;
         private int anchorX;
         private int anchorY;
@@ -121,7 +124,12 @@ namespace XtremeWorlds.Client.Tools
                 this.owner = owner;
                 MouseDown += Down;
                 MouseMove += MovePointer;
-                MouseUp += (sender, args) => owner.selecting = false;
+                MouseUp += (sender, args) =>
+                {
+                    if (!owner.selecting) return;
+                    owner.selecting = false;
+                    owner.BrushSelected?.Invoke();
+                };
             }
             private Bitmap Sheet(int number)
             {
