@@ -67,6 +67,8 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         _connection = new GameClientConnection(_graphics);
         _connection.PacketReceived += OnNetworkPacket;
         _tools = new XtremeWorlds.Client.Tools.ToolController((command, arguments) => SendPacket(command, arguments), MainGameAction);
+        _tools.MapEditorActiveChanged += active => _graphics.MapEditorActive = active;
+        _tools.MapPreviewChanged += (mapId, json) => _graphics.SetMapEditorPreview(mapId, json);
         Website = "https://www.xtremeworlds.com";
         CurrentSex = 1;
         _network.Connected += (_, _) => Request("Connected", _serverHost, _serverPort);
@@ -215,6 +217,10 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
         if (_connection.HandleAction(actionName, arguments)) { Request(actionName, arguments); return; }
         switch (actionName)
         {
+            case "PaintMapTile":
+                if (arguments.Length >= 3 && arguments[0] is int paintX && arguments[1] is int paintY && arguments[2] is bool erase)
+                    Ui(() => _tools.PaintMapTile(paintX, paintY, erase));
+                return;
             case "Form_Load":
                 _graphics.Start(FnaGraphicsService.InterfaceWidth, FnaGraphicsService.InterfaceHeight);
                 break;
