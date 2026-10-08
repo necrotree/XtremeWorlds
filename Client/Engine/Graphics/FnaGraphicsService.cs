@@ -609,6 +609,8 @@ public sealed class FnaGraphicsService : IDisposable
 
         private void HandleLogicalClick(int x, int y)
         {
+            // Browser UI controls live in Blazor; avoid invisible old-menu hotspots.
+            if (_frameReady is not null) return;
                 if (StatsButton.Contains(x, y)) TogglePanel(MainGamePanel.Character);
                 else if (InventoryButton.Contains(x, y)) TogglePanel(MainGamePanel.Inventory);
                 else if (GuildButton.Contains(x, y)) TogglePanel(MainGamePanel.Guild);
@@ -800,9 +802,13 @@ public sealed class FnaGraphicsService : IDisposable
                 null,
                 transform);
 
-            var background = GetMainGameTexture("game.jpg");
-            if (background is not null)
-                _spriteBatch.Draw(background, new Rectangle(0, 0, LogicalWidth, LogicalHeight), Color.White);
+            // The browser hosts its HUD in Blazor. Draw the classic skin only for native clients.
+            if (_frameReady is null)
+            {
+                var background = GetMainGameTexture("game.jpg");
+                if (background is not null)
+                    _spriteBatch.Draw(background, new Rectangle(0, 0, LogicalWidth, LogicalHeight), Color.White);
+            }
 
             if (_pixel is not null)
                 _spriteBatch.Draw(_pixel, GameViewport, Color.Black);
@@ -822,11 +828,14 @@ public sealed class FnaGraphicsService : IDisposable
                 null,
                 transform);
 
-            DrawActivePanel();
-            if (_activePanel == MainGamePanel.Character)
-                DrawCharacterFields();
-            DrawGauges();
-            DrawChat();
+            if (_frameReady is null)
+            {
+                DrawActivePanel();
+                if (_activePanel == MainGamePanel.Character)
+                    DrawCharacterFields();
+                DrawGauges();
+                DrawChat();
+            }
             _spriteBatch.End();
 
             if (_captureTarget != null)
