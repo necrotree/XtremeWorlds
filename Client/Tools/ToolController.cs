@@ -19,6 +19,7 @@ namespace XtremeWorlds.Client.Tools
         private bool disposed;
         public event Action<int, string?>? MapPreviewChanged;
         public event Action<bool>? MapEditorActiveChanged;
+        public event Action? MapBrushSelected;
 
         public void PaintMapTile(int x, int y, bool erase)
         {
@@ -271,6 +272,7 @@ namespace XtremeWorlds.Client.Tools
             if (editor is frmMapEditor mapEditor)
             {
                 mapEditor.PreviewChanged += (id, json) => MapPreviewChanged?.Invoke(id, json);
+                mapEditor.BrushSelected += () => MapBrushSelected?.Invoke();
                 MapEditorActiveChanged?.Invoke(true);
                 mapEditor.PublishPreview();
             }
