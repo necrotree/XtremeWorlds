@@ -498,7 +498,13 @@ public sealed class FnaGraphicsService : IDisposable
                 return;
             }
 
-            while (_scenes.TryDequeue(out var scene)) _scene = scene;
+            while (_scenes.TryDequeue(out var scene))
+            {
+                // Incremental updates can omit tiles. Never discard the current map.
+                if (scene.Map is null && _scene?.Map is not null && scene.MapId == _scene.MapId)
+                    scene.Map = _scene.Map;
+                _scene = scene;
+            }
             if (_scene != null)
             {
                 var poses = _networkState.Sample(NetworkClock.Seconds);
