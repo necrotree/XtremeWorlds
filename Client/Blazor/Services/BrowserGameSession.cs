@@ -23,6 +23,8 @@ public sealed class BrowserGameSession : IDisposable
         {
             if (world.Map is { Tiles.Count: 192 })
             {
+                if (!string.IsNullOrWhiteSpace(editedMapName) && world.Map is not null)
+                    world.Map.Name = editedMapName;
                 LatestWorld = world;
                 MapLoaded = true;
                 if (InGame) Changed?.Invoke();
@@ -35,6 +37,8 @@ public sealed class BrowserGameSession : IDisposable
         };
         connection.WorldSceneTransform = ApplyEditorMap;
     }
+    private string? editedMapName;
+    public string CurrentMapName => editedMapName ?? LatestWorld?.Map?.Name ?? "Map";
     public FnaWorldScene? LatestWorld { get; private set; }
     public bool MapLoaded { get; private set; }
     public bool GameReady => InGame && MapLoaded;
@@ -45,11 +49,14 @@ public sealed class BrowserGameSession : IDisposable
         if (patch.Tiles is null || patch.Width != 16 || patch.Height != 12 || patch.Tiles.Count != 192)
             throw new ArgumentException("Current game world expects a 16 x 12 map.");
         editorPatch = patch;
+        if (!string.IsNullOrWhiteSpace(patch.Name)) editedMapName = patch.Name.Trim();
         if (LatestWorld is { } world) renderer.World(ApplyEditorMap(world));
+        Changed?.Invoke();
     }
     private FnaWorldScene ApplyEditorMap(FnaWorldScene scene)
     {
         if (editorPatch is not { } patch || scene.Map is not { } map || patch.Tiles is null || patch.Tiles.Count != map.Tiles.Count) return scene;
+        if (!string.IsNullOrWhiteSpace(editedMapName)) map.Name = editedMapName;
         for (int i = 0; i < map.Tiles.Count; i++)
         {
             var t = map.Tiles[i]; var p = patch.Tiles[i];
@@ -64,6 +71,7 @@ public sealed class BrowserGameSession : IDisposable
     }
     public sealed class EditorMapPatch
     {
+        public string Name { get; set; } = string.Empty;
         public int Width {get;set;}
         public int Height {get;set;}
         public List<EditorTilePatch>? Tiles {get;set;}
@@ -234,6 +242,7 @@ public sealed class BrowserGameSession : IDisposable
         OfflineMode = false;
         LatestWorld = null;
         MapLoaded = false;
+        editedMapName = null;
         editorPatch = null;
         connection.Reset();
         renderer.Stop();
