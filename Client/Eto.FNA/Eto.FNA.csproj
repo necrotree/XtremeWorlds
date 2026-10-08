@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Eto.FNA</RootNamespace>
+    <PackageId>Eto.Platform.FNA</PackageId>
+    <Description>Experimental FNA-backed rendering transport for Eto.Forms in XtremeWorlds.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Eto.Forms" Version="2.12.0" />
+    <PackageReference Include="FNA.NET" Version="2.2.11.2602" />
+  </ItemGroup>
+</Project>
