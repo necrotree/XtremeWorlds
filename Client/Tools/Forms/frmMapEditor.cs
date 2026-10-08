@@ -106,6 +106,10 @@ namespace XtremeWorlds.Client.Tools
             }
             if (publish) NotifyPreview();
         }
+        // Called only by the Eto UI thread after a paint command. The immutable
+        // JSON string is safe to hand to the FNA render-thread command queue.
+        public string? CaptureMapSnapshot() => working?.ToJsonString();
+
         public void PublishPreview() => NotifyPreview();
 
         private void NotifyPreview()
