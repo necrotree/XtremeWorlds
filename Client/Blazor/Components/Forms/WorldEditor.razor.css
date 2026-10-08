@@ -66,27 +66,12 @@
 .world-editor-header .close-cross::before{transform:rotate(45deg)}
 .world-editor-header .close-cross::after{transform:rotate(-45deg)}
 
-/* Responsive full-width map canvas. One tile retains a square pixel-art footprint. */
-.world-editor-map{padding:0!important;overflow:hidden;min-width:0;--editor-cell:max(32px,calc((100cqw - 2px) / var(--map-columns,16)));container-type:inline-size}
-.world-editor-map .editor-map-viewport{width:100%;height:100%;flex:1 1 auto;min-height:0;overflow:auto;border:0!important;overscroll-behavior:contain}
-.world-editor-map .editor-map-grid{width:max-content!important;grid-auto-rows:var(--editor-cell)!important;gap:0!important;align-content:start}
-.world-editor-map .editor-map-grid .editor-map-cell{width:var(--editor-cell)!important;min-width:var(--editor-cell)!important;max-width:var(--editor-cell)!important;height:var(--editor-cell)!important;min-height:var(--editor-cell)!important;max-height:var(--editor-cell)!important;image-rendering:pixelated}
+/* Fixed 32px tile grid: viewport scrolls instead of expanding sprites. */
+.world-editor-map{padding:0!important;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.world-editor-map .editor-map-viewport{display:block;flex:1 1 auto;width:100%;min-height:384px;overflow:auto;background:#17130e;border:0}
+.world-editor-map .editor-map-grid{display:grid!important;grid-auto-flow:row;grid-auto-rows:32px!important;gap:0!important;min-height:384px;width:max-content}
+.world-editor-map .editor-map-grid .editor-map-cell{display:block;width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;max-height:32px!important;image-rendering:pixelated;background-repeat:no-repeat}
 .world-editor-map .editor-help,.world-editor-map .editor-message{padding:0 12px}
-
-/* Fix: --map-columns belongs to the grid, so the sizing variable must also
-   be calculated on the grid. Previously the parent inherited an undefined
-   value, invalidating cell widths and making the entire preview disappear. */
-.world-editor-map .editor-map-grid {
-  --editor-cell: max(32px, calc((100cqw - 2px) / var(--map-columns, 16)));
-  grid-template-columns:repeat(var(--map-columns, 16),var(--editor-cell))!important;
-  grid-auto-rows:var(--editor-cell)!important;
-  width:max-content!important;
-  min-height:384px;
-}
-.world-editor-map .editor-map-viewport {
-  min-height:384px;
-  background:#17130e;
-}
 
 /* One rectangular selection outline spanning the complete brush. */
 .world-editor .editor-palette{position:relative}
