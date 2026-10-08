@@ -108,20 +108,26 @@ internal static class WpfServerSkin
 
     public static void StylePlayerContextMenu(ContextMenu menu)
     {
-        menu.Background = PanelAlt;
-        menu.Foreground = Gold;
-        menu.BorderBrush = Bronze;
+        // Keep WPF's native popup and MenuItem templates for reliable mouse,
+        // submenu and keyboard behavior. Use a clean, light menu palette that
+        // contrasts with the dark server window instead of bordered dark rows.
+        var surface = Brushes.White;
+        var text = Brush(32, 32, 36);
+        menu.Background = surface;
+        menu.Foreground = text;
+        menu.BorderBrush = Brush(206, 206, 211);
         menu.BorderThickness = new Thickness(1);
-        menu.Padding = new Thickness(2);
-        menu.FontFamily = new FontFamily("Rockwell");
+        menu.Padding = new Thickness(3);
+        menu.FontFamily = new FontFamily("Segoe UI");
+        menu.FontSize = 13;
 
-        // Use WPF's native MenuItem templates so menu focus, submenu hover,
-        // keyboard navigation and click routing remain functional.
         var itemStyle = new Style(typeof(MenuItem));
-        itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, PanelAlt));
-        itemStyle.Setters.Add(new Setter(Control.ForegroundProperty, Gold));
-        itemStyle.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Rockwell")));
-        itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(8, 4, 8, 4)));
+        itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, surface));
+        itemStyle.Setters.Add(new Setter(Control.ForegroundProperty, text));
+        itemStyle.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Segoe UI")));
+        itemStyle.Setters.Add(new Setter(Control.FontSizeProperty, 13.0));
+        itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(9, 5, 12, 5)));
+        itemStyle.Setters.Add(new Setter(Control.MinHeightProperty, 28.0));
         menu.Resources[typeof(MenuItem)] = itemStyle;
     }
 
