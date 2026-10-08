@@ -201,3 +201,11 @@
 .world-editor .world-editor-map{min-width:0;flex:1;align-items:stretch}
 .world-editor .editor-map-grid .editor-preview-character{transform:scale(1.5);transform-origin:top left}
 @media(max-width:950px){.world-editor .world-editor-columns{grid-template-columns:180px minmax(300px,1fr)!important}.world-editor .world-editor-side:last-child{grid-column:1/-1}}
+
+/* Collision state stays functional; do not paint red outlines over map tiles. */
+.world-editor .editor-map-grid .editor-map-cell.blocked,
+.world-editor .editor-map-grid .editor-map-cell.event-cell {
+    box-shadow:none!important;
+    outline:none!important;
+    border:0!important;
+}
