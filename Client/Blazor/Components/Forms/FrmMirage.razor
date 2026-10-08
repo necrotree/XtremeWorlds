@@ -8,10 +8,11 @@
         <div class="game-overlay-header"><div class="character-card"><b>@CurrentPlayerName</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="Session.Disconnect">X</button></div></div>
     <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus; type to chat and press Enter to send."></canvas> 
         <section class="live-chat">
-            <strong>Realm Chat</strong>
+            <div class="chat-channel-bar"><strong>Realm Chat</strong><select aria-label="Chat channel" @bind="chatChannel"><option>Map</option><option>Global</option><option>Guild</option><option>Party</option><option>Private</option></select></div>
             <div class="live-chat-history">
                 @foreach(var line in Session.ChatMessages.TakeLast(30)) { <p>@line</p> }
             </div>
+            @if(chatChannel == "Private") { <input class="chat-recipient" @bind="chatRecipient" placeholder="Recipient player name" /> }
             <form @onsubmit="SendChat" @onsubmit:preventDefault>
                 <input @bind="chatText" placeholder="Type a message..." maxlength="240" />
                 <button type="submit">Send</button>
@@ -25,7 +26,9 @@
 
 @code {
     private string chatText = "";
-    private void SendChat() { Session.SendChat(chatText); chatText = ""; }
+    private string chatChannel = "Map";
+    private string chatRecipient = "";
+    private void SendChat() { Session.SendChat(chatText, chatChannel, chatRecipient); chatText = ""; }
     private bool editorOpen;
     private string CurrentPlayerName => string.IsNullOrWhiteSpace(Session.LatestWorld?.Player?.Name) ? "Player" : Session.LatestWorld.Player.Name;
     private string lastPlayerName = "";
