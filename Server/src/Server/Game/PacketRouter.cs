@@ -264,7 +264,7 @@ namespace Server
             {
                 if (!File.Exists(path)) { Error("Graphic not found on the server."); return; }
                 byte[] data = File.ReadAllBytes(path);
-                if (data.Length > 262144) { Error("Graphic exceeds 256 KiB."); return; }
+                if (data.Length > 4194304) { Error("Graphic exceeds 4 MiB."); return; }
                 _network.SendText(id, PacketCodec.Compose("gfxdata", name, Convert.ToBase64String(data)));
                 return;
             }
@@ -272,10 +272,10 @@ namespace Server
             byte[] png;
             try { png = Convert.FromBase64String(fields[2]); }
             catch (FormatException) { Error("Invalid graphic data."); return; }
-            if (png.Length is < 24 or > 262144 ||
+            if (png.Length is < 24 or > 4194304 ||
                 !png.AsSpan(0, 8).SequenceEqual(new byte[] {137,80,78,71,13,10,26,10}))
             {
-                Error("Only PNG images up to 256 KiB are supported.");
+                Error("Only PNG images up to 4 MiB are supported.");
                 return;
             }
             Directory.CreateDirectory(folder);
