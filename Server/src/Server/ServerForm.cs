@@ -27,6 +27,7 @@ public sealed class ServerForm : Window
     private CancellationTokenSource? _runCts;
     private Task? _runTask;
     private List<PlayerSessionInfo> _sessions = new();
+    private int? _contextPlayerConnectionId;
     private bool _serverLogEnabled = true;
 
     public ServerForm(ServerSettings settings)
@@ -278,7 +279,14 @@ public sealed class ServerForm : Window
     private void RefreshSessions()
     {
         _sessions = _host?.GetSessions().ToList() ?? new List<PlayerSessionInfo>();
+        var selectedConnectionId = SelectedPlayer()?.ConnectionId;
         _playersList.ItemsSource = _sessions;
+        if (selectedConnectionId is not null)
+        {
+            var matchingPlayer = _sessions.FirstOrDefault(p => p.ConnectionId == selectedConnectionId.Value);
+            if (matchingPlayer is not null)
+                _playersList.SelectedItem = matchingPlayer;
+        }
         _accountsList.ItemsSource = _sessions
             .Where(s => !string.IsNullOrWhiteSpace(s.Login))
             .Select(s => s.Login)
@@ -288,6 +296,13 @@ public sealed class ServerForm : Window
     }
 
     private PlayerSessionInfo? SelectedPlayer() => _playersList.SelectedItem as PlayerSessionInfo;
+
+    private PlayerSessionInfo? ContextPlayer()
+    {
+        if (_contextPlayerConnectionId is not int connectionId)
+            return SelectedPlayer();
+        return _sessions.FirstOrDefault(player => player.ConnectionId == connectionId);
+    }
 
     private void InstallPlayerContextMenu()
     {
@@ -309,6 +324,9 @@ public sealed class ServerForm : Window
             Padding = new Thickness(2)
         };
         WpfServerSkin.StylePlayerContextMenu(menu);
+        menu.Opened += (_, _) => _contextPlayerConnectionId = SelectedPlayer()?.ConnectionId;
+        menu.Closed += (_, _) => Dispatcher.BeginInvoke(new Action(() => _contextPlayerConnectionId = null),
+            System.Windows.Threading.DispatcherPriority.Background);
 
         var access = new MenuItem { Header = "Access" };
         for (byte i = 0; i <= 9; i++)
@@ -335,7 +353,7 @@ public sealed class ServerForm : Window
             var item = new MenuItem { Header = label };
             item.Click += (_, _) =>
             {
-                var player = SelectedPlayer();
+                var player = ContextPlayer();
                 if (player is null || _host is null) return;
                 if (mute) _host.SetPlayerMuted(player.ConnectionId, enabled);
                 else _host.SetPlayerJailed(player.ConnectionId, enabled);
@@ -356,7 +374,7 @@ public sealed class ServerForm : Window
 
     private void KickSelectedPlayer()
     {
-        var player = SelectedPlayer();
+        var player = ContextPlayer();
         if (player is null || _host is null)
             return;
         _host.KickPlayer(player.ConnectionId);
@@ -364,7 +382,7 @@ public sealed class ServerForm : Window
 
     private async Task BanSelectedPlayerAsync()
     {
-        var player = SelectedPlayer();
+        var player = ContextPlayer();
         if (player is null || _host is null)
             return;
         if (MessageBox.Show(this, $"Ban {player.DisplayName}?", "Ban Player", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
@@ -373,7 +391,7 @@ public sealed class ServerForm : Window
 
     private async Task SetSelectedAccessAsync(byte access)
     {
-        var player = SelectedPlayer();
+        var player = ContextPlayer();
         if (player is null || _host is null)
             return;
         await _host.SetPlayerAccessAsync(player.ConnectionId, access);
