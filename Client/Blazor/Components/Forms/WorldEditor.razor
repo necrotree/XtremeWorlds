@@ -26,9 +26,8 @@
         </div></div>
       </aside>
       <main class="world-editor-map">
-        <div class="editor-map-toolbar"><strong>@map.Name</strong><span>@map.Width × @map.Height</span><span>@tool</span></div>
         <div class="editor-map-viewport" @onmouseup="StopPaint" @onmouseleave="StopPaint">
-          <div class="editor-map-grid" style="@($"grid-template-columns:repeat({map.Width},32px)")" @oncontextmenu:preventDefault>
+          <div class="editor-map-grid" style="@($"--map-columns:{map.Width};grid-template-columns:repeat({map.Width},var(--editor-cell))")" @oncontextmenu:preventDefault>
             @for (var y=0;y<map.Height;y++) {for(var x=0;x<map.Width;x++) {
               var px=x;var py=y;var cell=map.Tiles[y*map.Width+x];var ev=map.Events.FirstOrDefault(e=>e.X==px&&e.Y==py);
               <button class="editor-map-cell @(cell.Blocked?"blocked":"") @(ev is not null?"event-cell":"")" title="@($"({px},{py})")"
@@ -94,7 +93,7 @@
     var index=layer switch {"Mask"=>cell.Mask,"Fringe"=>cell.Fringe,_=>cell.Ground};
     var sheet=layer switch {"Mask"=>cell.MaskTileset,"Fringe"=>cell.FringeTileset,_=>cell.GroundTileset};
     if(index<0){index=cell.Ground;sheet=cell.GroundTileset;}
-    return $"background-image:url('/gfx/tiles{sheet}.png');{Background(index)}";
+    return $"background-image:url('/gfx/tiles{sheet}.png');background-size:calc(var(--editor-cell) * 12) auto;background-position:calc(var(--editor-cell) * -{index%12}) calc(var(--editor-cell) * -{index/12})";
   }
   protected override void OnInitialized(){
     LoadWorldMap();
