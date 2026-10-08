@@ -7,6 +7,8 @@
     <h3>@(TilesetNumber > 0 ? "Tileset Graphics" : "Event Graphics")</h3>
     <p>Manage graphics on the game server (administrator access level 9).</p>
     @if (TilesetNumber == 0) {
+    @if(TilesetNumber == 0)
+    {
     <label>Graphic <select @bind="assetType">
         <option value="sprites.png">Player sprites</option>
         <option value="items.png">Items</option>
@@ -45,13 +47,15 @@
 
 @code {
     [Parameter] public int TilesetNumber { get; set; }
+    [Parameter] public int TilesetNumber { get; set; }
+    [Parameter] public bool EventMode { get; set; }
     private bool browsing;
     private string assetType="sprites.png";
     private int tileset=1;
     private string status="";
     private byte[]? lastExport;
     private string CurrentName => TilesetNumber > 0 ? $"tiles{Math.Clamp(TilesetNumber,1,999)}.png" : assetType=="tiles" ? $"tiles{Math.Clamp(tileset,1,999)}.png" : assetType;
-    protected override void OnInitialized() => Session.Changed += Update;
+    protected override void OnInitialized() { Session.Changed += Update; if(EventMode) assetType="npcs.png"; }
     private void Update() => _ = InvokeAsync(StateHasChanged);
     private async Task ImportGraphic(InputFileChangeEventArgs args)
     {
