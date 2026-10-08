@@ -20,7 +20,7 @@ namespace XtremeWorlds.Client.Tools
         private readonly NumericStepper data2 = new NumericStepper() { MinValue = 0d, MaxValue = int.MaxValue };
         private readonly NumericStepper data3 = new NumericStepper() { MinValue = 0d, MaxValue = int.MaxValue };
         private readonly TileCanvas palette;
-        private readonly TileCanvas canvas;
+        public event Action<int, string>? PreviewChanged;
         private int anchorX;
         private int anchorY;
         private int brushX;
@@ -31,8 +31,8 @@ namespace XtremeWorlds.Client.Tools
         public frmMapEditor() : base("map")
         {
             Title = "Map Editor";
-            ClientSize = new Size(960, 650);
-            MinimumSize = ClientSize;
+            ClientSize = new Size(520, 650);
+            MinimumSize = new Size(470, 490);
             var layout = new DynamicLayout() { Padding = 10, Spacing = new Size(8, 8) };
             var name = new TextBox();
             RegisterControl("txtName", name);
@@ -48,13 +48,12 @@ namespace XtremeWorlds.Client.Tools
             attributeLayer.Items.Add("Attributes 2");
             attributeLayer.SelectedIndex = 0;
             palette = new TileCanvas(this, true) { Size = new Size(384, 1024) };
-            canvas = new TileCanvas(this, false) { Size = new Size(512, 384) };
             var scroll = new Scrollable() { Content = palette, Size = new Size(408, 400) };
             layout.AddRow(new Label() { Text = "Name" }, name, new Label() { Text = "Tileset" }, tileset);
             layout.AddRow(new Label() { Text = "Layer" }, layer, mode, attributeLayer);
             layout.AddRow(new Label() { Text = "Data 1" }, data1, new Label() { Text = "Data 2" }, data2, new Label() { Text = "Data 3" }, data3);
-            layout.AddRow(scroll, canvas);
-            layout.AddRow(new Label() { Text = "Drag in the palette to select a block. Left click paints; right click erases the same area." });
+            layout.AddRow(scroll);
+            layout.AddRow(new Label() { Text = "Select tiles here, then left-drag to paint or right-drag to erase in the game window." });
             var fill = new Button() { Text = "Fill layer" };
             fill.Click += (sender, args) => { for (int y = 0; y <= MapEditing.Height - 1; y++) { for (int x = 0; x <= MapEditing.Width - 1; x++) PaintAt(x, y, false, true); } };
             var ok = new Button() { Text = "Save" };
@@ -75,7 +74,7 @@ namespace XtremeWorlds.Client.Tools
             working = (JsonObject)data.DeepClone();
             MapEditing.PreserveTilesets(working);
             palette.LoadTileset(tileset.Value);
-            canvas.Invalidate();
+            NotifyPreview();
         }
         protected override void StoreAdditional(JsonObject data)
         {
@@ -83,7 +82,7 @@ namespace XtremeWorlds.Client.Tools
             if (working["LayerTileset"] is not null)
                 data["LayerTileset"] = working["LayerTileset"].DeepClone();
         }
-        private void PaintAt(int x, int y, bool isErase, bool fill = false)
+        public void PaintAt(int x, int y, bool isErase, bool fill = false)
         {
             if (working is null)
                 return;
@@ -97,16 +96,20 @@ namespace XtremeWorlds.Client.Tools
             }
             canvas.Invalidate();
         }
+        private void NotifyPreview()
+        {
+            if (working is not null && Definition is not null)
+                PreviewChanged?.Invoke(Definition.Id, working.ToJsonString());
+        }
+
         private class TileCanvas : Drawable
         {
             private readonly frmMapEditor owner;
-            private readonly bool isPalette;
             private readonly Dictionary<int, Bitmap> sheets = new Dictionary<int, Bitmap>();
             private int paletteSheet;
             public TileCanvas(frmMapEditor owner, bool isPalette)
             {
                 this.owner = owner;
-                this.isPalette = isPalette;
                 MouseDown += Down;
                 MouseMove += MovePointer;
                 MouseUp += (sender, args) => owner.selecting = false;
@@ -137,7 +140,6 @@ namespace XtremeWorlds.Client.Tools
             {
                 int x = (int)Math.Round(Math.Floor((double)(args.Location.X / 32f)));
                 int y = (int)Math.Round(Math.Floor((double)(args.Location.Y / 32f)));
-                if (isPalette)
                 {
                     if ((args.Buttons & MouseButtons.Primary) == 0)
                         return;
@@ -153,10 +155,7 @@ namespace XtremeWorlds.Client.Tools
                     owner.selecting = true;
                     Invalidate();
                 }
-                else
-                {
-                    owner.PaintAt(x, y, (args.Buttons & MouseButtons.Alternate) != 0);
-                }
+
             }
             private void MovePointer(object sender, MouseEventArgs args)
             {
@@ -179,10 +178,7 @@ namespace XtremeWorlds.Client.Tools
                     owner.brushHeight = Math.Abs(y - owner.anchorY) + 1;
                     Invalidate();
                 }
-                else
-                {
-                    owner.PaintAt(x, y, (args.Buttons & MouseButtons.Alternate) != 0);
-                }
+
             }
             protected override void OnPaint(PaintEventArgs e)
             {
@@ -197,25 +193,7 @@ namespace XtremeWorlds.Client.Tools
                     e.Graphics.DrawRectangle(Colors.Red, owner.brushX * 32, owner.brushY * 32, owner.brushWidth * 32, owner.brushHeight * 32);
                     return;
                 }
-                if (owner.working is null)
-                    return;
-                var tiles = MapEditing.EnsureTiles(owner.working);
-                for (int i = 0, loopTo = tiles.Count - 1; i <= loopTo; i++)
-                {
-                    JsonObject tile = (JsonObject)tiles[i];
-                    for (int layerIndex = 0, loopTo1 = MapEditing.Layers.Length - 1; layerIndex <= loopTo1; layerIndex++)
-                    {
-                        int number = ToolSchema.Number(tile, MapEditing.Layers[layerIndex]);
-                        if (layerIndex != 0 && number == 0)
-                            continue;
-                        JsonArray sources = (JsonArray)tile["LayerTileset"];
-                        var bitmap = Sheet(Conversions.ToInteger(sources[layerIndex].ToString()));
-                        var source = new RectangleF(number % 12 * 32, number / 12 * 32, 32f, 32f);
-                        if (bitmap is not null && source.Bottom <= bitmap.Height)
-                            e.Graphics.DrawImage(bitmap, source, new RectangleF(i % 16 * 32, i / 16 * 32, 32f, 32f));
-                    }
-                    e.Graphics.DrawRectangle(Colors.Gray, i % 16 * 32, i / 16 * 32, 32f, 32f);
-                }
+
             }
             protected override void Dispose(bool disposing)
             {
