@@ -17,7 +17,7 @@
     private bool editorOpen;
     private string CurrentPlayerName => string.IsNullOrWhiteSpace(Session.LatestWorld?.Player?.Name) ? "Player" : Session.LatestWorld.Player.Name;
     private string lastPlayerName = "";
-    private string CurrentMapName => string.IsNullOrWhiteSpace(Session.LatestWorld?.Map?.Name) ? "Map" : Session.LatestWorld.Map.Name;
+    private string CurrentMapName => string.IsNullOrWhiteSpace(Session.CurrentMapName) ? "Map" : Session.CurrentMapName;
     private string lastMapName = "";
     private async Task ToggleEditor()
     {
