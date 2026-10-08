@@ -84,3 +84,14 @@
   pointer-events:none;
 }
 .world-editor .editor-palette .palette-cell.active{outline:none!important}
+
+/* Keyboard-controlled character preview layered over editable map tiles. */
+.world-editor .editor-map-grid{position:relative}
+.world-editor .editor-map-viewport:focus-visible{outline:2px solid #edc678;outline-offset:-2px}
+.world-editor .editor-preview-character{
+ position:absolute;z-index:5;width:48px;height:64px;
+ background-image:url('/gfx/sprites.png');background-repeat:no-repeat;
+ image-rendering:pixelated;pointer-events:none;
+}
+.world-editor .editor-play-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;background:#302519;color:#eacf91}
+.world-editor .editor-play-toolbar button{font-size:12px;padding:5px 8px}
