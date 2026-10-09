@@ -4,6 +4,7 @@ public sealed class FnaGameplayState
 {
     public bool IsChargingMana { get; set; }
     public bool CanEditMap { get; set; }
+    public int UnlockedBags { get; set; } = 1;
     public List<FnaQuestStatus> Quests { get; set; } = new();
     public int HP { get; set; }
     public int MP { get; set; }
