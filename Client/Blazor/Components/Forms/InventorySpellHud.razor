@@ -37,17 +37,18 @@
             </div>
             <div class="page-controls inventory-pages">
                 <button disabled="@(page == 0)" @onclick="PreviousBag" aria-label="Previous inventory bag">&#8249;</button>
-                <span>Page @(page + 1) / 5</span>
-                <button disabled="@(page == 4)" @onclick="NextBag" aria-label="Next inventory bag">&#8250;</button>
+                <span>Page @(page + 1) / 3</span>
+                <button disabled="@(page >= Math.Clamp(Session.Gameplay.UnlockedBags, 1, 3) - 1)" @onclick="NextBag" aria-label="Next inventory bag">&#8250;</button>
             </div>
             <div class="bag-tabs" aria-label="Inventory bags">
-                @for (var bag = 0; bag < 5; bag++)
+                @for (var bag = 0; bag < 3; bag++)
                 {
                     var bagIndex = bag;
-                    <button class="bag-tab bag-@(bagIndex + 1) @(page == bagIndex ? "active" : "")"
-                            aria-label="Bag @(bagIndex + 1)"
+                    <button class="bag-tab bag-@(bagIndex + 1) @(page == bagIndex ? "active" : "") @(bagIndex >= Session.Gameplay.UnlockedBags ? "locked" : "")"
+                            aria-label="@(bagIndex < Session.Gameplay.UnlockedBags ? $"Bag {bagIndex + 1}" : $"Unlock bag {bagIndex + 1}")"
                             aria-pressed="@(page == bagIndex)" @onclick="() => SelectBag(bagIndex)">
                         <span class="bag-icon" aria-hidden="true"></span>
+                        @if (bagIndex >= Session.Gameplay.UnlockedBags) { <span class="bag-lock" aria-hidden="true">&#128274;</span> }
                     </button>
                 }
             </div>
@@ -105,6 +106,7 @@
     private string lastHudTab = "inventory";
     protected override void OnParametersSet()
     {
+        if (page >= Math.Clamp(Session.Gameplay.UnlockedBags, 1, 3)) { page = 0; selectedItem = 0; }
         if (lastHudTab != activeTab) { lastHudTab = activeTab; collapsed = false; }
     }
     private FnaInventorySlot? SelectedItem => Session.Gameplay.Inventory.FirstOrDefault(i => i.Slot == selectedItem && i.Quantity > 0);
@@ -118,7 +120,18 @@
     private void ToggleCollapsed() => collapsed = !collapsed;
     private void PreviousBag() => SelectBag(page - 1);
     private void NextBag() => SelectBag(page + 1);
-    private void SelectBag(int bag) { page = Math.Clamp(bag, 0, 4); selectedItem = 0; }
+    private void SelectBag(int bag)
+    {
+        if (bag < 0 || bag > 2) return;
+        var unlocked = Math.Clamp(Session.Gameplay.UnlockedBags, 1, 3);
+        if (bag >= unlocked)
+        {
+            if (bag == unlocked) Session.GameplayAction("UnlockBag", bag + 1);
+            return;
+        }
+        page = bag;
+        selectedItem = 0;
+    }
     private void HandleInventoryKey(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
     {
         if (activeTab != "inventory" || collapsed || e.CtrlKey || e.AltKey || e.MetaKey || e.Repeat) return;
