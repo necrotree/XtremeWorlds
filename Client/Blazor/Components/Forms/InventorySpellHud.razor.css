@@ -59,3 +59,8 @@ header span { font-size:11px; color:#cbb88a; }
 .bag-3 .bag-icon { background: #777747; }
 .bag-4 .bag-icon { background: #506171; }
 .bag-5 .bag-icon { background: #755378; }
+
+.bag-tabs { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.bag-tab.locked { opacity: .75; position: relative; }
+.bag-lock { position: absolute; right: 4px; bottom: 3px; font-size: 12px; filter: grayscale(1); }
+.bag-tab.locked:hover { opacity: 1; }
