@@ -219,6 +219,9 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
             case "ToggleGuild":
                 Request("GuildInfo");
                 break;
+            case "SpellEditor":
+                ShowEditForm(new frmSpellEditor());
+                break;
             case "ShowOptions":
                 Ui(() => new frmOptions().Show());
                 break;
