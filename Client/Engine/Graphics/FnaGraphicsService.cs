@@ -740,7 +740,7 @@ public sealed class FnaGraphicsService : IDisposable
                 else if (_activePanel == MainGamePanel.Inventory && TryGetInventorySlot(x, y, out var inventorySlot))
                     _action("UseInventoryItem", new object[] { inventorySlot });
                 else if (_activePanel == MainGamePanel.Skills && TryGetSkillSlot(x, y, out var skillSlot))
-                    _action("CastSpell", new object[] { skillSlot, _selectedTarget() });
+                    _action("CastSpell", new object[] { skillSlot });
                 else if (_activePanel == MainGamePanel.Character && CanTrain() && TrainStrengthButton.Contains(x, y)) _action("TrainStat", new object[] { 0 });
                 else if (_activePanel == MainGamePanel.Character && CanTrain() && TrainDefenseButton.Contains(x, y)) _action("TrainStat", new object[] { 1 });
                 else if (_activePanel == MainGamePanel.Character && CanTrain() && TrainMagicButton.Contains(x, y)) _action("TrainStat", new object[] { 2 });
@@ -829,6 +829,11 @@ public sealed class FnaGraphicsService : IDisposable
                 if (key == Keys.F2)
                 {
                     _action("ShowAdminPanel", Array.Empty<object>());
+                    continue;
+                }
+                if (key == Keys.F3)
+                {
+                    _action("SpellEditor", Array.Empty<object>());
                     continue;
                 }
 
