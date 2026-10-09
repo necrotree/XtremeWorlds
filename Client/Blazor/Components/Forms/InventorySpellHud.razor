@@ -18,12 +18,11 @@
         {
             <header><strong>Inventory</strong><span>@Session.Gameplay.Inventory.Count(i => i.Quantity > 0) / 75 slots</span></header>
             <div class="inventory-grid" aria-label="Inventory slots">
-                @for (var n = page * 15 + 1; n <= page * 15 + 15; n++)
+                @for (var n = page * 25 + 1; n <= page * 25 + 25; n++)
                 {
                     var slot = n;
                     var item = Session.Gameplay.Inventory.FirstOrDefault(i => i.Slot == slot && i.Quantity > 0);
                     <button class="inventory-slot @(selectedItem == slot ? "selected" : "") @(item?.Equipped == true ? "equipped" : "")"
-                            title="@(item is null ? $"Empty slot {slot}" : $"{item.Name} ? {item.Quantity}")"
                             aria-label="@(item is null ? $"Empty slot {slot}" : $"Slot {slot}: {item.Name}, quantity {item.Quantity}{(item.Equipped ? ", equipped" : "")}")"
                             aria-pressed="@(selectedItem == slot)" @onclick="() => selectedItem = slot">
                         <span class="slot-number">@slot</span>
@@ -46,7 +45,7 @@
                 {
                     var bagIndex = bag;
                     <button class="bag-tab bag-@(bagIndex + 1) @(page == bagIndex ? "active" : "")"
-                            aria-label="Bag @(bagIndex + 1)" title="Bag @(bagIndex + 1)"
+                            aria-label="Bag @(bagIndex + 1)"
                             aria-pressed="@(page == bagIndex)" @onclick="() => SelectBag(bagIndex)">
                         <span class="bag-icon" aria-hidden="true"></span>
                     </button>
@@ -57,8 +56,6 @@
                 var ground = world.Items.Where(i => i.X == world.Player.X && i.Y == world.Player.Y).ToArray();
                 @if (ground.Length > 0) { <p class="ground-items">At your feet: @string.Join(", ",ground.Select(i => $"{i.Name} ? {i.Quantity}"))</p> }
             }
-            <div class="selection-detail" aria-live="polite">@(SelectedItem is { } selected ? $"{selected.Name} ? {selected.Quantity}{(selected.Equipped ? " ? Equipped" : "")}" : "Select an item")</div>
-            <p class="inventory-shortcuts">U: Use / Equip · D: Drop · E: Pick up</p>
         }
         else if (activeTab == "spells")
         {
