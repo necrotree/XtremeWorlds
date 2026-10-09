@@ -20,7 +20,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
+// Local development uses HTTP; redirect only when an HTTPS endpoint is configured.
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 
 app.UseWebSockets();
 app.UseAntiforgery();
