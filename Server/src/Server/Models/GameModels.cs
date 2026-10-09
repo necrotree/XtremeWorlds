@@ -45,6 +45,7 @@ namespace Server
         public int Speed { get; set; }
         public int Magic { get; set; }
         public int Points { get; set; }
+        public int UnlockedBags { get; set; } = 1;
         public int ArmorSlot { get; set; }
         public int WeaponSlot { get; set; }
         public int HelmetSlot { get; set; }
