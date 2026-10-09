@@ -109,6 +109,7 @@ namespace Server
                     case "useitem":
                     case "cast":
                     case "forgetspell":
+                    case "unlockbag":
                     case "getinv":
                     case "spells":
                     case "mapgetitem":
