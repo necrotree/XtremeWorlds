@@ -65,6 +65,7 @@ public sealed class ServerForm : Window
         _tabs.Items.Add(new TabItem { Header = "Game Information", Content = BuildGameInfoPage() });
 
         var root = new DockPanel { Background = WpfServerSkin.Window };
+        root.Margin = new Thickness(4);
         var menu = BuildMenu();
         DockPanel.SetDock(menu, Dock.Top);
         root.Children.Add(menu);
