@@ -325,6 +325,7 @@ public sealed class EngineGameClientRuntime : IGameClientRuntime, IDisposable
 
     private void SendChat(string text)
     {
+        if (_connection.HandleGameplayChat(text)) return;
         string trimmed = text.Trim();
         int separator = trimmed.IndexOf(' ');
         string command = (separator < 0 ? trimmed : trimmed[..separator]).ToLowerInvariant();

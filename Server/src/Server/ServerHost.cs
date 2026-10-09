@@ -276,6 +276,7 @@ public sealed class ServerHost : IDisposable
         }))
         {
             _router.RollbackConnection(connectionId);
+        _router.EndManaChargeOnDisconnect(connectionId);
             _network.Disconnect(connectionId);
         }
     }

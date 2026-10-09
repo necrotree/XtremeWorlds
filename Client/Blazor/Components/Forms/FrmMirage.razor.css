@@ -16,3 +16,26 @@ canvas:focus-visible { outline: 2px solid #95d5bf; }
 .live-chat .chat-channel-bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .live-chat .chat-channel-bar select{width:auto;max-width:55%;min-width:0;padding:3px;background:#30291b;color:#f3dfaf;border:1px solid #987440;font:inherit}
 .live-chat .chat-recipient{width:100%;box-sizing:border-box;margin:5px 0 0;padding:5px;background:#e9d7ad;color:#25190f}
+
+.fullscreen-status:empty { display: none; }
+.mirage:fullscreen { max-width: none; width: 100%; height: 100%; margin: 0; background: black; display: flex; align-items: center; justify-content: center; }
+.mirage:fullscreen .game-frame { flex: none; width: min(100vw, calc(100vh * 950 / 700)); border: 0; box-shadow: none; }
+.mirage:fullscreen .session-status, .mirage:fullscreen .return-menu { display: none; }
+.mirage:fullscreen .fullscreen-status { position: absolute; bottom: 0; color: white; }
+
+.gameplay-panel { position:absolute; z-index:25; top:65px; left:18px; width:min(500px,calc(100% - 36px)); max-height:calc(100% - 85px); overflow:auto; box-sizing:border-box; padding:16px; background:#211b13f5; color:#ffe8bb; border:2px solid #987440; }
+.gameplay-panel h3 { margin:14px 0 8px; }
+.gameplay-panel button { cursor:pointer; padding:6px; background:#77502e; color:#fff0c4; border:1px solid #b28a55; }
+.gameplay-panel .panel-close { float:right; }
+.gameplay-panel input { width:100%; box-sizing:border-box; }
+.emote-grid { display:grid; grid-template-columns:repeat(6,32px); gap:6px; }
+.emote-grid button { width:32px; height:32px; padding:0; border:0; background-color:black; image-rendering:pixelated; }
+.gameplay-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.item-icon { display:inline-block; width:32px; height:32px; background-color:white; image-rendering:pixelated; }
+.sprite-preview { width:48px; height:64px; background-color:black; image-rendering:pixelated; }
+
+@media(max-width:700px) { .live-chat { position:relative; right:auto; bottom:auto; width:100%; margin-top:8px; } }
+
+.character-card .sp { background:#938139; }
+
+.mana-charging { float:right; color:#d4f5ff; font-size:10px; }

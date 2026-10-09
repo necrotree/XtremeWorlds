@@ -1,0 +1,51 @@
+.inventory-spell-hud { position:absolute; z-index:4; top:110px; right:18px; bottom:235px; width:min(330px,34%); box-sizing:border-box; display:flex; flex-direction:column; padding:10px; color:#f3dfaf; background:#211b13f2; border:3px double #b28a55; box-shadow:0 5px 18px #0009; font:13px Georgia,serif; overflow:auto; }
+button { cursor:pointer; background:#4c3522; color:#fff0c4; border:1px solid #987440; padding:6px 8px; font:inherit; }
+button:hover:not(:disabled), button:focus-visible { background:#77502e; outline:2px solid #dfbe77; outline-offset:-2px; }
+button:disabled { opacity:.45; cursor:default; }
+.hud-tabs { display:flex; gap:5px; margin-bottom:10px; }
+.hud-tabs>button { flex:1; }
+.hud-tabs .hud-collapse { flex:0; }
+.hud-tabs .active { background:#77502e; border-color:#dfbe77; }
+header { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:10px; }
+header span { font-size:11px; color:#cbb88a; }
+.inventory-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+.inventory-slot { position:relative; display:flex; justify-content:center; align-items:center; min-height:48px; padding:3px; background:#15140f; }
+.inventory-slot.equipped { border-color:#95b875; }
+.inventory-slot.selected, .spell-slot.selected { box-shadow:inset 0 0 0 2px #dfbe77; background:#473923; }
+.item-art { flex:none; width:32px; height:32px; background-image:url('/gfx/items.png'); background-color:white; image-rendering:pixelated; }
+.slot-number { position:absolute; top:2px; left:3px; color:#bdab88; font:9px sans-serif; }
+.quantity { position:absolute; bottom:1px; right:3px; color:white; text-shadow:1px 1px black,-1px -1px black; font:11px sans-serif; }
+.equipment-marker { position:absolute; top:2px; right:3px; color:#b7e197; font:bold 10px sans-serif; }
+.page-controls { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
+.selection-detail { min-height:24px; overflow-wrap:anywhere; margin:4px 0; }
+.hud-actions { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+.hud-actions button { flex:1; }
+.spell-list { overflow:auto; min-height:70px; flex:1; display:flex; flex-direction:column; gap:5px; }
+.spell-slot { display:flex; text-align:left; align-items:center; gap:8px; }
+.spell-slot strong,.spell-slot small { display:block; }
+.spell-slot small { color:#cbb88a; margin-top:4px; }
+.spell-art { flex:none; width:32px; height:43px; background-image:url('/gfx/spells.png'); background-size:384px 1533.333333px; background-color:black; image-rendering:pixelated; }
+.target-label { display:block; margin-top:10px; }
+.target-label input { box-sizing:border-box; width:100%; margin-top:5px; padding:6px; color:#f3dfaf; background:#15140f; border:1px solid #987440; }
+.empty-state { color:#cbb88a; margin:8px 0; line-height:1.4; }
+@media(max-width:900px) { .inventory-spell-hud { top:100px; bottom:225px; width:37%; } .inventory-slot { min-height:40px; } }
+@media(max-width:700px) { .inventory-spell-hud { position:relative; top:auto; right:auto; bottom:auto; width:100%; margin-top:8px; max-height:400px; } .inventory-slot { min-height:48px; } }
+
+.inventory-spell-hud.collapsed { bottom:auto; }
+.inventory-spell-hud.collapsed .hud-tabs { margin-bottom:0; }
+
+.quest-list { overflow:auto; min-height:70px; }
+.quest-card { padding:8px 0; border-bottom:1px solid #987440; }
+.quest-card h4 { display:flex; gap:6px; align-items:center; margin:0; font-size:13px; }
+.quest-card p { margin:6px 0; line-height:1.35; }
+.quest-card small { display:block; color:#cbb88a; margin-bottom:7px; }
+.quest-progress { text-transform:capitalize; color:#dfbe77; }
+.quest-blip { display:inline-block; flex:none; width:32px; height:32px; background-image:var(--quest-art,url('/gfx/misc/questblips.png')); image-rendering:pixelated; background-position:0 -96px; }
+.quest-blip.active { background-position:0 0; }
+.quest-blip.ready { background-position:0 -32px; }
+.quest-blip.completed { opacity:.4; background-position:0 -64px; }
+
+.combat-controls { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:8px; color:#dfbe77; font-size:11px; }
+.ground-items { color:#b7e197; font-size:11px; margin:4px 0; }
+
+.mana-charge-hint { color:#95d5ef; font-size:11px; margin:0 0 8px; }

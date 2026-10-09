@@ -13,11 +13,49 @@ public sealed class BrowserGameSession : IDisposable
     private readonly BrowserFnaRenderer renderer;
     private readonly GameClientConnection connection;
     private MirrorTcpClient network => connection.Transport;
+    public XtremeWorlds.Networking.Content.ItemContent ItemDraft { get; private set; } = new();
+    public XtremeWorlds.Networking.Content.NpcContent NpcDraft { get; private set; } = new();
+    public List<XtremeWorlds.Networking.Content.ContentSummary> EditorCatalog { get; private set; } = new();
+    public string ContentEditorKind { get; private set; } = "";
+    public int ContentEditorId { get; private set; }
+    public int ContentEditorVersion { get; private set; }
+    public string ContentEditorMessage { get; private set; } = "";
+    public bool ContentEditorBusy { get; private set; }
+    public void LoadContentEditor(string kind,int id)
+    {
+        if (!InGame || !Gameplay.CanEditMap || !network.IsConnected || ContentEditorBusy) return;
+        ContentEditorBusy=true; ContentEditorMessage="Loading...";
+        network.SendText(PacketCodec.Build("requestcontenteditor",kind,id));
+    }
+    public void SaveContentEditor(string kind,int id,object value)
+    {
+        if (!InGame || !Gameplay.CanEditMap || !network.IsConnected || ContentEditorBusy) return;
+        ContentEditorBusy=true; ContentEditorMessage="Saving...";
+        network.SendText(PacketCodec.Build("savecontentdefinition",kind,id,JsonSerializer.Serialize(value)));
+    }
+    public void PlaceEditedNpc(int id)
+    {
+        if (!InGame || !Gameplay.CanEditMap || !network.IsConnected || ContentEditorBusy) return;
+        ContentEditorBusy=true; ContentEditorMessage="Adding NPC to map...";
+        network.SendText(PacketCodec.Build("placemapnpc","npc",id));
+    }
+    public string HudTab { get; set; } = "inventory";
+    public void SelectTarget(string name) => renderer.Graphics.SelectTarget(name);
+    public bool IsAutoAttacking => renderer.Graphics.IsAutoAttacking;
+    public string SelectedTargetName => LatestWorld?.ActorsInDrawOrder().FirstOrDefault(p => p.TargetKey == SelectedTarget)?.Name ?? SelectedTarget;
+    public void StopAttack() => renderer.Graphics.StopAutoAttack();
+    public string SelectedTarget => renderer.Graphics.SelectedTarget;
+    public FnaGameplayState Gameplay => renderer.Graphics.GameplayState;
+    public void GameplayAction(string action, params object[] arguments)
+    {
+        if (InGame && network.IsConnected) connection.HandleAction(action, arguments);
+    }
     public List<string> ChatMessages { get; } = new();
     public void SendChat(string message, string channel = "Map", string recipient = "")
     {
         message = message.Trim();
         if (!InGame || !network.IsConnected || message.Length == 0) return;
+        if (connection.HandleGameplayChat(message)) return;
         if (message.Length > 240) message = message[..240];
         string command = channel switch { "Global" => "globalmsg", "Guild" => "guildmsg", "Party" => "partymsg", "Private" => "privatemsg", _ => "saymsg" };
         if (command == "privatemsg" && string.IsNullOrWhiteSpace(recipient)) return;
@@ -166,6 +204,7 @@ public sealed class BrowserGameSession : IDisposable
         renderer.Update();
         while (renderer.TryAction(out var action))
         {
+            if (action.Action == "OpenQuest") { HudTab = "quests"; Changed?.Invoke(); }
             if (connection.HandleAction(action.Action, action.Args)) continue;
             switch (action.Action)
             {
@@ -200,6 +239,24 @@ public sealed class BrowserGameSession : IDisposable
             }
             switch (fields[0].ToLowerInvariant())
             {
+                case "contentdefinition":
+                    if (fields.Count==5 && int.TryParse(fields[2],out int definitionId))
+                        try {
+                            if (fields[1]=="item") ItemDraft=JsonSerializer.Deserialize<XtremeWorlds.Networking.Content.ItemContent>(fields[3])??new();
+                            else if (fields[1]=="npc") NpcDraft=JsonSerializer.Deserialize<XtremeWorlds.Networking.Content.NpcContent>(fields[3])??new();
+                            else break;
+                            EditorCatalog=JsonSerializer.Deserialize<List<XtremeWorlds.Networking.Content.ContentSummary>>(fields[4])??new();
+                            ContentEditorKind=fields[1]; ContentEditorId=definitionId; ContentEditorVersion++;
+                            ContentEditorBusy=false; if(ContentEditorMessage=="Loading...") ContentEditorMessage="Definition loaded.";
+                            Changed?.Invoke();
+                        } catch(JsonException) { ContentEditorBusy=false; ContentEditorMessage="Unable to read the definition."; }
+                    break;
+                case "contenteditorresult":
+                    ContentEditorBusy=false; ContentEditorMessage=fields.Count>4?fields[4]:"Editor request failed."; Changed?.Invoke(); break;
+                case "combatresult":
+                    if (fields.Count > 2) { ChatMessages.Add("[Combat] " + fields[2]); if (ChatMessages.Count > 100) ChatMessages.RemoveAt(0); Changed?.Invoke(); }
+                    break;
+                case "gameplaystate": Changed?.Invoke(); break;
                 case "alertmsg":
                     Status = fields.Count > 1 ? fields[1] : "Server alert";
                     break;
@@ -232,7 +289,7 @@ public sealed class BrowserGameSession : IDisposable
                 case "playermsg":
                     if (fields.Count > 1)
                     {
-                        renderer.Chat(fields[0], fields[1]);
+                        renderer.Chat(fields[0], fields.Count > 2 && fields[0] != "playermsg" ? fields[1] + ": " + fields[2] : fields[1]);
                         string channelName = fields[0].ToLowerInvariant() switch { "globalmsg" => "Global", "guildmsg" => "Guild", "partymsg" => "Party", "privatemsg" => "Private", "playermsg" => "System", _ => "Map" };
                         string line = fields.Count > 2 ? fields[1] + ": " + fields[2] : fields[1];
                         ChatMessages.Add("[" + channelName + "] " + line);
@@ -271,6 +328,9 @@ public sealed class BrowserGameSession : IDisposable
 
     public void Disconnect()
     {
+        ContentEditorBusy=false; ContentEditorKind=""; ContentEditorMessage=""; EditorCatalog.Clear();
+        HudTab = "inventory";
+        renderer.Graphics.SelectTarget("");
         InGame = false;
         OfflineMode = false;
         LatestWorld = null;

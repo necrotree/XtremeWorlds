@@ -34,6 +34,9 @@ namespace Server
         public byte Access { get; set; }
         public byte PK { get; set; }
         public int Guild { get; set; }
+        public int MaxHP { get; set; } = 100;
+        public int MaxMP { get; set; } = 50;
+        public int MaxSP { get; set; } = 100;
         public int HP { get; set; }
         public int MP { get; set; }
         public int SP { get; set; }
@@ -47,6 +50,7 @@ namespace Server
         public int HelmetSlot { get; set; }
         public int ShieldSlot { get; set; }
         public List<PlayerInventory> Inventory { get; set; } = new List<PlayerInventory>();
+        public Dictionary<int, PlayerQuestProgress> Quests { get; set; } = new();
         public List<int> Spells { get; set; } = new List<int>();
         public short Map { get; set; }
         public byte X { get; set; }
@@ -95,9 +99,19 @@ namespace Server
         public byte Indoors { get; set; }
         public byte Respawn { get; set; }
         public byte Tileset { get; set; }
+        public List<MapItemSpawn> ItemSpawns { get; set; } = new();
         public List<TileDefinition> Tiles { get; set; } = new List<TileDefinition>();
         public List<int> Npcs { get; set; } = new List<int>();
         public List<byte> LayerTileset { get; set; } = new List<byte>();
+    }
+
+    public class MapItemSpawn
+    {
+        public int ItemId { get; set; }
+        public int Quantity { get; set; } = 1;
+        public int X { get; set; }
+        public int Y { get; set; }
+        public double RespawnSeconds { get; set; } = 30;
     }
 
     public class ClassDefinition
@@ -114,40 +128,8 @@ namespace Server
         public byte Y { get; set; }
     }
 
-    public class ItemDefinition
-    {
-        public string Name { get; set; } = "";
-        public short Pic { get; set; }
-        public byte Type { get; set; }
-        public int Data1 { get; set; }
-        public int Data2 { get; set; }
-        public int Data3 { get; set; }
-        public short ClassReq { get; set; }
-        public short LevelReq { get; set; }
-        public short GuildReq { get; set; }
-        public short Sound { get; set; }
-    }
-
-    public class NpcDefinition
-    {
-        public string Name { get; set; } = "";
-        public string AttackSay { get; set; } = "";
-        public int MaxHP { get; set; }
-        public int GiveEXP { get; set; }
-        public int ShopCall { get; set; }
-        public short Sprite { get; set; }
-        public int SpawnSecs { get; set; }
-        public byte Behavior { get; set; }
-        public byte Range { get; set; }
-        public short DropChance { get; set; }
-        public int DropItem { get; set; }
-        public int DropItemValue { get; set; }
-        public short Strength { get; set; }
-        public short Defense { get; set; }
-        public short Speed { get; set; }
-        public short Magic { get; set; }
-        public byte Stationary { get; set; }
-    }
+    public class ItemDefinition : XtremeWorlds.Networking.Content.ItemContent { }
+    public class NpcDefinition : XtremeWorlds.Networking.Content.NpcContent { }
 
     public class ShopTrade
     {
@@ -170,6 +152,7 @@ namespace Server
 
     public class SpellDefinition
     {
+        public double CooldownSeconds { get; set; } = 1;
         public int DeliveryMode { get; set; }
         public int Arrow { get; set; }
         public int CastRange { get; set; } = 32;
@@ -202,8 +185,23 @@ namespace Server
         public List<string> Members { get; set; } = new List<string>();
     }
 
+    public class PlayerQuestProgress
+    {
+        public bool Completed { get; set; }
+    }
     public class QuestDefinition
     {
+        public string Description { get; set; } = "";
+        public int Map { get; set; } = 1;
+        public int X { get; set; } = 2;
+        public int Y { get; set; } = 2;
+        public int Sprite { get; set; }
+        public int RequiredItem { get; set; }
+        public int RequiredQuantity { get; set; } = 1;
+        public int RewardItem { get; set; }
+        public int RewardQuantity { get; set; } = 1;
+        public int RewardExperience { get; set; }
+        public int LevelReq { get; set; } = 1;
         public string Name { get; set; } = "";
         public List<string> Players { get; set; } = new List<string>();
     }

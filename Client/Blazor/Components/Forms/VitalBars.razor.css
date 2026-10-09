@@ -1,0 +1,4 @@
+.vital-bars { display:flex; flex-direction:column; gap:3px; margin-top:6px; }
+.vital-meter { position:relative; width:168px; max-width:100%; height:21px; background-image:var(--vital-art,url('/gfx/misc/bars.png')); background-size:100% 84px; background-position:0 -63px; image-rendering:pixelated; }
+.vital-fill { position:absolute; inset:0; background-image:var(--vital-art,url('/gfx/misc/bars.png')); background-size:100% 84px; image-rendering:pixelated; }
+.vital-label { position:absolute; inset:0; display:flex; justify-content:center; align-items:center; color:white; font:bold 10px sans-serif; text-shadow:1px 1px 2px black,-1px -1px 1px black; }

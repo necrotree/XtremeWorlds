@@ -50,7 +50,8 @@ static class MapRetrievalTest
         await Dispatch(PacketCodec.Compose("warpto", 9, 3, 4));
         if (player.Map != 9 || player.X != 3 || player.Y != 4 || player.PixelX != 96 || player.PixelY != 128)
             throw new Exception("Teleport must reset pixel and tile positions together.");
-        await Dispatch(PacketCodec.Compose("warptotile", 15, 11));
+        // The preceding map teleport already cached map 9; same-map teleports issue no DB request.
+        await router.HandleAsync(1, PacketCodec.Compose("warptotile", 15, 11));
         if (player.Map != 9 || player.X != 15 || player.Y != 11 || player.PixelX != 480 || player.PixelY != 352)
             throw new Exception("Tile teleport must use the current map and reset pixel positions.");
         await router.HandleAsync(1, PacketCodec.Compose("warptotile", 16, 12));

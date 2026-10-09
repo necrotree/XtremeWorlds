@@ -3,10 +3,10 @@
 @inject IJSRuntime JS
 
 <PageTitle>XtremeWorlds — frmMirage</PageTitle>
-<section class="mirage" aria-label="Game window">
+<section class="mirage" aria-label="Game window" @ref="gameWindow">
     <div class="game-frame">
-        <div class="game-overlay-header"><div class="character-card"><b>@CurrentPlayerName</b><div class="hp">Health</div><div class="mp">Spirit</div><div class="xp">Experience</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleEditor">Edit</button><button @onclick="Session.Disconnect">X</button></div></div>
-    <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus; type to chat and press Enter to send."></canvas> 
+        <div class="game-overlay-header"><div class="character-card"><b>@CurrentPlayerName</b><div class="hp">HP @Session.Gameplay.HP / @Session.Gameplay.MaxHP</div><div class="mp">MP @Session.Gameplay.MP / @Session.Gameplay.MaxMP @if (Session.Gameplay.IsChargingMana) { <span class="mana-charging" role="status">Charging</span> }</div><div class="sp">SP @Session.Gameplay.SP / @Session.Gameplay.MaxSP</div></div><strong class="map-name">@CurrentMapName</strong><div class="game-menu"><button @onclick="ToggleGameplay">Actions</button><button @onclick="ToggleEditor">Map editor</button>@if (Session.Gameplay.CanEditMap) { <button @onclick='() => OpenContentEditor("item")'>Items</button><button @onclick='() => OpenContentEditor("npc")'>NPCs</button> }<button @onclick="Session.Disconnect">X</button></div></div>
+    <canvas @ref="canvas" width="950" height="700" tabindex="0" aria-label="XtremeWorlds game. Click to focus. Right-click a target for autoattack; press E to pick up items; hold Space to charge mana."></canvas>
         <section class="live-chat">
             <div class="chat-channel-bar"><strong>Realm Chat</strong><select aria-label="Chat channel" @bind="chatChannel"><option>Map</option><option>Global</option><option>Guild</option><option>Party</option><option>Private</option></select></div>
             <div class="live-chat-history">
@@ -18,13 +18,56 @@
                 <button type="submit">Send</button>
             </form>
         </section>
+        @if (!editorOpen && !gameplayOpen && contentEditorKind.Length == 0) { <InventorySpellHud /> }
+        @if (gameplayOpen)
+        {
+            <section class="gameplay-panel" aria-label="Gameplay actions">
+                <button class="panel-close" @onclick="ToggleGameplay" aria-label="Close gameplay actions">X</button>
+                <p>HP @Session.Gameplay.HP / @Session.Gameplay.MaxHP ? MP @Session.Gameplay.MP / @Session.Gameplay.MaxMP ? SP @Session.Gameplay.SP / @Session.Gameplay.MaxSP</p>
+                <h3>Emotes</h3>
+                <div class="emote-grid">
+                    @for (var n = 0; n < 30; n++) { var id = n;
+                        <button title="Emote @(id + 1)" aria-label="Emote @(id + 1)" style="@EmoteStyle(id)" @onclick='() => Session.GameplayAction("SendEmote", id)'></button>
+                    }
+                </div>
+                <h3>Player sprite</h3>
+                <div class="sprite-preview" style="@SpriteStyle"></div>
+                <label>Sprite ID <input type="number" min="0" max="208" @bind="spriteId" /></label>
+                <button @onclick='() => Session.GameplayAction("SelectSprite", Math.Clamp(spriteId, 0, 208))'>Use sprite</button>
+            </section>
+        }
+        @if (contentEditorKind.Length > 0) { <ContentEditor Kind="@contentEditorKind" OnClose="CloseContentEditor" /> }
         @if (editorOpen) { <WorldEditor OnClose="ToggleEditor" /> }
     </div>
-    <p role="status">@Session.Status</p>
-    <button @onclick="Session.Disconnect">Return to main menu</button>
+    <p class="session-status" role="status">@Session.Status</p>
+    <p class="fullscreen-status" role="status"></p>
+    <button class="return-menu" @onclick="Session.Disconnect">Return to main menu</button>
 </section>
 
 @code {
+    private string contentEditorKind = "";
+    private void OpenContentEditor(string kind)
+    {
+        Session.Renderer.Graphics.StopManaCharging(); Session.Renderer.Graphics.StopAutoAttack();
+        editorOpen=false; gameplayOpen=false; contentEditorKind=kind;
+    }
+    private async Task CloseContentEditor()
+    {
+        contentEditorKind="";
+        if(module is not null) await module.InvokeVoidAsync("focusGame",canvas);
+    }
+    private bool gameplayOpen;
+    private int spriteId;
+    private void ToggleGameplay()
+    {
+        Session.Renderer.Graphics.StopManaCharging();
+        Session.Renderer.Graphics.StopAutoAttack();
+        contentEditorKind="";
+        gameplayOpen = !gameplayOpen;
+        if (gameplayOpen) { editorOpen = false; Session.GameplayAction("ToggleInventory"); }
+    }
+    private static string EmoteStyle(int id) => $"background-image:url('/gfx/emote.png');background-position:-{id % 6 * 32}px -{id / 6 * 32}px";
+    private string SpriteStyle => $"background-image:url('/gfx/sprites.png');background-position:-144px -{Math.Clamp(spriteId,0,208) * 64}px";
     private string chatText = "";
     private string chatChannel = "Map";
     private string chatRecipient = "";
@@ -35,9 +78,17 @@
     private string CurrentMapName => string.IsNullOrWhiteSpace(Session.CurrentMapName) ? "Map" : Session.CurrentMapName;
     private string lastMapName = "";
     private int lastChatCount;
+    private string lastTarget = "";
+    private bool lastAutoAttack;
+    private string lastHudTab = "";
+    private XtremeWorlds.Client.Engine.Graphics.FnaGameplayState? lastGameplay;
     private async Task ToggleEditor()
     {
+        Session.Renderer.Graphics.StopManaCharging();
+        Session.Renderer.Graphics.StopAutoAttack();
+        contentEditorKind="";
         editorOpen = !editorOpen;
+        gameplayOpen = false;
         if (!editorOpen && module is not null)
         {
             await InvokeAsync(StateHasChanged);
@@ -45,6 +96,7 @@
         }
     }
     private ElementReference canvas;
+    private ElementReference gameWindow;
     private IJSObjectReference? module;
     private DotNetObjectReference<FrmMirage>? reference;
     private readonly CancellationTokenSource cancellation = new();
@@ -54,18 +106,19 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        module = await JS.InvokeAsync<IJSObjectReference>("import", "./game-stream.js?v=3");
+        module = await JS.InvokeAsync<IJSObjectReference>("import", "./game-stream.js?v=7");
         reference = DotNetObjectReference.Create(this);
-        await module.InvokeVoidAsync("attach", canvas, reference, $"/game-frames/{Session.Renderer.StreamId}");
+        await module.InvokeVoidAsync("attach", canvas, reference, $"/game-frames/{Session.Renderer.StreamId}", gameWindow);
         lastMapName = CurrentMapName;
         lastPlayerName = CurrentPlayerName;
         try { savedMapDraft = await JS.InvokeAsync<string?>("worldEditor.load"); }
         catch (JSException) { savedMapDraft = null; }
         polling = PollAsync();
     }
-    [JSInvokable] public void Click(int x, int y) { if (!editorOpen) Session.Renderer.Click(x, y); }
-    [JSInvokable] public void Key(string key) { if (!editorOpen) Session.Renderer.Key(key); }
-    [JSInvokable] public void Movement(string key, bool down) { if (!editorOpen) Session.Renderer.Movement(key, down); }
+    [JSInvokable] public void Click(int x, int y) { if (!editorOpen && !gameplayOpen && contentEditorKind.Length == 0) Session.Renderer.Click(x, y); }
+    [JSInvokable] public void RightClick(int x,int y) { if (!editorOpen && !gameplayOpen && contentEditorKind.Length == 0) Session.Renderer.RightClick(x,y); }
+    [JSInvokable] public void Key(string key) { if (key is "ChargeStop" or "StopAttack" || (!editorOpen && !gameplayOpen && contentEditorKind.Length == 0)) Session.Renderer.Key(key); }
+    [JSInvokable] public void Movement(string key, bool down) { if (!down || (!editorOpen && !gameplayOpen && contentEditorKind.Length == 0)) Session.Renderer.Movement(key, down); }
     private async Task PollAsync()
     {
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(20));
@@ -85,8 +138,12 @@
                         catch (System.Text.Json.JsonException) { }
                     }
                     var mapName = CurrentMapName;
-                    if (status != Session.Status || lastMapName != mapName || lastPlayerName != CurrentPlayerName || lastChatCount != Session.ChatMessages.Count)
+                    if (lastAutoAttack != Session.IsAutoAttacking || lastTarget != Session.SelectedTarget || lastHudTab != Session.HudTab || !ReferenceEquals(lastGameplay, Session.Gameplay) || status != Session.Status || lastMapName != mapName || lastPlayerName != CurrentPlayerName || lastChatCount != Session.ChatMessages.Count)
                     {
+                        lastAutoAttack = Session.IsAutoAttacking;
+                        lastTarget = Session.SelectedTarget;
+                        lastHudTab = Session.HudTab;
+                        lastGameplay = Session.Gameplay;
                         lastChatCount = Session.ChatMessages.Count;
                         lastMapName = mapName;
                         lastPlayerName = CurrentPlayerName;

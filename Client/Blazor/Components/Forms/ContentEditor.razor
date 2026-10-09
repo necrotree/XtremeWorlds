@@ -1,0 +1,95 @@
+@using System.Text.Json
+@using XtremeWorlds.Networking.Content
+@implements IDisposable
+@inject Client.Blazor.Services.BrowserGameSession Session
+
+<div class="content-editor-shade">
+<section class="content-editor" role="dialog" aria-modal="true" aria-label="@(Kind=="item"?"Item editor":"NPC editor")">
+    <header><h2>@(Kind=="item"?"Item editor":"NPC editor")</h2><button type="button" @onclick="OnClose" aria-label="Close content editor">X</button></header>
+    <div class="definition-toolbar">
+        <label>Existing definitions<select @onchange="SelectExisting" disabled="@Session.ContentEditorBusy"><option value="">Choose a definition</option>@foreach(var entry in catalog) { <option value="@entry.Id">@entry.Id - @entry.Name</option> }</select></label>
+        <label>Definition ID<input type="number" min="1" @bind="definitionId" disabled="@Session.ContentEditorBusy" /></label>
+        <button @onclick="Load" disabled="@Session.ContentEditorBusy">Load / New</button>
+    </div>
+    @if (!Session.Gameplay.CanEditMap) { <p role="alert">Administrator access is required.</p> }
+    @if (loaded)
+    {
+        <fieldset disabled="@(Session.ContentEditorBusy || !Session.Gameplay.CanEditMap)">
+        @if (Kind=="item")
+        {
+            <div class="definition-preview"><span class="item-art" style="@ItemPreview"></span><strong>@(string.IsNullOrWhiteSpace(item.Name)?"New item":item.Name)</strong></div>
+            <div class="definition-fields">
+                <label>Name<input maxlength="50" @bind="item.Name" /></label>
+                <label>Graphic ID<input type="number" min="0" max="1499" @bind="item.Pic" /></label>
+                <label>Type<select @bind="item.Type"><option value="0">Weapon</option><option value="1">Armor</option><option value="2">Helmet</option><option value="3">Shield</option><option value="4">Health potion</option><option value="5">Mana potion</option><option value="6">Stamina potion</option><option value="7">Currency</option><option value="8">Spell book</option></select></label>
+                @if (item.Type<=3) {
+                    <label>Attack bonus<input type="number" min="0" max="100000" @bind="item.AttackBonus" /></label>
+                    <label>Defense bonus<input type="number" min="0" max="100000" @bind="item.DefenseBonus" /></label>
+                }
+                @if (item.Type is >=4 and <=6) { <label>Restore amount<input type="number" min="1" @bind="item.Data1" /></label> }
+                @if (item.Type==8) { <label>Spell ID<input type="number" min="1" @bind="item.Data1" /></label> }
+                <label>Minimum level<input type="number" min="0" max="32767" @bind="item.LevelReq" /></label>
+                <label>Required class (0 = any)<input type="number" min="0" @bind="item.ClassReq" /></label>
+                <label>Required guild (0 = any)<input type="number" min="0" @bind="item.GuildReq" /></label>
+            </div>
+        }
+        else
+        {
+            <div class="definition-preview"><span class="sprite-art" style="@NpcPreview"></span><strong>@(string.IsNullOrWhiteSpace(npc.Name)?"New NPC":npc.Name)</strong></div>
+            <div class="definition-fields">
+                <label>Name<input maxlength="50" @bind="npc.Name" /></label>
+                <label>Sprite ID<input type="number" min="0" max="208" @bind="npc.Sprite" /></label>
+                <label>Maximum health<input type="number" min="1" max="1000000" @bind="npc.MaxHP" /></label>
+                <label>Strength<input type="number" min="0" max="32767" @bind="npc.Strength" /></label>
+                <label>Defense<input type="number" min="0" max="32767" @bind="npc.Defense" /></label>
+                <label>Behavior<select @bind="npc.Behavior"><option value="0">Combat NPC</option><option value="2">Friendly NPC</option>@if(npc.Behavior is not 0 and not 2) { <option value="@npc.Behavior">Combat NPC (legacy @npc.Behavior)</option> }</select></label>
+                <label>Experience reward<input type="number" min="0" max="1000000" @bind="npc.GiveEXP" /></label>
+                <label>Respawn seconds<input type="number" min="1" max="86400" @bind="npc.SpawnSecs" /></label>
+                <label>Drop item ID (0 = none)<input type="number" min="0" @bind="npc.DropItem" /></label>
+                <label>Drop quantity<input type="number" min="0" max="1000000" @bind="npc.DropItemValue" /></label>
+                <label>Drop chance (%)<input type="number" min="0" max="100" @bind="npc.DropChance" /></label>
+            </div>
+        }
+        </fieldset>
+    }
+    <footer>
+        <button class="save-definition" @onclick="Save" disabled="@(!loaded || definitionId!=loadedId || Session.ContentEditorBusy || !Session.Gameplay.CanEditMap)">Save @(Kind=="item"?"item":"NPC")</button>
+        @if (Kind=="npc") { <button @onclick="PlaceNpc" disabled="@(!loaded || definitionId!=loadedId || Session.ContentEditorBusy || !Session.Gameplay.CanEditMap || !catalog.Any(c=>c.Id==loadedId))">Add saved NPC to this map</button> }
+        <p role="status">@Session.ContentEditorMessage</p>
+    </footer>
+</section>
+</div>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "item";
+    [Parameter] public EventCallback OnClose { get; set; }
+    private string requestedKind="";
+    private int definitionId=1,loadedId,version=-1;
+    private bool loaded,pendingLoad;
+    private ItemContent item=new();
+    private NpcContent npc=new();
+    private List<ContentSummary> catalog=new();
+    protected override void OnInitialized() => Session.Changed+=Refresh;
+    protected override void OnParametersSet()
+    {
+        if(requestedKind!=Kind) { requestedKind=Kind; loaded=false; definitionId=1; pendingLoad=true; catalog=new(); }
+        Synchronize();
+    }
+    private void Synchronize()
+    {
+        if(pendingLoad && !Session.ContentEditorBusy) { pendingLoad=false; Session.LoadContentEditor(Kind,definitionId); }
+        if(Session.ContentEditorVersion==version || Session.ContentEditorKind!=Kind) return;
+        version=Session.ContentEditorVersion; loadedId=Session.ContentEditorId; definitionId=loadedId;
+        item=JsonSerializer.Deserialize<ItemContent>(JsonSerializer.Serialize(Session.ItemDraft))!;
+        npc=JsonSerializer.Deserialize<NpcContent>(JsonSerializer.Serialize(Session.NpcDraft))!;
+        catalog=Session.EditorCatalog.ToList(); loaded=true;
+    }
+    private void Refresh() => _=InvokeAsync(()=> { Synchronize(); StateHasChanged(); });
+    private void Load() { if(Session.ContentEditorBusy) return; loaded=false; Session.LoadContentEditor(Kind,definitionId); }
+    private void SelectExisting(ChangeEventArgs e) { if(int.TryParse(e.Value?.ToString(),out int id)) { definitionId=id; Load(); } }
+    private void Save() => Session.SaveContentEditor(Kind,loadedId,Kind=="item"?(object)item:npc);
+    private void PlaceNpc() => Session.PlaceEditedNpc(loadedId);
+    private string ItemPreview => $"background-position:-{Math.Clamp((int)item.Pic,0,1499)%6*32}px -{Math.Clamp((int)item.Pic,0,1499)/6*32}px";
+    private string NpcPreview => $"background-position:-144px -{Math.Clamp((int)npc.Sprite,0,208)*64}px";
+    public void Dispose() => Session.Changed-=Refresh;
+}

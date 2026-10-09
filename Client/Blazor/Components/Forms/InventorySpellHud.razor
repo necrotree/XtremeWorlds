@@ -1,0 +1,121 @@
+@using XtremeWorlds.Client.Engine.Graphics
+@inject Client.Blazor.Services.BrowserGameSession Session
+
+<section class="inventory-spell-hud @(collapsed ? "collapsed" : "")" aria-label="Inventory and spells">
+    <nav class="hud-tabs" aria-label="Gameplay panels">
+        <button class="@(activeTab == "inventory" ? "active" : "")" aria-pressed="@(activeTab == "inventory")" @onclick='() => OpenTab("inventory")'>Inventory</button>
+        <button class="@(activeTab == "spells" ? "active" : "")" aria-pressed="@(activeTab == "spells")" @onclick='() => OpenTab("spells")'>Spells</button>
+        <button class="@(activeTab == "quests" ? "active" : "")" aria-pressed="@(activeTab == "quests")" @onclick='() => OpenTab("quests")'>Quests</button>
+        <button class="hud-collapse" @onclick="ToggleCollapsed" aria-label="@(collapsed ? "Expand inventory and spells" : "Minimize inventory and spells")">@(collapsed ? "+" : "?")</button>
+    </nav>
+    <div class="combat-controls">
+        <span>@(Session.SelectedTarget.Length > 0 ? $"Target: {Session.SelectedTargetName}" : "Right-click a target to autoattack")</span>
+        @if (Session.IsAutoAttacking) { <button @onclick="Session.StopAttack">Stop attack</button> }
+    </div>
+    @if (!collapsed)
+    {
+        @if (activeTab == "inventory")
+        {
+            <header><strong>Inventory</strong><span>@Session.Gameplay.Inventory.Count(i => i.Quantity > 0) / 75 slots</span></header>
+            <div class="inventory-grid" aria-label="Inventory slots">
+                @for (var n = page * 15 + 1; n <= page * 15 + 15; n++)
+                {
+                    var slot = n;
+                    var item = Session.Gameplay.Inventory.FirstOrDefault(i => i.Slot == slot && i.Quantity > 0);
+                    <button class="inventory-slot @(selectedItem == slot ? "selected" : "") @(item?.Equipped == true ? "equipped" : "")"
+                            title="@(item is null ? $"Empty slot {slot}" : $"{item.Name} ? {item.Quantity}")"
+                            aria-label="@(item is null ? $"Empty slot {slot}" : $"Slot {slot}: {item.Name}, quantity {item.Quantity}{(item.Equipped ? ", equipped" : "")}")"
+                            aria-pressed="@(selectedItem == slot)" @onclick="() => selectedItem = slot">
+                        <span class="slot-number">@slot</span>
+                        @if (item is not null)
+                        {
+                            <span class="item-art" style="@ItemStyle(item.Picture)"></span>
+                            <span class="quantity">@item.Quantity</span>
+                            @if (item.Equipped) { <span class="equipment-marker" aria-hidden="true">E</span> }
+                        }
+                    </button>
+                }
+            </div>
+            <div class="page-controls"><button disabled="@(page == 0)" @onclick="() => page--" aria-label="Previous inventory page">?</button><span>Page @(page + 1) / 5</span><button disabled="@(page == 4)" @onclick="() => page++" aria-label="Next inventory page">?</button></div>
+            @if (Session.LatestWorld is { } world)
+            {
+                var ground = world.Items.Where(i => i.X == world.Player.X && i.Y == world.Player.Y).ToArray();
+                @if (ground.Length > 0) { <p class="ground-items">At your feet: @string.Join(", ",ground.Select(i => $"{i.Name} ? {i.Quantity}"))</p> }
+            }
+            <div class="selection-detail" aria-live="polite">@(SelectedItem is { } selected ? $"{selected.Name} ? {selected.Quantity}{(selected.Equipped ? " ? Equipped" : "")}" : "Select an item")</div>
+            <div class="hud-actions">
+                <button disabled="@(SelectedItem is null)" @onclick="UseItem">@(SelectedItem?.Equipped == true ? "Unequip" : "Use / Equip")</button>
+                <button disabled="@(SelectedItem is null || SelectedItem.Equipped)" @onclick="DropItem">Drop</button>
+                <button @onclick='() => Session.GameplayAction("PickUpItem")' title="Press E while standing on an item">Pick up (E)</button>
+            </div>
+        }
+        else if (activeTab == "spells")
+        {
+            <p class="mana-charge-hint" role="status">@(Session.Gameplay.IsChargingMana ? "Charging mana..." : "Hold Space while the game is focused to charge mana.")</p>
+            <header><strong>Spell book</strong><span>@Session.Gameplay.MP / @Session.Gameplay.MaxMP MP</span></header>
+            <div class="spell-list" aria-label="Known spells">
+                @foreach (var entry in Session.Gameplay.KnownSpells.Where(s => s.SpellId > 0))
+                {
+                    var spell = entry;
+                    <button class="spell-slot @(selectedSpell == spell.Slot ? "selected" : "")" aria-pressed="@(selectedSpell == spell.Slot)" @onclick="() => selectedSpell = spell.Slot">
+                        <span class="spell-art" style="@SpellStyle(spell.Animation)" aria-hidden="true"></span>
+                        <span><strong>@spell.Name</strong><small>Slot @spell.Slot ? @spell.ManaCost MP</small></span>
+                    </button>
+                }
+                @if (!Session.Gameplay.KnownSpells.Any(s => s.SpellId > 0)) { <p class="empty-state">Use a spell book item to learn a spell.</p> }
+            </div>
+            <label class="target-label">Target player<input @bind="target" maxlength="50" placeholder="Yourself (leave blank)" /></label>
+            <div class="hud-actions"><button disabled="@(SelectedSpell is null || Session.Gameplay.MP < SelectedSpell.ManaCost)" @onclick="CastSpell">@(SelectedSpell is { } known ? $"Cast {known.Name}" : "Select a spell")</button></div>
+            @if (SelectedSpell is { } chosen && Session.Gameplay.MP < chosen.ManaCost) { <p class="empty-state" role="status">Not enough mana.</p> }
+        }
+        else
+        {
+            <header><strong>Quest journal</strong><span>@Session.Gameplay.Quests.Count(q => q.Status == "completed") completed</span></header>
+            <div class="quest-list">
+                @foreach (var quest in Session.Gameplay.Quests)
+                {
+                    <article class="quest-card">
+                        <h4><span class="quest-blip @quest.Status" aria-hidden="true"></span>@quest.Name</h4>
+                        <p>@quest.Description</p>
+                        <p class="quest-progress">@quest.Status ? @quest.Current / @quest.Required</p>
+                        <small>Giver: map @quest.Map, @quest.X, @quest.Y ? @quest.RewardExperience XP</small>
+                        @if (quest.Status == "available") { <button @onclick='() => Session.GameplayAction("AcceptQuest", quest.Id)'>Accept quest</button> }
+                        else if (quest.Status == "ready") { <button @onclick='() => Session.GameplayAction("CompleteQuest", quest.Id)'>Turn in quest</button> }
+                        else if (quest.Status == "active") { <p class="empty-state">Collect the required items, then return to the giver.</p> }
+                    </article>
+                }
+                @if (Session.Gameplay.Quests.Count == 0) { <p class="empty-state">No quests are available yet.</p> }
+            </div>
+        }
+    }
+</section>
+
+@code {
+    private string activeTab { get => Session.HudTab; set => Session.HudTab = value; }
+    private bool collapsed;
+    private int page;
+    private int selectedItem;
+    private int selectedSpell;
+    private string target = "";
+    private string lastSelectedTarget = "";
+    private string lastHudTab = "inventory";
+    protected override void OnParametersSet()
+    {
+        if (lastHudTab != activeTab) { lastHudTab = activeTab; collapsed = false; }
+        if (lastSelectedTarget != Session.SelectedTarget) { lastSelectedTarget = Session.SelectedTarget; target = Session.SelectedTargetName; }
+    }
+    private FnaInventorySlot? SelectedItem => Session.Gameplay.Inventory.FirstOrDefault(i => i.Slot == selectedItem && i.Quantity > 0);
+    private FnaKnownSpell? SelectedSpell => Session.Gameplay.KnownSpells.FirstOrDefault(s => s.Slot == selectedSpell && s.SpellId > 0);
+    private void OpenTab(string tab)
+    {
+        activeTab = tab;
+        collapsed = false;
+        Session.GameplayAction(tab == "inventory" ? "ToggleInventory" : tab == "quests" ? "RequestQuests" : "ToggleSpells");
+    }
+    private void ToggleCollapsed() => collapsed = !collapsed;
+    private void UseItem() { if (SelectedItem is { } item) Session.GameplayAction("UseInventoryItem", item.Slot - 1); }
+    private void DropItem() { if (SelectedItem is { Equipped: false } item) Session.GameplayAction("DropInventoryItem", item.Slot - 1); }
+    private void CastSpell() { if (SelectedSpell is { } spell) { var key = target.Trim() == Session.SelectedTargetName ? Session.SelectedTarget : target.Trim(); Session.SelectTarget(key); Session.GameplayAction("CastSpell", spell.Slot - 1, key); } }
+    private static string ItemStyle(int picture) => $"background-position:-{Math.Max(0,picture) % 6 * 32}px -{Math.Max(0,picture) / 6 * 32}px";
+    private static string SpellStyle(int animation) => FormattableString.Invariant($"background-position:-64px -{Math.Max(0,animation) * 128 / 3.0}px");
+}

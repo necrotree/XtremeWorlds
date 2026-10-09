@@ -105,7 +105,17 @@ async Task VerifyStream(BrowserFnaRenderer activeRenderer)
             Check(result.MessageType == WebSocketMessageType.Binary, "Stream sends binary frames");
             frame.Write(buffer, 0, result.Count);
         } while (!result.EndOfMessage);
-        Check(ColoredPngPixel(frame.ToArray(), 100, 100), "WebSocket delivers visible native frames without Blazor draw calls");
+        var encoded = frame.ToArray();
+        if (encoded.Length >= 12 && BinaryPrimitives.ReadUInt32BigEndian(encoded) == 0x58575031)
+        {
+            int x = BinaryPrimitives.ReadInt32BigEndian(encoded.AsSpan(4,4));
+            int y = BinaryPrimitives.ReadInt32BigEndian(encoded.AsSpan(8,4));
+            int width = BinaryPrimitives.ReadInt32BigEndian(encoded.AsSpan(28,4));
+            int height = BinaryPrimitives.ReadInt32BigEndian(encoded.AsSpan(32,4));
+            Check(encoded[12] == 137 && encoded[13] == 80 && width > 0 && height > 0
+                && x >= 0 && y >= 0 && x + width <= 950 && y + height <= 700, "WebSocket patches contain a PNG within the native surface");
+        }
+        else Check(ColoredPngPixel(encoded, 100, 100), "WebSocket delivers visible native keyframes without Blazor draw calls");
     }
     Console.WriteLine($"WebSocket delivered three native frames in {frameClock.Elapsed.TotalMilliseconds:F0} ms.");
     await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "test complete", cancellation.Token);
@@ -118,6 +128,9 @@ var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<str
 {
     ["GameServer:Host"] = "127.0.0.1", ["GameServer:Port"] = port.ToString()
 }).Build();
+var chargeOnWire = new TaskCompletionSource();
+var chargeStoppedOnWire = new TaskCompletionSource();
+var combatOnWire = new TaskCompletionSource();
 var movedOnWire = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 using var renderer = new BrowserFnaRenderer();
 using var session = new BrowserGameSession(config, renderer);
@@ -134,12 +147,19 @@ var server = Task.Run(async () =>
     await WritePacket(stream, PacketCodec.Build("ingame"));
     await WritePacket(stream, PacketCodec.Build("playerdata", "Hero", 1, 1, 0, 0, 0));
     Check(PacketCodec.Parse(await ReadPacket(stream))[0] == "needmap", "Request the current map when entering the game");
+    await WritePacket(stream, PacketCodec.Build("gameplaystate", JsonSerializer.Serialize(new FnaGameplayState {
+        CanEditMap = true, HP = 45, MaxHP = 100, MP = 30, MaxMP = 50, SP = 80, MaxSP = 100,
+        Quests = new() { new FnaQuestStatus { Id = 1, Name = "Supplies", Map = 1, X = 6, Y = 6, Status = "available" } }
+    })));
     await WritePacket(stream, PacketCodec.Build("worldstate", JsonSerializer.Serialize(new FnaWorldScene {
         MapId = 1, ServerTick = 1, AckInputSequence = 0, NetworkEpoch = "browser-test", TickRate = 60,
         Map = new FnaSceneMap { Name = "Browser test map", Tileset = 1,
             Tiles = Enumerable.Range(0, 192).Select(_ => new FnaSceneTile { Ground = 1 }).ToList() },
         Player = new FnaScenePlayer { Name = "Hero", Sprite = 1, X = 1, Y = 1, Direction = 3 },
-        Players = new() { new FnaScenePlayer { Name = "Hero", Sprite = 1, X = 1, Y = 1, Direction = 3 } }
+        Players = new() { new FnaScenePlayer { Name = "Hero", Sprite = 1, X = 1, Y = 1, Direction = 3 } },
+        Npcs = new() { new FnaScenePlayer { TargetId = "npc:1:0", Name = "Dummy", Sprite = 3, X = 2, Y = 1, HP = 100, MaxHP = 100 } },
+        ChatBubbles = new() { new FnaSceneChatBubble { PlayerName = "Hero", Text = "Hello there", RemainingSeconds = 5 } },
+        QuestBlips = new() { new FnaSceneQuestBlip { QuestId = 1, Name = "Supplies", X = 6, Y = 6, Sprite = 2, Status = "available" } }
     })));
     IReadOnlyList<string> chat;
     do { chat = PacketCodec.Parse(await ReadPacket(stream)); } while (chat[0] == "netping");
@@ -150,6 +170,22 @@ var server = Task.Run(async () =>
     Check(move[0] == "playermove" && move.Count == 7 && move[1] == "3" && move[2] == "1" && move[6] == "browser-test",
         "Browser arrows forward ticked movement with the current epoch");
     movedOnWire.SetResult();
+    int attacks = 0; bool pickedUp = false;
+    while (attacks < 2 || !pickedUp)
+    {
+        var combat = PacketCodec.Parse(await ReadPacket(stream));
+        if (combat[0] == "attack") { Check(combat.Count == 2 && combat[1] == "npc:1:0", "Right-click attacks use the stable NPC target ID"); attacks++; }
+        else if (combat[0] == "mapgetitem") pickedUp = true;
+    }
+    combatOnWire.SetResult();
+    bool heldCharge = false;
+    while (true)
+    {
+        var charge = PacketCodec.Parse(await ReadPacket(stream));
+        if (charge[0] != "chargemana") continue;
+        if (charge[1] == "1") { heldCharge = true; chargeOnWire.TrySetResult(); }
+        if (charge[1] == "0" && heldCharge) { chargeStoppedOnWire.TrySetResult(); break; }
+    }
     await Task.Delay(500);
 });
 session.Authenticate("test", "test-password", false);
@@ -168,20 +204,31 @@ await Until(() => session.Characters.Length == 3, "Receive character slots");
 Check(!session.InGame && session.Characters[0] == "Hero", "Stay in menu before selecting a character");
 session.SelectCharacter(0);
 await Until(() => session.InGame && renderer.Frame is not null && renderer.NetworkState.Latest != null, "Receive a native FNA frame after entering the world");
+renderer.Graphics.SelectTarget("Hero");
 await Task.Delay(250);
 session.Poll();
 Check(renderer.NetworkState.Latest?.Players["Hero"].X == 32, "Browser submits world state to the shared FNA pipeline");
+Check(session.Gameplay.HP == 45 && session.Gameplay.Quests.Count == 1, "Authoritative vitals and quest journal reach the browser session");
+Check(session.SelectedTarget == "Hero", "Selected actor remains selected across native render updates");
 var frame = renderer.Frame!;
 Check(frame.Length > 1000 && frame[0] == 137 && frame[1] == 80, "FNA encodes PNG frames");
 Check(ColoredPngPixel(frame, 100, 100), "Captured map contains textured pixels rather than a blank viewport");
-Check(ColoredPngPixel(frame, 690, 200), "Captured HUD artwork is visible");
+Check(!ColoredPngPixel(frame, 690, 200), "The browser HUD is rendered by Blazor rather than baked into native frames");
 if (args.Length > 0) await File.WriteAllBytesAsync(args[0], frame);
 using (var competing = new BrowserFnaRenderer()) Check(!competing.Start(), "Reject simultaneous native Game loops in one host");
-await VerifyStream(renderer);
 renderer.Key("h"); renderer.Key("i"); renderer.Key("Enter");
 renderer.Movement("ArrowRight", true);
 await Until(() => movedOnWire.Task.IsCompleted, "Browser movement reaches the server");
 renderer.Movement("ArrowRight", false);
+renderer.RightClick(98,66); renderer.Key("Pickup");
+await Until(() => combatOnWire.Task.IsCompleted, "Right-click autoattack repeats and pickup reaches the server");
+renderer.Key("StopAttack");
+await Until(() => !renderer.Graphics.IsAutoAttacking, "Explicit stop ends autoattack");
+renderer.Key("ChargeStart");
+await Until(() => chargeOnWire.Task.IsCompleted, "Held Space forwards charge pulses to the server");
+renderer.Key("ChargeStop");
+await Until(() => chargeStoppedOnWire.Task.IsCompleted, "Released Space stops charging on the wire");
+await VerifyStream(renderer);
 await Until(() => server.IsCompleted, "Browser input reaches the server");
 await server;
 session.Disconnect();
@@ -193,6 +240,7 @@ Check(renderer.Failure is null && renderer.Frame is not null, "Restart FNA after
 renderer.Stop();
 var services = new ServiceCollection();
 services.AddLogging();
+services.AddSingleton<Microsoft.JSInterop.IJSRuntime, StaticRenderJsRuntime>();
 services.AddSingleton<IConfiguration>(config);
 services.AddScoped<BrowserFnaRenderer>();
 services.AddScoped<BrowserGameSession>();
@@ -202,7 +250,39 @@ await using (var html = new HtmlRenderer(scope.ServiceProvider, provider.GetRequ
 {
     var markup = await html.Dispatcher.InvokeAsync(async () =>
         (await html.RenderComponentAsync<Client.Blazor.Components.Pages.Home>()).ToHtmlString());
-    Check(markup.Contains("assets/frmMainMenu/imgLogo.png") && markup.Contains("aria-label=\"Login\"") && markup.Contains("aria-label=\"Register\""), "The root Blazor page opens the main menu");
+    Check(markup.Contains("assets/frmMainMenu/logo.png") && markup.Contains(">Login</button>") && markup.Contains(">Register</button>"), "The root Blazor page opens the main menu");
     Check(!markup.Contains("<canvas"), "Do not render frmMirage before entering the world");
+    var hudSession = scope.ServiceProvider.GetRequiredService<BrowserGameSession>();
+    scope.ServiceProvider.GetRequiredService<BrowserFnaRenderer>().Graphics.GameplayState = new() {
+        HP = 45, MaxHP = 100, MP = 30, MaxMP = 50, SP = 80, MaxSP = 100,
+        Quests = new() { new() { Id = 1, Name = "Supplies", Status = "ready", Current = 1, Required = 1 } }
+    };
+    var vitals = await html.Dispatcher.InvokeAsync(async () =>
+        (await html.RenderComponentAsync<Client.Blazor.Components.Forms.VitalBars>()).ToHtmlString());
+    Check(vitals.Contains("aria-valuenow=\"45\"") && vitals.Contains("HP 45 / 100") && vitals.Contains("vital-fill"), "Vital HUD renders authoritative values with artwork fills");
+    hudSession.HudTab = "quests";
+    var quests = await html.Dispatcher.InvokeAsync(async () =>
+        (await html.RenderComponentAsync<Client.Blazor.Components.Forms.InventorySpellHud>()).ToHtmlString());
+    Check(quests.Contains("Supplies") && quests.Contains("Turn in quest") && quests.Contains("quest-blip ready"), "Quest HUD renders ready blips and turn-in controls");
+    scope.ServiceProvider.GetRequiredService<BrowserFnaRenderer>().Graphics.GameplayState.CanEditMap=true;
+    void EditorPacket(string kind,int id,object definition) => typeof(BrowserGameSession).GetMethod("HandlePacket",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
+        .Invoke(hudSession,new object[] { new List<string> { "contentdefinition",kind,id.ToString(),JsonSerializer.Serialize(definition),JsonSerializer.Serialize(new[] { new XtremeWorlds.Networking.Content.ContentSummary { Id=id,Name="Fixture" } }) } });
+    EditorPacket("item",1,new XtremeWorlds.Networking.Content.ItemContent { Name="Test sword",Type=0,Pic=3,AttackBonus=7 });
+    var itemEditor=await html.Dispatcher.InvokeAsync(async()=>
+        (await html.RenderComponentAsync<Client.Blazor.Components.Forms.ContentEditor>(Microsoft.AspNetCore.Components.ParameterView.FromDictionary(new Dictionary<string,object?> { ["Kind"]="item" }))).ToHtmlString());
+    Check(itemEditor.Contains("Item editor") && itemEditor.Contains("Test sword") && itemEditor.Contains("Attack bonus") && itemEditor.Contains("Save item"),"Item editor renders its loaded draft, equipment fields, preview, and save control");
+    EditorPacket("npc",2,new XtremeWorlds.Networking.Content.NpcContent { Name="Test NPC",Sprite=3,MaxHP=50,SpawnSecs=15 });
+    var npcEditor=await html.Dispatcher.InvokeAsync(async()=>
+        (await html.RenderComponentAsync<Client.Blazor.Components.Forms.ContentEditor>(Microsoft.AspNetCore.Components.ParameterView.FromDictionary(new Dictionary<string,object?> { ["Kind"]="npc" }))).ToHtmlString());
+    Check(npcEditor.Contains("NPC editor") && npcEditor.Contains("Test NPC") && npcEditor.Contains("Drop chance") && npcEditor.Contains("Add saved NPC"),"NPC editor renders its draft, loot fields, and map placement control");
 }
 Console.WriteLine("Browser login, character selection, native FNA frames, input, renderer isolation, logout and restart passed.");
+
+// HtmlRenderer omits browser lifecycle callbacks; unexpected JS calls should fail the test.
+sealed class StaticRenderJsRuntime : Microsoft.JSInterop.IJSRuntime
+{
+    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+        throw new InvalidOperationException("JavaScript cannot run during static rendering: " + identifier);
+    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) =>
+        InvokeAsync<TValue>(identifier, args);
+}

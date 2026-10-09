@@ -49,6 +49,7 @@ public sealed class BrowserFnaRenderer : IDisposable
 
     public bool TryAction(out (string Action, object[] Args) action) => actions.TryDequeue(out action);
     public void Click(int x, int y) { if (ownsLease && x is >= 0 and < 950 && y is >= 0 and < 700) graphics.BrowserClick(x, y); }
+    public void RightClick(int x,int y) { if (ownsLease && x is >= 0 and < 950 && y is >= 0 and < 700) graphics.BrowserClick(x,y,true); }
     public void Key(string key) { if (ownsLease && key.Length <= 16) graphics.BrowserKey(key); }
     public void Movement(string key, bool down) { if (ownsLease && (key is "ArrowUp" or "ArrowDown" or "ArrowLeft" or "ArrowRight")) graphics.BrowserMovement(key, down); }
     public void Chat(string channel, string text) => chat.Enqueue((channel, text));

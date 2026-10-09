@@ -1,8 +1,8 @@
 using Server;
 
 var session = new PlayerSession();
-string[] chat = ["saymsg", "emotemsg", "globalmsg", "broadcastmsg", "adminmsg", "playermsg"];
-string[] gameplay = ["playermove", "playerdir", "useitem", "attack", "cast", "warpmeto", "warptome", "warpto", "warpsearch", "mapgetitem", "mapdropitem", "trade", "traderequest", "innsleep", "usechar", "delchar", "delaccount"];
+string[] chat = ["emote", "saymsg", "emotemsg", "globalmsg", "broadcastmsg", "adminmsg", "playermsg"];
+string[] gameplay = ["playermove", "playerdir", "chargemana", "acceptquest", "completequest", "useitem", "attack", "cast", "warpmeto", "warptome", "warpto", "warpsearch", "mapgetitem", "mapdropitem", "trade", "traderequest", "innsleep", "usechar", "delchar", "delaccount"];
 void Check(string command, bool blocked)
 {
     if ((ModerationPolicy.Rejection(session, command) is not null) != blocked)

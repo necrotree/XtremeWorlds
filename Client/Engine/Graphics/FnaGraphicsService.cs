@@ -67,6 +67,15 @@ public enum FnaVital
 public sealed class FnaGraphicsService : IDisposable
 {
     private readonly ConcurrentQueue<FnaWorldScene> _scenes = new();
+    private int _autoAttackActive;
+    public bool IsAutoAttacking => Volatile.Read(ref _autoAttackActive) != 0;
+    public void StopManaCharging() => BrowserKey("ChargeStop");
+    public void StopAutoAttack() => BrowserKey("StopAttack");
+    private string _selectedTarget = "";
+    public string SelectedTarget => Volatile.Read(ref _selectedTarget);
+    public void SelectTarget(string name) => Volatile.Write(ref _selectedTarget, name.Trim());
+    private FnaGameplayState _gameplayState = new();
+    public FnaGameplayState GameplayState { get => Volatile.Read(ref _gameplayState); set => Volatile.Write(ref _gameplayState, value); }
     public ClientTickSynchronizer NetworkState { get; } = new();
     private FnaSceneMap? _networkMap;
     private int _networkMapId = -1;
@@ -107,10 +116,10 @@ public sealed class FnaGraphicsService : IDisposable
         NetworkState.Reset(); _networkMap = null; _networkMapId = -1;
         while (_scenes.TryDequeue(out _)) { }
     }
-    private readonly ConcurrentQueue<(int X, int Y)> _browserClicks = new();
+    private readonly ConcurrentQueue<(int X, int Y, bool Attack)> _browserClicks = new();
     private readonly ConcurrentQueue<string> _browserKeys = new();
     private readonly ConcurrentQueue<(string Key, bool Down)> _browserMovement = new();
-    public void BrowserClick(int x, int y) => _browserClicks.Enqueue((x, y));
+    public void BrowserClick(int x, int y, bool attack = false) => _browserClicks.Enqueue((x, y, attack));
     public void BrowserKey(string key) => _browserKeys.Enqueue(key);
     public void BrowserMovement(string key, bool down) => _browserMovement.Enqueue((key, down));
     public void RequestStreamKeyframe() => _game?.RequestStreamKeyframe();
@@ -158,7 +167,7 @@ public sealed class FnaGraphicsService : IDisposable
                     width,
                     height,
                     () => _stopRequested,
-                    RaiseMainGameAction, frameReady, _browserClicks, _browserKeys, _browserMovement);
+                    RaiseMainGameAction, frameReady, _browserClicks, _browserKeys, _browserMovement, () => GameplayState, () => SelectedTarget, SelectTarget, active => Volatile.Write(ref _autoAttackActive, active ? 1 : 0));
                 _game = game;
                 game.Run();
             }
@@ -315,6 +324,15 @@ public sealed class FnaGraphicsService : IDisposable
                 [MainGamePanel.Skills] = new("skills.jpg", new Rectangle(677, 278, 265, 354))
             };
 
+        private readonly Func<FnaGameplayState> _gameplayState;
+        private FnaGameplayState? _lastGameplayState;
+        private readonly Func<string> _selectedTarget;
+        private readonly Action<string> _selectTarget;
+        private readonly Action<bool> _setAutoAttack;
+        private string _autoAttackTarget = "";
+        private double _nextAutoAttack;
+        private bool _manaChargeHeld;
+        private double _nextManaChargePulse;
         private readonly GraphicsDeviceManager _graphics;
         private readonly ConcurrentQueue<FnaSpriteCommand> _incoming;
         private readonly ConcurrentQueue<FnaWorldCommand> _worldIncoming;
@@ -360,7 +378,7 @@ public sealed class FnaGraphicsService : IDisposable
         private readonly Action<byte[]>? _frameReady;
         private readonly LatestPngEncoder? _frameEncoder;
         private readonly RasterizerState _worldRasterizer = new() { ScissorTestEnable = true };
-        private readonly ConcurrentQueue<(int X, int Y)> _browserClicks;
+        private readonly ConcurrentQueue<(int X, int Y, bool Attack)> _browserClicks;
         private readonly ConcurrentQueue<string> _browserKeys;
         private readonly ConcurrentQueue<(string Key, bool Down)> _browserMovement;
         private readonly HashSet<string> _heldBrowserKeys = new();
@@ -383,10 +401,15 @@ public sealed class FnaGraphicsService : IDisposable
             Func<bool> shouldStop,
             Action<string, object[]> action,
             Action<byte[]>? frameReady,
-            ConcurrentQueue<(int X, int Y)> browserClicks,
+            ConcurrentQueue<(int X, int Y, bool Attack)> browserClicks,
             ConcurrentQueue<string> browserKeys,
-            ConcurrentQueue<(string Key, bool Down)> browserMovement)
+            ConcurrentQueue<(string Key, bool Down)> browserMovement,
+            Func<FnaGameplayState> gameplayState, Func<string> selectedTarget, Action<string> selectTarget, Action<bool> setAutoAttack)
         {
+            _setAutoAttack = setAutoAttack;
+            _selectedTarget = selectedTarget;
+            _selectTarget = selectTarget;
+            _gameplayState = gameplayState;
             _scenes = scenes;
             _networkState = networkState;
             _shouldStop = shouldStop;
@@ -509,6 +532,12 @@ public sealed class FnaGraphicsService : IDisposable
                 // Incremental updates can omit tiles. Never discard the current map.
                 if (scene.Map is null && _scene?.Map is not null && scene.MapId == _scene.MapId)
                     scene.Map = _scene.Map;
+                foreach (var spell in scene.Spells)
+                    if (spell.AgeSeconds is double age) { spell.StartedSeconds = gameTime.TotalGameTime.TotalSeconds - age; spell.AgeSeconds = null; }
+                foreach (var actor in scene.ActorsInDrawOrder())
+                    if (actor.AttackAgeSeconds is double age) { actor.Attacking = true; actor.AttackStartedSeconds = gameTime.TotalGameTime.TotalSeconds-age; }
+                foreach (var bubble in scene.ChatBubbles) bubble.ReceivedSeconds = gameTime.TotalGameTime.TotalSeconds;
+                foreach (var emote in scene.Emotes) emote.ReceivedSeconds = gameTime.TotalGameTime.TotalSeconds;
                 _scene = scene;
             }
             if (_scene != null)
@@ -520,6 +549,16 @@ public sealed class FnaGraphicsService : IDisposable
                         actor.PixelX = pose.X; actor.PixelY = pose.Y;
                         actor.X = (int)(pose.X / 32); actor.Y = (int)(pose.Y / 32); actor.Direction = pose.Direction;
                     }
+            }
+
+            if (_scene is not null && _selectedTarget().Length > 0 && !_scene.ActorsInDrawOrder().Any(p => string.Equals(p.TargetKey, _selectedTarget(), StringComparison.OrdinalIgnoreCase))) _selectTarget("");
+            var gameplay = _gameplayState();
+            if (!ReferenceEquals(_lastGameplayState, gameplay))
+            {
+                _lastGameplayState = gameplay;
+                SetVital(FnaVital.HP, gameplay.HP, gameplay.MaxHP);
+                SetVital(FnaVital.MP, gameplay.MP, gameplay.MaxMP);
+                SetVital(FnaVital.SP, gameplay.SP, gameplay.MaxSP);
             }
 
             if (_incoming.TryDequeue(out var command))
@@ -547,12 +586,18 @@ public sealed class FnaGraphicsService : IDisposable
                 AddChatLine(ParseChannel(line.Channel), line.Text);
 
             _renderSeconds = gameTime.TotalGameTime.TotalSeconds;
-            while (_browserClicks.TryDequeue(out var click)) HandleLogicalClick(click.X, click.Y);
+            while (_browserClicks.TryDequeue(out var click)) { if (click.Attack) HandleLogicalAttack(click.X, click.Y); else HandleLogicalClick(click.X, click.Y); }
             while (_browserKeys.TryDequeue(out var key))
             {
-                if (key == "Enter") SendChat();
+                if (key == "ChargeStart") BeginManaCharging();
+                else if (key == "ChargeStop") EndManaCharging();
+                else if (key == "StopAttack") StopAttacking();
+                else if (key == "Pickup") _action("PickUpItem", Array.Empty<object>());
+                else if (key == "Enter") SendChat();
                 else if (key == "Escape")
                 {
+                    if (_manaChargeHeld) { EndManaCharging(); continue; }
+                    if (_autoAttackTarget.Length > 0) { StopAttacking(); continue; }
                     if (_activePanel != MainGamePanel.None) _activePanel = MainGamePanel.None;
                     else _action("Logout", Array.Empty<object>());
                 }
@@ -561,6 +606,7 @@ public sealed class FnaGraphicsService : IDisposable
             }
             while (_browserMovement.TryDequeue(out var input))
             {
+                if (input.Down) EndManaCharging();
                 if (input.Down) _heldBrowserKeys.Add(input.Key);
                 else _heldBrowserKeys.Remove(input.Key);
             }
@@ -577,13 +623,18 @@ public sealed class FnaGraphicsService : IDisposable
                 var keys = Keyboard.GetState();
                 int direction = keys.IsKeyDown(Keys.Up) ? 0 : keys.IsKeyDown(Keys.Down) ? 1
                     : keys.IsKeyDown(Keys.Left) ? 2 : keys.IsKeyDown(Keys.Right) ? 3 : -1;
+                if (direction >= 0) EndManaCharging();
                 if (_scene?.Map != null && direction >= 0 && gameTime.TotalGameTime.TotalSeconds >= _nextMove)
                 {
                     _nextMove = gameTime.TotalGameTime.TotalSeconds + 0.03;
+                    EndManaCharging();
                     _action("MovePlayer", new object[] { direction });
                 }
             }
 
+            if (_frameReady is null && (!IsActive || Keyboard.GetState().IsKeyUp(Keys.Space))) EndManaCharging();
+            UpdateManaCharging();
+            UpdateAutoAttack();
             base.Update(gameTime);
         }
 
@@ -612,6 +663,9 @@ public sealed class FnaGraphicsService : IDisposable
                 _action("ForgetSpell", new object[] { forgetSkillSlot });
             }
 
+            if (rightPressed && !(keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift))
+                && TryScreenToLogical(mouse.X,mouse.Y,out var attackX,out var attackY) && GameViewport.Contains(attackX,attackY))
+                HandleLogicalAttack(attackX,attackY);
             if (leftPressed && TryScreenToLogical(mouse.X, mouse.Y, out var x, out var y))
             {
                 HandleLogicalClick(x, y);
@@ -620,8 +674,60 @@ public sealed class FnaGraphicsService : IDisposable
             _previousMouse = mouse;
         }
 
+        private void BeginManaCharging()
+        {
+            if (_manaChargeHeld || _gameplayState().MP >= _gameplayState().MaxMP) return;
+            StopAttacking(); _manaChargeHeld = true; _nextManaChargePulse = 0;
+        }
+        private void EndManaCharging()
+        {
+            if (!_manaChargeHeld) return;
+            _manaChargeHeld = false; _action("ChargeMana",new object[] { 0 });
+        }
+        private void UpdateManaCharging()
+        {
+            if (!_manaChargeHeld) return;
+            if (_heldBrowserKeys.Count > 0 || _gameplayState().MP >= _gameplayState().MaxMP || _scene?.Player.HP <= 0)
+            { EndManaCharging(); return; }
+            if (_renderSeconds < _nextManaChargePulse) return;
+            _nextManaChargePulse = _renderSeconds + .25;
+            _action("ChargeMana",new object[] { 1 });
+        }
+        private void StopAttacking() { _autoAttackTarget = ""; _setAutoAttack(false); }
+        private void HandleLogicalAttack(int x,int y)
+        {
+            if (_scene is null || !GameViewport.Contains(x,y)) return;
+            var actor = _scene.ActorsInDrawOrder().Reverse().FirstOrDefault(p => p.TargetKey != _scene.Player.TargetKey
+                && new Rectangle(p.DrawX-8,p.DrawY-32,48,64).Contains(x-GameViewport.X,y-GameViewport.Y));
+            EndManaCharging();
+            if (actor is null) { StopAttacking(); _selectTarget(""); return; }
+            if (_autoAttackTarget == actor.TargetKey) { StopAttacking(); return; }
+            _selectTarget(actor.TargetKey); _autoAttackTarget = actor.TargetKey; _nextAutoAttack = 0; _setAutoAttack(true);
+        }
+        private void UpdateAutoAttack()
+        {
+            if (_autoAttackTarget.Length == 0) return;
+            var actor = _scene?.ActorsInDrawOrder().FirstOrDefault(p => p.TargetKey == _autoAttackTarget);
+            if (actor is null || _scene?.Player.HP <= 0 || _selectedTarget() != _autoAttackTarget || (_frameReady is null && !IsActive))
+            { StopAttacking(); return; }
+            // Stay armed while out of reach, but never send ranged melee requests.
+            if (Math.Max(Math.Abs(actor.DrawX-_scene!.Player.DrawX),Math.Abs(actor.DrawY-_scene.Player.DrawY)) > 40 || _renderSeconds < _nextAutoAttack) return;
+            _nextAutoAttack = _renderSeconds + .8;
+            _action("AttackTarget",new object[] { _autoAttackTarget });
+        }
+
         private void HandleLogicalClick(int x, int y)
         {
+            EndManaCharging();
+            if (_scene is not null && GameViewport.Contains(x, y))
+            {
+                int worldX = x - GameViewport.X, worldY = y - GameViewport.Y;
+                var giver = _scene.QuestBlips.LastOrDefault(q => new Rectangle(q.X * 32 - 8, q.Y * 32 - 64, 48, 96).Contains(worldX,worldY));
+                if (giver is not null) { _selectTarget(""); _action("OpenQuest", new object[] { giver.QuestId }); return; }
+                var actor = _scene.ActorsInDrawOrder().Reverse().FirstOrDefault(p => new Rectangle(p.DrawX - 8,p.DrawY - 32,48,64).Contains(worldX,worldY));
+                _selectTarget(actor?.TargetKey ?? "");
+                return;
+            }
             // Browser UI controls live in Blazor; avoid invisible old-menu hotspots.
             if (_frameReady is not null) return;
                 if (StatsButton.Contains(x, y)) TogglePanel(MainGamePanel.Character);
@@ -634,7 +740,7 @@ public sealed class FnaGraphicsService : IDisposable
                 else if (_activePanel == MainGamePanel.Inventory && TryGetInventorySlot(x, y, out var inventorySlot))
                     _action("UseInventoryItem", new object[] { inventorySlot });
                 else if (_activePanel == MainGamePanel.Skills && TryGetSkillSlot(x, y, out var skillSlot))
-                    _action("CastSpell", new object[] { skillSlot });
+                    _action("CastSpell", new object[] { skillSlot, _selectedTarget() });
                 else if (_activePanel == MainGamePanel.Character && CanTrain() && TrainStrengthButton.Contains(x, y)) _action("TrainStat", new object[] { 0 });
                 else if (_activePanel == MainGamePanel.Character && CanTrain() && TrainDefenseButton.Contains(x, y)) _action("TrainStat", new object[] { 1 });
                 else if (_activePanel == MainGamePanel.Character && CanTrain() && TrainMagicButton.Contains(x, y)) _action("TrainStat", new object[] { 2 });
@@ -717,6 +823,9 @@ public sealed class FnaGraphicsService : IDisposable
                     continue;
                 }
 
+                if (key == Keys.Space && _chatInput.Length == 0) { BeginManaCharging(); continue; }
+                if (key == Keys.E && _chatInput.Length == 0)
+                { _action("PickUpItem", Array.Empty<object>()); continue; }
                 if (key == Keys.F2)
                 {
                     _action("ShowAdminPanel", Array.Empty<object>());
@@ -725,6 +834,8 @@ public sealed class FnaGraphicsService : IDisposable
 
                 if (key == Keys.Escape)
                 {
+                    if (_manaChargeHeld) { EndManaCharging(); continue; }
+                    if (_autoAttackTarget.Length > 0) { StopAttacking(); continue; }
                     if (_activePanel != MainGamePanel.None)
                         _activePanel = MainGamePanel.None;
                     else
@@ -873,6 +984,7 @@ public sealed class FnaGraphicsService : IDisposable
             if (_frameReady is null)
             {
                 DrawActivePanel();
+                DrawGameplaySlots();
                 if (_activePanel == MainGamePanel.Character)
                     DrawCharacterFields();
                 DrawGauges();
@@ -961,11 +1073,16 @@ public sealed class FnaGraphicsService : IDisposable
             DrawSceneItems();
             BltMapItems();
             DrawActors();
+            DrawTargetMarker();
             BltProjectiles();
             DrawSceneSpells();
             BltAnimations();
             if (map is not null) DrawSceneLayers(map, true);
             BltFringe();
+            DrawQuestBlips();
+            DrawSceneEmotes();
+            DrawChatBubbles();
+            DrawActorVitals();
             DrawActorNames();
             BltNames();
             _spriteBatch.End();
@@ -1025,6 +1142,13 @@ public sealed class FnaGraphicsService : IDisposable
                 var player = _scene.Player;
                 HasDrawablePlayer = sprites is not null && player is { Sprite: >= 0 } && !string.IsNullOrWhiteSpace(player.Name)
                     && player.Sprite * 64 + 64 <= sprites.Height && sprites.Width >= 576;
+                foreach (var giver in _scene.QuestBlips)
+                {
+                    var current = giver;
+                    draws.Add((current.Y * 32, () => DrawWorldSprite(sprites,
+                        new Rectangle(current.X * 32 - 8,current.Y * 32 - 32,48,64),
+                        new Rectangle(144, current.Sprite * 64,48,64), Color.White)));
+                }
                 foreach (var actor in _scene.ActorsInDrawOrder())
                 {
                     if (actor.Sprite < 0) continue;
@@ -1044,12 +1168,40 @@ public sealed class FnaGraphicsService : IDisposable
             foreach (var draw in draws.OrderBy(d => d.Y)) draw.Draw();
         }
 
+        private void DrawActorVitals()
+        {
+            if (_scene is null) return;
+            var texture = GetWorldTexture("misc/bars.png", Color.Magenta);
+            if (texture is null) return;
+            foreach (var actor in _scene.ActorsInDrawOrder())
+            {
+                bool local = actor.TargetKey == _scene.Player.TargetKey;
+                int x = Math.Clamp(actor.DrawX - 12,0,GameViewport.Width - 56);
+                int y = Math.Clamp(actor.DrawY + 34,0,GameViewport.Height - (local ? 23 : 7));
+                if (local)
+                {
+                    var state = _gameplayState();
+                    DrawActorVital(texture,x,y,state.HP,state.MaxHP,0);
+                    DrawActorVital(texture,x,y+8,state.MP,state.MaxMP,1);
+                    DrawActorVital(texture,x,y+16,state.SP,state.MaxSP,2);
+                }
+                else if (actor.MaxHP > 1) DrawActorVital(texture,x,y,actor.HP,actor.MaxHP,0);
+            }
+        }
+        private void DrawActorVital(Texture2D texture,int x,int y,int current,int maximum,int row)
+        {
+            DrawWorldSprite(texture,new Rectangle(x,y,56,7),new Rectangle(0,21,56,7),Color.White);
+            int width = maximum <= 0 ? 0 : (int)Math.Ceiling(56 * Math.Clamp(current / (double)maximum,0,1));
+            if (width > 0) DrawWorldSprite(texture,new Rectangle(x,y,width,7),new Rectangle(0,row*7,width,7),Color.White);
+        }
+
         private void DrawActorNames()
         {
             if (_scene is null) return;
             foreach (var actor in _scene.ActorsInDrawOrder())
             {
                 if (string.IsNullOrEmpty(actor.Name)) continue;
+                if (_scene.ChatBubbles.Any(b => b.PlayerName == actor.Name && _renderSeconds - b.ReceivedSeconds < b.RemainingSeconds)) continue;
                 int x = Math.Clamp(GameViewport.X + actor.DrawX + 16 - actor.Name.Length * 3,
                     GameViewport.X, Math.Max(GameViewport.X, GameViewport.Right - actor.Name.Length * 6));
                 int y = Math.Max(GameViewport.Y, GameViewport.Y + actor.DrawY - 42);
@@ -1065,10 +1217,91 @@ public sealed class FnaGraphicsService : IDisposable
             foreach (var spell in _scene.Spells)
             {
                 int frame = spell.Frame(_renderSeconds);
-                if (spell.Animation < 0 || frame < 0 || frame > 13) continue;
-                DrawWorldSprite(texture, new Rectangle(spell.X * 32, spell.Y * 32, 32, 32),
-                    new Rectangle(frame * 32, spell.Animation * 32, 32, 32), Color.White);
+                if (spell.Animation < 0 || frame < 0 || frame >= FnaSceneSpell.FrameCount) continue;
+                DrawWorldSprite(texture, new Rectangle(spell.X * 32 - 32, spell.Y * 32 - 80, 96, 128),
+                    new Rectangle(frame * 96, spell.Animation * 128, 96, 128), Color.White);
             }
+        }
+
+        private void DrawTargetMarker()
+        {
+            var actor = _scene?.ActorsInDrawOrder().FirstOrDefault(p => string.Equals(p.TargetKey,_selectedTarget(),StringComparison.OrdinalIgnoreCase));
+            if (actor is null) return;
+            DrawWorldSprite(GetWorldTexture("misc/target.png", Color.Magenta),
+                new Rectangle(actor.DrawX - 14,actor.DrawY - 32,59,64),new Rectangle(0,0,59,64),Color.White);
+        }
+        private void DrawQuestBlips()
+        {
+            if (_scene is null) return;
+            var texture = GetWorldTexture("misc/questblips.png", Color.Magenta);
+            foreach (var quest in _scene.QuestBlips)
+            {
+                if (quest.Status == "completed") continue;
+                int row = quest.Status == "ready" ? 1 : quest.Status == "active" ? 0 : 3;
+                int frame = (int)(_renderSeconds * 4) % 3;
+                DrawWorldSprite(texture,new Rectangle(quest.X*32,quest.Y*32-68,32,32),new Rectangle(frame*32,row*32,32,32),Color.White);
+            }
+        }
+        private void DrawChatBubbles()
+        {
+            if (_scene is null) return;
+            var texture = GetWorldTexture("misc/chatbubble.png", Color.White);
+            foreach (var bubble in _scene.ChatBubbles)
+            {
+                if (_renderSeconds - bubble.ReceivedSeconds >= bubble.RemainingSeconds) continue;
+                var actor = _scene.ActorsInDrawOrder().FirstOrDefault(p => p.Name == bubble.PlayerName);
+                if (actor is null) continue;
+                int x = Math.Clamp(actor.DrawX - 48,0,GameViewport.Width-128);
+                int y = Math.Clamp(actor.DrawY - 102,0,GameViewport.Height-48);
+                DrawWorldSprite(texture,new Rectangle(x,y,128,48),new Rectangle(0,0,128,32),Color.White);
+                string text = bubble.Text.Replace('\n',' ').Replace('\r',' ');
+                var lines = new List<string>();
+                while (text.Length > 0 && lines.Count < 3)
+                {
+                    int length = Math.Min(18,text.Length);
+                    if (text.Length > length) { int space = text.LastIndexOf(' ',length-1,length); if (space > 0) length = space; }
+                    lines.Add(text[..length]); text = text[length..].TrimStart();
+                }
+                if (text.Length > 0 && lines.Count > 0) lines[^1] = lines[^1][..Math.Min(15,lines[^1].Length)] + "...";
+                for (int n = 0; n < lines.Count; n++) DrawTinyText(lines[n],GameViewport.X+x+8,GameViewport.Y+y+6+n*9,Color.Black,1,GameViewport.X+x+120);
+            }
+        }
+
+        private void DrawSceneEmotes()
+        {
+            if (_scene is null) return;
+            var texture = GetWorldTexture("emote.png", Color.Black);
+            foreach (var emote in _scene.Emotes)
+            {
+                if (emote.Picture is < 0 or >= 30 || _renderSeconds - emote.ReceivedSeconds >= emote.RemainingSeconds) continue;
+                var actor = _scene.ActorsInDrawOrder().FirstOrDefault(p => p.Name == emote.PlayerName);
+                if (actor is null) continue;
+                DrawWorldSprite(texture, new Rectangle(actor.DrawX, actor.DrawY - 82, 32, 32),
+                    new Rectangle(emote.Picture % 6 * 32, emote.Picture / 6 * 32, 32, 32), Color.White);
+            }
+        }
+
+        private void DrawGameplaySlots()
+        {
+            var state = _gameplayState();
+            if (_activePanel == MainGamePanel.Inventory)
+            {
+                var texture = GetWorldTexture("items.png", Color.White);
+                foreach (var item in state.Inventory.Where(i => i.Slot is >= 1 and <= 35 && i.Quantity > 0 && i.Picture >= 0))
+                {
+                    int slot = item.Slot - 1, x = 699 + slot % 5 * 45, y = 308 + slot / 5 * 45;
+                    var source = new Rectangle(item.Picture % 6 * 32, item.Picture / 6 * 32, 32, 32);
+                    if (texture is not null && source.Bottom <= texture.Height)
+                        _spriteBatch!.Draw(texture, new Rectangle(x, y, 32, 32), source, Color.White);
+                    DrawTinyText(item.Quantity.ToString(), x, y + 25, item.Equipped ? Color.Yellow : Color.White, 1, x + 38);
+                }
+            }
+            else if (_activePanel == MainGamePanel.Skills)
+                foreach (var spell in state.KnownSpells.Where(s => s.Slot >= 1 && s.Slot <= SkillSlots.Length && s.SpellId > 0))
+                {
+                    var slot = SkillSlots[spell.Slot - 1];
+                    DrawTinyText(spell.Name, slot.X + 2, slot.Y + 2, Color.White, 1, slot.Right);
+                }
         }
 
         private void DrawWorldSprite(Texture2D? texture, Rectangle destination, Rectangle? source, Color tint)

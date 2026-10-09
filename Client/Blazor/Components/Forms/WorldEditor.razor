@@ -44,6 +44,22 @@
         <p role="status" class="editor-message">@message</p>
       </main>
       <aside class="world-editor-side">
+        @if (Session.Gameplay.CanEditMap)
+        {
+          <h3>Map item spawns</h3>
+          <label>Item ID <input type="number" min="1" @bind="spawnItemId" /></label>
+          <label>Quantity <input type="number" min="1" max="1000000" @bind="spawnQuantity" /></label>
+          <div class="two-fields"><label>X <input type="number" min="0" max="15" @bind="spawnX" /></label><label>Y <input type="number" min="0" max="11" @bind="spawnY" /></label></div>
+          <label>Respawn (seconds) <input type="number" min="1" max="86400" @bind="spawnSeconds" /></label>
+          <button @onclick="AddItemSpawn">Add item spawn</button>
+          <p class="editor-help">Item spawns save directly to the current server map.</p>
+          @if (Session.LatestWorld?.Map is { } liveMap)
+          {
+            @for (int n=0;n<liveMap.ItemSpawns.Count;n++) { var index=n; var spawn=liveMap.ItemSpawns[index];
+              <div class="map-spawn-row"><span>Item @spawn.ItemId ? @spawn.Quantity at @spawn.X, @spawn.Y</span><button class="danger" @onclick='() => Session.GameplayAction("RemoveMapItemSpawn",index)'>Remove</button></div>
+            }
+          }
+        }
         <h3>Events (@map.Events.Count)</h3>
         <div class="event-list">
           @foreach(var ev in map.Events){<button class="@(selected?.Id==ev.Id?"active":"")" @onclick="() => SelectEvent(ev)">@ev.Name <small>@ev.X, @ev.Y</small></button>}
@@ -91,6 +107,8 @@
 </div>
 @code {
   [Parameter] public EventCallback OnClose {get;set;}
+  private int spawnItemId=1,spawnQuantity=1,spawnX=1,spawnY=1,spawnSeconds=30;
+  private void AddItemSpawn() => Session.GameplayAction("AddMapItemSpawn",spawnItemId,spawnQuantity,spawnX,spawnY,spawnSeconds);
   private MapDocument map=new();
   private MapEvent? selected;
   private string tool="Tiles",layer="Ground",message="Local editor. Export a JSON file to keep a backup.";

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Server
 {
 
-    public sealed class PacketRouter
+    public sealed partial class PacketRouter
     {
         private long _serverTick;
         private int _snapshotPhase;
@@ -43,11 +43,14 @@ namespace Server
             _npcs = await _db.LoadContentAsync<NpcDefinition>("npc");
             _shops = await _db.LoadContentAsync<ShopDefinition>("shop");
             _spells = await _db.LoadContentAsync<SpellDefinition>("spell");
+            await SeedGameplayAsync();
             _signs = await _db.LoadContentAsync<SignDefinition>("sign");
             _guilds = await _db.LoadContentAsync<GuildDefinition>("guild");
             _quests = await _db.LoadContentAsync<QuestDefinition>("quest");
+            await SeedQuestAsync();
             _arrows = await _db.LoadContentAsync<ArrowDefinition>("arrow");
             _classes = await _db.LoadContentAsync<ClassDefinition>("class");
+            await SeedCombatWorldAsync();
             _log?.Invoke($"Loaded game data from SpacetimeDB (JSON): {_mapCache.Count} maps, {_items.Count} items, {_npcs.Count} NPCs, {_shops.Count} shops, {_spells.Count} spells, {_signs.Count} signs, {_guilds.Count} guilds, {_quests.Count} quests, {_arrows.Count} arrows, {_classes.Count} classes.");
         }
 
@@ -85,6 +88,33 @@ namespace Server
             {
                 switch (command)
                 {
+                    case "requestcontenteditor":
+                    case "savecontentdefinition":
+                    case "placemapnpc":
+                        await HandleContentEditorAsync(connectionId,command,p);
+                        break;
+                    case "chargemana":
+                        HandleManaCharge(connectionId,p);
+                        break;
+                    case "spawnmapitem":
+                    case "removemapitemspawn":
+                        await EditMapItemSpawnsAsync(connectionId,command,p);
+                        break;
+                    case "attack":
+                    case "quests":
+                    case "acceptquest":
+                    case "completequest":
+                    case "playersprite":
+                    case "emote":
+                    case "useitem":
+                    case "cast":
+                    case "forgetspell":
+                    case "getinv":
+                    case "spells":
+                    case "mapgetitem":
+                    case "mapdropitem":
+                        await HandleGameplayAsync(connectionId, command, p);
+                        break;
                     case "saymsg":
                     case "globalmsg":
                     case "guildmsg":
@@ -182,6 +212,7 @@ namespace Server
                 _network.SendText(id, PacketCodec.Compose("playermsg", channel == "guildmsg" ? "You are not in a guild." : "Player not found."));
                 return;
             }
+            if (channel == "saymsg") RecordChatBubble(id, player.Map, player.Name, message);
             foreach (var receiver in receivers)
                 _network.SendText(receiver.ConnectionId, PacketCodec.Compose(channel, player.Name, message));
         }
@@ -234,6 +265,8 @@ namespace Server
         public void Tick()
         {
             _legacy.Tick();
+            TickCombatWorld();
+            TickManaCharging();
             long tick = Interlocked.Increment(ref _serverTick);
             double now = NetworkClock.Seconds;
             foreach (var session in _sessions.Values)
@@ -366,7 +399,12 @@ namespace Server
                 return;
             }
 
-            var character = new PlayerCharacter() { Name = name, Sex = sex, ClassId = classId, Level = 1 };
+            var character = new PlayerCharacter() { Name = name, Sex = sex, ClassId = classId, Level = 1, Map = (short)_mapCache.Keys.Order().FirstOrDefault(1), Sprite = -1, HP = 100, MP = 50, SP = 100 };
+            if (_items.TryGetValue(1, out var starter) && starter.Name == "Health Potion")
+                character.Inventory.Add(new PlayerInventory { Num = 1, Value = 5 });
+            if (_items.TryGetValue(2, out var mana) && mana.Name == "Mana Potion") character.Inventory.Add(new PlayerInventory { Num = 2, Value = 5 });
+            if (_items.TryGetValue(3, out var book) && book.Name == "Spell Book") character.Inventory.Add(new PlayerInventory { Num = 3, Value = 1 });
+            if (_spells.TryGetValue(1, out var starterSpell) && starterSpell.Name == "Heal") character.Spells.Add(1);
             await _db.SaveCharacterAsync(session.Login, slot, character);
             await SendCharactersAsync(id, session.Login);
         }
@@ -399,6 +437,7 @@ namespace Server
             session.Character = selected.Character;
             session.IsPlaying = false;
             var player = selected.Character;
+            if (player.HP <= 0) player.HP = Math.Max(1,player.MaxHP);
             var maps = await _db.LoadContentAsync<MapDefinition>("map");
             if (!maps.TryGetValue(player.Map, out var map) || map is null)
             {
@@ -408,9 +447,10 @@ namespace Server
                 map = CreateEmptyMap(player.Map);
             }
 
-            if (player.Sprite <= 0)
+            if (player.Sprite < 0)
             {
                 var classes = await _db.LoadContentAsync<ClassDefinition>("class");
+                player.Sprite = 0;
                 if (classes.TryGetValue(player.ClassId, out var definition))
                     player.Sprite = player.Sex == 1 ? definition.MaleSprite : definition.FemaleSprite;
             }
@@ -420,6 +460,7 @@ namespace Server
             lock (session) { session.NetworkState.Begin(Pose(player), Interlocked.Read(ref _serverTick), NetworkClock.Seconds); session.IsPlaying = true; }
             _network.SendText(id, PacketCodec.Compose("ingame"));
             SendWorldSnapshot(player.Map, map);
+            SendGameplayState(session);
             _network.SendText(id, PacketCodec.Compose("playerdata",
                 selected.Character.Name, selected.Character.Level, selected.Character.Map, selected.Character.X, selected.Character.Y, selected.Character.Direction));
         }
@@ -552,13 +593,17 @@ namespace Server
         private void SendWorldSnapshot(int mapId, MapDefinition map) => SendSnapshot(mapId, map);
         private void SendSnapshot(int mapId, MapDefinition? map)
         {
+            EnsureMapEntities(mapId);
+            var gameplay = CaptureGameplay(mapId);
+            var npcs = CaptureMapNpcs(mapId);
             var viewers = _sessions.Values.Where(s => s.IsPlaying && s.Character?.Map == mapId).ToArray();
             var actors = new Dictionary<int, object>();
             foreach (var session in viewers)
                 lock (session)
                     if (session.IsPlaying && session.Character is { } player && player.Map == mapId)
                         actors[session.ConnectionId] = new { player.Name, player.Sprite, player.X, player.Y, player.Direction,
-                            PixelX = player.PixelX ?? player.X * 32.0, PixelY = player.PixelY ?? player.Y * 32.0 };
+                            PixelX = player.PixelX ?? player.X * 32.0, PixelY = player.PixelY ?? player.Y * 32.0, player.HP, player.MaxHP,
+                            AttackAgeSeconds = AttackAge(session) };
             foreach (var viewer in viewers)
             {
                 string payload;
@@ -569,11 +614,14 @@ namespace Server
                     // Re-capture the viewer under its lock, matching the history pose to the serialized pose.
                     var player = viewer.Character;
                     var local = new { player.Name, player.Sprite, player.X, player.Y, player.Direction,
-                        PixelX = player.PixelX ?? player.X * 32.0, PixelY = player.PixelY ?? player.Y * 32.0 };
+                        PixelX = player.PixelX ?? player.X * 32.0, PixelY = player.PixelY ?? player.Y * 32.0, player.HP, player.MaxHP,
+                        AttackAgeSeconds = AttackAge(viewer) };
                     if (viewer.NetworkState.Epoch.Length == 0) viewer.NetworkState.Begin(Pose(player), tick, NetworkClock.Seconds);
                     viewer.NetworkState.Record(tick, Pose(player));
                     payload = System.Text.Json.JsonSerializer.Serialize(new { MapId = mapId, Map = map, Player = local,
                         Players = actors.Where(p => p.Key != viewer.ConnectionId).Select(p => p.Value).Append(local).ToArray(),
+                        Npcs = npcs, Items = gameplay.Items, Spells = gameplay.Spells, Emotes = gameplay.Emotes,
+                        ChatBubbles = gameplay.ChatBubbles, QuestBlips = QuestBlipsFor(player),
                         ServerTick = tick, AckInputSequence = viewer.NetworkState.LastInputSequence,
                         NetworkEpoch = viewer.NetworkState.Epoch, TickRate = Math.Clamp(_settings.TickRate, 1, 240),
                         NetworkFrozen = viewer.NetworkState.Frozen || viewer.IsJailed });

@@ -1,0 +1,19 @@
+@inject Client.Blazor.Services.BrowserGameSession Session
+<div class="vital-bars" aria-label="Player vitals">
+    @foreach (var vital in Vitals)
+    {
+        <div class="vital-meter" role="progressbar" aria-label="@vital.Name" aria-valuemin="0" aria-valuemax="@Math.Max(1,vital.Maximum)" aria-valuenow="@Math.Clamp(vital.Current,0,Math.Max(1,vital.Maximum))" aria-valuetext="@($"{vital.Current} / {vital.Maximum}")">
+            <span class="vital-fill" style="@FillStyle(vital.Current,vital.Maximum,vital.Row)"></span>
+            <span class="vital-label">@vital.Name @vital.Current / @vital.Maximum</span>
+        </div>
+    }
+</div>
+@code {
+    private (string Name,int Current,int Maximum,int Row)[] Vitals => new[] {
+        ("HP",Session.Gameplay.HP,Session.Gameplay.MaxHP,0),
+        ("MP",Session.Gameplay.MP,Session.Gameplay.MaxMP,1),
+        ("SP",Session.Gameplay.SP,Session.Gameplay.MaxSP,2)
+    };
+    private static string FillStyle(int current,int maximum,int row) => FormattableString.Invariant(
+        $"clip-path:inset(0 {100 - (maximum <= 0 ? 0 : Math.Clamp(current * 100.0 / maximum,0,100))}% 0 0);background-position:0 -{row * 21}px");
+}

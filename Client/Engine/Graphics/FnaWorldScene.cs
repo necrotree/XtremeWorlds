@@ -17,6 +17,9 @@ public sealed class FnaWorldScene
     public List<FnaScenePlayer> Players { get; set; } = new();
     public List<FnaScenePlayer> Npcs { get; set; } = new();
     public List<FnaSceneItem> Items { get; set; } = new();
+    public List<FnaSceneChatBubble> ChatBubbles { get; set; } = new();
+    public List<FnaSceneQuestBlip> QuestBlips { get; set; } = new();
+    public List<FnaSceneEmote> Emotes { get; set; } = new();
     public List<FnaSceneSpell> Spells { get; set; } = new();
     public IEnumerable<FnaScenePlayer> ActorsInDrawOrder() =>
         Players.Where(p => p.Name != Player.Name)
@@ -26,6 +29,7 @@ public sealed class FnaWorldScene
 
 public sealed class FnaSceneMap
 {
+    public List<FnaMapItemSpawn> ItemSpawns { get; set; } = new();
     public string Name { get; set; } = string.Empty;
     public int Tileset { get; set; }
     public List<int> LayerTileset { get; set; } = new();
@@ -50,6 +54,11 @@ public sealed class FnaSceneTile
 
 public sealed class FnaScenePlayer
 {
+    public string TargetId { get; set; } = "";
+    public string TargetKey => TargetId.Length > 0 ? TargetId : Name;
+    public int HP { get; set; } = 1;
+    public int MaxHP { get; set; } = 1;
+    public double? AttackAgeSeconds { get; set; }
     public string Name { get; set; } = string.Empty;
     public int Sprite { get; set; }
     public int X { get; set; }
@@ -72,6 +81,10 @@ public sealed class FnaScenePlayer
 
 public sealed class FnaSceneItem
 {
+    public string Name { get; set; } = "";
+    public int ItemId { get; set; }
+    public int Quantity { get; set; }
+    public int Id { get; set; }
     public int Picture { get; set; }
     public int X { get; set; }
     public int Y { get; set; }
@@ -82,6 +95,44 @@ public sealed class FnaSceneSpell
     public int Animation { get; set; }
     public int X { get; set; }
     public int Y { get; set; }
+    public double? AgeSeconds { get; set; }
     public double StartedSeconds { get; set; }
+    public const int FrameCount = 12;
+    public const int FrameWidth = 96;
+    public const int FrameHeight = 128;
     public int Frame(double seconds) => seconds < StartedSeconds ? -1 : (int)((seconds - StartedSeconds) / 0.075);
+}
+
+public sealed class FnaSceneEmote
+{
+    public string PlayerName { get; set; } = "";
+    public int Picture { get; set; }
+    public double RemainingSeconds { get; set; }
+    public double ReceivedSeconds { get; set; }
+}
+
+public sealed class FnaSceneChatBubble
+{
+    public string PlayerName { get; set; } = "";
+    public string Text { get; set; } = "";
+    public double RemainingSeconds { get; set; }
+    public double ReceivedSeconds { get; set; }
+}
+public sealed class FnaSceneQuestBlip
+{
+    public int QuestId { get; set; }
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Sprite { get; set; }
+    public string Name { get; set; } = "";
+    public string Status { get; set; } = "available";
+}
+
+public sealed class FnaMapItemSpawn
+{
+    public int ItemId { get; set; }
+    public int Quantity { get; set; }
+    public int X { get; set; }
+    public int Y { get; set; }
+    public double RespawnSeconds { get; set; }
 }

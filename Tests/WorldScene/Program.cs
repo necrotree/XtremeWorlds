@@ -40,8 +40,8 @@ walking.AttackStartedSeconds = 10;
 if (walking.AnimationFrame(10.25) != 2 || walking.AnimationFrame(11) != 1)
     throw new Exception("Attack animation must expire.");
 var effect = new FnaSceneSpell { StartedSeconds = 10 };
-if (effect.Frame(9) != -1 || effect.Frame(10) != 0 || effect.Frame(11.1) <= 13)
-    throw new Exception("Spell effects must start at frame zero and expire after fourteen frames.");
+if (effect.Frame(9) != -1 || effect.Frame(10) != 0 || effect.Frame(10.91) < FnaSceneSpell.FrameCount)
+    throw new Exception("Spell effects must start at frame zero and expire after twelve frames.");
 var animatedTile = JsonSerializer.Deserialize<FnaSceneTile>(JsonSerializer.Serialize(new Server.TileDefinition
     { Anim = 21, M2Anim = 22, FAnim = 23, F2Anim = 24 }))!;
 if (animatedTile.Anim != 21 || animatedTile.M2Anim != 22 || animatedTile.FAnim != 23 || animatedTile.F2Anim != 24)
