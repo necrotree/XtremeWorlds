@@ -1,0 +1,148 @@
+[FormDesignerId("B2C78F23-9B75-45A0-9151-F28345C61E07")]
+Class frmAlert
+    Option Explicit
+    Public Result As VbMsgBoxResult
+    Public InputValue As String
+    Private Choices(2) As VbMsgBoxResult
+    Private ChoiceCount As Long
+    Private FocusChoice As Long
+    Private EscapeResult As VbMsgBoxResult
+    Private InputMode As Boolean
+
+    Public Sub Configure(ByVal Message As String, ByVal Buttons As VbMsgBoxStyle, ByVal Title As String)
+        Dim i As Long, Lines As Long, Part As Variant
+        ChoiceCount = 0
+        EscapeResult = 0
+        Result = 0
+        InputMode = False
+        InputValue = vbNullString
+        lblTitle.Caption = Title
+        txtMessage.Text = Message
+        ' Long messages scroll inside a fixed-size alert so its header remains readable.
+        txtMessage.Height = 44
+        Me.Height = 128 * Screen.TwipsPerPixelY
+        Select Case (CLng(Buttons) And 15)
+            Case vbYesNo
+                SetChoice 0, vbYes
+                SetChoice 1, vbNo
+                EscapeResult = vbNo
+            Case Else
+                SetChoice 0, vbOK
+                EscapeResult = vbOK
+        End Select
+        imgOk.Visible = False
+        imgYes.Visible = False
+        imgNo.Visible = False
+        txtInput.Visible = False
+        PositionChoices
+        FocusChoice = (CLng(Buttons) And &H300) \ &H100
+        If FocusChoice >= ChoiceCount Then FocusChoice = 0
+        PaintSkin
+    End Sub
+
+    Public Sub ConfigureInput(ByVal Message As String, ByVal DefaultValue As String, ByVal Title As String)
+        Configure Message, vbYesNo, Title
+        InputMode = True
+        InputValue = DefaultValue
+        txtMessage.Height = 30
+        txtInput.Move 16, txtMessage.Top + txtMessage.Height + 6, ScaleWidth - 32, 24
+        txtInput.Text = DefaultValue
+        txtInput.Visible = True
+        Me.Height = 152 * Screen.TwipsPerPixelY
+        PositionChoices
+        PaintSkin
+    End Sub
+
+    Private Sub Form_Activate()
+        If InputMode Then txtInput.SetFocus
+    End Sub
+
+    Private Sub SetChoice(ByVal Index As Long, ByVal Value As VbMsgBoxResult)
+        Choices(Index) = Value
+        ChoiceCount = Index + 1
+    End Sub
+
+    Private Sub PositionChoices()
+        Dim i As Long, x As Long, y As Long
+        If InputMode Then
+            y = txtInput.Top + txtInput.Height + 10
+        Else
+            y = txtMessage.Top + txtMessage.Height + 10
+        End If
+        x = (ScaleWidth - ChoiceCount * 110 + 8) / 2
+        For i = 0 To ChoiceCount - 1
+            Select Case Choices(i)
+                Case vbOK
+                    imgOk.Move x, y, 102, 24
+                    imgOk.Visible = True
+                Case vbYes
+                    imgYes.Move x, y, 102, 24
+                    imgYes.Visible = True
+                Case vbNo
+                    imgNo.Move x, y, 102, 24
+                    imgNo.Visible = True
+            End Select
+            x = x + 110
+        Next i
+    End Sub
+
+    Private Sub SelectChoice(ByVal Value As VbMsgBoxResult)
+        Dim i As Long
+        For i = 0 To ChoiceCount - 1
+            If Choices(i) = Value Then
+                Result = Value
+                If InputMode And Value = vbYes Then InputValue = txtInput.Text
+                Me.Hide
+                Exit Sub
+            End If
+        Next i
+    End Sub
+
+    Private Sub imgOk_Click()
+        SelectChoice vbOK
+    End Sub
+
+    Private Sub imgYes_Click()
+        SelectChoice vbYes
+    End Sub
+
+    Private Sub imgNo_Click()
+        SelectChoice vbNo
+    End Sub
+
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+        Select Case KeyCode
+            Case vbKeyReturn
+                If FocusChoice >= 0 And FocusChoice < ChoiceCount Then SelectChoice Choices(FocusChoice)
+                KeyCode = 0
+            Case vbKeyEscape
+                If EscapeResult <> 0 Then
+                    Result = EscapeResult
+                    Me.Hide
+                End If
+                KeyCode = 0
+            Case vbKeyTab, vbKeyLeft, vbKeyRight
+                If KeyCode = vbKeyLeft Or (KeyCode = vbKeyTab And (Shift And vbShiftMask) <> 0) Then
+                    FocusChoice = (FocusChoice + ChoiceCount - 1) Mod ChoiceCount
+                Else
+                    FocusChoice = (FocusChoice + 1) Mod ChoiceCount
+                End If
+                KeyCode = 0
+        End Select
+    End Sub
+
+    Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+        If UnloadMode = vbFormControlMenu Then
+            Cancel = True
+            If EscapeResult <> 0 Then
+                Result = EscapeResult
+                Me.Hide
+            End If
+        End If
+    End Sub
+
+    Private Sub PaintSkin()
+        imgAlert.Move 0, 0, ScaleWidth, ScaleHeight
+        imgAlert.ZOrder 1
+    End Sub
+End Class
