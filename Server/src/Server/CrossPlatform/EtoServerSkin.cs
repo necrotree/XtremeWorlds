@@ -6,14 +6,14 @@ namespace Server;
 // Palette shared with the browser client's new desert-themed account dialogs.
 internal static class EtoServerSkin
 {
-    public static readonly Color Window = Color.FromArgb(108, 65, 41);
-    public static readonly Color Panel = Color.FromArgb(190, 161, 109);
-    public static readonly Color Input = Color.FromArgb(231, 212, 169);
-    public static readonly Color Ink = Color.FromArgb(49, 32, 18);
-    public static readonly Color Gold = Color.FromArgb(255, 240, 201);
-    public static readonly Color Bronze = Color.FromArgb(73, 53, 28);
-    public static readonly Color Green = Color.FromArgb(52, 104, 66);
-    public static readonly Color Red = Color.FromArgb(124, 41, 41);
+    public static readonly Color Window = Color.FromArgb(27, 21, 19);
+    public static readonly Color Panel = Color.FromArgb(48, 36, 30);
+    public static readonly Color Input = Color.FromArgb(32, 26, 23);
+    public static readonly Color Ink = Color.FromArgb(244, 232, 214);
+    public static readonly Color Gold = Color.FromArgb(244, 232, 214);
+    public static readonly Color Bronze = Color.FromArgb(157, 111, 78);
+    public static readonly Color Green = Color.FromArgb(105, 72, 54);
+    public static readonly Color Red = Color.FromArgb(105, 55, 47);
 
     public static TextBox TextBox(bool readOnly = false) => new()
     {
