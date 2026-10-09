@@ -8,23 +8,23 @@ namespace Server;
 
 internal static class WpfServerSkin
 {
-    public static readonly Brush Window = Brush(20, 11, 13);
-    public static readonly Brush Panel = Brush(43, 22, 25);
-    public static readonly Brush PanelAlt = Brush(52, 25, 29);
-    public static readonly Brush Input = Brush(31, 17, 19);
-    public static readonly Brush Gold = Brush(255, 229, 151);
-    public static readonly Brush MutedGold = Brush(205, 183, 127);
-    public static readonly Brush Bronze = Brush(116, 102, 73);
-    public static readonly Brush Button = Brush(67, 33, 37);
-    public static readonly Brush Selection = Brush(91, 54, 57);
-    public static readonly Brush MenuBar = Brushes.White;
-    public static readonly Brush MenuText = Brushes.Black;
+    public static readonly Brush Window = Brush(27, 21, 19);
+    public static readonly Brush Panel = Brush(48, 36, 30);
+    public static readonly Brush PanelAlt = Brush(61, 44, 36);
+    public static readonly Brush Input = Brush(32, 26, 23);
+    public static readonly Brush Gold = Brush(244, 232, 214);
+    public static readonly Brush MutedGold = Brush(215, 181, 145);
+    public static readonly Brush Bronze = Brush(157, 111, 78);
+    public static readonly Brush Button = Brush(105, 72, 54);
+    public static readonly Brush Selection = Brush(81, 112, 104);
+    public static readonly Brush MenuBar = Brush(51, 37, 31);
+    public static readonly Brush MenuText = Brush(244, 232, 214);
 
     public static void Apply(Window window)
     {
         window.Background = Window;
         window.Foreground = Gold;
-        window.FontFamily = new FontFamily("Rockwell");
+        window.FontFamily = new FontFamily("Georgia");
     }
 
     public static Button MakeButton(string text, double minWidth = 86)
@@ -101,7 +101,7 @@ internal static class WpfServerSkin
         menu.Resources[typeof(MenuItem)] = itemStyle;
 
         var separatorStyle = new Style(typeof(Separator));
-        separatorStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brush(210, 210, 210)));
+        separatorStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brush(157, 111, 78)));
         menu.Resources[typeof(Separator)] = separatorStyle;
     }
 
