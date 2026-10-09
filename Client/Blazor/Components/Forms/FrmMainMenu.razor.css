@@ -41,4 +41,8 @@
 
 /* Actual UIRPG button and window-layer textures. */
 .realm-dialog { background-image:linear-gradient(#35251cdc,#35251ce8),url('/assets/uirpg/atlas.png'); background-position:center,center; }
-.realm-actions button,.choice-row button,.class-grid button,.character-entry { background-image:linear-gradient(#3b291766,#3b291766),url('/assets/uirpg/atlas.png'); background-position:center,0 0; background-repeat:no-repeat,repeat; image-rendering:pixelated; }
+.realm-actions button,.choice-row button,.class-grid button { background-image:linear-gradient(#3b291766,#3b291766),url('/assets/uirpg/atlas.png'); background-position:center,0 0; background-repeat:no-repeat,repeat; image-rendering:pixelated; }
+/* Character rows are selectable list entries, not Photoshop button sprites. */
+.character-entry { background-image:none; background-color:#31221c; border:1px solid #8d654c; box-shadow:none; }
+.character-entry:not(.selected):hover { background-image:none; background-color:#493125; }
+.character-entry.selected { background-image:none; background-color:#486e67; border:2px solid #d8ac7c; outline:none; }
