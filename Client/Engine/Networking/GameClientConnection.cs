@@ -105,7 +105,7 @@ public sealed class GameClientConnection : IDisposable
         if (action == "MovePlayer") { if (arguments.Length > 0) Move(Convert.ToInt32(arguments[0])); return true; }
         string? command = action switch {
             "ChargeMana" => "chargemana", "AddMapItemSpawn" => "spawnmapitem", "RemoveMapItemSpawn" => "removemapitemspawn", "AttackTarget" => "attack", "RequestQuests" or "OpenQuest" => "quests", "AcceptQuest" => "acceptquest", "CompleteQuest" => "completequest", "SendEmote" => "emote", "SelectSprite" => "playersprite", "PickUpItem" => "mapgetitem", "DropInventoryItem" => "mapdropitem", "UseInventoryItem" => "useitem", "CastSpell" => "cast", "ForgetSpell" => "forgetspell",
-            "TrainStat" => "usestatpoint", "ToggleInventory" => "getinv", "ToggleSpells" => "spells",
+            "TrainStat" => "usestatpoint", "UnlockBag" => "unlockbag", "ToggleInventory" => "getinv", "ToggleSpells" => "spells",
             "ToggleStats" or "ToggleTrain" => "getlivestats", "SendWhosOnline" => "whosonline", _ => null
         };
         if (command == null) return false;
@@ -118,7 +118,7 @@ public sealed class GameClientConnection : IDisposable
                 Transport.SendText(PacketCodec.Build(command, slot + 1, arguments[1]));
             else Transport.SendText(PacketCodec.Build(command, slot + 1));
         }
-        else if (action is "ChargeMana" or "AttackTarget" or "SendEmote" or "SelectSprite" or "AcceptQuest" or "CompleteQuest")
+        else if (action is "ChargeMana" or "AttackTarget" or "SendEmote" or "SelectSprite" or "AcceptQuest" or "CompleteQuest" or "UnlockBag")
         {
             if (arguments.Length > 0) Transport.SendText(PacketCodec.Build(command, arguments[0]));
         }
