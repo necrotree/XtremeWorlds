@@ -16,3 +16,25 @@
 .realm-heading .realm-brand strong{font-family:"OPTITimes-Roman","Times New Roman",Georgia,serif;font-size:13px;color:#f3ddaa}
 .realm-heading .close-menu{flex:0 0 36px}
 @media(max-width:540px){.realm-heading .realm-logo{max-width:100%}}
+
+
+/* Matching UIRPG main-menu treatment: dark oak, bronze frames and carved controls. */
+.menu-scene { background-color:#1c1513; color:#f3e5d6; }
+.realm-dialog { background:linear-gradient(120deg,#503b31,#2c231f 38%,#30241e 70%,#52382d); border:6px ridge #916247; border-radius:4px; color:#f4e9db; box-shadow:inset 0 0 0 4px #2a201a,0 0 0 3px #16100d,0 20px 40px #000b; }
+.realm-heading h1,.realm-dialog h2 { color:#f5e7d4; text-shadow:1px 2px #1b1310; }
+.realm-heading .realm-brand strong { color:#deb792; letter-spacing:2px; }
+.realm-separator { border-bottom:3px ridge #9d7257; margin:22px 0 18px; }
+.realm-dialog label { color:#e3cbb3; }
+.realm-dialog input { background:#201a17; border:2px inset #946748; color:#f8eee5; box-shadow:inset 1px 2px 4px #0007; }
+.realm-dialog input:focus-visible { outline:2px solid #cf9b70; }
+.realm-actions button,.choice-row button,.class-grid button,.character-entry { background:linear-gradient(#7b5541,#423029); border:2px ridge #9f7052; border-radius:3px; color:#f6e8d8; }
+.realm-actions .primary { background:linear-gradient(#a17653,#684732); }
+.realm-actions .secondary { background:linear-gradient(#715144,#432f29); }
+.realm-actions .danger { background:linear-gradient(#94463b,#65241e); }
+.realm-actions button:hover:not(:disabled),.choice-row button:hover,.class-grid button:hover,.character-entry:hover { filter:brightness(1.18); }
+.choice-row button.selected,.class-grid button.selected,.character-entry.selected { background:#8c6249; outline:2px solid #dcb081; }
+.confirm-box { background:#392a23; border:2px ridge #9e7655; color:#f5e8d9; }
+.intro,.realm-status,.realm-website { color:#f2dfc9; }
+.realm-status [role=alert] { color:#f2a79b; }
+.realm-heading .close-menu { background:linear-gradient(#8c493c,#562721); border:2px ridge #b58867; }
+.realm-website { text-shadow:1px 2px #17100f; }
