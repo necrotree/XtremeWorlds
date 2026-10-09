@@ -57,3 +57,10 @@ canvas:focus-visible { outline: 2px solid #95d5bf; }
 .live-chat button { background: #6d4934; border-color: #a3785a; }
 .gameplay-panel { background: #31241f; border: 3px ridge #98684d; color: #eee5d8; }
 @media(max-width:700px) { .live-chat { left: auto; width: 100%; } }
+
+/* Use sprites lifted from the original layered Photoshop UI. */
+.character-card,.gameplay-panel { background-image:linear-gradient(#241a16da,#241a16e8),url('/assets/uirpg/atlas.png'); background-position:center,center; }
+.live-chat { background-image:linear-gradient(#17120de6,#17120df2),url('/assets/uirpg/atlas.png'); background-position:center,center; }
+.game-overlay-header button,.live-chat button,.gameplay-panel button { background-image:url('/assets/uirpg/atlas.png'); background-position:0 0; background-repeat:repeat; image-rendering:pixelated; }
+.character-card .hp { background-image:url('/assets/uirpg/atlas.png'); background-position:-130px -300px; background-size:320px 324px; }
+.character-card .mp { background-image:url('/assets/uirpg/atlas.png'); background-position:0 -300px; background-size:320px 324px; }
