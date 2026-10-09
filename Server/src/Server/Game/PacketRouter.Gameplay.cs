@@ -84,6 +84,13 @@ public sealed partial class PacketRouter
             if (command is "attack" or "cast") StopManaCharge(session);
             if (command == "attack") return HandleNormalAttack(session, fields);
             if (command is "getinv" or "spells" or "quests") { SendGameplayState(session); return false; }
+            if (command == "unlockbag")
+            {
+                if (fields.Length != 2 || !int.TryParse(fields[1], out int bag) || bag < 2 || bag > 3 || bag != Math.Clamp(player.UnlockedBags, 1, 3) + 1) return false;
+                player.UnlockedBags = bag;
+                SendGameplayState(session);
+                return true;
+            }
             if (command is "acceptquest" or "completequest")
             {
                 string? questError = fields.Length >= 2 && int.TryParse(fields[1], out int questId) && _quests.TryGetValue(questId, out var quest)
@@ -118,9 +125,10 @@ public sealed partial class PacketRouter
                     var merge = _items.TryGetValue(drop.Num, out var definition) && definition.Type >= 4
                         ? player.Inventory.FirstOrDefault(i => i.Num == drop.Num && i.Value > 0
                             && i.Durability == drop.Durability && (long)i.Value + drop.Value <= int.MaxValue) : null;
+                    var capacity = Math.Min(GameLimits.MaxInventory, Math.Clamp(player.UnlockedBags, 1, 3) * 25);
                     var empty = player.Inventory.FindIndex(i => i.Num == 0 || i.Value == 0);
                     if (merge is not null) { merge.Value += drop.Value; RemoveGroundItem(drop, now); }
-                    else if (empty < 0 && player.Inventory.Count >= GameLimits.MaxInventory) error = "Your inventory is full.";
+                    else if (empty < 0 && player.Inventory.Count >= capacity) error = "Your inventory is full.";
                     else
                     {
                         var stack = new PlayerInventory { Num = drop.Num, Value = drop.Value, Durability = drop.Durability };
@@ -201,7 +209,7 @@ public sealed partial class PacketRouter
                 Animation = spell?.Graphic ?? -1, ManaCost = spell?.MPReq ?? 0
             }).ToArray();
             _network.SendText(session.ConnectionId, PacketCodec.Compose("gameplaystate", JsonSerializer.Serialize(new {
-                session.IsChargingMana, CanEditMap = p.Access >= 1, p.HP, p.MP, p.SP, p.MaxHP, p.MaxMP, p.MaxSP, Inventory = inventory, KnownSpells = spells,
+                session.IsChargingMana, UnlockedBags = Math.Clamp(p.UnlockedBags, 1, 3), CanEditMap = p.Access >= 1, p.HP, p.MP, p.SP, p.MaxHP, p.MaxMP, p.MaxSP, Inventory = inventory, KnownSpells = spells,
                 Quests = QuestJournalFor(p)
             })));
         }
