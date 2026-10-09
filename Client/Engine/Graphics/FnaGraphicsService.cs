@@ -1177,13 +1177,12 @@ public sealed class FnaGraphicsService : IDisposable
             {
                 bool local = actor.TargetKey == _scene.Player.TargetKey;
                 int x = Math.Clamp(actor.DrawX - 12,0,GameViewport.Width - 56);
-                int y = Math.Clamp(actor.DrawY + 34,0,GameViewport.Height - (local ? 23 : 7));
+                int y = Math.Clamp(actor.DrawY + 34,0,GameViewport.Height - (local ? 15 : 7));
                 if (local)
                 {
                     var state = _gameplayState();
                     DrawActorVital(texture,x,y,state.HP,state.MaxHP,0);
                     DrawActorVital(texture,x,y+8,state.MP,state.MaxMP,1);
-                    DrawActorVital(texture,x,y+16,state.SP,state.MaxSP,2);
                 }
                 else if (actor.MaxHP > 1) DrawActorVital(texture,x,y,actor.HP,actor.MaxHP,0);
             }
