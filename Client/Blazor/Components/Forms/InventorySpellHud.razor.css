@@ -59,3 +59,29 @@ header span { font-size:11px; color:#cbb88a; }
 .bag-3 .bag-icon { background: #777747; }
 .bag-4 .bag-icon { background: #506171; }
 .bag-5 .bag-icon { background: #755378; }
+
+
+/* UIRPG-inspired dark wood and bronze framed windows. */
+.inventory-spell-hud {
+  background: linear-gradient(90deg,#1b1715 0%,#342824 3%,#342824 97%,#1b1715 100%);
+  border: 3px solid #171311;
+  outline: 2px solid #8d6148;
+  outline-offset: -6px;
+  box-shadow: inset 0 0 0 5px #5d4236, 4px 6px 0 #100d0ccc;
+  color: #f1e8df;
+  font-family: Georgia,serif;
+}
+.inventory-spell-hud button { background: linear-gradient(#65483a,#382821); border: 2px solid #805941; border-radius: 3px; color: #eee4d5; }
+.inventory-spell-hud button:hover:not(:disabled),.inventory-spell-hud button:focus-visible { background: #7e5b47; outline-color: #d9ab7b; }
+.inventory-spell-hud .hud-tabs .active { background: linear-gradient(#a06d4f,#6a4534); border-color: #bf9169; }
+.inventory-spell-hud header { padding: 3px 7px; background: linear-gradient(#a27658,#6f4836); border: 1px solid #a77a5a; text-shadow: 1px 1px #271b17; }
+.inventory-spell-hud .inventory-grid { gap: 4px; padding: 7px; background: #49382f; border: 3px ridge #705041; }
+.inventory-spell-hud .inventory-slot { min-height: 46px; background: #28221e; border: 2px ridge #6b5347; box-shadow: inset 2px 2px 3px #130f0e; }
+.inventory-spell-hud .inventory-slot.selected { border-color: #e2b77f; background: #4c3c2e; }
+.inventory-spell-hud .slot-number { color: #c5a996; }
+.inventory-spell-hud .bag-tab { background: #312620; }
+.inventory-spell-hud .bag-tab.active { border-color: #d5a16e; box-shadow: inset 0 0 0 1px #e5b881; }
+.inventory-spell-hud .spell-slot { background: #352a25; border-color: #72513d; }
+.inventory-spell-hud .quest-card { background: #28211d; margin-bottom: 5px; padding: 7px; border: 1px solid #745747; }
+.inventory-spell-hud .quest-progress { color: #e7b78a; }
+.inventory-spell-hud .combat-controls { color: #d9bda1; }
