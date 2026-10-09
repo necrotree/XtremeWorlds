@@ -1,7 +1,7 @@
 @using XtremeWorlds.Client.Engine.Graphics
 @inject Client.Blazor.Services.BrowserGameSession Session
 
-<section class="inventory-spell-hud @(collapsed ? "collapsed" : "")" aria-label="Inventory and spells">
+<section class="inventory-spell-hud @(collapsed ? "collapsed" : "")" aria-label="Inventory and spells" tabindex="0" @onkeydown="HandleInventoryKey">
     <nav class="hud-tabs" aria-label="Gameplay panels">
         <button class="@(activeTab == "inventory" ? "active" : "")" aria-pressed="@(activeTab == "inventory")" @onclick='() => OpenTab("inventory")'>Inventory</button>
         <button class="@(activeTab == "spells" ? "active" : "")" aria-pressed="@(activeTab == "spells")" @onclick='() => OpenTab("spells")'>Spells</button>
@@ -43,11 +43,7 @@
                 @if (ground.Length > 0) { <p class="ground-items">At your feet: @string.Join(", ",ground.Select(i => $"{i.Name} ? {i.Quantity}"))</p> }
             }
             <div class="selection-detail" aria-live="polite">@(SelectedItem is { } selected ? $"{selected.Name} ? {selected.Quantity}{(selected.Equipped ? " ? Equipped" : "")}" : "Select an item")</div>
-            <div class="hud-actions">
-                <button disabled="@(SelectedItem is null)" @onclick="UseItem">@(SelectedItem?.Equipped == true ? "Unequip" : "Use / Equip")</button>
-                <button disabled="@(SelectedItem is null || SelectedItem.Equipped)" @onclick="DropItem">Drop</button>
-                <button @onclick='() => Session.GameplayAction("PickUpItem")' title="Press E while standing on an item">Pick up (E)</button>
-            </div>
+            <p class="inventory-shortcuts">U: Use / Equip · D: Drop · E: Pick up</p>
         }
         else if (activeTab == "spells")
         {
@@ -113,6 +109,16 @@
         Session.GameplayAction(tab == "inventory" ? "ToggleInventory" : tab == "quests" ? "RequestQuests" : "ToggleSpells");
     }
     private void ToggleCollapsed() => collapsed = !collapsed;
+    private void HandleInventoryKey(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (activeTab != "inventory" || collapsed || e.CtrlKey || e.AltKey || e.MetaKey || e.Repeat) return;
+        switch (e.Key.ToLowerInvariant())
+        {
+            case "u": UseItem(); break;
+            case "d": DropItem(); break;
+            case "e": Session.GameplayAction("PickUpItem"); break;
+        }
+    }
     private void UseItem() { if (SelectedItem is { } item) Session.GameplayAction("UseInventoryItem", item.Slot - 1); }
     private void DropItem() { if (SelectedItem is { Equipped: false } item) Session.GameplayAction("DropInventoryItem", item.Slot - 1); }
     private void CastSpell() { if (SelectedSpell is { } spell) { var key = target.Trim() == Session.SelectedTargetName ? Session.SelectedTarget : target.Trim(); Session.SelectTarget(key); Session.GameplayAction("CastSpell", spell.Slot - 1, key); } }
