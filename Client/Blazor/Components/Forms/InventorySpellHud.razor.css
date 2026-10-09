@@ -85,3 +85,9 @@ header span { font-size:11px; color:#cbb88a; }
 .inventory-spell-hud .quest-card { background: #28211d; margin-bottom: 5px; padding: 7px; border: 1px solid #745747; }
 .inventory-spell-hud .quest-progress { color: #e7b78a; }
 .inventory-spell-hud .combat-controls { color: #d9bda1; }
+
+/* Source artwork cropped from UIRPG.psd; pixel scaling stays sharp. */
+.inventory-spell-hud { background-image:linear-gradient(#221b17dd,#221b17ee),url('/assets/uirpg/atlas.png'); background-position:center,center; background-size:cover,auto; }
+.inventory-spell-hud .inventory-slot { background-image:url('/assets/uirpg/atlas.png'); background-position:-250px 0; background-size:320px 324px; image-rendering:pixelated; background-color:#29201b; }
+.inventory-spell-hud .hud-tabs button,.inventory-spell-hud .inventory-pages button { background-image:url('/assets/uirpg/atlas.png'); background-size:320px 324px; background-position:0 0; background-repeat:repeat; image-rendering:pixelated; }
+.inventory-spell-hud .spell-slot,.inventory-spell-hud .quest-card { background-image:linear-gradient(#281e17b8,#281e17e8),url('/assets/uirpg/atlas.png'); background-position:center,center; }
