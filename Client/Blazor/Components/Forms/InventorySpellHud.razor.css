@@ -9,7 +9,7 @@ button:disabled { opacity:.45; cursor:default; }
 header { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:10px; }
 header span { font-size:11px; color:#cbb88a; }
 .inventory-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
-.inventory-slot { position:relative; display:flex; justify-content:center; align-items:center; min-height:48px; padding:3px; background:#15140f; }
+.inventory-slot { position:relative; display:flex; justify-content:center; align-items:center; min-height:44px; padding:3px; background:#15140f; }
 .inventory-slot.equipped { border-color:#95b875; }
 .inventory-slot.selected, .spell-slot.selected { box-shadow:inset 0 0 0 2px #dfbe77; background:#473923; }
 .item-art { flex:none; width:32px; height:32px; background-image:url('/gfx/items.png'); background-color:white; image-rendering:pixelated; }
@@ -17,7 +17,6 @@ header span { font-size:11px; color:#cbb88a; }
 .quantity { position:absolute; bottom:1px; right:3px; color:white; text-shadow:1px 1px black,-1px -1px black; font:11px sans-serif; }
 .equipment-marker { position:absolute; top:2px; right:3px; color:#b7e197; font:bold 10px sans-serif; }
 .page-controls { display:flex; justify-content:space-between; align-items:center; margin:8px 0; }
-.selection-detail { min-height:24px; overflow-wrap:anywhere; margin:4px 0; }
 .hud-actions { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
 .hud-actions button { flex:1; }
 .spell-list { overflow:auto; min-height:70px; flex:1; display:flex; flex-direction:column; gap:5px; }
@@ -25,8 +24,6 @@ header span { font-size:11px; color:#cbb88a; }
 .spell-slot strong,.spell-slot small { display:block; }
 .spell-slot small { color:#cbb88a; margin-top:4px; }
 .spell-art { flex:none; width:32px; height:43px; background-image:url('/gfx/spells.png'); background-size:384px 1533.333333px; background-color:black; image-rendering:pixelated; }
-.target-label { display:block; margin-top:10px; }
-.target-label input { box-sizing:border-box; width:100%; margin-top:5px; padding:6px; color:#f3dfaf; background:#15140f; border:1px solid #987440; }
 .empty-state { color:#cbb88a; margin:8px 0; line-height:1.4; }
 @media(max-width:900px) { .inventory-spell-hud { top:100px; bottom:225px; width:37%; } .inventory-slot { min-height:40px; } }
 @media(max-width:700px) { .inventory-spell-hud { position:relative; top:auto; right:auto; bottom:auto; width:100%; margin-top:8px; max-height:400px; } .inventory-slot { min-height:48px; } }
