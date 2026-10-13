@@ -94,15 +94,20 @@ internal static class WpfServerSkin
         menu.Foreground = MenuText;
         menu.FontFamily = new FontFamily("Rockwell");
 
-        var itemStyle = new Style(typeof(MenuItem));
-        itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, MenuBar));
-        itemStyle.Setters.Add(new Setter(Control.ForegroundProperty, MenuText));
-        itemStyle.Setters.Add(new Setter(Control.FontFamilyProperty, new FontFamily("Rockwell")));
-        menu.Resources[typeof(MenuItem)] = itemStyle;
+        // Keep WPF's native MenuItem templates. Replacing them with an implicit
+        // style can interfere with popup sizing, submenu placement and reopening.
+        foreach (var item in menu.Items.OfType<MenuItem>())
+            StyleMenuItem(item);
+    }
 
-        var separatorStyle = new Style(typeof(Separator));
-        separatorStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brush(210, 210, 210)));
-        menu.Resources[typeof(Separator)] = separatorStyle;
+    private static void StyleMenuItem(MenuItem item)
+    {
+        item.Background = MenuBar;
+        item.Foreground = MenuText;
+        item.FontFamily = new FontFamily("Rockwell");
+
+        foreach (var child in item.Items.OfType<MenuItem>())
+            StyleMenuItem(child);
     }
 
 
