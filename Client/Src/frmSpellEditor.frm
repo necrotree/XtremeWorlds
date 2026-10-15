@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form frmSpellEditor 
    BorderStyle     =   4  'Fixed ToolWindow
    Caption         =   "Spell Editor"
-   ClientHeight = 9240
+   ClientHeight = 8700
    ClientLeft      =   5400
    ClientTop       =   2280
    ClientWidth     =   4980
@@ -56,23 +56,9 @@ Begin VB.Form frmSpellEditor
    Begin VB.ComboBox cmbArrow
       Left = 120
       Top = 7500
-      Width = 2670
+      Width = 4800
       Height = 360
       Style = 2
-   End
-   Begin VB.CommandButton cmdArrows
-      Left = 2970
-      Top = 7470
-      Width = 1950
-      Height = 420
-      Caption = "Edit arrows..."
-   End
-   Begin VB.Label lblProjectileHelp
-      Left = 120
-      Top = 7950
-      Width = 4800
-      Height = 540
-      Caption = "Projectile mode uses the arrow range. Spell effect and damage remain above."
    End
    Begin VB.PictureBox picSpells 
       Appearance      =   0  'Flat
@@ -98,7 +84,7 @@ Begin VB.Form frmSpellEditor
       Height          =   495
       Left            =   120
       TabIndex        =   8
-      Top             =   8610
+      Top             =   8070
       Width           =   2295
    End
    Begin VB.CommandButton cmdCancel 
@@ -106,7 +92,7 @@ Begin VB.Form frmSpellEditor
       Height          =   495
       Left            =   2640
       TabIndex        =   7
-      Top             =   8610
+      Top             =   8070
       Width           =   2295
    End
    Begin VB.Frame fraWarp 
@@ -519,9 +505,6 @@ Private Sub tmrSpellAnim_Timer()
         Call SpellEditorBltAnim(i)
 End Sub
 
-    Private Sub cmdArrows_Click()
-        SendData "REQUESTARROWS" & END_CHAR
-    End Sub
 
     Private Sub cmbDelivery_Click()
         txtCastRange.Enabled = (cmbDelivery.ListIndex = 0)
