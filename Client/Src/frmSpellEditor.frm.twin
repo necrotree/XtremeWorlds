@@ -76,10 +76,6 @@ Class frmSpellEditor
     End Sub
     
 
-    Private Sub cmdArrows_Click()
-        SendRequestEditArrow()
-    End Sub
-
     Private Sub cmbDelivery_Click()
         txtCastRange.Enabled = (cmbDelivery.ListIndex = 0)
     End Sub
